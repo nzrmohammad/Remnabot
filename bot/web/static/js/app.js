@@ -721,6 +721,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت هوشمند چندپروتکله بر پایه هسته قدرتمند sing-box',
       icon: '🚀',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'karing',
+      name: 'Karing',
+      version: '1.0.38',
+      desc: 'کلاینت قدرتمند و سبک بر پایه هسته sing-box با پشتیبانی کامل از قوانین مسیریابی',
+      icon: '🚗',
+      scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
     }
   ],
   android: [
@@ -730,6 +738,14 @@ const CLIENT_APPS_DATA = {
       version: '1.9.15',
       desc: 'استانداردترین و سازگارترین نرم‌افزار برای تمامی گوشی‌های اندروید',
       icon: '🤖',
+      scheme: (url) => `v2rayng://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'pattng',
+      name: 'PattNG',
+      version: '2.3.15',
+      desc: 'نسخه بهینه‌شده اندروید مبتنی بر v2rayNG با امکانات پیشرفته ضد محدودیت و فرگمنت',
+      icon: '⚡️',
       scheme: (url) => `v2rayng://install-sub?url=${encodeURIComponent(url)}`
     },
     {
@@ -747,6 +763,22 @@ const CLIENT_APPS_DATA = {
       desc: 'اتصال هوشمند به کم‌پینگ‌ترین سرور و تفکیک خودکار ترافیک',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'karing',
+      name: 'Karing',
+      version: '1.0.38',
+      desc: 'اپلیکیشن چندپروتکله مبتنی بر sing-box با رابط کاربری ساده و اتصال خودکار',
+      icon: '🚗',
+      scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'zedsecure',
+      name: 'Zedsecure',
+      version: '1.0.0',
+      desc: 'کلاینت چندموتوره اندروید با پشتیبانی همزمان از Xray، sing-box و تانل‌های امن',
+      icon: '🛡️',
+      scheme: null
     },
     {
       id: 'incy',
@@ -767,6 +799,14 @@ const CLIENT_APPS_DATA = {
       scheme: null
     },
     {
+      id: 'pattn',
+      name: 'PattN',
+      version: '7.25.6',
+      desc: 'نسخه دسکتاپ بهینه‌شده بر پایه Xray و sing-box ویژه عبور از محدودیت‌های شبکه',
+      icon: '⚡️',
+      scheme: null
+    },
+    {
       id: 'hiddify',
       name: 'Hiddify',
       version: '2.5.7',
@@ -781,6 +821,22 @@ const CLIENT_APPS_DATA = {
       desc: 'نسخه ویندوز اپلیکیشن Happ با محیط سبک، مدرن و سرعت بالا',
       icon: '🚀',
       scheme: (url) => `happ://add/${url}`
+    },
+    {
+      id: 'karing',
+      name: 'Karing',
+      version: '1.0.38',
+      desc: 'کلاینت ویندوز بر پایه sing-box با پشتیبانی مستقیم از لینک اشتراک و قوانین مسیریابی',
+      icon: '🚗',
+      scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'zedsecure',
+      name: 'Zedsecure',
+      version: '1.0.0',
+      desc: 'کلاینت چندموتوره ویندوز با پشتیبانی از Xray، sing-box و پروتکل‌های متعدد',
+      icon: '🛡️',
+      scheme: null
     },
     {
       id: 'incy',
@@ -799,6 +855,30 @@ const CLIENT_APPS_DATA = {
       desc: 'نسخه مک کلاینت Hiddify با پشتیبانی از پردازنده‌های Apple Silicon و اینتل',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'karing',
+      name: 'Karing',
+      version: '1.0.38',
+      desc: 'نسخه مک کلاینت Karing بر پایه sing-box با اتصال سریع و قوانین هوشمند',
+      icon: '🚗',
+      scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'pattn',
+      name: 'PattN',
+      version: '7.25.6',
+      desc: 'نسخه macOS کلاینت PattN با پشتیبانی کامل از Xray و sing-box',
+      icon: '⚡️',
+      scheme: null
+    },
+    {
+      id: 'zedsecure',
+      name: 'Zedsecure',
+      version: '1.0.0',
+      desc: 'نسخه macOS کلاینت چندموتوره Zedsecure با مسیریابی خودکار سریع‌ترین سرور',
+      icon: '🛡️',
+      scheme: null
     },
     {
       id: 'happ',
@@ -833,6 +913,30 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت مدرن لینوکس در قالب بسته‌های AppImage و deb با هسته پیشرفته',
       icon: '✨',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'karing',
+      name: 'Karing',
+      version: '1.0.38',
+      desc: 'نسخه لینوکس کلاینت Karing در قالب deb و rpm بر پایه هسته sing-box',
+      icon: '🚗',
+      scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'pattn',
+      name: 'PattN',
+      version: '7.25.6',
+      desc: 'کلاینت گرافیکی لینوکس برای مدیریت اشتراک‌ها با هسته‌های Xray و sing-box',
+      icon: '⚡️',
+      scheme: null
+    },
+    {
+      id: 'zedsecure',
+      name: 'Zedsecure',
+      version: '1.0.0',
+      desc: 'کلاینت چندموتوره لینوکس با پشتیبانی از انواع پروتکل‌ها و هسته‌های تونل',
+      icon: '🛡️',
+      scheme: null
     },
     {
       id: 'nekoray',
@@ -1039,7 +1143,7 @@ function renderTutorialApps(osKey) {
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 min-w-0">
-                ${app.version ? `<span class="text-[11px] t-muted font-mono font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
+                ${app.version ? `<span class="text-[11px] t-muted font-sans font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
                 <b class="text-xs t-main font-bold truncate">${escapeHtml(app.name)}</b>
               </div>
             </div>
@@ -1319,7 +1423,7 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', d);
-      btn.className = 'bday-grid-btn py-1.5 px-1 h-8 min-h-[32px] text-center text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95 flex items-center justify-center';
+      btn.className = 'bday-grid-btn py-1.5 px-1 h-8 min-h-[32px] text-center text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-sans active:scale-95 flex items-center justify-center';
       btn.textContent = String(d);
       btn.onclick = () => selectBdayItem('day', d, String(d), false);
       dayGrid.appendChild(btn);
@@ -1344,7 +1448,7 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', y);
-      btn.className = 'bday-grid-btn py-1.5 px-0.5 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-mono active:scale-95';
+      btn.className = 'bday-grid-btn py-1.5 px-0.5 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-sans active:scale-95';
       btn.textContent = String(y);
       btn.onclick = () => selectBdayItem('year', y, String(y), false);
       yearGrid.appendChild(btn);
@@ -1395,11 +1499,11 @@ function openAlertPickerModal(type) {
     }
     const currentVal = parseInt($('settingTrafficPercentSelect')?.value || '80', 10);
     const options = [
-      { val: 70, label: '70% — هشدار زودهنگام', desc: 'ارسال هشدار هنگام مصرف ۷۰٪ حجم بسته' },
+      { val: 70, label: '70% — هشدار زودهنگام', desc: 'ارسال هشدار هنگام مصرف 70٪ حجم بسته' },
       { val: 75, label: '75% — سه‌چهارم حجم', desc: 'ارسال هشدار هنگام مصرف سه‌چهارم ترافیک' },
       { val: 80, label: '80% — حد استاندارد (پیشنهادی ⭐)', desc: 'بهترین تعادل برای خرید یا تمدید به‌موقع' },
       { val: 85, label: '85% — مصرف بالا', desc: 'ارسال هشدار در آستانه اتمام حجم' },
-      { val: 90, label: '90% — نزدیک به پایان کامل', desc: 'هشدار فوری هنگام باقی‌ماندن ۱۰٪ حجم' },
+      { val: 90, label: '90% — نزدیک به پایان کامل', desc: 'هشدار فوری هنگام باقی‌ماندن 10٪ حجم' },
       { val: 95, label: '95% — هشدار اضطراری', desc: 'آخرین فرصت پیش از قطع دسترسی اینترنت' },
     ];
     listEl.innerHTML = options.map(opt => `
@@ -1425,7 +1529,7 @@ function openAlertPickerModal(type) {
       { val: 1, label: '1 روز قبل از پایان', desc: 'ارسال پیام یادآوری در روز پایانی اعتبار' },
       { val: 2, label: '2 روز قبل از پایان', desc: 'ارسال پیام دو روز مانده به انقضای اشتراک' },
       { val: 3, label: '3 روز قبل از پایان (پیشنهادی ⭐)', desc: 'زمان استاندارد جهت جلوگیری از قطعی اتصال' },
-      { val: 5, label: '5 روز قبل از پایان', desc: 'اطلاع‌رسانی زودهنگام ۵ روز مانده به انقضا' },
+      { val: 5, label: '5 روز قبل از پایان', desc: 'اطلاع‌رسانی زودهنگام 5 روز مانده به انقضا' },
       { val: 7, label: '7 روز قبل از پایان', desc: 'اطلاع‌رسانی یک هفته قبل از اتمام زمان سرویس' },
     ];
     listEl.innerHTML = options.map(opt => `
@@ -1785,7 +1889,7 @@ function openExpiryCountdownModal() {
   if (modalAccountName) {
     const cleanUsername = sub?.username ? String(sub.username).replace(/^@+/, '') : '';
     modalAccountName.innerHTML = cleanUsername
-      ? `سرویس <bdi dir="ltr" class="font-mono font-bold select-all">${escapeHtml(cleanUsername)}</bdi>`
+      ? `سرویس <bdi dir="ltr" class="font-sans font-bold select-all">${escapeHtml(cleanUsername)}</bdi>`
       : 'اشتراک فعال شما';
   }
 
@@ -2047,7 +2151,7 @@ function setupSupportChat() {
       bubble.innerHTML = `
         <div class="chat-user-bubble chat-bubble-user rounded-2xl rounded-tr-none p-2.5 leading-relaxed shadow-sm text-right">
           ${safeText}
-          <span class="text-[11px] text-blue-400 dark:text-blue-300 block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[11px] text-blue-400 dark:text-blue-300 block text-left mt-1 font-sans" dir="ltr">${timeStr}</span>
         </div>
       `;
     } else {
@@ -2056,7 +2160,7 @@ function setupSupportChat() {
         <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[11px] shrink-0 text-white mt-0.5 shadow-sm">🎧</div>
         <div class="chat-admin-bubble chat-bubble-admin rounded-2xl rounded-tl-none p-2.5 leading-relaxed shadow-md text-right">
           ${safeText}
-          <span class="text-[11px] t-muted block text-left mt-1 font-mono" dir="ltr">${timeStr}</span>
+          <span class="text-[11px] t-muted block text-left mt-1 font-sans" dir="ltr">${timeStr}</span>
         </div>
       `;
     }
@@ -2299,7 +2403,7 @@ function setupAccountSwitcher() {
           <div class="font-bold text-white text-xs flex items-center gap-1.5">
             <span>👤</span> ${escapeHtml(acc.username || '')}
           </div>
-          <span class="text-[11px] text-slate-400 mt-0.5 block font-mono num-bidi" dir="ltr">
+          <span class="text-[11px] text-slate-400 mt-0.5 block font-sans num-bidi" dir="ltr">
             ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : 'نامحدود'}
           </span>
         </div>
@@ -2430,7 +2534,7 @@ function resetActiveSubAnalytics() {
   if (peakBadge) peakBadge.innerText = 'بدون داده';
 
   const repSessionsBadge = $('reportsSessionsBadge');
-  if (repSessionsBadge) repSessionsBadge.innerText = '۰ دستگاه';
+  if (repSessionsBadge) repSessionsBadge.innerText = '0 دستگاه';
 
   const devContainer = $('activeDevicesContainer');
   if (devContainer) {
@@ -2450,21 +2554,21 @@ function resetActiveSubAnalytics() {
   });
 
   const repNightlyTotal = $('repNightlyTotal');
-  if (repNightlyTotal) repNightlyTotal.innerText = '۰ GB';
+  if (repNightlyTotal) repNightlyTotal.innerText = '0 GB';
   const repNightlyUsed = $('repNightlyUsed');
-  if (repNightlyUsed) repNightlyUsed.innerText = '۰ GB';
+  if (repNightlyUsed) repNightlyUsed.innerText = '0 GB';
   const repNightlyRemain = $('repNightlyRemain');
-  if (repNightlyRemain) repNightlyRemain.innerText = '۰ GB';
+  if (repNightlyRemain) repNightlyRemain.innerText = '0 GB';
   const repNightlyYesterday = $('repNightlyYesterday');
-  if (repNightlyYesterday) repNightlyYesterday.innerText = '۰ GB';
+  if (repNightlyYesterday) repNightlyYesterday.innerText = '0 GB';
   const repNightlyExpire = $('repNightlyExpire');
   if (repNightlyExpire) repNightlyExpire.innerText = 'غیرفعال';
   const repWeeklyTotal = $('repWeeklyTotal');
-  if (repWeeklyTotal) repWeeklyTotal.innerText = '۰ GB';
+  if (repWeeklyTotal) repWeeklyTotal.innerText = '0 GB';
   const repWeeklyBusiest = $('repWeeklyBusiest');
   if (repWeeklyBusiest) repWeeklyBusiest.innerText = '—';
   const repMonthlyTotal = $('repMonthlyTotal');
-  if (repMonthlyTotal) repMonthlyTotal.innerText = '۰ GB';
+  if (repMonthlyTotal) repMonthlyTotal.innerText = '0 GB';
   currentMonthlyIndex = 0;
   const repMonthlyCurrentLabel = $('repMonthlyCurrentLabel');
   if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = '—';
@@ -2485,11 +2589,11 @@ function resetActiveSubAnalytics() {
   const speedBadge = document.getElementById('repBurnSpeedBadge');
   if (speedBadge) speedBadge.innerText = 'غیرفعال';
   const avgDailyEl = document.getElementById('repBurnAvgDaily');
-  if (avgDailyEl) avgDailyEl.innerText = '۰ GB';
+  if (avgDailyEl) avgDailyEl.innerText = '0 GB';
   const projectedDaysEl = document.getElementById('repBurnProjectedDays');
   if (projectedDaysEl) {
     projectedDaysEl.innerText = '—';
-    projectedDaysEl.className = 'font-mono text-slate-400 text-xs';
+    projectedDaysEl.className = 'font-sans text-slate-400 text-xs';
   }
   const analysisTextEl = document.getElementById('repBurnAnalysisText');
   if (analysisTextEl) analysisTextEl.innerText = 'اشتراک فعالی برای تحلیل الگوی مصرف ثبت نشده است.';
@@ -2521,6 +2625,177 @@ function resetActiveSubAnalytics() {
 window.resetActiveSubAnalytics = resetActiveSubAnalytics;
 
 // 14. Active Subscription Analytics Visualizers
+let currentUserPeakHoursMode = 'today';
+let cachedPeakHoursSub = null;
+
+function formatSinglePeakHour(rawPeak, labels24, dataArr, limitLen = null) {
+  if (Array.isArray(dataArr) && dataArr.length > 0) {
+    const end = limitLen !== null ? Math.min(dataArr.length, limitLen + 1) : dataArr.length;
+    let bestIdx = 0;
+    let bestVal = -1;
+    for (let i = 0; i < end; i++) {
+      const v = Number(dataArr[i]) || 0;
+      if (v > bestVal) {
+        bestVal = v;
+        bestIdx = i;
+      }
+    }
+    if (bestVal > 0 && labels24?.[bestIdx]) {
+      return toEnglishDigits(String(labels24[bestIdx]));
+    }
+  }
+  if (!rawPeak) return '';
+  const clean = toEnglishDigits(String(rawPeak).trim());
+  const firstMatch = clean.match(/\d{2}:\d{2}/);
+  return firstMatch ? firstMatch[0] : clean;
+}
+
+function updateUserPeakHoursView(sub) {
+  if (!sub) return;
+  cachedPeakHoursSub = sub;
+
+  const yBtn = $('repPeakModeYesterdayBtn');
+  const tBtn = $('repPeakModeTodayBtn');
+  const cBtn = $('repPeakModeCompareBtn');
+  const activeCls = 'py-1 px-2 rounded-lg font-bold text-[11px] bg-amber-500 text-slate-950 shadow-sm transition';
+  const inactiveCls = 'py-1 px-2 rounded-lg font-medium text-[11px] t-muted hover:t-main bg-transparent transition';
+  if (yBtn) yBtn.className = currentUserPeakHoursMode === 'yesterday' ? activeCls : inactiveCls;
+  if (tBtn) tBtn.className = currentUserPeakHoursMode === 'today' ? activeCls : inactiveCls;
+  if (cBtn) cBtn.className = currentUserPeakHoursMode === 'compare' ? activeCls : inactiveCls;
+
+  const canvasEl = $('repPeakHoursChartCanvas');
+  const emptyStateEl = $('repPeakHoursEmptyState');
+  const peakBadge = $('repPeakHourBadge');
+  const barContainer = $('repPeakHoursBarContainer');
+
+  const labels12 = sub.hourly_usage?.labels || [
+    '00-02','02-04','04-06','06-08','08-10','10-12',
+    '12-14','14-16','16-18','18-20','20-22','22-24'
+  ];
+  const labels24 = sub.hourly_usage?.hourly_labels_24 || Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`);
+  const today12 = sub.hourly_usage?.data || Array(12).fill(0);
+  const yest12 = sub.yesterday_hourly_usage?.data || Array(12).fill(0);
+  const today24 = sub.hourly_usage?.hourly_data_24 || today12.flatMap(v => [Number(v) / 2, Number(v) / 2]);
+  const yest24 = sub.yesterday_hourly_usage?.hourly_data_24 || yest12.flatMap(v => [Number(v) / 2, Number(v) / 2]);
+  const currHour = Number.isInteger(sub.hourly_usage?.current_hour) ? sub.hourly_usage.current_hour : 23;
+
+  let plotLabels = labels24;
+  let plotData = today24;
+  let barData = today12;
+  let peakHour = null;
+  let extraOpts = {};
+
+  if (currentUserPeakHoursMode === 'yesterday') {
+    plotLabels = sub.yesterday_hourly_usage?.hourly_labels_24 || labels24;
+    plotData = yest24;
+    barData = yest12;
+    peakHour = formatSinglePeakHour(sub.yesterday_hourly_usage?.peak_hour, plotLabels, plotData, 23);
+  } else if (currentUserPeakHoursMode === 'compare') {
+    const todaySliceCount = Math.min(24, Math.max(1, currHour + 1));
+    const yLabels = sub.yesterday_hourly_usage?.hourly_labels_24 || labels24;
+    const tLabels = labels24.slice(0, todaySliceCount);
+    const ySlice = yest24.slice(0, 24);
+    const tSlice = today24.slice(0, todaySliceCount);
+
+    plotLabels = [
+      ...yLabels.map((lbl, idx) => (idx === 0 ? 'دیروز 00:00' : lbl)),
+      ...tLabels.map((lbl, idx) => (idx === 0 ? 'امروز 00:00' : lbl)),
+    ];
+    plotData = [...ySlice, ...tSlice];
+    extraOpts = {
+      tooltipTitles: [
+        ...yLabels.map(lbl => `دیروز - ساعت ${toEnglishDigits(lbl)}`),
+        ...tLabels.map(lbl => `امروز - ساعت ${toEnglishDigits(lbl)}`),
+      ],
+    };
+    peakHour = formatSinglePeakHour(null, [...yLabels, ...tLabels], plotData, plotData.length - 1);
+    barData = today12;
+  } else {
+    plotLabels = labels24;
+    plotData = today24;
+    barData = today12;
+    extraOpts = { cutoffIndex: currHour };
+    peakHour = formatSinglePeakHour(sub.hourly_usage?.peak_hour, plotLabels, plotData, currHour);
+  }
+
+  const hasModeTraffic = Array.isArray(plotData) && plotData.some(v => Number(v) > 0);
+  if (!hasModeTraffic) {
+    if (canvasEl) canvasEl.classList.add('hidden');
+    if (barContainer) barContainer.classList.add('hidden');
+    if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+    if (peakBadge) peakBadge.innerText = 'بدون داده';
+  } else {
+    if (canvasEl) canvasEl.classList.remove('hidden');
+    if (barContainer) barContainer.classList.remove('hidden');
+    if (emptyStateEl) emptyStateEl.classList.add('hidden');
+    if (typeof renderLineCurveChart === 'function') {
+      renderLineCurveChart('repPeakHoursChartCanvas', plotLabels, plotData, peakHour, extraOpts);
+    }
+    if (peakBadge) {
+      peakBadge.innerText = peakHour ? `Peak: ${toEnglishDigits(peakHour)}` : '---';
+    }
+  }
+
+  if (typeof renderBarChart === 'function') {
+    if (hasModeTraffic) {
+      renderBarChart('repPeakHoursBarCanvas', barData, labels12, false);
+    }
+    renderBarChart('repDailyChartCanvas', today12, labels12, false);
+    const hasY = Boolean((sub.yesterday_used_gb && Number(sub.yesterday_used_gb) > 0) || yest12.some(v => Number(v) > 0));
+    const nCanvas = $('repNightlyChartCanvas');
+    const nEmpty = $('repNightlyEmptyState');
+    if (nCanvas) nCanvas.classList.toggle('hidden', !hasY);
+    if (nEmpty) nEmpty.classList.toggle('hidden', hasY);
+    if (hasY) {
+      renderBarChart('repNightlyChartCanvas', yest12, labels12, false);
+    }
+  }
+
+  try {
+    let dawnSum = 0, morningSum = 0, afternoonSum = 0, nightSum = 0;
+    labels12.forEach((lbl, idx) => {
+      const val = parseFloat(barData[idx]) || 0;
+      const startHour = parseInt(String(lbl).split('-')[0] || String(idx * 2), 10);
+      if (startHour >= 0 && startHour < 6) dawnSum += val;
+      else if (startHour >= 6 && startHour < 12) morningSum += val;
+      else if (startHour >= 12 && startHour < 18) afternoonSum += val;
+      else nightSum += val;
+    });
+    const totalPeriods = (dawnSum + morningSum + afternoonSum + nightSum) || 1;
+    const dawnPct = `${Math.round((dawnSum / totalPeriods) * 100)}%`;
+    const mornPct = `${Math.round((morningSum / totalPeriods) * 100)}%`;
+    const aftPct = `${Math.round((afternoonSum / totalPeriods) * 100)}%`;
+    const ngtPct = `${Math.round((nightSum / totalPeriods) * 100)}%`;
+
+    const dawnTraffic = fmtTraffic(dawnSum, { isBytes: false });
+    const mornTraffic = fmtTraffic(morningSum, { isBytes: false });
+    const aftTraffic = fmtTraffic(afternoonSum, { isBytes: false });
+    const ngtTraffic = fmtTraffic(nightSum, { isBytes: false });
+
+    ['periodDawnVal', 'repDailyPeriodDawnVal', 'repNightlyPeriodDawnVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = dawnTraffic; });
+    ['periodDawnPercent', 'repDailyPeriodDawnPct', 'repNightlyPeriodDawnPct'].forEach(id => { const el = $(id); if (el) el.innerText = dawnPct; });
+
+    ['periodMorningVal', 'repDailyPeriodMornVal', 'repNightlyPeriodMornVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = mornTraffic; });
+    ['periodMorningPercent', 'repDailyPeriodMornPct', 'repNightlyPeriodMornPct'].forEach(id => { const el = $(id); if (el) el.innerText = mornPct; });
+
+    ['periodAfternoonVal', 'repDailyPeriodAftVal', 'repNightlyPeriodAftVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = aftTraffic; });
+    ['periodAfternoonPercent', 'repDailyPeriodAftPct', 'repNightlyPeriodAftPct'].forEach(id => { const el = $(id); if (el) el.innerText = aftPct; });
+
+    ['periodNightVal', 'repDailyPeriodNgtVal', 'repNightlyPeriodNgtVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = ngtTraffic; });
+    ['periodNightPercent', 'repDailyPeriodNgtPct', 'repNightlyPeriodNgtPct'].forEach(id => { const el = $(id); if (el) el.innerText = ngtPct; });
+  } catch (perr) {
+    console.debug('Error computing diurnal periods:', perr);
+  }
+}
+
+window.switchUserPeakHoursMode = function (mode = 'today') {
+  currentUserPeakHoursMode = ['yesterday', 'today', 'compare'].includes(mode) ? mode : 'today';
+  if (cachedPeakHoursSub) {
+    updateUserPeakHoursView(cachedPeakHoursSub);
+  }
+  if (typeof hapticFeedback === 'function') hapticFeedback('selection');
+};
+
 function renderActiveSubAnalytics(sub) {
   if (!sub) {
     resetActiveSubAnalytics();
@@ -2546,90 +2821,10 @@ function renderActiveSubAnalytics(sub) {
   }
 
   // 2. 24h Peak Usage Area Curve
-  if (typeof renderLineCurveChart === 'function') {
-    try {
-      const canvasEl = $('repPeakHoursChartCanvas');
-      const emptyStateEl = $('repPeakHoursEmptyState');
-      const peakBadge = $('repPeakHourBadge');
-      const hourlyData = sub.hourly_usage?.data || [];
-      const hasRealTraffic = Boolean(
-        (sub.hourly_usage?.has_real_data || hourlyData.some(v => Number(v) > 0)) &&
-        hourlyData.length > 0
-      );
-
-      const barContainer = $('repPeakHoursBarContainer');
-      if (!hasRealTraffic) {
-        if (canvasEl) canvasEl.classList.add('hidden');
-        if (barContainer) barContainer.classList.add('hidden');
-        if (emptyStateEl) emptyStateEl.classList.remove('hidden');
-        if (peakBadge) peakBadge.innerText = 'بدون داده';
-      } else {
-        if (canvasEl) canvasEl.classList.remove('hidden');
-        if (barContainer) barContainer.classList.remove('hidden');
-        if (emptyStateEl) emptyStateEl.classList.add('hidden');
-        const hourlyLabels = sub.hourly_usage?.labels || [
-          '00-02','02-04','04-06','06-08','08-10','10-12',
-          '12-14','14-16','16-18','18-20','20-22','22-24'
-        ];
-        const peakHour = sub.hourly_usage?.peak_hour || null;
-        renderLineCurveChart('repPeakHoursChartCanvas', hourlyLabels, hourlyData, peakHour);
-        if (typeof renderBarChart === 'function') {
-          renderBarChart('repPeakHoursBarCanvas', hourlyData, hourlyLabels, false);
-          renderBarChart('repDailyChartCanvas', hourlyData, hourlyLabels, false);
-          const yData = sub.yesterday_hourly_usage?.data || Array(12).fill(0);
-          const yLabels = sub.yesterday_hourly_usage?.labels || hourlyLabels;
-          const hasY = Boolean((sub.yesterday_used_gb && Number(sub.yesterday_used_gb) > 0) || yData.some(v => Number(v) > 0));
-          const nCanvas = $('repNightlyChartCanvas');
-          const nEmpty = $('repNightlyEmptyState');
-          if (nCanvas) nCanvas.classList.toggle('hidden', !hasY);
-          if (nEmpty) nEmpty.classList.toggle('hidden', hasY);
-          if (hasY) {
-            renderBarChart('repNightlyChartCanvas', yData, yLabels, false);
-          }
-        }
-        // Update 4 Diurnal Periods Summary
-        try {
-          let dawnSum = 0, morningSum = 0, afternoonSum = 0, nightSum = 0;
-          hourlyLabels.forEach((lbl, idx) => {
-            const val = parseFloat(hourlyData[idx]) || 0;
-            const startHour = parseInt(String(lbl).split('-')[0] || String(idx * 2), 10);
-            if (startHour >= 0 && startHour < 6) dawnSum += val;
-            else if (startHour >= 6 && startHour < 12) morningSum += val;
-            else if (startHour >= 12 && startHour < 18) afternoonSum += val;
-            else nightSum += val;
-          });
-          const totalPeriods = (dawnSum + morningSum + afternoonSum + nightSum) || 1;
-          const dawnPct = `${Math.round((dawnSum / totalPeriods) * 100)}%`;
-          const mornPct = `${Math.round((morningSum / totalPeriods) * 100)}%`;
-          const aftPct = `${Math.round((afternoonSum / totalPeriods) * 100)}%`;
-          const ngtPct = `${Math.round((nightSum / totalPeriods) * 100)}%`;
-
-          const dawnTraffic = fmtTraffic(dawnSum, { isBytes: false });
-          const mornTraffic = fmtTraffic(morningSum, { isBytes: false });
-          const aftTraffic = fmtTraffic(afternoonSum, { isBytes: false });
-          const ngtTraffic = fmtTraffic(nightSum, { isBytes: false });
-
-          ['periodDawnVal', 'repDailyPeriodDawnVal', 'repNightlyPeriodDawnVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = dawnTraffic; });
-          ['periodDawnPercent', 'repDailyPeriodDawnPct', 'repNightlyPeriodDawnPct'].forEach(id => { const el = $(id); if (el) el.innerText = dawnPct; });
-
-          ['periodMorningVal', 'repDailyPeriodMornVal', 'repNightlyPeriodMornVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = mornTraffic; });
-          ['periodMorningPercent', 'repDailyPeriodMornPct', 'repNightlyPeriodMornPct'].forEach(id => { const el = $(id); if (el) el.innerText = mornPct; });
-
-          ['periodAfternoonVal', 'repDailyPeriodAftVal', 'repNightlyPeriodAftVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = aftTraffic; });
-          ['periodAfternoonPercent', 'repDailyPeriodAftPct', 'repNightlyPeriodAftPct'].forEach(id => { const el = $(id); if (el) el.innerText = aftPct; });
-
-          ['periodNightVal', 'repDailyPeriodNgtVal', 'repNightlyPeriodNgtVal'].forEach(id => { const el = $(id); if (el) el.innerHTML = ngtTraffic; });
-          ['periodNightPercent', 'repDailyPeriodNgtPct', 'repNightlyPeriodNgtPct'].forEach(id => { const el = $(id); if (el) el.innerText = ngtPct; });
-        } catch (perr) {
-          console.debug('Error computing diurnal periods:', perr);
-        }
-        if (peakBadge) {
-          peakBadge.innerText = peakHour ? `Peak: ${toEnglishDigits(peakHour)}` : '---';
-        }
-      }
-    } catch (e) {
-      console.warn('Error rendering peak hours chart', e);
-    }
+  try {
+    updateUserPeakHoursView(sub);
+  } catch (e) {
+    console.warn('Error rendering peak hours chart', e);
   }
 
   // 3. Country / Cluster Donut Chart
@@ -2799,7 +2994,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="text-white font-mono font-bold" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="t-success text-xs inline-flex items-center" title="تأیید شده">✅</span>`;
+        profPhone.innerHTML = `<span class="text-white font-sans font-bold" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="t-success text-xs inline-flex items-center" title="تأیید شده">✅</span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -2983,7 +3178,7 @@ function hydrateUserInterface(data) {
 
     const refCount = Number(user.referrals_count || 0);
     const refRewardGb = Number(data.referral_reward_gb || 1);
-    if (refCountEl) refCountEl.innerHTML = `<span class="font-mono font-bold">${toEnglishDigits(refCount)}</span> <span class="font-sans">نفر</span>`;
+    if (refCountEl) refCountEl.innerHTML = `<span class="font-sans font-bold">${toEnglishDigits(refCount)}</span> <span class="font-sans">نفر</span>`;
     if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)}`;
     if (refRewardBadge) refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
 
@@ -3289,9 +3484,10 @@ function hydrateUserInterface(data) {
         let cleanUa = ua;
         if (ua) {
           const clients = [
-            'v2rayNG', 'Happ', 'Hiddify', 'Streisand', 'V2Box', 'Incy', 'NekoBox',
-            'ClashMeta', 'Clash', 'Sing-box', 'sing-box', 'Shadowrocket', 'Quantumult',
-            'Surge', 'Loon', 'Foxray', 'Karing', 'Wings', 'WireGuard', 'Outline'
+            'v2rayNG', 'PattNG', 'PattN', 'Zedsecure', 'ZedSecure', 'Happ', 'Hiddify', 'Streisand',
+            'V2Box', 'Incy', 'NekoBox', 'ClashMeta', 'Clash', 'Sing-box', 'sing-box',
+            'Shadowrocket', 'Quantumult', 'Surge', 'Loon', 'Foxray', 'Karing', 'Wings',
+            'WireGuard', 'Outline'
           ];
           let matched = false;
           for (const c of clients) {
@@ -3544,7 +3740,7 @@ function hydrateUserInterface(data) {
       if (repWeeklyTotal) repWeeklyTotal.innerHTML = fmtTraffic(sub.week_used_gb ?? '0.00', { html: true });
       const repWeeklyBusiest = $('repWeeklyBusiest');
       if (repWeeklyBusiest) {
-        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span class="font-mono t-accent font-bold num-bidi">(${fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false })})</span>`;
+        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span class="font-sans t-accent font-bold num-bidi">(${fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false })})</span>`;
       }
 
       if (typeof renderBarChart === 'function') {
@@ -3634,14 +3830,14 @@ function renderUserAchievements(data) {
   const couponsActionEl = $('achieveCouponsAction');
   if (wonCouponsEl) {
     const count = Number(ach.active_coupons_count ?? wonCoupons.length);
-    wonCouponsEl.innerText = `${typeof toPersianDigits === 'function' ? toPersianDigits(count) : count} کد`;
+    wonCouponsEl.innerText = `${count} کد`;
     if (couponsActionEl) {
       if (count > 0) {
         couponsActionEl.innerText = 'کپی آخرین کد';
         couponsActionEl.className = 'text-[11px] t-success mt-0.5 font-medium hover:underline bg-transparent border-0 p-0';
       } else {
-        couponsActionEl.innerText = 'بدون کد فعال';
-        couponsActionEl.className = 'text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium cursor-default bg-transparent border-0 p-0';
+        couponsActionEl.innerText = '';
+        couponsActionEl.className = 'hidden';
       }
     }
   }
@@ -3652,36 +3848,15 @@ function renderUserAchievements(data) {
     if (ach.birthday_claimed) {
       bdayStatusEl.innerText = '🎁 دریافت شده';
       bdayStatusEl.className = 't-success text-[11px] font-bold truncate max-w-full';
-      if (bdayBtn) {
-        bdayBtn.innerText = 'هدیه ثبت شد';
-        bdayBtn.className = 'text-[11px] t-success mt-0.5 hover:underline bg-transparent border-0 p-0';
-        bdayBtn.onclick = () => window.openBirthdayCountdownModal();
-      }
+      if (bdayBtn) bdayBtn.classList.add('hidden');
     } else if (ach.is_birthday_today) {
       bdayStatusEl.innerText = '🎉 امروز زادروز شماست!';
-      bdayStatusEl.className = 'text-amber-500 dark:text-amber-300 text-[11px] font-bold truncate max-w-full animate-pulse';
-      if (bdayBtn) {
-        bdayBtn.innerText = 'تبریک زادروز 🎂';
-        bdayBtn.className = 'text-[11px] t-warn mt-0.5 hover:underline bg-transparent border-0 p-0';
-        bdayBtn.onclick = () => window.openBirthdayCountdownModal();
-      }
-    } else if (ach.has_birthday_set && ach.days_until_birthday !== null && ach.days_until_birthday !== undefined) {
-      const d = ach.days_until_birthday;
-      bdayStatusEl.innerText = d === 0 ? 'امروز' : `${d} روز مانده`;
-      bdayStatusEl.className = 't-accent text-[11px] font-bold truncate max-w-full';
-      if (bdayBtn) {
-        bdayBtn.innerText = 'شمارش معکوس';
-        bdayBtn.className = 'text-[11px] t-accent mt-0.5 hover:underline bg-transparent border-0 p-0';
-        bdayBtn.onclick = () => window.openBirthdayCountdownModal();
-      }
+      bdayStatusEl.className = 'text-amber-500 dark:text-amber-300 text-[11px] font-bold truncate max-w-full';
+      if (bdayBtn) bdayBtn.classList.add('hidden');
     } else if (ach.has_birthday_set) {
-      bdayStatusEl.innerText = 'ثبت شده';
+      bdayStatusEl.innerText = '🎂 ثبت شده';
       bdayStatusEl.className = 't-accent text-[11px] font-bold truncate max-w-full';
-      if (bdayBtn) {
-        bdayBtn.innerText = 'مشاهده جزئیات';
-        bdayBtn.className = 'text-[11px] t-accent mt-0.5 hover:underline bg-transparent border-0 p-0';
-        bdayBtn.onclick = () => window.openBirthdayCountdownModal();
-      }
+      if (bdayBtn) bdayBtn.classList.add('hidden');
     } else {
       bdayStatusEl.innerText = 'ثبت نشده';
       bdayStatusEl.className = 't-warn text-[11px] font-bold truncate max-w-full';
@@ -3899,20 +4074,20 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
       }
     } else if (inTop20 && myRank && myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '🎖️';
-      noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> از <b class="font-mono">20</b> کاربر برتر قرار دارید.`;
+      noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> از <b class="font-sans">20</b> کاربر برتر قرار دارید.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
       }
     } else if (myRank && myRank > 20 && myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '📊';
       const diffTrafficHtml = fmtTraffic(diffGb, { html: true, persianDigits: false });
-      noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-mono font-bold">${myRank}</b> قرار دارید. برای ورود به <b class="font-mono">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
+      noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> قرار دارید. برای ورود به <b class="font-sans">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
       }
     } else if (myUsedGb > 0) {
       if (noticeIconEl) noticeIconEl.innerText = '📈';
-      noticeTextEl.innerHTML = `مصرف شما برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-mono">20</b> کاربر برتر بپیوندید!`;
+      noticeTextEl.innerHTML = `مصرف شما برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-sans">20</b> کاربر برتر بپیوندید!`;
       if (noticeEl) {
         noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
       }
@@ -4553,7 +4728,7 @@ async function submitCreateGift() {
     if (currentGiftType === 'BALANCE') {
       const amt = Number($('giftBalanceAmount')?.value || 0);
       if (!amt || amt < 10000) {
-        showToast('⚠️ حداقل مبلغ هدیه اعتبار ۱۰,۰۰۰ تومان می‌باشد.');
+        showToast('⚠️ حداقل مبلغ هدیه اعتبار 10,000 تومان می‌باشد.');
         if (btn) btn.disabled = false;
         return;
       }

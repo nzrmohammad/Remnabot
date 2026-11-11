@@ -283,7 +283,7 @@ async def post_admin_upload_store_logo(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "هیچ تصویری دریافت نشد."}, status=400)
 
     if len(img_bytes) > 5 * 1024 * 1024:
-        return web.json_response({"ok": False, "error": "حجم تصویر نباید بیشتر از ۵ مگابایت باشد."}, status=400)
+        return web.json_response({"ok": False, "error": "حجم تصویر نباید بیشتر از 5 مگابایت باشد."}, status=400)
 
     import asyncio
     from pathlib import Path

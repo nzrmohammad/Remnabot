@@ -79,7 +79,7 @@ async def _render_profile(
     else:
         bday_label = "🎂 تاریخ زادروز" if lang == "fa" else "🎂 Birthday"
         not_set = "ثبت نشده" if lang == "fa" else "Not set"
-        lines.append(f"{bday_label} : <i>{not_set}</i>")
+        lines.append(f"{bday_label} : {not_set}")
 
     if user.created_at is not None:
         lines.append(f"📅 {t(lang, 'profile_member_since')} : "

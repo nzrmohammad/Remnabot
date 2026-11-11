@@ -42,7 +42,7 @@ async def wheel_hub(
     status = await get_wheel_status(session, cache, call.from_user.id, tz_name=tz)
 
     streak = status["streak"]
-    streak_bonus = " (ضریب شانس ۱.۵x 🔥)" if streak >= 3 else (" (ضریب شانس ۱.۲x ⚡️)" if streak == 2 else "")
+    streak_bonus = " (ضریب شانس 1.5x 🔥)" if streak >= 3 else (" (ضریب شانس 1.2x ⚡️)" if streak == 2 else "")
     tickets = status["spin_tickets"]
     won_gb = status["total_won_traffic"]
 
@@ -187,7 +187,7 @@ async def wheel_spin_action(
         elif ptype == "coupon":
             lines.append("🎉 <b>تبریک! شما برنده کد تخفیف ویژه شدید:</b>")
             lines.append(f"🎟 <b>کد:</b> <code>{escape(prize.get('code', ''))}</code>")
-            lines.append("⏳ <b>مهلت استفاده:</b> ۷ روز (قابل استفاده در بخش خرید سرویس)")
+            lines.append("⏳ <b>مهلت استفاده:</b> 7 روز (قابل استفاده در بخش خرید سرویس)")
         elif ptype == "traffic":
             lines.append(f"🎉 <b>تبریک! برنده {pname} شدید!</b>")
             if applied:
@@ -231,17 +231,17 @@ async def wheel_prizes_list(
     lines = [
         "📋 <b>فهرست جوایز گردونه شانس</b>",
         SEPARATOR,
-        "👑 <b>۲ گیگابایت اینترنت هدیه</b> — سوپر شانس طلایی",
-        "🎁 <b>۱ گیگابایت اینترنت هدیه</b> — ترافیک مستقیم به سرویس",
-        "⚡️ <b>۵۰۰ مگابایت اینترنت هدیه</b> — شارژ آنی سرویس",
-        "🎟 <b>۱۰٪ کد تخفیف ویژه</b> — مهلت استفاده ۷ روزه",
+        "👑 <b>2 گیگابایت اینترنت هدیه</b> — سوپر شانس طلایی",
+        "🎁 <b>1 گیگابایت اینترنت هدیه</b> — ترافیک مستقیم به سرویس",
+        "⚡️ <b>500 مگابایت اینترنت هدیه</b> — شارژ آنی سرویس",
+        "🎟 <b>10٪ کد تخفیف ویژه</b> — مهلت استفاده 7 روزه",
         "🔄 <b>شانس مجدد</b> — چرخش دوباره بدون کسر شانس",
         "❌ <b>پوچ</b> — شانس بعدی فردا",
         SEPARATOR,
         "🔥 <b>سیستم تقویت زنجیره (Streak Multiplier):</b>",
-        "• روز اول: شانس استاندارد (۱.۰x)",
-        "• روز دوم: افزایش شانس (۱.۲x)",
-        "• ۳ روز یا بیشتر: حداکثر شانس برد (۱.۵x)",
+        "• روز اول: شانس استاندارد (1.0x)",
+        "• روز دوم: افزایش شانس (1.2x)",
+        "• 3 روز یا بیشتر: حداکثر شانس برد (1.5x)",
     ]
 
     kb = InlineKeyboardBuilder()
@@ -273,7 +273,7 @@ async def wheel_my_coupons(
 
     if not coupons:
         lines.append("شما در حال حاضر کد تخفیف فعالی از گردونه ندارید.")
-        lines.append("با چرخاندن روزانه گردونه شانس می‌توانید کدهای ۱۰٪ برنده شوید!")
+        lines.append("با چرخاندن روزانه گردونه شانس می‌توانید کدهای 10٪ برنده شوید!")
     else:
         for c in coupons[:5]:
             code = escape(str(c.get("code", "")))

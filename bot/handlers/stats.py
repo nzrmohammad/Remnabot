@@ -53,7 +53,7 @@ def _stats_keyboard(lang: str, sub_url: str | None = None, page: int = 0, total:
     kb = InlineKeyboardBuilder()
     sizes: list[int] = []
 
-    # ردیف ۱: باز کردن لینک و به‌روزرسانی در یک ردیف
+    # ردیف 1: باز کردن لینک و به‌روزرسانی در یک ردیف
     row1 = 0
     if sub_url:
         kb.button(text=t(lang, "btn_open_sub"), url=sub_url)
@@ -62,7 +62,7 @@ def _stats_keyboard(lang: str, sub_url: str | None = None, page: int = 0, total:
     row1 += 1
     sizes.append(row1)
 
-    # ردیف ۲: دکمه‌های بعدی و قبلی در یک ردیف (فقط اگر بیشتر از ۱ اکانت باشد)
+    # ردیف 2: دکمه‌های بعدی و قبلی در یک ردیف (فقط اگر بیشتر از 1 اکانت باشد)
     if total > 1:
         row2 = 0
         if page > 0:
@@ -74,7 +74,7 @@ def _stats_keyboard(lang: str, sub_url: str | None = None, page: int = 0, total:
         if row2 > 0:
             sizes.append(row2)
 
-    # ردیف ۳ (یا ۲): دکمه رنگی منوی اصلی
+    # ردیف 3 (یا 2): دکمه رنگی منوی اصلی
     menu_label = "🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu"
     kb.button(text=menu_label, callback_data="nav:main_menu")
     sizes.append(1)

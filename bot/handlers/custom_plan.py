@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 router = Router(name="custom_plan")
 
 PRESET_GB = [15, 30, 50, 80, 100, 150, 200]
-PRESET_DAYS = [(30, "۳۰ روز (۱ ماه)"), (60, "۶۰ روز (۲ ماه)"), (90, "۹۰ روز (۳ ماه)"), (180, "۱۸۰ روز (۶ ماه)")]
+PRESET_DAYS = [(30, "30 روز (1 ماه)"), (60, "60 روز (2 ماه)"), (90, "90 روز (3 ماه)"), (180, "180 روز (6 ماه)")]
 
 
 async def _prompt_traffic_gb(call: CallbackQuery, bot: Bot, user, user_repo, store_settings, lang: str):
@@ -96,7 +96,7 @@ async def custom_plan_entry(
 
     if len(squads) > 1:
         lines = [
-            "🛠 <b>طراحی بسته دلخواه (مرحله ۱ از ۳)</b>" if lang == "fa" else "🛠 <b>Custom Plan Builder (Step 1 of 3)</b>",
+            "🛠 <b>طراحی بسته دلخواه (مرحله 1 از 3)</b>" if lang == "fa" else "🛠 <b>Custom Plan Builder (Step 1 of 3)</b>",
             SEPARATOR,
             "لطفاً ابتدا دسته سرور (نوع سرویس) مورد نظر خود را انتخاب فرمایید:" if lang == "fa" else "Please select the server squad first:",
         ]
@@ -200,7 +200,7 @@ async def custom_plan_custom_gb_input(
     lines = [
         f"✅ حجم انتخاب شده: <b>{gb} گیگابایت</b>",
         SEPARATOR,
-        "🛠 <b>طراحی بسته دلخواه (مرحله ۲ از ۲)</b>",
+        "🛠 <b>طراحی بسته دلخواه (مرحله 2 از 2)</b>",
         f"مدت زمان اعتبار بسته را انتخاب کنید (بین {store_settings.custom_plan_min_days} تا {store_settings.custom_plan_max_days} روز):",
     ]
     kb = InlineKeyboardBuilder()
@@ -218,7 +218,7 @@ async def _prompt_duration_days(call: CallbackQuery, bot: Bot, user, user_repo, 
     lines = [
         f"✅ حجم انتخاب شده: <b>{gb} گیگابایت</b>",
         SEPARATOR,
-        "🛠 <b>طراحی بسته دلخواه (مرحله ۲ از ۲)</b>",
+        "🛠 <b>طراحی بسته دلخواه (مرحله 2 از 2)</b>",
         f"مدت زمان اعتبار بسته را انتخاب کنید (بین {store_settings.custom_plan_min_days} تا {store_settings.custom_plan_max_days} روز):",
     ]
 
@@ -352,7 +352,7 @@ async def _build_custom_plan_summary(user, session, store_settings, gb: int, day
     lines.extend([
         f"📦 حجم ترافیک : <b>{gb} گیگابایت</b>",
         f"⏳ مدت زمان اعتبار : <b>{days} روز</b>",
-        "👥 کاربر همزمان مجاز : <b>۲ دستگاه</b>",
+        "👥 کاربر همزمان مجاز : <b>2 دستگاه</b>",
         SEPARATOR,
         f"💰 تعرفه بدون تخفیف : {fmt(raw_base)} تومان",
     ])

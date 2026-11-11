@@ -432,7 +432,7 @@ async def post_admin_batch_vouchers(request: web.Request) -> web.Response:
     if amount <= 0:
         return web.json_response({"ok": False, "error": "مبلغ اعتبار کارت شارژ باید بیشتر از صفر باشد."}, status=400)
     if count <= 0 or count > 500:
-        return web.json_response({"ok": False, "error": "تعداد کدهای درخواستی باید بین ۱ تا ۵۰۰ باشد."}, status=400)
+        return web.json_response({"ok": False, "error": "تعداد کدهای درخواستی باید بین 1 تا 500 باشد."}, status=400)
 
     expires_at = None
     if expire_days > 0:

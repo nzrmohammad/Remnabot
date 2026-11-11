@@ -145,7 +145,7 @@ async def check_nodes_health_once(
                     f"مصرف پردازنده (CPU): <b>{cpu:.1f}%</b>\n"
                     f"کاربران آنلاین: <b>{online_users} نفر</b>\n"
                     f"زمان بررسی: <code>{shamsi_time}</code>\n\n"
-                    f"<i>توصیه: ترافیک یا سرویس‌های سرور را بررسی فرمایید.</i>"
+                    f"توصیه: ترافیک یا سرویس‌های سرور را بررسی فرمایید."
                 )
                 await _notify_admins(bot, msg, session_factory=session_factory)
 
@@ -194,7 +194,7 @@ async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
                     f"هزینه ماهانه: <b>{cost_str}</b>\n"
                     f"تاریخ سررسید: <code>{due_date_str}</code>\n"
                     f"وضعیت: {status_text}\n\n"
-                    f"<i>لطفاً جهت جلوگیری از مسدود شدن یا حذف سرور نسبت به پرداخت فاکتور اقدام فرمایید.</i>"
+                    f"لطفاً جهت جلوگیری از مسدود شدن یا حذف سرور نسبت به پرداخت فاکتور اقدام فرمایید."
                 )
                 await _notify_admins(bot, msg, session_factory=session_factory)
                 await repo.mark_alert_sent(node.node_uuid, True)
@@ -255,7 +255,7 @@ async def check_ssl_certificates_due_dates(
                     f"صادرکننده: <b>{issuer}</b>\n"
                     f"تاریخ انقضا: <code>{shamsi_exp}</code>\n"
                     f"وضعیت: {status_text}\n\n"
-                    f"<i>لطفاً نسبت به تمدید گواهی SSL دامنه اقدام فرمایید تا دسترسی کاربران دچار اختلال نشود.</i>"
+                    f"لطفاً نسبت به تمدید گواهی SSL دامنه اقدام فرمایید تا دسترسی کاربران دچار اختلال نشود."
                 )
                 await _notify_admins(bot, msg, session_factory=session_factory)
                 _SSL_ALERTED[domain] = now_ts

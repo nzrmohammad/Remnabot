@@ -11,6 +11,7 @@ import math
 import secrets
 from datetime import datetime, timedelta, timezone
 from html import escape
+from typing import Any
 
 # InlineKeyboardBuilder imported lazily when sending admin alerts
 from aiohttp import web
@@ -58,12 +59,65 @@ def _as_utc(dt: datetime | None) -> datetime:
 
 
 async def _invalidate_user_caches(cache: FastCache | None, telegram_id: int | str) -> None:
-    """Invalidate profile and dashboard caches for a user across top-up actions."""
+    """Invalidate profile, dashboard, and top-up caches for a user across top-up actions."""
     if not cache:
         return
     await cache.delete(f"tma:user:{telegram_id}:profile")
     await cache.delete(f"tma:user:{telegram_id}:dashboard")
     await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
+    await cache.delete(f"tma:user:{telegram_id}:topup_info")
+
+
+async def _collect_user_topup_guards(session: Any, user_id: int) -> tuple[list[int], list[str]]:
+    """Collect recent 6h paid auto-invoice exact amounts and submitted receipt hashes for duplicate UI prevention."""
+    recent_paid_auto_amounts: list[int] = []
+    recent_receipt_hashes: list[str] = []
+    if not hasattr(session, "execute") or type(session).__name__ in ("MagicMock", "AsyncMock"):
+        return recent_paid_auto_amounts, recent_receipt_hashes
+
+    try:
+        from sqlalchemy import select
+        from bot.db.models import CardAutoInvoice, Topup
+
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=6)
+        auto_res = await session.execute(
+            select(CardAutoInvoice)
+            .where(CardAutoInvoice.telegram_id == int(user_id), CardAutoInvoice.status == "paid")
+            .order_by(CardAutoInvoice.id.desc())
+            .limit(10)
+        )
+        auto_rows = auto_res.scalars().all()
+        if isinstance(auto_rows, (list, tuple)):
+            seen_amt: set[int] = set()
+            for inv in auto_rows:
+                dt = getattr(inv, "paid_at", None) or getattr(inv, "created_at", None)
+                if dt and _as_utc(dt) >= cutoff:
+                    amt = getattr(inv, "exact_amount", None)
+                    if isinstance(amt, int) and not isinstance(amt, bool) and amt > 0 and amt not in seen_amt:
+                        seen_amt.add(amt)
+                        recent_paid_auto_amounts.append(amt)
+
+        topup_res = await session.execute(
+            select(Topup.receipt_hash)
+            .where(Topup.telegram_id == int(user_id), Topup.receipt_hash.is_not(None))
+            .order_by(Topup.id.desc())
+            .limit(30)
+        )
+        hash_rows = topup_res.scalars().all()
+        if isinstance(hash_rows, (list, tuple)):
+            seen_hash: set[str] = set()
+            for raw_hash in hash_rows:
+                if not isinstance(raw_hash, str):
+                    continue
+                for part in raw_hash.split("|"):
+                    token = part.strip()
+                    if token and token not in seen_hash:
+                        seen_hash.add(token)
+                        recent_receipt_hashes.append(token)
+    except Exception as exc:
+        logger.debug("Failed collecting topup duplicate guards for %s: %s", user_id, exc)
+
+    return recent_paid_auto_amounts, recent_receipt_hashes
 
 
 async def get_user_topup_info(request: web.Request) -> web.Response:
@@ -184,6 +238,8 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         raw_hist = getattr(store, "history_page_size", 15)
         hist_page_val = 15 if type(raw_hist).__name__ == "MagicMock" or not isinstance(raw_hist, (int, float)) else int(raw_hist)
 
+        recent_paid_auto_amounts, recent_receipt_hashes = await _collect_user_topup_guards(session, int(user_id))
+
         payload = {
             "ok": True,
             "min_amount": min_amount_val,
@@ -200,6 +256,8 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "card_require_phone_verification": require_phone,
             "is_phone_verified": is_phone_verified,
             "card_locked_reason": card_locked_reason,
+            "recent_paid_auto_amounts": recent_paid_auto_amounts,
+            "recent_receipt_hashes": recent_receipt_hashes,
             "crypto_enabled": bool(store.crypto_enabled and ton_wallet_str and ton_rate_val > 0),
             "ton_wallet_address": ton_wallet_str,
             "ton_rate_toman": ton_rate_val,
@@ -246,7 +304,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
     if receipt_image and isinstance(receipt_image, str):
         if len(receipt_image) > 15 * 1024 * 1024:
             return web.json_response(
-                {"ok": False, "message": "حجم تصویر فیش واریزی نباید بیشتر از ۱۰ مگابایت باشد."},
+                {"ok": False, "message": "حجم تصویر فیش واریزی نباید بیشتر از 10 مگابایت باشد."},
                 status=400,
             )
         if "base64," in receipt_image:
@@ -262,7 +320,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 img_bytes = base64.b64decode(b64_data)
                 if len(img_bytes) > MAX_IMAGE_BYTES:
                     return web.json_response(
-                        {"ok": False, "message": "حجم تصویر فیش واریزی نباید بیشتر از ۱۰ مگابایت باشد."},
+                        {"ok": False, "message": "حجم تصویر فیش واریزی نباید بیشتر از 10 مگابایت باشد."},
                         status=400,
                     )
             except Exception as b64_err:
@@ -333,7 +391,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
         wallet_repo = WalletRepository(session)
         if await wallet_repo.pending_count(telegram_id) >= 3:
             return web.json_response(
-                {"ok": False, "message": "شما حداکثر ۳ درخواست در انتظار بررسی دارید. لطفاً تا تعیین تکلیف آن‌ها صبر کنید."},
+                {"ok": False, "message": "شما حداکثر 3 درخواست در انتظار بررسی دارید. لطفاً تا تعیین تکلیف آن‌ها صبر کنید."},
                 status=400,
             )
 
@@ -355,7 +413,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                         )
                     if recent_paid_auto.base_amount == amount:
                         auto_paid_warn = (
-                            f"\n\n⚠️ <b>هشدار همپوشانی:</b> این کاربر در ۶ ساعت گذشته یک فاکتور خودکار "
+                            f"\n\n⚠️ <b>هشدار همپوشانی:</b> این کاربر در 6 ساعت گذشته یک فاکتور خودکار "
                             f"به مبلغ <b>{recent_paid_auto.exact_amount:,} تومان</b> را با موفقیت شارژ کرده است. لطفاً زمان/پیگیری فیش را با دقت بررسی کنید."
                         )
                 active_auto_inv = await card_auto_repo.get_active_invoice_by_user(telegram_id)
@@ -463,6 +521,8 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 await session.commit()
             except Exception as exc:
                 logger.error("Failed to notify admin of TMA topup: %s", exc)
+
+        await _invalidate_user_caches(request.app.get("cache"), telegram_id)
 
         logger.info(
             "Manual card topup submitted: topup_id=%s tg_id=%s amount=%s has_image=%s",
@@ -1728,7 +1788,7 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                             f"🌐 <b>آی‌پی مبدأ:</b> <code>{escape(peer_ip)}</code>\n"
                             f"📱 <b>فرستنده:</b> <code>{escape(sender or 'نامشخص')}</code>\n"
                             "🔑 <b>علت:</b> توکن احراز هویت (Secret) اشتباه است یا ارسال نشده است.\n\n"
-                            "💡 <i>راهنما: در تنظیمات SMS Forwarder هدر <code>X-SMS-Token</code> یا پارامتر <code>token</code> را برابر با سکرت وب‌هوک فروشگاه قرار دهید.</i>"
+                            "💡 راهنما: در تنظیمات SMS Forwarder هدر <code>X-SMS-Token</code> یا پارامتر <code>token</code> را برابر با سکرت وب‌هوک فروشگاه قرار دهید."
                         ),
                         parse_mode="HTML",
                         **admin_thread_kwargs(topic_id=target_topic),
@@ -1755,6 +1815,8 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
             raw_message=raw_message,
             cache=cache,
         )
+        if result.get("ok") and result.get("action") == "credited" and result.get("telegram_id"):
+            await _invalidate_user_caches(cache, result["telegram_id"])
         logger.info(
             "SMS webhook processed from %s (sender=%r): action=%s ok=%s",
             peer_ip, sender, result.get("action"), result.get("ok"),

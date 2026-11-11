@@ -216,7 +216,7 @@ async def execute_lucky_wheel_spin(
             mins = (rem_secs % 3600) // 60
             return {
                 "ok": False,
-                "error": f"گردونه شانس هر ۲۴ ساعت یک‌بار قابل استفاده است. زمان باقیمانده: {hours} ساعت و {mins} دقیقه.",
+                "error": f"گردونه شانس هر 24 ساعت یک‌بار قابل استفاده است. زمان باقیمانده: {hours} ساعت و {mins} دقیقه.",
                 "next_spin_seconds": rem_secs,
                 "code": "cooldown",
             }
@@ -256,7 +256,7 @@ async def execute_lucky_wheel_spin(
     prizes = [
         {"id": "1gb", "name": f"{ltr_frag('1 GB')} ترافیک هدیه", "icon": "🎁", "type": "traffic", "value": 1},
         {"id": "blank_1", "name": "پوچ (شانس بعدی فردا)", "icon": "❌", "type": "blank", "value": 0},
-        {"id": "discount10", "name": "۱۰٪ کد تخفیف ویژه (کد: OFF10)", "icon": "🎟", "type": "coupon", "code": "OFF10"},
+        {"id": "discount10", "name": "10٪ کد تخفیف ویژه (کد: OFF10)", "icon": "🎟", "type": "coupon", "code": "OFF10"},
         {"id": "500mb", "name": f"{ltr_frag('500 MB')} ترافیک هدیه", "icon": "⚡️", "type": "traffic", "value": 0.5},
         {"id": "2gb", "name": f"{ltr_frag('2 GB')} ترافیک هدیه (سوپر شانس)", "icon": "👑", "type": "traffic", "value": 2},
         {"id": "again", "name": "دوباره (شانس مجدد!)", "icon": "🔄", "type": "again", "value": 0},
@@ -311,7 +311,7 @@ async def execute_lucky_wheel_spin(
                     )
                     if up_res is not None:
                         applied = True
-                        chosen["name"] = f"{chosen['name']} ← معادل ۱ روز تمدید (حجم نامحدود)"
+                        chosen["name"] = f"{chosen['name']} ← معادل 1 روز تمدید (حجم نامحدود)"
             elif chosen["type"] == "days":
                 from bot.services.formatting import parse_iso
                 cur_dt = parse_iso(current_expire)
@@ -342,7 +342,7 @@ async def execute_lucky_wheel_spin(
                     bound_telegram_id=telegram_id,
                 )
                 chosen["code"] = unique_code
-                chosen["name"] = f"کد تخفیف 10% (مهلت ۷ روز): {unique_code}"
+                chosen["name"] = f"کد تخفیف 10% (مهلت 7 روز): {unique_code}"
 
                 if cache and hasattr(cache, "get"):
                     user_coupons = await cache.get(f"wheel:user_coupons:{telegram_id}") or []

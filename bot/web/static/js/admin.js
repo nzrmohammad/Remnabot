@@ -296,7 +296,7 @@
           return `
             <div class="s-success-soft p-3 rounded-2xl border flex items-center justify-between text-xs">
               <span class="t-muted font-medium">${item.label}:</span>
-              <b class="t-success font-mono font-bold text-sm" dir="ltr">${item.value}</b>
+              <b class="t-success font-sans font-bold text-sm" dir="ltr">${item.value}</b>
             </div>
           `;
         }

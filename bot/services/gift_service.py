@@ -51,7 +51,7 @@ async def create_gift(
 
     if gift_type == "BALANCE":
         if amount < 10000:
-            return {"ok": False, "message": "حداقل مبلغ هدیه اعتبار ۱۰,۰۰۰ تومان است."}
+            return {"ok": False, "message": "حداقل مبلغ هدیه اعتبار 10,000 تومان است."}
         cost_to_charge = amount
     elif gift_type == "SERVICE":
         if not service_id:
@@ -148,7 +148,7 @@ async def create_gift(
                 f"📦 هدیه: <b>{gift_title}</b>\n"
             )
             if message:
-                msg_text += f"💌 پیام همراه: <i>«{escape(str(message))}»</i>\n"
+                msg_text += f"💌 پیام همراه: «{escape(str(message))}»\n"
             msg_text += "\nبرای دریافت و فعال‌سازی روی دکمه زیر بزنید:"
 
             await bot.send_message(

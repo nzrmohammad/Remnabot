@@ -43,6 +43,12 @@ def _parse_client_app(ua: str) -> dict[str, str]:
     # Specific client applications
     if "incy" in ua_lower:
         return {"name": f"Incy ({os_name})", "icon": os_icon, "tag": os_name}
+    if "pattng" in ua_lower:
+        return {"name": "PattNG", "icon": "⚡", "tag": "اندروید"}
+    if "pattn" in ua_lower:
+        return {"name": "PattN", "icon": "⚡", "tag": os_name if os_name != "دستگاه" else "Desktop"}
+    if "zedsecure" in ua_lower:
+        return {"name": "Zedsecure", "icon": "🛡️", "tag": os_name if os_name != "دستگاه" else "Multi"}
     if "v2rayng" in ua_lower:
         return {"name": "v2rayNG", "icon": "🤖", "tag": "اندروید"}
     if "v2rayn" in ua_lower:

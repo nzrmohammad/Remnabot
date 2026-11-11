@@ -16,7 +16,101 @@
   let activeChatTelegramId = null;
   let activeChatUserName = '';
 
-  const DEFAULT_BIRTHDAY_TEMPLATE = `🎂 <b>زادروزتان فرخنده و همایون باد!</b> 🎉\n\nکاربر گرامی {first_name}، فرا رسیدن سالروز تولدتان را صمیمانه تبریک عرض می‌کنیم! 🌸\n\nبه مناسبت روز زادروز شما، پکیج هدیه اختصاصی VIP تقدیم حضورتان می‌گردد:\n{traffic_msg}\n🎟 <b>کد تخفیف اختصاصی \u200e{discount_pct}% برای سفارش یا تمدید بعدی:</b>\n<code>{coupon_code}</code>\n⏱ <i>(مهلت استفاده: 7 روز در مینی‌اپ و ربات)</i>\n\nبا آرزوی بهترین‌ها و لحظاتی سرشار از سلامتی و شادی برای شما! 💫`;
+  const DEFAULT_BIRTHDAY_TEMPLATE = `🎂 <b>زادروزتان فرخنده و همایون باد!</b> 🎉\n\nکاربر گرامی {first_name}، فرا رسیدن سالروز تولدتان را صمیمانه تبریک عرض می‌کنیم! 🌸\n\nبه مناسبت روز زادروز شما، پکیج هدیه اختصاصی VIP تقدیم حضورتان می‌گردد:\n{traffic_msg}\n🎟 <b>کد تخفیف اختصاصی \u200e{discount_pct}% برای سفارش یا تمدید بعدی:</b>\n<code>{coupon_code}</code>\n⏱ (مهلت استفاده: 7 روز در مینی‌اپ و ربات)\n\nبا آرزوی بهترین‌ها و لحظاتی سرشار از سلامتی و شادی برای شما! 💫`;
+
+  const BLUBANK_COLOR_OPTIONS = [
+    { id: 'blue', name: 'آبی کلاسیک', icon: '🔵', desc: 'Blue' },
+    { id: 'green', name: 'سبز چمنی', icon: '🟢', desc: 'Green' },
+    { id: 'red', name: 'قرمز گیلاسی', icon: '🔴', desc: 'Red' },
+    { id: 'yellow', name: 'زرد لیمویی', icon: '🟡', desc: 'Yellow' },
+    { id: 'purple', name: 'بنفش شاه‌توتی', icon: '🟣', desc: 'Purple' },
+    { id: 'rose', name: 'رز صورتی', icon: '🌸', desc: 'Rose' },
+    { id: 'magenta', name: 'سرخابی متالیک', icon: '🌺', desc: 'Magenta / Berry' },
+    { id: 'black', name: 'مشکی مات', icon: '⚫️', desc: 'Black Matte' },
+  ];
+
+  const OS_APPS_MAP = {
+    ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify', 'karing'],
+    android: ['v2rayng', 'pattng', 'happ', 'hiddify', 'karing', 'zedsecure', 'incy'],
+    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy'],
+    macos: ['hiddify', 'karing', 'pattn', 'zedsecure', 'happ', 'incy', 'v2box'],
+    linux: ['hiddify', 'karing', 'pattn', 'zedsecure', 'incy', 'nekoray', 'v2raya'],
+  };
+
+  const CLIENT_APP_META = {
+    shadowrocket: { name: 'Shadowrocket' },
+    streisand: { name: 'Streisand' },
+    v2box: { name: 'V2Box' },
+    incy: { name: 'Incy' },
+    happ: { name: 'Happ' },
+    onexray: { name: 'OneXray' },
+    v2rayng: { name: 'v2rayNG' },
+    v2rayn: { name: 'v2rayN' },
+    hiddify: { name: 'Hiddify' },
+    nekoray: { name: 'NekoRay' },
+    v2raya: { name: 'v2rayA' },
+    karing: { name: 'Karing', icon: '🚗', version: '1.0.38', hasGithub: true },
+    pattn: { name: 'PattN', icon: '⚡️', version: '7.25.6', hasGithub: true, hasPortable: true },
+    pattng: { name: 'PattNG', icon: '⚡️', version: '2.3.15', hasGithub: true, hasExtra: true },
+    zedsecure: { name: 'Zedsecure', icon: '🛡️', version: '1.0.0', hasGithub: true, hasExtra: true },
+  };
+
+  function renderAdminExtraAppCards() {
+    const extraByOs = {
+      ios: ['karing'],
+      android: ['pattng', 'karing', 'zedsecure'],
+      windows: ['pattn', 'karing', 'zedsecure'],
+      macos: ['karing', 'pattn', 'zedsecure'],
+      linux: ['karing', 'pattn', 'zedsecure'],
+    };
+    for (const [os, appIds] of Object.entries(extraByOs)) {
+      const container = $(`adminExtraAppsContainer_${os}`);
+      if (!container || container.dataset.rendered === '1') continue;
+      container.innerHTML = appIds.map(appId => {
+        const meta = CLIENT_APP_META[appId] || { name: appId, icon: '📱', version: '1.0.0' };
+        const portableRow = (os === 'windows' && meta.hasPortable) ? `
+          <div>
+            <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه پرتابل (Portable):</label>
+            <input type="text" id="appDownloadPortable_${os}_${appId}" dir="ltr" placeholder="لینک نسخه پرتابل (اختیاری)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
+          </div>` : '';
+        const extraRow = (os === 'android' && meta.hasExtra) ? `
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود گیت‌هاب / مستقیم (اختیاری):</label>
+            <input type="text" id="appDownloadExtra_${os}_${appId}" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+          </div>` : '';
+        const ghBtn = meta.hasGithub ? `
+          <button type="button" onclick="window.fetchGithubAppVersion('${appId}', '${os}')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
+            <span>🐙</span><span>گیت‌هاب</span>
+          </button>` : '';
+        return `
+          <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+            <div class="flex items-center gap-2">
+              <span class="text-sm leading-none">${meta.icon || '📱'}</span>
+              <b class="text-white text-xs">${meta.name}</b>
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
+              <input type="text" id="appDownload_${os}_${appId}" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+            </div>
+            ${portableRow}
+            ${extraRow}
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش ${meta.name} (اختیاری):</label>
+              <input type="text" id="appTutorial_${os}_${appId}" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[11px] text-slate-400">نسخه نرم‌افزار (Version):</label>
+                ${ghBtn}
+              </div>
+              <input type="text" id="appVersion_${os}_${appId}" dir="ltr" placeholder="پیش‌فرض: ${meta.version || '1.0.0'}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+            </div>
+          </div>`;
+      }).join('');
+      container.dataset.rendered = '1';
+    }
+  }
+  renderAdminExtraAppCards();
 
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
@@ -58,17 +152,7 @@
       if (window.hapticFeedback) window.hapticFeedback('selection');
 
       const currentVal = $('settingBluBankColor')?.value || 'red';
-      const colors = [
-        { id: 'blue', name: 'آبی کلاسیک', icon: '🔵', desc: 'Blue' },
-        { id: 'green', name: 'سبز چمنی', icon: '🟢', desc: 'Green' },
-        { id: 'red', name: 'قرمز گیلاسی', icon: '🔴', desc: 'Red' },
-        { id: 'yellow', name: 'زرد لیمویی', icon: '🟡', desc: 'Yellow' },
-        { id: 'purple', name: 'بنفش شاه‌توتی', icon: '🟣', desc: 'Purple' },
-        { id: 'rose', name: 'رز صورتی', icon: '🌸', desc: 'Rose' },
-        { id: 'black', name: 'مشکی مات', icon: '⚫️', desc: 'Black Matte' },
-      ];
-
-      list.innerHTML = colors.map(c => `
+      list.innerHTML = BLUBANK_COLOR_OPTIONS.map(c => `
         <div onclick="window.adminActions.selectCardColor('${c.id}', '${c.name}', '${c.icon}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === c.id ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
           <div class="flex items-center gap-2.5">
             <span class="text-base">${c.icon}</span>
@@ -356,7 +440,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const file = event.target.files?.[0];
       if (!file) return;
       if (file.size > 5 * 1024 * 1024) {
-        showToast('⚠️ حداکثر حجم فایل لوگو ۵ مگابایت است.');
+        showToast('⚠️ حداکثر حجم فایل لوگو 5 مگابایت است.');
         return;
       }
       const reader = new FileReader();
@@ -679,7 +763,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
                 </div>
                 <div class="p-1.5 sm:p-2 rounded-xl card-inset">
                   <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">هزینه تبلیغ</span>
-                  <b class="text-xs font-sans num-bidi text-amber-600 dark:text-amber-300">${c.cost ? formatNumber(c.cost) : '۰'}</b>
+                  <b class="text-xs font-sans num-bidi text-amber-600 dark:text-amber-300">${c.cost ? formatNumber(c.cost) : '0'}</b>
                 </div>
               </div>
             </div>
@@ -699,7 +783,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (starsInp) {
         starsInp.value = calculated;
         if (window.hapticFeedback) window.hapticFeedback('success');
-        const modeLabel = mode === 'fragment' ? 'فرگمنت (۰.۰۱۵$)' : 'بدون ضرر (۰.۰۱۳$)';
+        const modeLabel = mode === 'fragment' ? 'فرگمنت (0.015$)' : 'بدون ضرر (0.013$)';
         if (window.showToast) window.showToast(`✅ نرخ استارز بر اساس دلار ${formatNumber(usdtVal)} تومان روی ${formatNumber(calculated)} ت (${modeLabel}) تنظیم شد`);
       }
       this.updateStarsHint();
@@ -819,28 +903,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (title) title.innerHTML = `<span>⭐️</span><span>انتخاب برنامه پیشنهادی (${osNames[os] || os})</span>`;
 
       const currentVal = $(`appRecommended_${os}`)?.value || '';
-      const osApps = {
-        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],
-        android: ['v2rayng', 'happ', 'hiddify', 'incy'],
-        windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
-        macos: ['hiddify', 'happ', 'incy', 'v2box'],
-        linux: ['hiddify', 'incy', 'nekoray', 'v2raya']
-      };
-      const appNames = {
-        shadowrocket: 'Shadowrocket',
-        streisand: 'Streisand',
-        v2box: 'V2Box',
-        incy: 'Incy',
-        happ: 'Happ',
-        onexray: 'OneXray',
-        v2rayng: 'v2rayNG',
-        v2rayn: 'v2rayN',
-        hiddify: 'Hiddify',
-        nekoray: 'NekoRay',
-        v2raya: 'v2rayA'
-      };
-
-      const appIds = osApps[os] || [];
+      const appIds = OS_APPS_MAP[os] || [];
       let html = `
         <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', 'بدون برنامه پیشنهادی')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
           <div class="flex items-center gap-2">
@@ -852,7 +915,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       `;
 
       appIds.forEach(appId => {
-        const appName = appNames[appId] || appId;
+        const appName = CLIENT_APP_META[appId]?.name || appId;
         const isSelected = currentVal === appId;
         html += `
           <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
@@ -885,20 +948,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
     updateRecommendedAppButton(os, appId) {
       const lbl = $(`appRecommendedLabel_${os}`);
       if (lbl) {
-        const appNames = {
-          shadowrocket: 'Shadowrocket',
-          streisand: 'Streisand',
-          v2box: 'V2Box',
-          incy: 'Incy',
-          happ: 'Happ',
-          onexray: 'OneXray',
-          v2rayng: 'v2rayNG',
-          v2rayn: 'v2rayN',
-          hiddify: 'Hiddify',
-          nekoray: 'NekoRay',
-          v2raya: 'v2rayA'
-        };
-        lbl.innerText = appId ? (appNames[appId] || appId) : 'بدون برنامه پیشنهادی';
+        lbl.innerText = appId ? (CLIENT_APP_META[appId]?.name || appId) : 'بدون برنامه پیشنهادی';
       }
     }
   });
@@ -1209,18 +1259,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (bluColor) {
         const cVal = s.card_blubank_color || 'red';
         bluColor.value = cVal;
-        const colorMap = {
-          blue: { name: 'آبی کلاسیک', icon: '🔵' },
-          green: { name: 'سبز چمنی', icon: '🟢' },
-          red: { name: 'قرمز گیلاسی', icon: '🔴' },
-          yellow: { name: 'زرد لیمویی', icon: '🟡' },
-          purple: { name: 'بنفش شاه‌توتی', icon: '🟣' },
-          rose: { name: 'رز صورتی', icon: '🌸' },
-          black: { name: 'مشکی مات', icon: '⚫️' }
-        };
-        const cMeta = colorMap[cVal] || colorMap.red;
-        if ($('settingBluBankColorLabel')) $('settingBluBankColorLabel').innerText = cMeta.name;
-        if ($('settingBluBankColorIcon')) $('settingBluBankColorIcon').innerText = cMeta.icon;
+        const cMeta = BLUBANK_COLOR_OPTIONS.find(c => c.id === cVal) || BLUBANK_COLOR_OPTIONS.find(c => c.id === 'red');
+        if (cMeta && $('settingBluBankColorLabel')) $('settingBluBankColorLabel').innerText = cMeta.name;
+        if (cMeta && $('settingBluBankColorIcon')) $('settingBluBankColorIcon').innerText = cMeta.icon;
       }
 
       const cardGraphicalSwitch = $('settingCardGraphicalSwitch');
@@ -1395,13 +1436,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const routingTutInp = $('settingRoutingTutorialUrl');
       if (routingTutInp) routingTutInp.value = s.routing_tutorial_url || '';
 
-      const OS_APPS_MAP = {
-        ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],
-        android: ['v2rayng', 'happ', 'hiddify', 'incy'],
-        windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
-        macos: ['hiddify', 'happ', 'incy', 'v2box'],
-        linux: ['hiddify', 'incy', 'nekoray', 'v2raya']
-      };
+      renderAdminExtraAppCards();
 
       if (s.client_apps_json) {
         try {
@@ -1663,13 +1698,6 @@ openUserChat(telegram_id, name, tag, topup_id) {
       topic_sms_manual: parseTopicVal($('settingTopicSmsManual')?.value),
       topic_sms_logs: parseTopicVal($('settingTopicSmsLogs')?.value),
       client_apps_json: (() => {
-        const OS_APPS_MAP = {
-          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],
-          android: ['v2rayng', 'happ', 'hiddify', 'incy'],
-          windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
-          macos: ['hiddify', 'happ', 'incy', 'v2box'],
-          linux: ['hiddify', 'incy', 'nekoray', 'v2raya']
-        };
         const clientAppsObj = {
           recommended: {
             ios: $('appRecommended_ios')?.value || '',
@@ -1906,13 +1934,6 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const res = await window.api.getGithubReleases();
       if (res && res.ok && res.versions) {
         let count = 0;
-        const OS_APPS_MAP = {
-          ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify'],
-          android: ['v2rayng', 'happ', 'hiddify', 'incy'],
-          windows: ['v2rayn', 'hiddify', 'happ', 'incy'],
-          macos: ['hiddify', 'happ', 'incy', 'v2box'],
-          linux: ['hiddify', 'incy', 'nekoray', 'v2raya']
-        };
         for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
           for (const appId of appIds) {
             if (res.versions[appId]) {

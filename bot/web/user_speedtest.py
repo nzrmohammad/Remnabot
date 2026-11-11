@@ -97,7 +97,7 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
 
             if isinstance(req_count, (int, float)) and req_count >= 10:
                 return web.json_response(
-                    {"ok": False, "error": "محدودیت تعداد درخواست تست سرعت. لطفاً ۳۰ ثانیه دیگر تلاش فرمایید."},
+                    {"ok": False, "error": "محدودیت تعداد درخواست تست سرعت. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
                     status=429,
                     headers={"Retry-After": "30"},
                 )
@@ -169,7 +169,7 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
 
             if isinstance(req_count, (int, float)) and req_count >= 30:
                 return web.json_response(
-                    {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً ۳۰ ثانیه دیگر تلاش فرمایید."},
+                    {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
                     status=429,
                     headers={"Retry-After": "30"},
                 )

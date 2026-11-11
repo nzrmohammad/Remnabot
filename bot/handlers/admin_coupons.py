@@ -165,7 +165,7 @@ async def admin_coupon_add_start(
     kb.button(text=t(lang, "btn_cancel"), callback_data="adm:coupons")
     kb.adjust(1)
 
-    text = "🏷 <b>عنوان کد تخفیف را وارد کنید:</b>\n(مثال: NOROOZ, DISCOUNT20, ...)" if lang == "fa" else "🏷 <b>Enter Coupon Code:</b>\n<i>(e.g., SUMMER20)</i>"
+    text = "🏷 <b>عنوان کد تخفیف را وارد کنید:</b>\n(مثال: NOROOZ, DISCOUNT20, ...)" if lang == "fa" else "🏷 <b>Enter Coupon Code:</b>\n(e.g., SUMMER20)"
     await render_menu(bot, user, user_repo, text, kb.as_markup())
     await call.answer()
 
@@ -183,7 +183,7 @@ async def admin_coupon_add_code(
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data="adm:coupons")
         kb.adjust(1)
-        await render_menu(bot, user, user_repo, "❌ کد نامعتبر است (بین ۳ تا ۳۲ کاراکتر):", kb.as_markup())
+        await render_menu(bot, user, user_repo, "❌ کد نامعتبر است (بین 3 تا 32 کاراکتر):", kb.as_markup())
         return
 
     await state.update_data(coupon_code=code)
@@ -236,7 +236,7 @@ async def admin_coupon_add_discount(
         "👥 <b>حداکثر دفعات مجاز استفاده را وارد کنید:</b>\n"
         "(برای استفاده نامحدود عدد 0 یا /skip ارسال کنید)"
         if lang == "fa"
-        else "👥 <b>Enter maximum total uses:</b>\n<i>(Enter 0 or /skip for unlimited)</i>"
+        else "👥 <b>Enter maximum total uses:</b>\n(Enter 0 or /skip for unlimited)"
     )
     await render_menu(bot, user, user_repo, text, kb.as_markup())
 

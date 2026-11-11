@@ -190,8 +190,8 @@
         const sign = netVal > 0 ? '+' : (netVal < 0 ? '-' : '');
         nProf.innerHTML = `<span dir="ltr">${sign}${formatNumber(Math.abs(netVal))}</span>`;
         nProf.className = netVal >= 0
-          ? 'text-emerald-400 font-mono font-bold text-lg'
-          : 'text-rose-400 font-mono font-bold text-lg';
+          ? 'text-emerald-400 font-sans font-bold text-lg'
+          : 'text-rose-400 font-sans font-bold text-lg';
       }
 
       const pMargin = $('adminProfitMarginBadge');
@@ -200,14 +200,14 @@
         const marginVal = m.profit_margin_percent;
         if (!hasRevenue || marginVal === null || marginVal === undefined) {
           pMargin.innerText = 'مارجین: —';
-          pMargin.className = 'text-[10px] font-mono font-bold bg-transparent text-slate-400 border border-slate-600/40 px-1.5 py-0.5 rounded-md';
+          pMargin.className = 'text-[10px] font-sans font-bold bg-transparent text-slate-400 border border-slate-600/40 px-1.5 py-0.5 rounded-md';
         } else {
           const sign = marginVal > 0 ? '+' : (marginVal < 0 ? '-' : '');
           const absVal = Math.abs(marginVal);
-          pMargin.innerHTML = `<span class="inline-flex items-center gap-0.5" dir="rtl"><span>مارجین:</span><span class="inline-flex items-center font-mono" dir="ltr"><span>${sign}</span><span>${absVal}</span><span>%</span></span></span>`;
+          pMargin.innerHTML = `<span class="inline-flex items-center gap-0.5" dir="rtl"><span>مارجین:</span><span class="inline-flex items-center font-sans" dir="ltr"><span>${sign}</span><span>${absVal}</span><span>%</span></span></span>`;
           pMargin.className = marginVal >= 0
-            ? 'text-[10px] font-mono font-bold bg-transparent text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md'
-            : 'text-[10px] font-mono font-bold bg-transparent text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-md';
+            ? 'text-[10px] font-sans font-bold bg-transparent text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md'
+            : 'text-[10px] font-sans font-bold bg-transparent text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded-md';
         }
       }
 
@@ -292,7 +292,7 @@
 
     const totalSum = (values || []).reduce((a, b) => a + b, 0);
     const totalEl = $('salesChartTotal');
-    if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold t-main">${formatNumber(totalSum)}</span> <span class="t-muted">تومان</span>`;
+    if (totalEl) totalEl.innerHTML = `<span class="font-sans font-bold t-main">${formatNumber(totalSum)}</span> <span class="t-muted">تومان</span>`;
 
     const emptyOverlay = $('adminSalesEmptyOverlay');
     if (emptyOverlay) {
@@ -362,7 +362,7 @@
 
     const total = totalSum != null ? totalSum : (values || []).reduce((a, b) => a + b, 0);
     const totalEl = $('monthlySalesChartTotal');
-    if (totalEl) totalEl.innerHTML = `<span class="font-mono font-bold t-main">${formatNumber(total)}</span> <span class="t-muted">تومان</span>`;
+    if (totalEl) totalEl.innerHTML = `<span class="font-sans font-bold t-main">${formatNumber(total)}</span> <span class="t-muted">تومان</span>`;
 
     const emptyMonthlyOverlay = $('adminMonthlySalesEmptyOverlay');
     if (emptyMonthlyOverlay) {
@@ -387,7 +387,7 @@
       data: {
         labels: labels || [],
         datasets: [{
-          label: 'فروش ۳۰ روزه (تومان)',
+          label: 'فروش 30 روزه (تومان)',
           data: values || [],
           borderColor: tc.success,
           borderWidth: 2,
@@ -447,7 +447,7 @@
     const currentToday = Number(todayGb || (values && values[values.length - 1]) || 0);
     const totalEl = $('trafficChartTotal');
     if (totalEl) {
-      totalEl.innerHTML = `<span class="t-main font-bold font-mono text-xs">${fmtTraffic(totalGb || currentToday || 0, { html: true })}</span>`;
+      totalEl.innerHTML = `<span class="t-main font-bold font-sans text-xs">${fmtTraffic(totalGb || currentToday || 0, { html: true })}</span>`;
     }
 
     if (trafficChartInstance) {
@@ -1098,8 +1098,8 @@
     if (badge) {
       badge.innerText = riskCount > 0 ? `⚠️ ${riskCount} کاربر پرخطر` : 'توزیع HWID';
       badge.className = riskCount > 0
-        ? 'text-[10px] text-rose-700 dark:text-rose-400 font-bold font-mono animate-pulse cursor-pointer hover:underline'
-        : 'text-[10px] text-slate-700 dark:text-slate-300 font-bold font-mono cursor-pointer hover:underline';
+        ? 'text-[10px] text-rose-700 dark:text-rose-400 font-bold font-sans animate-pulse cursor-pointer hover:underline'
+        : 'text-[10px] text-slate-700 dark:text-slate-300 font-bold font-sans cursor-pointer hover:underline';
       badge.onclick = () => window.adminActions.openHighRiskUsersModal();
     }
 
@@ -1177,7 +1177,7 @@ openHighRiskUsersModal() {
           <div class="text-center py-8 text-slate-400 space-y-2">
             <span class="text-3xl">🛡️</span>
             <div class="text-xs font-bold text-slate-200">هیچ کاربر پرخطری یافت نشد</div>
-            <div class="text-[11px] text-slate-400">تمام کاربران دارای ۳ دستگاه متصل یا کمتر هستند.</div>
+            <div class="text-[11px] text-slate-400">تمام کاربران دارای 3 دستگاه متصل یا کمتر هستند.</div>
           </div>
         `;
       } else {
@@ -1416,9 +1416,9 @@ openHighRiskUsersModal() {
             <div class="flex items-center justify-between p-1.5 rounded-lg border border-slate-700/40 bg-transparent">
               <div class="flex items-center gap-1.5 min-w-0">
                 <span class="text-xs">${medal}</span>
-                <span class="font-mono text-xs t-main font-semibold truncate max-w-[120px]" dir="ltr">${u.username}</span>
+                <span class="font-sans text-xs t-main font-semibold truncate max-w-[120px]" dir="ltr">${u.username}</span>
               </div>
-              <span class="font-mono text-xs text-cyan-600 dark:text-cyan-400 font-bold" dir="ltr">${userTrafStr}</span>
+              <span class="font-sans text-xs text-cyan-600 dark:text-cyan-400 font-bold" dir="ltr">${userTrafStr}</span>
             </div>
           `;
         }).join('');

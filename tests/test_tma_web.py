@@ -505,7 +505,7 @@ async def test_lucky_wheel_active_sub_and_24h_timer():
         assert resp_spin2.status == 400
         data_spin2 = json.loads(resp_spin2.text)
         assert data_spin2["ok"] is False
-        assert "۲۴ ساعت" in data_spin2["error"]
+        assert "24 ساعت" in data_spin2["error"]
         assert data_spin2["next_spin_seconds"] > 0
 
 
@@ -612,7 +612,7 @@ async def test_lucky_wheel_streak_and_referral_tickets(session_factory):
     req_cooldown = make_mocked_request("POST", f"/api/user/spin?user_id={test_uid}", app=app)
     resp_cooldown = await post_user_spin(req_cooldown)
     assert resp_cooldown.status == 400
-    assert "۲۴ ساعت" in json.loads(resp_cooldown.text)["error"]
+    assert "24 ساعت" in json.loads(resp_cooldown.text)["error"]
 
     # 3. Spin with ticket during cooldown -> succeeds!
     with patch("random.choices", return_value=[{"id": "1gb", "name": "1 GB", "icon": "🎁", "type": "traffic", "value": 1}]):

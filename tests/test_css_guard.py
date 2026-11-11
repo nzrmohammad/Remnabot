@@ -180,9 +180,9 @@ def test_surface_dark_contract():
 def test_report_card_values_semantic_tokens():
     """Ensure report card values in app.html use high-contrast semantic tokens instead of raw low-contrast classes."""
     content = APP_HTML_PATH.read_text(encoding="utf-8")
-    for bad_class in ['id="repNightlyUsed" class="font-mono text-amber-400', 'id="repNightlyRemain" class="font-mono text-emerald-400']:
+    for bad_class in ['id="repNightlyUsed" class="font-sans text-amber-400', 'id="repNightlyRemain" class="font-sans text-emerald-400']:
         assert bad_class not in content, f"Found raw low-contrast class in report cards: {bad_class}"
-    for expected_token in ['id="repNightlyUsed" class="font-mono t-warn', 'id="repNightlyRemain" class="font-mono t-success', 'id="repNightlyYesterday" class="font-mono t-accent']:
+    for expected_token in ['id="repNightlyUsed" class="font-sans t-warn', 'id="repNightlyRemain" class="font-sans t-success', 'id="repNightlyYesterday" class="font-sans t-accent']:
         assert expected_token in content, f"Missing semantic token in report cards: {expected_token}"
 
 

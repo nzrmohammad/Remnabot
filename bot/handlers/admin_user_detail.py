@@ -137,7 +137,7 @@ async def _render_panel_user_detail(
         f"🆔 {t(lang, 'puser_tid')}: {tid_str}",
         f"📱 {t(lang, 'puser_hwid')}: <b>{hwid_count}</b> / <b>{hwid_limit_str}</b>",
         f"🧩 {t(lang, 'puser_squads')}: <b>{squads_display}</b>",
-        f"📝 {t(lang, 'puser_desc')}: <i>{desc}</i>",
+        f"📝 {t(lang, 'puser_desc')}: {desc}",
         f"\n🔗 <code>{sub_url}</code>",
     ]
 

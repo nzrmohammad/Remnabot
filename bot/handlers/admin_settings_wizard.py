@@ -212,12 +212,12 @@ async def settings_value_save(
                     "❌ فرمت نامعتبر است.\n\n"
                     "لطفاً آیدی پشتیبانی را با <b>@</b> (مانند <code>@SupportUsername</code>) "
                     "یا لینک تلگرام (مانند <code>t.me/SupportUsername</code>) ارسال کنید:\n\n"
-                    "<i>(برای حذف مقدار می‌توانید /skip یا 0 بفرستید)</i>"
+                    "(برای حذف مقدار می‌توانید /skip یا 0 بفرستید)"
                 ) if lang == "fa" else (
                     "❌ Invalid format.\n\n"
                     "Please provide a Telegram username with <b>@</b> (e.g. <code>@SupportUsername</code>) "
                     "or link (e.g. <code>t.me/SupportUsername</code>):\n\n"
-                    "<i>(Send /skip or 0 to clear)</i>"
+                    "(Send /skip or 0 to clear)"
                 )
                 await render_menu(bot, user, user_repo, err_msg, kb.as_markup())
                 return

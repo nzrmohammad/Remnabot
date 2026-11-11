@@ -802,24 +802,24 @@ async def get_periodic_users_bandwidth(
     month_30d_lb = _make_leaderboard(user_stats, "month_30d_bytes", "month_30d_gb", "30 روز اخیر")
     curr_m_lb = _make_leaderboard(user_stats, "curr_j_bytes", "curr_j_gb", f"ماه {curr_m_name}", curr_m_name)
     curr_m_lb["weeks"] = {
-        "week1": _make_leaderboard(user_stats, "curr_j_w1_bytes", "curr_j_w1_gb", "هفته ۱"),
-        "week2": _make_leaderboard(user_stats, "curr_j_w2_bytes", "curr_j_w2_gb", "هفته ۲"),
-        "week3": _make_leaderboard(user_stats, "curr_j_w3_bytes", "curr_j_w3_gb", "هفته ۳"),
-        "week4": _make_leaderboard(user_stats, "curr_j_w4_bytes", "curr_j_w4_gb", "هفته ۴"),
+        "week1": _make_leaderboard(user_stats, "curr_j_w1_bytes", "curr_j_w1_gb", "هفته 1"),
+        "week2": _make_leaderboard(user_stats, "curr_j_w2_bytes", "curr_j_w2_gb", "هفته 2"),
+        "week3": _make_leaderboard(user_stats, "curr_j_w3_bytes", "curr_j_w3_gb", "هفته 3"),
+        "week4": _make_leaderboard(user_stats, "curr_j_w4_bytes", "curr_j_w4_gb", "هفته 4"),
     }
     prev_m_lb = _make_leaderboard(user_stats, "prev_j_bytes", "prev_j_gb", f"ماه {prev_m_name}", prev_m_name)
     prev_m_lb["weeks"] = {
-        "week1": _make_leaderboard(user_stats, "prev_j_w1_bytes", "prev_j_w1_gb", "هفته ۱"),
-        "week2": _make_leaderboard(user_stats, "prev_j_w2_bytes", "prev_j_w2_gb", "هفته ۲"),
-        "week3": _make_leaderboard(user_stats, "prev_j_w3_bytes", "prev_j_w3_gb", "هفته ۳"),
-        "week4": _make_leaderboard(user_stats, "prev_j_w4_bytes", "prev_j_w4_gb", "هفته ۴"),
+        "week1": _make_leaderboard(user_stats, "prev_j_w1_bytes", "prev_j_w1_gb", "هفته 1"),
+        "week2": _make_leaderboard(user_stats, "prev_j_w2_bytes", "prev_j_w2_gb", "هفته 2"),
+        "week3": _make_leaderboard(user_stats, "prev_j_w3_bytes", "prev_j_w3_gb", "هفته 3"),
+        "week4": _make_leaderboard(user_stats, "prev_j_w4_bytes", "prev_j_w4_gb", "هفته 4"),
     }
     prev2_m_lb = _make_leaderboard(user_stats, "prev2_j_bytes", "prev2_j_gb", f"ماه {prev2_m_name}", prev2_m_name)
     prev2_m_lb["weeks"] = {
-        "week1": _make_leaderboard(user_stats, "prev2_j_w1_bytes", "prev2_j_w1_gb", "هفته ۱"),
-        "week2": _make_leaderboard(user_stats, "prev2_j_w2_bytes", "prev2_j_w2_gb", "هفته ۲"),
-        "week3": _make_leaderboard(user_stats, "prev2_j_w3_bytes", "prev2_j_w3_gb", "هفته ۳"),
-        "week4": _make_leaderboard(user_stats, "prev2_j_w4_bytes", "prev2_j_w4_gb", "هفته ۴"),
+        "week1": _make_leaderboard(user_stats, "prev2_j_w1_bytes", "prev2_j_w1_gb", "هفته 1"),
+        "week2": _make_leaderboard(user_stats, "prev2_j_w2_bytes", "prev2_j_w2_gb", "هفته 2"),
+        "week3": _make_leaderboard(user_stats, "prev2_j_w3_bytes", "prev2_j_w3_gb", "هفته 3"),
+        "week4": _make_leaderboard(user_stats, "prev2_j_w4_bytes", "prev2_j_w4_gb", "هفته 4"),
     }
 
     result = {

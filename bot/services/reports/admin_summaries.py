@@ -218,12 +218,12 @@ async def _send_admin_nightly_summary(
         lines.append(f"  (هیچ کاربری {day_label_fa} مصرف نداشته است)")
 
     lines.append(SEPARATOR)
-    lines.append("⚠️ <b>کاربرانی که تا ۳ روز آینده منقضی می شوند</b>")
+    lines.append("⚠️ <b>کاربرانی که تا 3 روز آینده منقضی می شوند</b>")
     if expiring_soon_users:
         for d_left, uname in expiring_soon_users:
             lines.append(f"👤 {escape(uname)} : {d_left} روز")
     else:
-        lines.append("  (هیچ کاربری در ۳ روز آینده منقضی نمی‌شود)")
+        lines.append("  (هیچ کاربری در 3 روز آینده منقضی نمی‌شود)")
 
     lines.append(SEPARATOR)
     lines.append("❌ <b>کاربران منقضی (24 ساعت اخیر)</b>")
@@ -231,7 +231,7 @@ async def _send_admin_nightly_summary(
         for uname in expired_24h_users:
             lines.append(f"👤 {escape(uname)}")
     else:
-        lines.append("  (هیچ کاربری در ۲۴ ساعت اخیر منقضی نشده است)")
+        lines.append("  (هیچ کاربری در 24 ساعت اخیر منقضی نشده است)")
 
     lines.append(SEPARATOR)
     lines.append(f"🔔 <b>هشدارهای ارسال شده {day_label_fa}</b>")
@@ -354,7 +354,7 @@ async def _send_admin_weekly_summary(
         f"🌐 اشتراک‌های پنل : {total_panel_users} ({active_panel_users} فعال)",
         f"💳 پرداخت‌های این هفته : {weekly_payments_str}",
         SEPARATOR,
-        "⚡️ <b>مصرف روزانه کل پنل در ۷ روز اخیر:</b>",
+        "⚡️ <b>مصرف روزانه کل پنل در 7 روز اخیر:</b>",
     ]
 
     for d_idx in range(6, -1, -1):
@@ -386,7 +386,7 @@ async def _send_admin_weekly_summary(
 
     lines.append(SEPARATOR)
     lines.append("🏆 <b>گزارش هفتگی پرمصرفترین کاربران</b>")
-    lines.append("🥇 <b>۲۰ کاربر برتر این هفته:</b>")
+    lines.append("🥇 <b>20 کاربر برتر این هفته:</b>")
     top_20 = user_weekly_totals[:20]
     if top_20:
         for rank, (uname, total_bytes) in enumerate(top_20, start=1):

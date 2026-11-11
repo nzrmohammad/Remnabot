@@ -290,11 +290,9 @@ function toEnglishDigits(str) {
   return res;
 }
 
-// Convert ASCII English digits to Persian digits
+// Legacy alias retained for callers: returns ASCII English digits cleanly (no Persian digits)
 function toPersianDigits(str) {
-  if (str === null || str === undefined) return '';
-  const fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return String(str).replace(/[0-9]/g, w => fa[Number(w)]);
+  return toEnglishDigits(str);
 }
 
 function formatPrice(amt) {
@@ -424,12 +422,12 @@ function formatPlanTitle(name, options = {}) {
   }
 
   if (!emojiStr) {
-    return `<bdi class="inline-block font-bold select-all">${escapeHtml(name)}</bdi>`;
+    return `<bdi dir="ltr" class="inline-block font-bold select-all">${escapeHtml(name)}</bdi>`;
   }
   if (!cleanText) {
     return `<span class="inline-block text-base">${emojiStr}</span>`;
   }
-  return `<span class="inline-flex items-center gap-1.5"><span class="shrink-0 text-base">${emojiStr}</span><bdi class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
+  return `<span class="inline-flex items-center gap-1.5"><span class="shrink-0 text-base">${emojiStr}</span><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
 }
 
 function buildRefLink(botUsername, userId) {
@@ -555,7 +553,7 @@ function fmtTraffic(val, options = {}) {
     else if (displayUnit === 'KB') displayUnit = 'کیلوبایت';
   }
 
-  const finalDigits = persianDigits && typeof toPersianDigits === 'function' ? toPersianDigits(numStr) : numStr;
+  const finalDigits = numStr;
   const formatted = `${finalDigits} ${displayUnit}`;
   if (html) {
     return `<span class="num-bidi">${escapeHtml(formatted)}</span>`;

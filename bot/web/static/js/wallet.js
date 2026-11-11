@@ -2,16 +2,6 @@
  * RemnaStore Pro - Wallet & Topup Logic
  */
 
-const BLUBANK_GRADIENTS = {
-  blue: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 50%, #0288d1 100%)',
-  green: 'linear-gradient(135deg, #004d40 0%, #00796b 50%, #00bfa5 100%)',
-  red: 'linear-gradient(135deg, #b71c1c 0%, #d32f2f 50%, #f44336 100%)',
-  yellow: 'linear-gradient(135deg, #e65100 0%, #f57f17 50%, #fbc02d 100%)',
-  purple: 'linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #ab47bc 100%)',
-  rose: 'linear-gradient(135deg, #880e4f 0%, #c2185b 50%, #e91e63 100%)',
-  black: 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #09090b 100%)',
-};
-
 function formatCardNumberDisplay(num) {
   if (!num) return '---- ---- ---- ----';
   const clean = String(num).replace(/\D/g, '');
@@ -62,6 +52,11 @@ const BLUBANK_PALETTES = {
     text: '#ffffff',
     accent: '#fbcfe8',
   },
+  magenta: {
+    grad: 'linear-gradient(135deg, #831843 0%, #be185d 45%, #db2777 80%, #9d174d 100%)',
+    text: '#ffffff',
+    accent: '#fbcfe8',
+  },
   yellow: {
     grad: 'linear-gradient(135deg, #e65100 0%, #f57f17 50%, #fbc02d 100%)',
     text: '#ffffff',
@@ -71,6 +66,11 @@ const BLUBANK_PALETTES = {
     grad: 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #09090b 100%)',
     text: '#ffffff',
     accent: '#cbd5e1',
+  },
+  purple: {
+    grad: 'linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #ab47bc 100%)',
+    text: '#ffffff',
+    accent: '#e9d5ff',
   },
 };
 
@@ -141,7 +141,7 @@ function getTxPurchaseInfo(tx) {
     const days = Number(tx.duration_days || 0);
     const trafStr = traf > 0 ? (typeof fmtTraffic === 'function' ? fmtTraffic(traf, { html: false }) : `${traf} گیگابایت`) : '';
     const specsStr = (traf > 0 && days > 0) ? `${trafStr} - ${days} روز` : (traf > 0 ? trafStr : (days > 0 ? `${days} روز` : 'بسته اختصاصی'));
-    planHtml = `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all font-sans">${escapeHtml(specsStr)}</bdi><span class="shrink-0 text-base leading-none">💎</span></span>`;
+    planHtml = `<bdi class="font-bold select-all font-sans">${escapeHtml(specsStr)}</bdi>`;
   } else {
     const traf = Number(tx.traffic_gb || 0);
     const days = Number(tx.duration_days || 0);
@@ -260,10 +260,11 @@ function renderWalletTransactions(transactions) {
       </button>
     ` : '';
 
+    const txIcon = ({ topup: '💳', card_auto: '⚡️', crypto: '💎', admin_adjust: '⚡️' })[tx.type] || '🛒';
     return `
     <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
-        <span class="text-xl shrink-0">${tx.type === 'topup' ? '💳' : (tx.type === 'admin_adjust' ? '⚡️' : '🛒')}</span>
+        <span class="text-xl shrink-0">${txIcon}</span>
         <div class="min-w-0 flex-1 space-y-1">
           ${titleBlock}
           <span class="text-[10px] t-muted font-sans num-bidi block" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
@@ -383,13 +384,134 @@ function updateTopupDisplays(amt) {
   if (starsReqEl) starsReqEl.innerText = `${starsCount} ⭐️`;
   const starsRateEl = document.getElementById('starsRateDisplay');
   if (starsRateEl) starsRateEl.innerText = `${Number(starsRate).toLocaleString('en-US')} تومان`;
+  if (typeof window.updateCardTopupSubmitState === 'function') {
+    window.updateCardTopupSubmitState();
+  }
 }
+
+const _cardTopupGuardState = {
+  phoneLocked: false,
+  selectedImageBase64: null,
+  selectedImageHash: null,
+  selectedFileKey: null,
+  selectedTextHash: null,
+  knownDuplicateHashes: new Set(),
+  recentPaidAutoAmounts: new Set(),
+  serverRejectedKey: null,
+  serverRejectedMsg: '',
+};
+
+async function _computeSha256Hex(bytes) {
+  try {
+    if (window.crypto?.subtle && bytes) {
+      const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) {}
+  return '';
+}
+
+async function computeReceiptImageFingerprint(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string') return '';
+  const b64 = dataUrl.includes('base64,') ? dataUrl.split('base64,')[1] : dataUrl;
+  try {
+    const raw = atob(b64);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    const hex = await _computeSha256Hex(bytes);
+    if (hex) return `img:${hex.slice(0, 48)}`;
+  } catch (e) {}
+  return `img_raw:${b64.length}:${b64.slice(0, 32)}`;
+}
+
+async function computeReceiptTextFingerprint(rawText) {
+  const normalized = String(rawText || '').trim().replace(/\s+/g, ' ');
+  if (!normalized) return '';
+  try {
+    if (typeof TextEncoder !== 'undefined') {
+      const bytes = new TextEncoder().encode(normalized);
+      const hex = await _computeSha256Hex(bytes);
+      if (hex) return `text:${hex.slice(0, 48)}`;
+    }
+  } catch (e) {}
+  return `text_raw:${normalized}`;
+}
+
+window.updateCardTopupSubmitState = function () {
+  const submitCardBtn = document.getElementById('submitCardTopupBtn');
+  const warningEl = document.getElementById('cardReceiptWarningBanner');
+  if (!submitCardBtn) return;
+
+  const setDisabled = (disabled, warnMsg = '') => {
+    submitCardBtn.disabled = Boolean(disabled);
+    submitCardBtn.classList.toggle('opacity-40', Boolean(disabled));
+    submitCardBtn.classList.toggle('cursor-not-allowed', Boolean(disabled));
+    if (warningEl) {
+      if (warnMsg) {
+        warningEl.textContent = warnMsg;
+        warningEl.classList.remove('hidden');
+      } else {
+        warningEl.textContent = '';
+        warningEl.classList.add('hidden');
+      }
+    }
+  };
+
+  if (_cardTopupGuardState.phoneLocked) {
+    submitCardBtn.innerText = '🔒 نیاز به تأیید شماره تماس';
+    setDisabled(true, '');
+    return;
+  }
+
+  submitCardBtn.innerText = '📤 ثبت و ارسال رسید پرداخت';
+
+  const amt = parseInt(document.getElementById('topupAmountInput')?.value || '0', 10) || 0;
+  const minAmt = window.storeSettings?.topup_min_amount || 10000;
+  const maxAmt = window.storeSettings?.topup_max_amount || 50000000;
+
+  if (amt > 0 && _cardTopupGuardState.recentPaidAutoAmounts.has(amt)) {
+    setDisabled(true, '⚠️ این مبلغ پیش‌تر به‌صورت خودکار تأیید و شارژ شده است؛ نیازی به ارسال فیش نیست.');
+    return;
+  }
+
+  const dupImg = (
+    (_cardTopupGuardState.selectedImageHash && _cardTopupGuardState.knownDuplicateHashes.has(_cardTopupGuardState.selectedImageHash))
+    || (_cardTopupGuardState.selectedFileKey && _cardTopupGuardState.knownDuplicateHashes.has(_cardTopupGuardState.selectedFileKey))
+  );
+  if (dupImg) {
+    setDisabled(true, '⚠️ این تصویر فیش قبلاً ثبت شده و تکراری است؛ لطفاً تصویر فیش جدید بارگذاری کنید.');
+    return;
+  }
+
+  if (_cardTopupGuardState.selectedTextHash && _cardTopupGuardState.knownDuplicateHashes.has(_cardTopupGuardState.selectedTextHash)) {
+    setDisabled(true, '⚠️ این کد پیگیری قبلاً ثبت شده و تکراری است؛ لطفاً کد جدید یا متن متفاوتی وارد کنید.');
+    return;
+  }
+
+  const currentKey = `${amt}|${_cardTopupGuardState.selectedImageHash || ''}|${_cardTopupGuardState.selectedTextHash || ''}`;
+  if (_cardTopupGuardState.serverRejectedKey && _cardTopupGuardState.serverRejectedKey === currentKey) {
+    setDisabled(true, _cardTopupGuardState.serverRejectedMsg || '⚠️ این درخواست قبلاً ثبت شده است.');
+    return;
+  }
+
+  const hasValidAmount = amt >= minAmt && amt <= maxAmt;
+  const hasImage = Boolean(_cardTopupGuardState.selectedImageBase64);
+  setDisabled(!(hasImage && hasValidAmount), '');
+};
 
 async function loadTopupInfo() {
   try {
     const res = await window.api.getTopupInfo();
     if (res.ok) {
       window.storeSettings = res;
+      if (Array.isArray(res.recent_paid_auto_amounts)) {
+        _cardTopupGuardState.recentPaidAutoAmounts = new Set(res.recent_paid_auto_amounts.map(Number));
+      }
+      if (Array.isArray(res.recent_receipt_hashes)) {
+        res.recent_receipt_hashes.forEach(h => {
+          if (h) _cardTopupGuardState.knownDuplicateHashes.add(h);
+        });
+      }
       const isGraphic = res.card_graphical_view_enabled !== false;
       const graphicBox = document.getElementById('cardAutoGraphicBox');
       if (graphicBox) graphicBox.classList.toggle('hidden', !isGraphic);
@@ -469,33 +591,25 @@ async function loadTopupInfo() {
 
       const cardPhoneWarning = document.getElementById('cardPhoneVerificationWarning');
       const cardDetailsBox = document.getElementById('topupCardDetailsBox');
-      const submitCardBtn = document.getElementById('submitCardTopupBtn');
       const cardUploadBtn = document.getElementById('uploadCardReceiptImageBtn');
       if (res.card_require_phone_verification && !res.is_phone_verified) {
+        _cardTopupGuardState.phoneLocked = true;
         if (cardPhoneWarning) cardPhoneWarning.classList.remove('hidden');
         if (cardDetailsBox) cardDetailsBox.classList.add('hidden');
-        if (submitCardBtn) {
-          submitCardBtn.disabled = true;
-          submitCardBtn.classList.add('opacity-40', 'cursor-not-allowed');
-          submitCardBtn.innerText = '🔒 نیاز به تأیید شماره تماس';
-        }
         if (cardUploadBtn) {
           cardUploadBtn.disabled = true;
           cardUploadBtn.classList.add('opacity-40', 'cursor-not-allowed');
         }
       } else {
+        _cardTopupGuardState.phoneLocked = false;
         if (cardPhoneWarning) cardPhoneWarning.classList.add('hidden');
         if (cardDetailsBox) cardDetailsBox.classList.remove('hidden');
-        if (submitCardBtn) {
-          submitCardBtn.disabled = false;
-          submitCardBtn.classList.remove('opacity-40', 'cursor-not-allowed');
-          submitCardBtn.innerText = '📤 ثبت و ارسال رسید پرداخت';
-        }
         if (cardUploadBtn) {
           cardUploadBtn.disabled = false;
           cardUploadBtn.classList.remove('opacity-40', 'cursor-not-allowed');
         }
       }
+      window.updateCardTopupSubmitState();
 
       const cardAutoContainer = document.getElementById('cardAutoTopupContainer');
       const manualCardSection = document.getElementById('manualCardTopupSection');
@@ -856,6 +970,9 @@ window.toggleManualReceiptUpload = function () {
   const section = document.getElementById('manualCardTopupSection');
   if (section) {
     section.classList.toggle('hidden');
+    if (typeof window.updateCardTopupSubmitState === 'function') {
+      window.updateCardTopupSubmitState();
+    }
   }
 };
 
@@ -1556,7 +1673,7 @@ function setupWalletListeners() {
   document.getElementById('copyTopupCardAmountBtn')?.addEventListener('click', handleCopyCardAmount);
   document.getElementById('topupCardAmountDisplay')?.addEventListener('click', handleCopyCardAmount);
 
-  let selectedReceiptImageBase64 = null;
+  window.updateCardTopupSubmitState();
   const imageInput = document.getElementById('topupCardImageInput');
   const uploadImgBtn = document.getElementById('uploadCardReceiptImageBtn');
   const previewContainer = document.getElementById('receiptImagePreviewContainer');
@@ -1600,11 +1717,27 @@ function setupWalletListeners() {
     });
   }
 
+  const receiptTextInput = document.getElementById('topupCardReceiptInput');
+  receiptTextInput?.addEventListener('input', async (e) => {
+    _cardTopupGuardState.selectedTextHash = await computeReceiptTextFingerprint(e.target.value);
+    window.updateCardTopupSubmitState();
+  });
+
+  const resetSelectedReceiptImage = () => {
+    _cardTopupGuardState.selectedImageBase64 = null;
+    _cardTopupGuardState.selectedImageHash = null;
+    _cardTopupGuardState.selectedFileKey = null;
+    if (imageInput) imageInput.value = '';
+    previewContainer?.classList.add('hidden');
+    uploadImgBtn?.classList.remove('hidden');
+    window.updateCardTopupSubmitState();
+  };
+
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      showToast('⚠️ حداکثر حجم مجاز تصویر ۱۰ مگابایت است.');
+      showToast('⚠️ حداکثر حجم مجاز تصویر 10 مگابایت است.');
       return;
     }
     const compressedBase64 = await compressReceiptImage(file);
@@ -1612,50 +1745,74 @@ function setupWalletListeners() {
       showToast('⚠️ خطا در پردازش تصویر فیش.');
       return;
     }
-    selectedReceiptImageBase64 = compressedBase64;
-    if (previewImg) previewImg.src = selectedReceiptImageBase64;
+    _cardTopupGuardState.selectedImageBase64 = compressedBase64;
+    _cardTopupGuardState.selectedFileKey = `file:${file.name}:${file.size}:${file.lastModified}`;
+    _cardTopupGuardState.selectedImageHash = await computeReceiptImageFingerprint(compressedBase64);
+    if (previewImg) previewImg.src = _cardTopupGuardState.selectedImageBase64;
     if (previewName) previewName.innerText = file.name || 'تصویر رسید انتخاب شد';
     previewContainer?.classList.remove('hidden');
     uploadImgBtn?.classList.add('hidden');
+    window.updateCardTopupSubmitState();
   });
 
-  removeImgBtn?.addEventListener('click', () => {
-    selectedReceiptImageBase64 = null;
-    if (imageInput) imageInput.value = '';
-    previewContainer?.classList.add('hidden');
-    uploadImgBtn?.classList.remove('hidden');
-  });
+  removeImgBtn?.addEventListener('click', resetSelectedReceiptImage);
 
   document.getElementById('submitCardTopupBtn')?.addEventListener('click', async () => {
     const amt = parseInt(topupAmountInput?.value || '0', 10);
     const receipt = document.getElementById('topupCardReceiptInput')?.value?.trim();
     if (!validateTopupAmount(amt)) return;
-    if (!selectedReceiptImageBase64) {
+    if (!_cardTopupGuardState.selectedImageBase64) {
       showToast('⚠️ لطفاً تصویر فیش واریزی را بارگذاری فرمایید.');
+      window.updateCardTopupSubmitState();
       return;
     }
 
     const submitBtn = document.getElementById('submitCardTopupBtn');
+    const submittedImgHash = _cardTopupGuardState.selectedImageHash;
+    const submittedFileKey = _cardTopupGuardState.selectedFileKey;
+    const submittedTextHash = await computeReceiptTextFingerprint(receipt || '');
+    _cardTopupGuardState.selectedTextHash = submittedTextHash;
+
     submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-40', 'cursor-not-allowed');
     submitBtn.innerText = 'در حال ثبت...';
     try {
-      const res = await window.api.submitCardTopup(amt, receipt || 'تصویر فیش پیوست شد', selectedReceiptImageBase64);
+      const res = await window.api.submitCardTopup(
+        amt,
+        receipt || 'تصویر فیش پیوست شد',
+        _cardTopupGuardState.selectedImageBase64,
+      );
       if (res.ok) {
+        if (submittedImgHash) _cardTopupGuardState.knownDuplicateHashes.add(submittedImgHash);
+        if (submittedFileKey) _cardTopupGuardState.knownDuplicateHashes.add(submittedFileKey);
+        if (submittedTextHash) _cardTopupGuardState.knownDuplicateHashes.add(submittedTextHash);
+        _cardTopupGuardState.serverRejectedKey = null;
+        _cardTopupGuardState.serverRejectedMsg = '';
         showToast('✅ رسید با موفقیت ثبت شد و پس از بررسی ادمین حساب شارژ می‌گردد.');
-        selectedReceiptImageBase64 = null;
-        if (imageInput) imageInput.value = '';
-        previewContainer?.classList.add('hidden');
-        uploadImgBtn?.classList.remove('hidden');
+        resetSelectedReceiptImage();
         closeModal('topupModal');
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       } else {
-        showToast(`❌ ${res.message || 'خطا در ثبت رسید'}`);
+        const msg = String(res.message || 'خطا در ثبت رسید');
+        if (msg.includes('تکراری') || msg.includes('قبلاً ثبت') || res.error === 'duplicate_receipt') {
+          if (msg.includes('پیگیری') && submittedTextHash) {
+            _cardTopupGuardState.knownDuplicateHashes.add(submittedTextHash);
+          } else {
+            if (submittedImgHash) _cardTopupGuardState.knownDuplicateHashes.add(submittedImgHash);
+            if (submittedFileKey) _cardTopupGuardState.knownDuplicateHashes.add(submittedFileKey);
+          }
+        } else if (msg.includes('خودکار')) {
+          _cardTopupGuardState.recentPaidAutoAmounts.add(amt);
+        } else {
+          _cardTopupGuardState.serverRejectedKey = `${amt}|${submittedImgHash || ''}|${submittedTextHash || ''}`;
+          _cardTopupGuardState.serverRejectedMsg = `⚠️ ${msg}`;
+        }
+        showToast(`❌ ${msg}`);
       }
     } catch (e) {
       showToast('❌ خطا در ارسال درخواست.');
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerText = '📤 ثبت و ارسال رسید پرداخت';
+      window.updateCardTopupSubmitState();
     }
   });
 

@@ -22,7 +22,7 @@ from aiohttp import web
 from sqlalchemy import func, or_, select
 
 from bot.common.links import ref_link as build_ref_link
-from bot.db.models import AdminLog, Coupon, CouponUsage, Order, Service, Topup, User, Wallet
+from bot.db.models import AdminLog, CardAutoInvoice, Coupon, CouponUsage, CryptoInvoice, Order, Service, Topup, User, Wallet
 from bot.db.repositories.alert_repo import AlertRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.user_repo import UserRepository
@@ -67,6 +67,16 @@ from bot.web.user_subscription_detail import (
 )
 
 
+def _format_jalali_dt(dt: Any, tz_name: str) -> str:
+    """Format a datetime object into YYYY/MM/DD - HH:MM Jalali string in target timezone."""
+    if not dt:
+        return ""
+    j_dt = jdatetime.datetime.fromgregorian(
+        datetime=dt.astimezone(ZoneInfo(tz_name)) if dt.tzinfo else dt
+    )
+    return f"{j_dt.year}/{j_dt.month:02d}/{j_dt.day:02d} - {j_dt.hour:02d}:{j_dt.minute:02d}"
+
+
 async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: str) -> list[dict[str, Any]]:
     """Fetch orders, topups, and admin adjustments sorted by timestamp."""
     history_items: list[dict[str, Any]] = []
@@ -76,12 +86,7 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
         )
         for o in orders_res.scalars().all():
             o_dt = o.created_at
-            o_j_str = ""
-            if o_dt:
-                o_j = jdatetime.datetime.fromgregorian(
-                    datetime=o_dt.astimezone(ZoneInfo(tz_name)) if o_dt.tzinfo else o_dt
-                )
-                o_j_str = f"{o_j.year}/{o_j.month:02d}/{o_j.day:02d} - {o_j.hour:02d}:{o_j.minute:02d}"
+            o_j_str = _format_jalali_dt(o_dt, tz_name)
             raw_st = (
                 o.status.value if hasattr(o.status, "value") else str(o.status or "")
             ).lower()
@@ -125,12 +130,7 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
         )
         for t in topups_res.scalars().all():
             t_dt = t.created_at
-            t_j_str = ""
-            if t_dt:
-                t_j = jdatetime.datetime.fromgregorian(
-                    datetime=t_dt.astimezone(ZoneInfo(tz_name)) if t_dt.tzinfo else t_dt
-                )
-                t_j_str = f"{t_j.year}/{t_j.month:02d}/{t_j.day:02d} - {t_j.hour:02d}:{t_j.minute:02d}"
+            t_j_str = _format_jalali_dt(t_dt, tz_name)
             st = (t.status or "pending").lower()
             history_items.append({
                 "id": t.id,
@@ -153,12 +153,7 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
         )
         for al in admin_logs_res.scalars().all():
             al_dt = al.created_at
-            al_j_str = ""
-            if al_dt:
-                al_j = jdatetime.datetime.fromgregorian(
-                    datetime=al_dt.astimezone(ZoneInfo(tz_name)) if al_dt.tzinfo else al_dt
-                )
-                al_j_str = f"{al_j.year}/{al_j.month:02d}/{al_j.day:02d} - {al_j.hour:02d}:{al_j.minute:02d}"
+            al_j_str = _format_jalali_dt(al_dt, tz_name)
 
             is_pos = al.action in ("wallet_charge", "balance_add")
             parsed_amt = 0
@@ -180,6 +175,49 @@ async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: st
                 "status_color": "emerald" if is_pos else "rose",
                 "date_jalali": al_j_str,
                 "timestamp": al_dt.timestamp() if al_dt else 0,
+            })
+
+        card_auto_res = await session.execute(
+            select(CardAutoInvoice).where(
+                CardAutoInvoice.telegram_id == telegram_id,
+                CardAutoInvoice.status == "paid",
+            ).order_by(CardAutoInvoice.id.desc()).limit(30)
+        )
+        for ca in card_auto_res.scalars().all():
+            ca_dt = ca.paid_at or ca.created_at
+            history_items.append({
+                "id": f"ca_{ca.id}",
+                "type": "card_auto",
+                "title": "افزایش موجودی (کارت به کارت خودکار)",
+                "amount": ca.exact_amount,
+                "amount_formatted": f"{ca.exact_amount:,} تومان",
+                "is_positive": True,
+                "status": "تایید خودکار",
+                "status_color": "emerald",
+                "date_jalali": _format_jalali_dt(ca_dt, tz_name),
+                "timestamp": ca_dt.timestamp() if ca_dt else 0,
+            })
+
+        crypto_res = await session.execute(
+            select(CryptoInvoice).where(
+                CryptoInvoice.telegram_id == telegram_id,
+                CryptoInvoice.status == "paid",
+            ).order_by(CryptoInvoice.id.desc()).limit(30)
+        )
+        for cr in crypto_res.scalars().all():
+            cr_dt = cr.paid_at or cr.created_at
+            cr_curr = (cr.currency or "TON").upper()
+            history_items.append({
+                "id": f"cr_{cr.id}",
+                "type": "crypto",
+                "title": f"شارژ کیف پول (رمزارز {cr_curr})",
+                "amount": cr.amount_toman,
+                "amount_formatted": f"{cr.amount_toman:,} تومان",
+                "is_positive": True,
+                "status": "تایید شده",
+                "status_color": "emerald",
+                "date_jalali": _format_jalali_dt(cr_dt, tz_name),
+                "timestamp": cr_dt.timestamp() if cr_dt else 0,
             })
 
         history_items.sort(key=lambda x: x["timestamp"], reverse=True)
@@ -893,7 +931,7 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
     clean_bdate = birth_date.replace("-", "/")
     parts = clean_bdate.split("/")
     if len(parts) != 3 or not all(p.isdigit() for p in parts):
-        return web.json_response({"ok": False, "error": "فرمت تاریخ نامعتبر است (مثال: ۱۳۷۵/۰۷/۲۲)."}, status=400)
+        return web.json_response({"ok": False, "error": "فرمت تاریخ نامعتبر است (مثال: 1375/07/22)."}, status=400)
 
     year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
     if year < 1300 or year > 1410 or month < 1 or month > 12 or day < 1 or day > 31:

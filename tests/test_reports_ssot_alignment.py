@@ -131,7 +131,7 @@ def test_format_financial_summary_ssot():
     # Empty
     fin4 = {"orders_count": 0, "orders_revenue": 0, "topups_count": 0, "topups_amount": 0}
     res4 = format_financial_summary(fin4)
-    assert res4 == "۰"
+    assert res4 == "0"
 
 
 def test_get_used_bytes_resilience():

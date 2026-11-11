@@ -84,7 +84,7 @@ async def support_forward(
                 await redis.expire(rate_key, 60)
             elif cnt > 5:
                 await message.reply(
-                    "⚠️ شما پیام‌های زیادی ارسال کرده‌اید. لطفاً ۱ دقیقه صبر کنید."
+                    "⚠️ شما پیام‌های زیادی ارسال کرده‌اید. لطفاً 1 دقیقه صبر کنید."
                     if lang == "fa"
                     else "⚠️ You have sent too many messages. Please wait 1 minute."
                 )

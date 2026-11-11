@@ -170,9 +170,9 @@
           } else if (bKey === 'speed') {
             tagBadge = '<span class="badge badge-warn font-bold">⚡️ فوق سریع</span>';
           } else if (bKey === 'stream') {
-            tagBadge = '<span class="badge badge-danger font-bold">🎬 استریم</span>';
+            tagBadge = '<span class="badge badge-plan-type">🎬 استریم</span>';
           } else if (bKey === 'family') {
-            tagBadge = '<span class="badge badge-info font-bold">👥 چند کاربره</span>';
+            tagBadge = '<span class="badge badge-plan-type">👥 چند کاربره</span>';
           } else if (bKey === 'tunnel') {
             tagBadge = '<span class="badge badge-info font-bold">🚇 تانل اختصاصی</span>';
           }
@@ -221,7 +221,7 @@
 
           const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
           const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
-          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
+          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold card-inset t-muted border border-card-border truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
 
           const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
             ? `<p class="text-[11px] text-slate-400 line-clamp-1 pr-9">${escapeHtml(p.description)}</p>`
@@ -229,15 +229,15 @@
 
           const planCategory = isExtraTraffic ? 'traffic' : (isExtraTime ? 'time' : 'full');
           return `
-            <div data-plan-type="${planCategory}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+            <div data-plan-type="${planCategory}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-card-border space-y-3 shadow transition">
               <div class="space-y-1.5">
                 <!-- Top Row: Name + statusBadge on Right, Price and تومان on Left (همراستا و چسبیده) -->
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="w-7 h-7 rounded-xl card-inset text-slate-300 border border-slate-700/80 flex items-center justify-center flex-shrink-0" title="بسته">
+                    <span class="w-7 h-7 rounded-xl card-inset text-slate-300 border border-card-border flex items-center justify-center flex-shrink-0" title="بسته">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     </span>
-                    <b class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
+                    <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                     ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
                     <div class="flex-shrink-0">${statusBadge}</div>
                   </div>
@@ -260,16 +260,16 @@
 
               <!-- 3 Action Buttons with Icons & Labels: Calm, Cohesive Design System Tokens -->
               <div class="flex gap-2 pt-1">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-slate-500 t-main border border-slate-700/80 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-slate-500 t-main border border-card-border py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
                   <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span class="text-[11px] font-bold">ویرایش</span>
                 </button>
-                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset hover:border-slate-500 ${p.is_active ? 't-main hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/80 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
+                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset hover:border-slate-500 ${p.is_active ? 't-main hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-card-border py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
                   ${p.is_active
                     ? '<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
                     : '<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
                 </button>
-                <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/80 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
+                <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-card-border py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
                   <svg class="w-4 h-4 text-slate-400 group-hover:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   <span class="text-[11px] font-bold">حذف</span>
                 </button>
@@ -641,7 +641,7 @@
             : `<div class="flex items-baseline gap-1 leading-tight flex-shrink-0"><span class="text-sm font-black t-accent font-sans num-bidi" dir="ltr">${formatNumber(c.discount_amount || 0)}</span><span class="text-[11px] font-sans t-muted">تومان</span></div>`;
 
           const maxText = c.max_uses > 0 ? `${toEnglishDigits(usedCount)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(usedCount)} (نامحدود)`;
-          const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
+          const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود');
 
           let remainingDaysHtml = '<b class="t-muted font-sans font-medium">نامحدود</b>';
           if (c.expires_at) {
@@ -655,26 +655,26 @@
           }
 
           const usagesBtnHtml = usedCount > 0
-            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages btn btn-secondary flex-1 py-2 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm" title="مصرف‌کنندگان (${formatNumber(usedCount)})" aria-label="مصرف‌کنندگان (${formatNumber(usedCount)})">
-                <svg class="w-4 h-4 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                <span class="text-[11px] font-bold">مصرف‌کنندگان</span>
+            ? `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-coupon-usages btn-secondary flex-1 py-2 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" title="مصرف‌کنندگان (${formatNumber(usedCount)})" aria-label="مصرف‌کنندگان (${formatNumber(usedCount)})">
+                <svg class="w-3.5 h-3.5 t-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span class="text-[11px] font-bold whitespace-nowrap">مصرف‌کنندگان</span>
               </button>`
-            : `<div class="flex-1 card-inset border border-card-border text-slate-400 py-2 rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none shadow-xs" title="فاقد استفاده">
-                <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                <span class="text-[11px] font-bold t-muted">بدون مصرف</span>
+            : `<div class="flex-1 card-inset border border-card-border text-slate-400 py-2 px-2 rounded-xl flex items-center justify-center gap-1 cursor-not-allowed select-none shadow-xs" title="فاقد استفاده">
+                <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span class="text-[11px] font-bold t-muted whitespace-nowrap">بدون مصرف</span>
               </div>`;
 
-          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="btn btn-secondary flex-1 py-2 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm ${
+          const toggleBtnHtml = `<button onclick="window.adminActions.toggleCoupon(${c.id}, ${c.is_active})" class="btn-secondary flex-1 py-2 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 active:scale-95 shadow-sm ${
             c.is_active ? 'hover:border-amber-500/50' : 'hover:border-emerald-500/50'
           }" title="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}" aria-label="${c.is_active ? 'غیرفعال‌سازی کد تخفیف' : 'فعال‌سازی کد تخفیف'}">
             ${c.is_active
-              ? '<svg class="w-4 h-4 t-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold t-warn">غیرفعال</span>'
-              : '<svg class="w-4 h-4 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold t-success">فعال‌سازی</span>'}
+              ? '<svg class="w-3.5 h-3.5 t-warn shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold t-warn whitespace-nowrap">غیرفعال</span>'
+              : '<svg class="w-3.5 h-3.5 t-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold t-success whitespace-nowrap">فعال‌سازی</span>'}
           </button>`;
 
-          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon btn btn-secondary flex-1 py-2 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm hover:border-rose-500/50" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
-            <svg class="w-4 h-4 t-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            <span class="text-[11px] font-bold t-danger">حذف</span>
+          const deleteBtnHtml = `<button type="button" data-id="${c.id}" data-code="${escapeHtml(c.code)}" class="btn-delete-coupon btn-secondary flex-1 py-2 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 active:scale-95 shadow-sm hover:border-rose-500/50" title="حذف کد تخفیف" aria-label="حذف کد تخفیف">
+            <svg class="w-3.5 h-3.5 t-danger shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span class="text-[11px] font-bold t-danger whitespace-nowrap">حذف</span>
           </button>`;
 
           return `
@@ -682,9 +682,8 @@
               <div class="flex items-center justify-between gap-2 flex-wrap">
                 ${discountHtml}
                 <div class="flex items-center gap-2" dir="ltr">
-                  <button type="button" data-code="${escapeHtml(c.code)}" class="btn-quick-copy-coupon flex items-center gap-1.5 cursor-pointer bg-transparent hover:t-accent t-main border-0 p-0 transition active:scale-95 group" title="کلیک جهت کپی کد تخفیف">
+                  <button type="button" data-code="${escapeHtml(c.code)}" class="btn-quick-copy-coupon flex items-center cursor-pointer bg-transparent hover:t-accent t-main border-0 p-0 transition active:scale-95" title="کلیک جهت کپی کد تخفیف">
                     <span class="font-sans font-bold text-sm tracking-wider uppercase">${escapeHtml(c.code)}</span>
-                    <svg class="w-3.5 h-3.5 t-muted group-hover:t-accent transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   </button>
                   ${statusBadge}
                 </div>
@@ -934,9 +933,9 @@
               <!-- Top Row: Order on right, Date on top-left -->
               <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
                 <div class="flex items-center gap-1.5 min-w-0">
-                  ${u.order_id ? `<span class="text-[11px] font-mono t-accent font-medium">سفارش ${u.order_id}</span>` : `<span class="text-[11px] t-muted">ثبت تخفیف</span>`}
+                  ${u.order_id ? `<span class="text-[11px] font-sans t-accent font-medium">سفارش ${u.order_id}</span>` : `<span class="text-[11px] t-muted">ثبت تخفیف</span>`}
                 </div>
-                <div class="text-[11px] t-muted font-mono flex items-center gap-1" dir="ltr">
+                <div class="text-[11px] t-muted font-sans flex items-center gap-1" dir="ltr">
                   <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span>${dateStr}</span>
                 </div>
@@ -952,20 +951,20 @@
                   <div class="min-w-0 space-y-0.5">
                     <b class="t-main text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:t-pink" data-copy="${escapeHtml(displayName)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربر')" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</b>
                     <div class="flex items-baseline gap-1 t-success font-bold" dir="rtl">
-                      <span class="text-xs font-black font-mono leading-none">${formatNumber(u.discount_applied || 0)}</span>
+                      <span class="text-xs font-black font-sans leading-none">${formatNumber(u.discount_applied || 0)}</span>
                       <span class="text-[11px] text-emerald-600/90 dark:text-emerald-500/90 font-sans">تومان</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Left column: Username on line 1, Numeric ID on line 2 (سمت چپ‌ترین نقطه، بالا و بدون ID:) -->
-                <div class="flex flex-col items-start justify-center gap-0.5 font-mono text-[11px] t-muted flex-shrink-0 text-left" dir="ltr">
+                <div class="flex flex-col items-start justify-center gap-0.5 font-sans text-[11px] t-muted flex-shrink-0 text-left" dir="ltr">
                   ${hasUsername ? `
-                    <div class="text-[11px] t-pink font-mono cursor-pointer hover:underline truncate max-w-[130px] leading-tight" onclick="window.adminActions.quickCopy('@${escapeHtml(u.username)}', 'نام کاربری')" title="@${escapeHtml(u.username)}">
+                    <div class="text-[11px] t-pink font-sans cursor-pointer hover:underline truncate max-w-[130px] leading-tight" onclick="window.adminActions.quickCopy('@${escapeHtml(u.username)}', 'نام کاربری')" title="@${escapeHtml(u.username)}">
                       @${escapeHtml(u.username)}
                     </div>
                   ` : ''}
-                  <div class="cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-300 t-muted font-mono leading-tight" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" title="شناسه عددی">
+                  <div class="cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-300 t-muted font-sans leading-tight" onclick="window.adminActions.quickCopy('${u.telegram_id}', 'شناسه عددی')" title="شناسه عددی">
                     ${u.telegram_id}
                   </div>
                 </div>

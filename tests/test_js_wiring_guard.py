@@ -153,7 +153,7 @@ def test_all_js_files_valid_syntax():
 
 
 def test_persian_count_badges_use_rtl_not_num_bidi():
-    """Persian numeral+word labels (e.g. '۰ کد', '0 دستگاه', '-- روز') must keep RTL order."""
+    """English numeral+word labels (e.g. '0 کد', '0 دستگاه', '-- روز') must keep RTL order."""
     app_html = APP_HTML.read_text(encoding="utf-8")
     for elem_id in (
         "achieveWonCoupons",

@@ -378,7 +378,7 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
 
     import re
     if not re.match(r"^[a-zA-Z0-9_-]{3,32}$", username):
-        return web.json_response({"ok": False, "error": "نام کاربری باید شامل ۳ تا ۳۲ کاراکتر انگلیسی، اعداد یا _ و - باشد."}, status=400)
+        return web.json_response({"ok": False, "error": "نام کاربری باید شامل 3 تا 32 کاراکتر انگلیسی، اعداد یا _ و - باشد."}, status=400)
 
     remnawave = request.app.get("remnawave")
     if not remnawave:
@@ -476,7 +476,7 @@ async def get_admin_check_username(request: web.Request) -> web.Response:
         return web.json_response({
             "ok": True,
             "available": False,
-            "error": "نام کاربری باید شامل ۳ تا ۳۲ کاراکتر انگلیسی، اعداد یا _ و - باشد.",
+            "error": "نام کاربری باید شامل 3 تا 32 کاراکتر انگلیسی، اعداد یا _ و - باشد.",
         })
 
     remnawave = request.app.get("remnawave")

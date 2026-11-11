@@ -135,7 +135,7 @@ async def gift_balance_amount_selected(
         lines = [
             "✏️ <b>ورود مبلغ دلخواه هدیه</b>",
             SEPARATOR,
-            "لطفاً مبلغ مورد نظر خود را به تومان ارسال کنید (حداقل ۱۰,۰۰۰ تومان):",
+            "لطفاً مبلغ مورد نظر خود را به تومان ارسال کنید (حداقل 10,000 تومان):",
             "نمونه: <code>75000</code>",
         ]
         kb = InlineKeyboardBuilder()
@@ -147,7 +147,7 @@ async def gift_balance_amount_selected(
 
     amount = parse_int(val) or 0
     if amount < 10_000:
-        await call.answer("مبلغ باید حداقل ۱۰,۰۰۰ تومان باشد.", show_alert=True)
+        await call.answer("مبلغ باید حداقل 10,000 تومان باشد.", show_alert=True)
         return
 
     await state.update_data(amount=amount)
@@ -174,7 +174,7 @@ async def gift_custom_amount_input(
         kb = InlineKeyboardBuilder()
         kb.button(text="🔙 بازگشت", callback_data="gift:type:balance")
         await message.reply(
-            "❌ حداقل مبلغ هدیه اعتبار ۱۰,۰۰۰ تومان است. لطفاً مبلغ معتبری وارد کنید:",
+            "❌ حداقل مبلغ هدیه اعتبار 10,000 تومان است. لطفاً مبلغ معتبری وارد کنید:",
             reply_markup=kb.as_markup(),
         )
         return
@@ -461,7 +461,7 @@ async def _build_checkout_payload(user, session, data, cache, lang):
         f"🎯 نحوه تحویل: <b>{delivery_desc}</b>",
     ]
     if custom_msg:
-        lines.append(f"💬 پیام همراه هدیه: <i>«{escape(custom_msg)}»</i>")
+        lines.append(f"💬 پیام همراه هدیه: «{escape(custom_msg)}»")
 
     lines.extend([
         SEPARATOR,
@@ -557,11 +557,11 @@ async def gift_checkout_confirm(
     ]
 
     if direct_notified:
-        lines.append("\n✅ <i>این هدیه به صورت خودکار برای دریافت‌کننده ارسال گردید.</i>")
+        lines.append("\n✅ این هدیه به صورت خودکار برای دریافت‌کننده ارسال گردید.")
     elif delivery_type == "DIRECT" and receiver_target:
-        lines.append(f"\nℹ️ <i>دریافت‌کننده (\u200e{escape(str(receiver_target))}\u200e) پس از ورود به ربات می‌تواند با کلیک روی لینک، هدیه خود را تحویل بگیرد.</i>")
+        lines.append(f"\nℹ️ دریافت‌کننده (\u200e{escape(str(receiver_target))}\u200e) پس از ورود به ربات می‌تواند با کلیک روی لینک، هدیه خود را تحویل بگیرد.")
     else:
-        lines.append("\n💡 <i>می‌توانید پیام یا لینک بالا را برای دوست خود ارسال کنید تا هدیه برایش فعال شود.</i>")
+        lines.append("\n💡 می‌توانید پیام یا لینک بالا را برای دوست خود ارسال کنید تا هدیه برایش فعال شود.")
 
     kb = InlineKeyboardBuilder()
 

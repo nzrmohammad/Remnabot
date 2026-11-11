@@ -305,3 +305,126 @@ async def test_topic_sms_logs_notifications(async_session: AsyncSession):
     assert call_args2.kwargs.get("message_thread_id") == 999
     assert "عدم تطابق شماره کارت مقصد" in call_args2.kwargs.get("text", "")
 
+
+@pytest.mark.anyio
+async def test_card_auto_messages_history_and_duplicate_guards(async_session: AsyncSession):
+    """Verify user/admin card-auto message polish, wallet transaction history inclusion, and topup_info duplicate guards."""
+    import json
+    from types import SimpleNamespace
+    from bot.db.models import CryptoInvoice, User
+    from bot.web.user_profile import _fetch_transaction_history
+    from bot.web.user_topup import get_user_topup_info
+
+    tg_id = 991122
+    user_repo = UserRepository(async_session)
+    await user_repo.get_or_create(tg_id, username="ali_dev", full_name="Ali Dev")
+    wallet_repo = WalletRepository(async_session)
+    await wallet_repo.get_wallet(tg_id)
+
+    repo = CardAutoRepository(async_session)
+    inv = await repo.create_invoice(
+        telegram_id=tg_id,
+        base_amount=300000,
+        exact_amount=300710,
+        card_number="6219861012345678",
+        card_holder="مدیر سیستم",
+    )
+    await async_session.commit()
+
+    store = StoreSettings(
+        card_number="6219861012345678",
+        card_holder="مدیر سیستم",
+        topup_min_amount=10000,
+        default_squad_uuid="",
+        expiry_grace_days=3,
+        expiry_remind_days="",
+        topic_topups=None,
+        topic_orders=None,
+        topic_support=None,
+        topic_alerts=None,
+        topic_sms_logs=888,
+        support_contact="",
+        card_auto_enabled=True,
+    )
+    mock_bot = AsyncMock()
+    mock_settings = MagicMock(ADMIN_CHAT_ID=-100123456789)
+
+    # 1. Unmatched SMS alert has no italic tags
+    await process_incoming_sms(
+        session=async_session,
+        bot=mock_bot,
+        settings=mock_settings,
+        store=store,
+        sender="SMS_Forwarder",
+        raw_message="بلو\nواریز پول\nمحمدجواد عزیز، 9,111,000 ریال به حساب شما نشست.",
+    )
+    for call in mock_bot.send_message.call_args_list:
+        assert "<i>" not in call.kwargs.get("text", "")
+
+    mock_bot.reset_mock()
+
+    # 2. Matched SMS credits wallet and formats user & admin messages accurately
+    res = await process_incoming_sms(
+        session=async_session,
+        bot=mock_bot,
+        settings=mock_settings,
+        store=store,
+        sender="SMS_Forwarder",
+        raw_message="بلو\nواریز پول\nمحمدجواد عزیز،3,007,100 ریال به حساب شما نشست.\nموجودی: 818,342,497 ریال",
+    )
+    await async_session.commit()
+    assert res["ok"] is True
+    assert res["action"] == "credited"
+    assert res["telegram_id"] == tg_id
+
+    sent_texts = [call.kwargs.get("text", "") for call in mock_bot.send_message.call_args_list]
+    user_msgs = [t for t in sent_texts if "شارژ خودکار کارت‌به‌کارت با موفقیت تأیید شد" in t]
+    admin_logs = [t for t in sent_texts if "تأیید و شارژ خودکار کیف پول" in t]
+    assert len(user_msgs) == 1
+    assert "🏦 بانک:" not in user_msgs[0]
+    assert len(admin_logs) == 1
+    assert "@ali_dev" in admin_logs[0]
+    assert f"\u2066<code>#{inv.invoice_uuid}</code>\u2069" in admin_logs[0]
+    assert "<i>" not in admin_logs[0]
+
+    # 3. Also add a paid CryptoInvoice and verify both appear in transaction history
+    async_session.add(CryptoInvoice(
+        telegram_id=tg_id,
+        amount_toman=250000,
+        amount_ton="1.5",
+        nanotons=1500000000,
+        currency="TON",
+        comment=f"c_{tg_id}",
+        pay_address="UQTest",
+        status="paid",
+        expires_at=datetime.now(timezone.utc),
+        paid_at=datetime.now(timezone.utc),
+    ))
+    await async_session.commit()
+
+    txs = await _fetch_transaction_history(async_session, tg_id, "Asia/Tehran")
+    tx_types = {item["type"]: item for item in txs}
+    assert "card_auto" in tx_types
+    assert tx_types["card_auto"]["amount"] == 300710
+    assert tx_types["card_auto"]["status"] == "تایید خودکار"
+    assert "crypto" in tx_types
+    assert tx_types["crypto"]["amount"] == 250000
+
+    # 4. get_user_topup_info includes recent_paid_auto_amounts and recent_receipt_hashes
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def _fake_db_session(_req):
+        yield async_session
+
+    fake_req = SimpleNamespace(app={"cache": None}, query={}, headers={})
+    with patch("bot.web.user_topup.require_user", return_value=({"id": tg_id, "is_preview": False}, None)), \
+         patch("bot.web.user_topup.enforce_invite_only", AsyncMock(return_value=None)), \
+         patch("bot.web.user_topup.db_session", side_effect=_fake_db_session), \
+         patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)):
+        resp = await get_user_topup_info(fake_req)
+        payload = json.loads(resp.text)
+        assert payload["ok"] is True
+        assert 300710 in payload["recent_paid_auto_amounts"]
+        assert isinstance(payload["recent_receipt_hashes"], list)
+

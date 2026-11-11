@@ -241,7 +241,7 @@ def test_top_consumers_period_sync():
 def test_user_profile_modal_high_contrast_in_dark_theme():
     """User profile modal Telegram ID must use t-main to stay high-contrast in dark mode."""
     admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
-    assert 'id="userProfModalId" class="font-mono t-main font-black text-xs select-all"' in admin_html
+    assert 'id="userProfModalId" class="font-sans t-main font-black text-xs select-all"' in admin_html
     assert 'text-slate-800 dark:text-slate-100' not in admin_html
 
 
@@ -329,7 +329,7 @@ def test_ui_polish_round4():
     assert 'button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary w-7 h-7 p-0 rounded-xl flex items-center justify-center transition active:scale-95 shadow-xs"' in admin_html
     assert "<span>کپی همه</span>" not in admin_html
     assert 'id="asnCountBadge" class="badge badge-info font-sans">0 رنج</span>' in admin_html
-    assert 'id="asnFilterInput" type="text" oninput="window.filterAsnPrefixes(this.value)" placeholder="فیلتر رنج..." dir="ltr" class="input-base px-2.5 py-1 text-xs font-mono rounded-xl w-full flex-1 outline-none"' in admin_html
+    assert 'id="asnFilterInput" type="text" oninput="window.filterAsnPrefixes(this.value)" placeholder="فیلتر رنج..." dir="ltr" class="input-base px-2.5 py-1 text-xs font-sans rounded-xl w-full flex-1 outline-none"' in admin_html
 
 
 def test_vazirmatn_typography_guard():
@@ -477,3 +477,134 @@ def test_no_monospace_font_anywhere_in_web():
     assert "Vazirmatn" in base_css
     tailwind_cfg = Path("tailwind.config.js").read_text(encoding="utf-8")
     assert "mono: ['Vazirmatn'" in tailwind_cfg
+
+
+def test_latest_ui_and_font_polish_batch():
+    """Verify receipt button guard, LTR plans, uniform borders, coupon layout, no italics, and no font-mono class in HTML/JS."""
+    import re
+
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+    admin_plans = Path("bot/web/static/js/admin_plans.js").read_text(encoding="utf-8")
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    utils_js = Path("bot/web/static/js/utils.js").read_text(encoding="utf-8")
+    comp_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
+    card_auto = Path("bot/services/payment/card_auto_service.py").read_text(encoding="utf-8")
+
+    # 1. Card manual receipt submit button starts disabled and tracks duplicate/auto-paid guards
+    assert 'id="submitCardTopupBtn" type="button" disabled' in app_html
+    assert 'id="cardReceiptWarningBanner"' in app_html
+    assert "window.updateCardTopupSubmitState" in wallet_js
+    assert "knownDuplicateHashes" in wallet_js
+    assert "recentPaidAutoAmounts" in wallet_js
+
+    # 2. Services/plans LTR titles, no special stream/family styling, uniform borders
+    assert '<bdi dir="ltr"' in utils_js
+    assert '<b dir="ltr" class="t-main text-xs font-bold truncate">' in admin_plans
+    assert "badge-stream" not in shop_js
+    assert "badge-family" not in shop_js
+    assert "badgeBorderClass = 'border-card-border'" in shop_js
+    assert "border: 1px solid var(--card-border);" in comp_css
+
+    # 3. Discount codes tab polish: no copy svg icon, compact buttons without .btn, 'نامحدود' without '(دائمی)'
+    assert "نامحدود (دائمی)" not in admin_plans
+    copy_btn_start = admin_plans.find('class="btn-quick-copy-coupon')
+    copy_btn_end = admin_plans.find('</button>', copy_btn_start)
+    assert copy_btn_start != -1 and "<svg" not in admin_plans[copy_btn_start:copy_btn_end]
+    assert 'class="btn-coupon-usages btn-secondary flex-1 py-2 px-2' in admin_plans
+
+    # 4. Zero italics anywhere in web assets or card_auto notifications, and zero font-mono classes in templates/non-minified JS
+    assert "<i>" not in card_auto
+    assert "<i>" not in app_html
+    assert "<i>" not in admin_html
+    assert ' class="hidden items-center gap-2 text-[11px] text-slate-400 italic"' not in app_html
+    for asset_text in (app_html, admin_html, wallet_js, admin_plans, shop_js):
+        assert not re.search(r"\bfont-mono\b", asset_text)
+
+
+def test_latest_requested_ui_features_and_english_digits():
+    """Verify gifts/achievements, no Persian digits anywhere in display strings, 3-mode hourly curve, no custom diamond, LTR invoice buyer, 4 new apps, and magenta BluBank card."""
+    import re
+    from bot.web.user_subscription_detail import calc_usage_curves
+    from bot.handlers.guide import APP_DISPLAY_NAMES, PLATFORMS
+    from bot.web.admin_infra_api import GITHUB_REPOS
+
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    charts_js = Path("bot/web/static/js/charts.js").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+    utils_js = Path("bot/web/static/js/utils.js").read_text(encoding="utf-8")
+    admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
+    fa_py = Path("bot/locales/fa.py").read_text(encoding="utf-8")
+
+    # 1. Gifts & Achievements: no countdown in card, no 'بدون کد فعال', English 0
+    assert "بدون کد فعال" not in app_js
+    assert '<b id="achieveWonCoupons" class="font-sans t-success text-xs font-bold" dir="rtl">0 کد</b>' in app_html
+    ach_fn = app_js[app_js.find("function renderUserAchievements"):app_js.find("window.renderUserAchievements")]
+    assert "openBirthdayCountdownModal" not in ach_fn
+    assert "شمارش معکوس" not in ach_fn
+
+    # 2. Zero Persian/Eastern-Arabic digits in UI templates, JS outputs, and Persian locale
+    digit_re = re.compile(r"[\u0660-\u0669\u06F0-\u06F9]")
+    for content in (app_html, admin_html, app_js, charts_js, wallet_js, admin_settings_js, fa_py):
+        assert not digit_re.search(content)
+    # Only the input-normalization lookup arrays in utils.js may contain Persian digits
+    utils_without_norm = "\n".join(
+        line for line in utils_js.splitlines()
+        if "const fa = ['۰'" not in line and "const ar = ['٠'" not in line
+    )
+    assert not digit_re.search(utils_without_norm)
+
+    # 3. Peak hours exact hour (no range) and 3-button toggle (yesterday, today, compare)
+    for btn_id in ("repPeakModeYesterdayBtn", "repPeakModeTodayBtn", "repPeakModeCompareBtn"):
+        assert f'id="{btn_id}"' in app_html
+    assert "window.switchUserPeakHoursMode" in app_js
+    curves = calc_usage_curves(
+        primary={"usedTrafficBytes": 5 * 1024**3},
+        devices=[],
+        traffic={},
+        used_bytes=5 * 1024**3,
+        today_used_gb=2.0,
+        week_used_gb=8.0,
+        panel_user_id="u1",
+        source_breakdown=[],
+        yesterday_used_gb=3.0,
+    )
+    hu = curves["hourly_usage"]
+    yhu = curves["yesterday_hourly_usage"]
+    assert len(hu["hourly_labels_24"]) == 24
+    assert len(hu["hourly_data_24"]) == 24
+    assert len(yhu["hourly_data_24"]) == 24
+    assert hu["peak_hour"] and "-" not in hu["peak_hour"]
+    assert yhu["peak_hour"] and "-" not in yhu["peak_hour"]
+
+    # 4. Custom plan in transaction history has no diamond icon
+    custom_block_start = wallet_js.find("if (isCustom) {")
+    custom_block_end = wallet_js.find("} else {", custom_block_start)
+    assert "💎" not in wallet_js[custom_block_start:custom_block_end]
+
+    # 5. Official invoice Buyer box only is LTR
+    buyer_idx = app_html.find("👤 خریدار:")
+    seller_idx = app_html.find("🏢 ارائه‌دهنده:")
+    assert buyer_idx != -1 and seller_idx != -1
+    buyer_box = app_html[buyer_idx - 120:buyer_idx + 40]
+    seller_box = app_html[seller_idx - 120:seller_idx + 40]
+    assert 'dir="ltr"' in buyer_box
+    assert 'dir="ltr"' not in seller_box
+
+    # 6. Karing, PattN, PattNG, Zedsecure added across app configs & guide
+    for app_id in ("karing", "pattn", "pattng", "zedsecure"):
+        assert app_id in APP_DISPLAY_NAMES
+        assert app_id in GITHUB_REPOS
+        assert f"id: '{app_id}'" in app_js
+        assert f"{app_id}:" in admin_settings_js
+    assert any("Karing" in n for n, _ in PLATFORMS["ios"][1])
+    assert any("PattNG" in n for n, _ in PLATFORMS["android"][1])
+    assert any("PattN" in n for n, _ in PLATFORMS["windows"][1])
+    assert any("Zedsecure" in n for n, _ in PLATFORMS["linux"][1])
+
+    # 7. New magenta BluBank card theme color present
+    assert "magenta:" in wallet_js
+    assert "id: 'magenta'" in admin_settings_js

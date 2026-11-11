@@ -96,7 +96,7 @@ async def verify_tron_transaction(
     if clean_tx.startswith("0x"):
         clean_tx = clean_tx[2:]
     if len(clean_tx) != 64:
-        return False, "شناسه تراکنش نامعتبر است (باید ۶۴ کاراکتر هگزادسیمال باشد).", 0
+        return False, "شناسه تراکنش نامعتبر است (باید 64 کاراکتر هگزادسیمال باشد).", 0
 
     expected_clean = expected_address.strip()
     expected_b58 = hex_to_tron_address(expected_clean)

@@ -119,7 +119,7 @@ async def _render_topics_settings(
         f"💾 <b>Database Backups :</b> {t_backups}\n"
         f"💎 <b>Crypto & Rates Topic :</b> {t_crypto}\n"
         f"⚠️ <b>Error Logs Topic :</b> {t_errors}\n\n"
-        f"<i>(Send 0 or /skip to disable any topic)</i>"
+        f"(Send 0 or /skip to disable any topic)"
     )
     await render_menu(bot, user, user_repo, text, kb.as_markup())
 

@@ -1210,7 +1210,7 @@ async def auto_backup_loop(bot, session_factory) -> None:
                     has_pwd = bool(backup_pwd)
                     backup_time_str = now_tz(getattr(settings, "TIMEZONE", "Asia/Tehran")).strftime('%Y-%m-%d %H:%M:%S')
                     caption = (
-                        "💾 <b>نسخه پشتیبان خودکار دیتابیس (ساعت ۰۱:۳۰ بامداد)</b>\n\n"
+                        "💾 <b>نسخه پشتیبان خودکار دیتابیس (ساعت 01:30 بامداد)</b>\n\n"
                         f"📅 تاریخ: <code>{backup_time_str}</code>\n"
                         f"🔐 وضعیت رمزگذاری: <b>{'رمزدار (AES-256)' if has_pwd else 'فشرده‌سازی استاندارد'}</b>\n"
                         "📦 فایل شامل نسخه پشتیبان جداول ضروری (کاربران، کیف پول، سفارشات، سرویس‌ها، کدهای تخفیف، تنظیمات) می‌باشد."

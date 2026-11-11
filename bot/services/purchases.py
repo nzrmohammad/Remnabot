@@ -770,7 +770,7 @@ async def maybe_reward_referrer(
         from bot.locales.texts import t
         if traffic_rewarded or inviter_accs is None:
             ticket_note = (
-                "\n\n🎫 <b>+۱ شانس چرخش گردونه (تیکت اسپین)</b> نیز به حساب شما اضافه شد!"
+                "\n\n🎫 <b>+1 شانس چرخش گردونه (تیکت اسپین)</b> نیز به حساب شما اضافه شد!"
                 if inv_lang == "fa"
                 else "\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has also been credited to your account!"
             )
@@ -778,7 +778,7 @@ async def maybe_reward_referrer(
         else:
             msg = (
                 "🎉 یکی از دوستان شما با لینک دعوتتان خرید خود را تکمیل کرد!\n\n"
-                "🎫 <b>+۱ شانس چرخش گردونه (تیکت اسپین)</b> به حساب شما اضافه شد!"
+                "🎫 <b>+1 شانس چرخش گردونه (تیکت اسپین)</b> به حساب شما اضافه شد!"
                 if inv_lang == "fa"
                 else "🎉 A friend you invited completed their purchase!\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has been credited to your account!"
             )

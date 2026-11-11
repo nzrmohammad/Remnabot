@@ -22,7 +22,7 @@ const prizeMap = {
 const localPrizes = [
   { id: '1gb', name: '1 GB ترافیک هدیه', icon: '🎁', isAgain: false, isZero: false },
   { id: 'blank_1', name: 'پوچ (شانس بعدی فردا)', icon: '❌', isAgain: false, isZero: true },
-  { id: 'discount10', name: '۱۰٪ کد تخفیف ویژه (کد: OFF10)', icon: '🎟', isAgain: false, isZero: false },
+  { id: 'discount10', name: '10٪ کد تخفیف ویژه (کد: OFF10)', icon: '🎟', isAgain: false, isZero: false },
   { id: '500mb', name: '500 MB ترافیک هدیه', icon: '⚡️', isAgain: false, isZero: false },
   { id: '2gb', name: '2 GB ترافیک هدیه (سوپر شانس)', icon: '👑', isAgain: false, isZero: false },
   { id: 'again', name: 'دوباره (شانس مجدد!)', icon: '🔄', isAgain: true, isZero: false }
@@ -153,7 +153,7 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
   const ticketsTextEl = document.getElementById('wheelTicketsText');
   const ticketsBadgeEl = document.getElementById('wheelTicketsBadge');
 
-  const fNum = (n) => (typeof toPersianDigits === 'function' ? toPersianDigits(n) : n);
+  const fNum = (n) => (typeof toEnglishDigits === 'function' ? toEnglishDigits(n) : String(n ?? ''));
 
   if (streakTextEl) {
     const multStr = currentWheelMultiplier > 1.0 ? ` (شانس ${currentWheelMultiplier.toFixed(1)}×)` : "";
@@ -183,11 +183,11 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
       wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 't-warn/80', 'text-slate-300', 't-success');
       wheelSubEl.classList.add('t-purple');
     } else if (isCooldown) {
-      wheelSubEl.textContent = '⏳ شانس بعدی تا ۲۴ ساعت';
+      wheelSubEl.textContent = '⏳ شانس بعدی تا 24 ساعت';
       wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 't-warn/80', 't-success', 't-purple');
       wheelSubEl.classList.add('t-muted');
     } else {
-      wheelSubEl.textContent = '۱ شانس روزانه';
+      wheelSubEl.textContent = '1 شانس روزانه';
       wheelSubEl.classList.remove('t-warn', 't-success', 't-purple', 't-warn/80', 'text-slate-300', 't-purple');
       wheelSubEl.classList.add('t-muted');
     }
@@ -208,10 +208,10 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
     startWheelCountdown(nextSeconds);
     if (hasTicket) {
       spinBtn.disabled = false;
-      spinBtn.innerHTML = '<span class="text-[11px] font-extrabold tracking-tight leading-tight">بچرخون!<br/><span class="text-[8px] opacity-90">(۱🎫)</span></span>';
+      spinBtn.innerHTML = '<span class="text-[11px] font-extrabold tracking-tight leading-tight">بچرخون!<br/><span class="text-[8px] opacity-90">(1🎫)</span></span>';
     } else {
       spinBtn.disabled = true;
-      spinBtn.innerHTML = '<span class="text-[11px] font-bold">🔒 ۲۴ ساعت</span>';
+      spinBtn.innerHTML = '<span class="text-[11px] font-bold">🔒 24 ساعت</span>';
     }
   } else {
     if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
@@ -278,8 +278,8 @@ function setupLuckyWheel() {
     if (isCooldownNow && !hasTickets) {
       showWheelResultModal({
         icon: '⏳',
-        title: 'مهلت ۲۴ ساعته',
-        message: `گردونه شانس هر ۲۴ ساعت یک‌بار فعال می‌شود.<br/><span class="t-warn font-mono font-bold text-sm block mt-2" dir="ltr">${formatCountdown(remainingSec)}</span><span class="text-[11px] text-slate-400 block mt-0.5">زمان باقیمانده تا شانس رایگان روزانه شما (با معرفی دوستان تیکت شانس بدون محدودیت دریافت کنید!)</span>`,
+        title: 'مهلت 24 ساعته',
+        message: `گردونه شانس هر 24 ساعت یک‌بار فعال می‌شود.<br/><span class="t-warn font-sans font-bold text-sm block mt-2" dir="ltr">${formatCountdown(remainingSec)}</span><span class="text-[11px] text-slate-400 block mt-0.5">زمان باقیمانده تا شانس رایگان روزانه شما (با معرفی دوستان تیکت شانس بدون محدودیت دریافت کنید!)</span>`,
         isError: true,
       });
       return;
@@ -366,7 +366,7 @@ function setupLuckyWheel() {
       const isAgain = chosenPrize.id === 'again';
       const isBlank = chosenPrize.id === 'blank' || chosenPrize.id === 'blank_1' || chosenPrize.id === 'blank_2' || chosenPrize.type === 'blank';
       const usedTicket = spinResult?.used_ticket;
-      const fNum = (n) => typeof toPersianDigits === 'function' ? toPersianDigits(n) : n;
+      const fNum = (n) => (typeof toEnglishDigits === 'function' ? toEnglishDigits(n) : String(n ?? ''));
 
       let streakNote = '';
       if (currentWheelStreak > 1) {
@@ -374,7 +374,7 @@ function setupLuckyWheel() {
       }
       let ticketNote = '';
       if (usedTicket) {
-        ticketNote = `<div class="mt-1 text-[11px] text-purple-600 dark:text-purple-300 font-medium">🎫 ۱ تیکت مصرف شد (باقیمانده: <b>${fNum(currentWheelTickets)}</b>)</div>`;
+        ticketNote = `<div class="mt-1 text-[11px] text-purple-600 dark:text-purple-300 font-medium">🎫 1 تیکت مصرف شد (باقیمانده: <b>${fNum(currentWheelTickets)}</b>)</div>`;
       }
 
       if (isAgain) {
@@ -401,11 +401,11 @@ function setupLuckyWheel() {
         updateWheelUIState(currentWheelTickets > 0, true, nextSec, currentWheelStreak, currentWheelMultiplier, currentWheelTickets);
 
         if (isBlank) {
-          if (wheelResultText) wheelResultText.innerHTML = `❌ <b>متاسفانه پوچ شد!</b> ${usedTicket ? 'می‌توانید با تیکت مجدد شانس خود را امتحان کنید.' : 'شانس بعدی شما ۲۴ ساعت دیگر فعال می‌شود.'}`;
+          if (wheelResultText) wheelResultText.innerHTML = `❌ <b>متاسفانه پوچ شد!</b> ${usedTicket ? 'می‌توانید با تیکت مجدد شانس خود را امتحان کنید.' : 'شانس بعدی شما 24 ساعت دیگر فعال می‌شود.'}`;
           showWheelResultModal({
             icon: '❌',
             title: 'متاسفانه این بار پوچ شد!',
-            message: `در این چرخش جایزه‌ای به شما تعلق نگرفت.<br/><span class="text-slate-400 block mt-1">${usedTicket ? 'تیکت مصرف شد، اما مهلت روزانه شما محفوظ است.' : 'شانس بعدی شما دقیقاً <b>۲۴ ساعت دیگر</b> فعال خواهد شد. فردا حتماً دوباره سر بزنید!'}</span>${streakNote}${ticketNote}`,
+            message: `در این چرخش جایزه‌ای به شما تعلق نگرفت.<br/><span class="text-slate-400 block mt-1">${usedTicket ? 'تیکت مصرف شد، اما مهلت روزانه شما محفوظ است.' : 'شانس بعدی شما دقیقاً <b>24 ساعت دیگر</b> فعال خواهد شد. فردا حتماً دوباره سر بزنید!'}</span>${streakNote}${ticketNote}`,
             isError: true,
           });
         } else if (chosenPrize.code || chosenPrize.type === 'coupon') {
@@ -422,12 +422,12 @@ function setupLuckyWheel() {
             } catch(e) {}
           }
           if (wheelResultText) {
-            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="t-warn font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-mono t-accent font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-amber-500/90 font-medium block mt-0.5">⏱ مهلت استفاده: ۷ روز در تب فروشگاه</span>`;
+            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="t-warn font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-sans t-accent font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-amber-500/90 font-medium block mt-0.5">⏱ مهلت استفاده: 7 روز در تب فروشگاه</span>`;
           }
           showWheelResultModal({
             icon: '🎟',
             title: 'تبریک! برنده کد تخفیف شدید',
-            message: `کد تخفیف اختصاصی <span dir="ltr" class="font-mono font-bold">10%</span> برای شما فعال شد. می‌توانید در خرید بعدی از تب فروشگاه آن را اعمال کنید.${streakNote}${ticketNote}`,
+            message: `کد تخفیف اختصاصی <span dir="ltr" class="font-sans font-bold">10%</span> برای شما فعال شد. می‌توانید در خرید بعدی از تب فروشگاه آن را اعمال کنید.${streakNote}${ticketNote}`,
             couponCode: couponCode,
           });
         } else {
@@ -435,11 +435,11 @@ function setupLuckyWheel() {
           const parsed = typeof fmtTrafficValue === 'function' ? fmtTrafficValue(rawPrize) : { num: 1, unit: 'GB' };
           const valNum = typeof toEnglishDigits === 'function' ? toEnglishDigits(parsed.num) : parsed.num;
           const unit = parsed.unit;
-          if (wheelResultText) wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="t-success font-bold" dir="ltr"><span class="font-mono">${valNum}</span> ${unit}</b> ترافیک رایگان شدید!`;
+          if (wheelResultText) wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="t-success font-bold" dir="ltr"><span class="font-sans">${valNum}</span> ${unit}</b> ترافیک رایگان شدید!`;
           showWheelResultModal({
             icon: '🎁',
             title: 'تبریک فوق‌العاده!',
-            message: `شما برنده ترافیک رایگان شدید:<br/><div class="my-2 inline-flex items-baseline gap-1" dir="ltr"><b class="text-2xl font-black font-mono t-success">${valNum}</b><span class="text-sm font-bold text-slate-600 dark:text-slate-300 font-sans">${unit}</span></div><br/><span class="text-slate-400 text-[11px]">این هدیه به صورت خودکار به اشتراک فعال شما اضافه شد.</span>${streakNote}${ticketNote}`,
+            message: `شما برنده ترافیک رایگان شدید:<br/><div class="my-2 inline-flex items-baseline gap-1" dir="ltr"><b class="text-2xl font-black font-sans t-success">${valNum}</b><span class="text-sm font-bold text-slate-600 dark:text-slate-300 font-sans">${unit}</span></div><br/><span class="text-slate-400 text-[11px]">این هدیه به صورت خودکار به اشتراک فعال شما اضافه شد.</span>${streakNote}${ticketNote}`,
           });
         }
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);

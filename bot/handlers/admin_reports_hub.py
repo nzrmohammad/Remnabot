@@ -215,7 +215,7 @@ async def _render_hwid_inspector(
                     lines.append(f"  ▫️ {escape(str(app_name))}: {app_count}")
             lines.append("")
     else:
-        lines.append("<i>هیچ اطلاعاتی از دستگاه‌ها یافت نشد.</i>" if lang == "fa" else "<i>No device data found.</i>")
+        lines.append("هیچ اطلاعاتی از دستگاه‌ها یافت نشد." if lang == "fa" else "No device data found.")
 
     kb = InlineKeyboardBuilder()
     kb.button(text="🔄 بروزرسانی", callback_data="adm:rep:hwid")
@@ -252,7 +252,7 @@ async def _render_srh_inspector(
             pct = (count / total_app_reqs * 100) if total_app_reqs else 0
             lines.append(f"  ▫️ <b>{escape(str(app_name))}</b>: {count} ({pct:.1f}%)")
     else:
-        lines.append("  <i>آماری از توزیع کلاینت‌ها یافت نشد.</i>" if lang == "fa" else "  <i>No app distribution data.</i>")
+        lines.append("  آماری از توزیع کلاینت‌ها یافت نشد." if lang == "fa" else "  No app distribution data.")
 
     lines.append("")
 
@@ -358,9 +358,9 @@ async def _render_sessions_explorer(
             lines.append("")
     else:
         lines.append(
-            "🟢 <i>در حال حاضر اتصال فعالی روی نودها ثبت نشده است.</i>"
+            "🟢 در حال حاضر اتصال فعالی روی نودها ثبت نشده است."
             if lang == "fa"
-            else "🟢 <i>No active sessions found across nodes.</i>"
+            else "🟢 No active sessions found across nodes."
         )
 
     kb = InlineKeyboardBuilder()

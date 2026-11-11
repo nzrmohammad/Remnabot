@@ -87,11 +87,11 @@ async def _render_settings(
     )
 
     kb = InlineKeyboardBuilder()
-    # ردیف ۱: تنظیم هشدارهای حجم و انقضا
+    # ردیف 1: تنظیم هشدارهای حجم و انقضا
     kb.button(text=t(lang, "btn_set_traffic"), callback_data="set:traffic")
     kb.button(text=t(lang, "btn_set_expire"), callback_data="set:expire")
 
-    # ردیف ۲: گزارش‌های هفتگی و شبانه
+    # ردیف 2: گزارش‌های هفتگی و شبانه
     kb.button(
         text=t(lang, "btn_toggle_weekly", state=_fmt_toggle(reports.weekly, lang)),
         callback_data="set:wr",
@@ -101,7 +101,7 @@ async def _render_settings(
         callback_data="set:nr",
     )
 
-    # ردیف ۳: گزارش ماهانه و پاکسازی گزارش‌های قبلی
+    # ردیف 3: گزارش ماهانه و پاکسازی گزارش‌های قبلی
     kb.button(
         text=t(lang, "btn_toggle_monthly", state=_fmt_toggle(reports.monthly, lang)),
         callback_data="set:mr",
@@ -111,14 +111,14 @@ async def _render_settings(
         callback_data="set:cr",
     )
 
-    # ردیف ۴: یادآور گردونه شانس و تغییر زبان
+    # ردیف 4: یادآور گردونه شانس و تغییر زبان
     kb.button(
         text=t(lang, "btn_toggle_wheel_notify", state=_fmt_toggle(reports.wheel_notify, lang)),
         callback_data="set:wn",
     )
     kb.button(text=t(lang, "btn_language"), callback_data="set:lang")
 
-    # ردیف ۵: منوی اصلی
+    # ردیف 5: منوی اصلی
     menu_label = "🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu"
     kb.button(text=menu_label, callback_data="nav:main_menu")
 

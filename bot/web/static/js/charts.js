@@ -188,7 +188,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
               const lbl = context[0]?.label || '';
               if (isMonthly) return String(lbl).startsWith('هفته') ? toEnglishDigits(lbl) : `هفته ${toEnglishDigits(lbl)}`;
               if (chartKey === 'repPeakHoursBarCanvas' || String(lbl).includes('-') || String(lbl).includes(':')) {
-                return `بازه ساعتی: ${lbl} (ساعت ${lbl.replace('-', ' الی ')})`;
+                return String(lbl).includes('-') ? `بازه ساعتی: ${lbl}` : `ساعت: ${lbl}`;
               }
               const faDaysMap = {
                 'ش': 'شنبه', 'شنبه': 'شنبه',
@@ -411,7 +411,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
   });
 }
 
-async function renderLineCurveChart(containerId, labels, data, peakHour = null) {
+async function renderLineCurveChart(containerId, labels, data, peakHour = null, extraOpts = {}) {
   let canvas = document.getElementById(containerId);
   if (!canvas) return;
 
@@ -450,6 +450,8 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
     return isNaN(num) ? 0 : num;
   });
   const cleanLabels = (labels || []).map(l => toEnglishDigits(l));
+  const cutoffIndex = Number.isInteger(extraOpts?.cutoffIndex) ? extraOpts.cutoffIndex : null;
+  const tooltipTitles = Array.isArray(extraOpts?.tooltipTitles) ? extraOpts.tooltipTitles : null;
 
   const chartKey = canvas.id || containerId;
   if (window.chartInstances[chartKey]) {
@@ -464,27 +466,37 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
   gradient.addColorStop(0, isLight ? 'rgba(245, 158, 11, 0.35)' : 'rgba(245, 158, 11, 0.30)');
   gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
 
+  const warnColor = tokens ? tokens.warn : (isLight ? '#d97706' : '#f59e0b');
+  const datasetCfg = {
+    label: 'مصرف ساعتی',
+    data: cleanData,
+    borderColor: warnColor,
+    borderWidth: 2,
+    backgroundColor: gradient,
+    fill: true,
+    tension: 0.38,
+    pointRadius: cutoffIndex !== null ? (c => (c.dataIndex > cutoffIndex ? 0 : 2)) : 2,
+    pointHoverRadius: 5,
+    pointBackgroundColor: tokens ? tokens.warn : (isLight ? '#d97706' : '#fbbf24'),
+    pointBorderColor: tokens ? tokens.pointBorder : (isLight ? '#ffffff' : '#0f172a'),
+  };
+  if (cutoffIndex !== null) {
+    datasetCfg.segment = {
+      borderDash: (c) => (c.p0DataIndex >= cutoffIndex ? [5, 5] : undefined),
+      borderColor: (c) => (c.p0DataIndex >= cutoffIndex ? 'rgba(148, 163, 184, 0.35)' : warnColor),
+    };
+  }
+
   window.chartInstances[chartKey] = new Chart(ctx, {
     type: 'line',
     data: {
       labels: cleanLabels,
-      datasets: [{
-        label: 'مصرف ساعتی',
-        data: cleanData,
-        borderColor: tokens ? tokens.warn : (isLight ? '#d97706' : '#f59e0b'),
-        borderWidth: 2,
-        backgroundColor: gradient,
-        fill: true,
-        tension: 0.38,
-        pointRadius: 1.5,
-        pointHoverRadius: 5,
-        pointBackgroundColor: tokens ? tokens.warn : (isLight ? '#d97706' : '#fbbf24'),
-        pointBorderColor: tokens ? tokens.pointBorder : (isLight ? '#ffffff' : '#0f172a'),
-      }]
+      datasets: [datasetCfg]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -501,7 +513,13 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           padding: 8,
           cornerRadius: 8,
           callbacks: {
-            title: (items) => `بازه ${items[0]?.label || ''}`,
+            title: (items) => {
+              const idx = items[0]?.dataIndex;
+              if (tooltipTitles && idx !== undefined && tooltipTitles[idx]) {
+                return tooltipTitles[idx];
+              }
+              return `ساعت ${items[0]?.label || ''}`;
+            },
             label: (ctx) => `مصرف: ${fmtTraffic(ctx.raw, { html: false, isolate: true })}`
           }
         }
@@ -513,7 +531,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           ticks: {
             color: textColor,
             font: { family: 'Vazirmatn', size: 9.5, weight: isLight ? '600' : '500' },
-            maxTicksLimit: 12,
+            maxTicksLimit: cleanLabels.length > 24 ? 10 : 12,
           }
         },
         y: {
@@ -534,7 +552,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
 
   const peakBadge = document.getElementById('repPeakHourBadge');
   if (peakBadge && peakHour) {
-    peakBadge.innerText = `Peak: ${peakHour}`;
+    peakBadge.innerText = `Peak: ${toEnglishDigits(peakHour)}`;
   }
 }
 
@@ -578,13 +596,13 @@ function renderBurnRate(burnRate, sub) {
       }
     } else if (burnRate.status === 'unlimited') {
       projectedDaysEl.innerText = 'نامحدود ♾️';
-      projectedDaysEl.className = 'font-mono text-cyan-600 dark:text-cyan-400 font-bold text-xs';
+      projectedDaysEl.className = 'font-sans text-cyan-600 dark:text-cyan-400 font-bold text-xs';
     } else if (burnRate.status === 'exhausted') {
       projectedDaysEl.innerText = 'پایان‌یافته';
-      projectedDaysEl.className = 'font-mono text-rose-600 dark:text-rose-400 font-bold text-xs';
+      projectedDaysEl.className = 'font-sans text-rose-600 dark:text-rose-400 font-bold text-xs';
     } else {
       projectedDaysEl.innerText = '—';
-      projectedDaysEl.className = 'font-mono text-slate-400 text-xs';
+      projectedDaysEl.className = 'font-sans text-slate-400 text-xs';
     }
   }
 

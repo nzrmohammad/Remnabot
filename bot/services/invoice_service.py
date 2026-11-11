@@ -130,7 +130,7 @@ async def get_order_invoice_data(
             "is_paid": is_paid,
             "tracking_code": tracking_code,
             "deducted_amount": amount_toman if is_paid else 0,
-            "deducted_formatted": f"{amount_toman:,} تومان" if is_paid else "۰ تومان",
+            "deducted_formatted": f"{amount_toman:,} تومان" if is_paid else "0 تومان",
             "deduction_note": "کسر شده از موجودی کیف پول" if is_paid else ("مسترد شده به کیف پول" if raw_status in (OrderStatus.REFUNDED.value, "refunded") else "هیچ هزینه‌ای از کیف پول شما کسر نشده است"),
         },
     }
@@ -159,7 +159,7 @@ async def send_invoice_to_telegram(bot: Bot, telegram_id: int, invoice: dict[str
         f"• معادل ریالی: {pay['amount_rial_formatted']}\n"
         f"• وضعیت: <b>{pay['status']} ✅</b>\n"
         f"• شناسه رهگیری: <code>{tracking}</code>\n\n"
-        f"✨ <i>این فاکتور دیجیتال سند رسمی خرید شما در سامانه می‌باشد.</i>"
+        f"✨ این فاکتور دیجیتال سند رسمی خرید شما در سامانه می‌باشد."
     )
 
     markup = None

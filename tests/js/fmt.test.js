@@ -61,18 +61,18 @@ test('Raw bytes formatting with isBytes: true', () => {
   assert.strictEqual(fmtTraffic(1099511627776, { isBytes: true, html: false }), '1 TB');
 });
 
-test('Persian digits conversion', () => {
-  assert.strictEqual(fmtTraffic(25, { persianDigits: true, html: false }), '۲۵ GB');
+test('English digits forced even when persianDigits option passed', () => {
+  assert.strictEqual(fmtTraffic(25, { persianDigits: true, html: false }), '25 GB');
 });
 
-test('Persian unit translation', () => {
-  assert.strictEqual(fmtTraffic(25, { persianDigits: true, persianUnit: true, html: false }), '۲۵ گیگابایت');
+test('Persian unit translation with English digits', () => {
+  assert.strictEqual(fmtTraffic(25, { persianDigits: true, persianUnit: true, html: false }), '25 گیگابایت');
   assert.strictEqual(fmtTraffic(1024, { persianUnit: true, html: false }), '1 ترابایت');
 });
 
 test('formatPlanTitle plainText mode for canvas and charts', () => {
   assert.strictEqual(formatPlanTitle('💎 پلن ویژه', { plainText: true }), '💎 پلن ویژه');
-  assert.strictEqual(formatPlanTitle('🚀 توربو ۲ ماهه', { plainText: true }), '🚀 توربو ۲ ماهه');
+  assert.strictEqual(formatPlanTitle('🚀 توربو 2 ماهه', { plainText: true }), '🚀 توربو 2 ماهه');
   assert.strictEqual(formatPlanTitle('پلن بدون آیکون', { plainText: true }), '💎 پلن بدون آیکون');
   assert.strictEqual(formatPlanTitle('', { plainText: true }), '💎 پلن');
 });

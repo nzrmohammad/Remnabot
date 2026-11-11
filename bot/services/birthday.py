@@ -156,7 +156,7 @@ async def birthday_sweep_loop(
                             f"{traffic_msg}"
                             f"🎟 <b>کد تخفیف اختصاصی \u200e{discount_pct}% برای سفارش یا تمدید بعدی:</b>\n"
                             f"<code>{coupon_code}</code>\n"
-                            "⏱ <i>(مهلت استفاده: 7 روز در مینی‌اپ و ربات)</i>\n\n"
+                            "⏱ (مهلت استفاده: 7 روز در مینی‌اپ و ربات)\n\n"
                             "با آرزوی بهترین‌ها و لحظاتی سرشار از سلامتی و شادی برای شما! 💫"
                         )
                     try:
@@ -219,7 +219,7 @@ def parse_and_validate_jalali_birthdate(raw_input: str) -> tuple[bool, str, str 
     Supports:
     - Standard: '1378/04/15', '1378-04-15', '1378.04.15'
     - Short (month/day): '04/15' -> defaults year to 1380
-    - Persian numerals: '۱۳۷۸/۰۴/۱۵'
+    - Persian numerals: '1378/04/15'
 
     Returns:
         (is_valid, formatted_date_string, error_message_or_none)
@@ -247,7 +247,7 @@ def parse_and_validate_jalali_birthdate(raw_input: str) -> tuple[bool, str, str 
             return False, "", "سال تولد باید فقط شامل عدد باشد."
         year = int(y_str)
     else:
-        return False, "", "فرمت نامعتبر است. نمونه صحیح: ۱۳۷۸/۰۴/۱۵ یا ۰۴/۱۵"
+        return False, "", "فرمت نامعتبر است. نمونه صحیح: 1378/04/15 یا 04/15"
 
     if not m_str.isdigit() or not d_str.isdigit():
         return False, "", "ماه و روز باید فقط شامل عدد باشند."
@@ -256,14 +256,14 @@ def parse_and_validate_jalali_birthdate(raw_input: str) -> tuple[bool, str, str 
     day = int(d_str)
 
     if year < 1300 or year > 1410:
-        return False, "", "سال تولد باید بین ۱۳۰۰ تا ۱۴۱۰ باشد."
+        return False, "", "سال تولد باید بین 1300 تا 1410 باشد."
 
     if month < 1 or month > 12:
-        return False, "", "ماه تولد باید بین ۱ تا ۱۲ باشد."
+        return False, "", "ماه تولد باید بین 1 تا 12 باشد."
 
     max_days = 31 if month <= 6 else (30 if month <= 11 else 29)
     if day < 1 or day > max_days:
-        return False, "", f"روز تولد برای ماه {month} باید بین ۱ تا {max_days} باشد."
+        return False, "", f"روز تولد برای ماه {month} باید بین 1 تا {max_days} باشد."
 
     formatted = f"{year:04d}/{month:02d}/{day:02d}"
     return True, formatted, None

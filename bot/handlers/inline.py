@@ -123,7 +123,7 @@ async def inline_query_handler(
                 f"⏳ <b>اعتبار باقی‌مانده:</b> <code>{days_str}</code>",
                 f"📶 <b>وضعیت سرویس:</b> <code>{status_fa}</code>",
                 "──────────────────",
-                f"🚀 <i>ارائه شده توسط @{bot_username}</i>",
+                f"🚀 ارائه شده توسط @{bot_username}",
             ]
 
             buttons = []

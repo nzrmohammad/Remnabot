@@ -335,6 +335,10 @@ GITHUB_REPOS: dict[str, str] = {
     "nekoray": "MatsuriDayo/nekoray",
     "v2raya": "v2rayA/v2rayA",
     "singbox": "SagerNet/sing-box",
+    "karing": "KaringX/karing",
+    "pattn": "patterniha/PattN",
+    "pattng": "patterniha/PattNG",
+    "zedsecure": "CluvexStudio/ZedSecure",
 }
 
 
@@ -360,6 +364,17 @@ async def get_admin_github_releases(request: web.Request) -> web.Response:
                         clean_ver = tag.lstrip("vV")
                         if clean_ver:
                             versions[app_id] = clean_ver
+                            continue
+                # Fallback for repos publishing custom/pre-release tags without /releases/latest
+                list_url = f"https://api.github.com/repos/{repo}/releases?per_page=1"
+                async with session.get(list_url, timeout=aiohttp.ClientTimeout(total=5)) as list_resp:
+                    if list_resp.status == 200:
+                        items = await list_resp.json()
+                        if isinstance(items, list) and items:
+                            tag = str(items[0].get("tag_name") or "").strip()
+                            clean_ver = tag.lstrip("vV")
+                            if clean_ver:
+                                versions[app_id] = clean_ver
             except Exception as exc:
                 logger.warning("Failed to fetch GitHub release for %s (%s): %s", app_id, repo, exc)
 

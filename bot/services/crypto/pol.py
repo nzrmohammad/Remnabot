@@ -83,7 +83,7 @@ async def verify_polygon_transaction(
     if not clean_tx.startswith("0x"):
         clean_tx = "0x" + clean_tx
     if len(clean_tx) != 66:
-        return False, "شناسه تراکنش نامعتبر است (باید ۶۶ کاراکتر هگزادسیمال با پیشوند 0x باشد).", 0
+        return False, "شناسه تراکنش نامعتبر است (باید 66 کاراکتر هگزادسیمال با پیشوند 0x باشد).", 0
 
     expected_clean = expected_address.strip().lower()
     timeout = aiohttp.ClientTimeout(total=6)
@@ -181,7 +181,7 @@ async def verify_polygon_transaction(
             logger.debug("Polygon RPC error on %s for tx %s: %s", rpc_url, clean_tx, exc)
             continue
 
-    return False, "تراکنش هنوز در شبکه پالیگان یافت یا تأیید نشده است. لطفاً ۱ دقیقه صبر کرده و مجدداً امتحان نمایید.", 0
+    return False, "تراکنش هنوز در شبکه پالیگان یافت یا تأیید نشده است. لطفاً 1 دقیقه صبر کرده و مجدداً امتحان نمایید.", 0
 
 
 async def verify_and_credit_pol_invoice(

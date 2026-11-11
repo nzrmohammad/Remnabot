@@ -116,9 +116,9 @@ def format_multi_rate_alert(
         if p:
             val_str = f"<b>{p:,}</b> تومان"
         elif closed.get(f"{name}_ton"):
-            val_str = f"<i>⚠️ {closed[f'{name}_ton']}</i>"
+            val_str = f"⚠️ {closed[f'{name}_ton']}"
         else:
-            val_str = "<i>عدم دسترسی</i>"
+            val_str = "عدم دسترسی"
         lines.append(f"   🔹 {name} : {val_str}")
 
     if global_usd:
@@ -131,9 +131,9 @@ def format_multi_rate_alert(
         if p:
             val_str = f"<b>{p:,}</b> تومان"
         elif closed.get(f"{name}_usdt"):
-            val_str = f"<i>⚠️ {closed[f'{name}_usdt']}</i>"
+            val_str = f"⚠️ {closed[f'{name}_usdt']}"
         else:
-            val_str = "<i>عدم دسترسی</i>"
+            val_str = "عدم دسترسی"
         lines.append(f"   🔹 {name} : {val_str}")
 
     lines.append("")
@@ -142,7 +142,7 @@ def format_multi_rate_alert(
     if current_ton_rate > 0 and best_ton_p is not None:
         lines.append(f"   📈 اختلاف تون : <b>{diff_str}</b> <b>{percent_str}</b>")
     elif best_ton_p is None:
-        lines.append("   ⚠️ <i>نرخ جدیدی از صرافی‌ها دریافت نشد</i>")
+        lines.append("   ⚠️ نرخ جدیدی از صرافی‌ها دریافت نشد")
     lines.append(f"   💵 نرخ مبنای تتر : <b>{curr_usdt_str}</b>")
     lines.append("")
     lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
@@ -224,9 +224,9 @@ def format_ton_rate_alert(
         if p:
             val_str = f"<b>{p:,}</b> تومان"
         elif closed.get(f"{name}_ton"):
-            val_str = f"<i>⚠️ {closed[f'{name}_ton']}</i>"
+            val_str = f"⚠️ {closed[f'{name}_ton']}"
         else:
-            val_str = "<i>عدم دسترسی</i>"
+            val_str = "عدم دسترسی"
         lines.append(f"   🔹 {name} : {val_str}")
 
     if global_usd:
@@ -238,7 +238,7 @@ def format_ton_rate_alert(
     if current_ton_rate > 0 and best_ton_p is not None:
         lines.append(f"   📈 اختلاف تون : <b>{diff_str}</b> <b>{percent_str}</b>")
     elif best_ton_p is None:
-        lines.append("   ⚠️ <i>نرخ جدیدی از صرافی‌ها دریافت نشد</i>")
+        lines.append("   ⚠️ نرخ جدیدی از صرافی‌ها دریافت نشد")
     lines.append("")
     lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
 
@@ -302,9 +302,9 @@ def format_usdt_rate_alert(
         if p:
             val_str = f"<b>{p:,}</b> تومان"
         elif closed.get(f"{name}_usdt"):
-            val_str = f"<i>⚠️ {closed[f'{name}_usdt']}</i>"
+            val_str = f"⚠️ {closed[f'{name}_usdt']}"
         else:
-            val_str = "<i>عدم دسترسی</i>"
+            val_str = "عدم دسترسی"
         lines.append(f"   🔹 {name} : {val_str}")
 
     lines.append("")
@@ -314,8 +314,8 @@ def format_usdt_rate_alert(
         lines.append(f"   📈 اختلاف تتر : <b>{diff_str}</b> <b>{percent_str}</b>")
     lossless_stars = round(ref_usdt_price * 0.013)
     fragment_stars = round(ref_usdt_price * 0.015)
-    lines.append(f"   ⭐️ نرخ بدون ضرر استارز (۰.۰۱۳$) : <b>{lossless_stars:,} تومان</b>")
-    lines.append(f"   🏷 نرخ فرگمنت استارز (۰.۰۱۵$) : <b>{fragment_stars:,} تومان</b>")
+    lines.append(f"   ⭐️ نرخ بدون ضرر استارز (0.013$) : <b>{lossless_stars:,} تومان</b>")
+    lines.append(f"   🏷 نرخ فرگمنت استارز (0.015$) : <b>{fragment_stars:,} تومان</b>")
     lines.append("")
     lines.append("💡 برای به‌روزرسانی نرخ در فروشگاه، دکمه مورد نظر را لمس فرمایید:")
 
@@ -443,9 +443,9 @@ def format_full_crypto_market_alert(
         if p:
             val = f"<b>{p:,}</b> تومان"
         elif closed.get(f"{name}_ton"):
-            val = f"<i>⚠️ {closed[f'{name}_ton']}</i>"
+            val = f"⚠️ {closed[f'{name}_ton']}"
         else:
-            val = "<i>عدم دسترسی</i>"
+            val = "عدم دسترسی"
         lines.append(f"   ▫️ {name}: {val}")
     if global_usd:
         lines.append(f"   🌐 {global_source} جهانی: <b>${global_usd:.2f}</b>")
@@ -459,9 +459,9 @@ def format_full_crypto_market_alert(
         if p:
             val = f"<b>{p:,}</b> تومان"
         elif closed.get(f"{name}_usdt"):
-            val = f"<i>⚠️ {closed[f'{name}_usdt']}</i>"
+            val = f"⚠️ {closed[f'{name}_usdt']}"
         else:
-            val = "<i>عدم دسترسی</i>"
+            val = "عدم دسترسی"
         lines.append(f"   ▫️ {name}: {val}")
     curr_usdt_str = f"{current_usdt_rate:,} ت" if current_usdt_rate > 0 else "— (تنظیم‌نشده)"
     lines.append(f"   ⚙️ فعلی در بات: <b>{curr_usdt_str}</b> ({diff_usdt_str})")
@@ -473,9 +473,9 @@ def format_full_crypto_market_alert(
         if p:
             val = f"<b>{p:,}</b> تومان"
         elif closed.get(f"{name}_trx"):
-            val = f"<i>⚠️ {closed[f'{name}_trx']}</i>"
+            val = f"⚠️ {closed[f'{name}_trx']}"
         else:
-            val = "<i>عدم دسترسی</i>"
+            val = "عدم دسترسی"
         lines.append(f"   ▫️ {name}: {val}")
     if binance_trx_usd:
         lines.append(f"   🌐 بایننس جهانی: <b>${binance_trx_usd:.4f}</b>")
@@ -489,9 +489,9 @@ def format_full_crypto_market_alert(
         if p:
             val = f"<b>{p:,}</b> تومان"
         elif closed.get(f"{name}_pol"):
-            val = f"<i>⚠️ {closed[f'{name}_pol']}</i>"
+            val = f"⚠️ {closed[f'{name}_pol']}"
         else:
-            val = "<i>عدم دسترسی</i>"
+            val = "عدم دسترسی"
         lines.append(f"   ▫️ {name}: {val}")
     if binance_pol_usd:
         lines.append(f"   🌐 بایننس جهانی: <b>${binance_pol_usd:.4f}</b>")
@@ -501,10 +501,10 @@ def format_full_crypto_market_alert(
     lines.append("")
     lines.append("⭐️ <b>نرخ پیشنهادی استارز تلگرام:</b>")
     if lossless_stars > 0:
-        lines.append(f"   ▫️ بدون ضرر (۰.۰۱۳$): <b>{lossless_stars:,} تومان</b>")
-        lines.append(f"   ▫️ خرید فرگمنت (۰.۰۱۵$): <b>{fragment_stars:,} تومان</b>")
+        lines.append(f"   ▫️ بدون ضرر (0.013$): <b>{lossless_stars:,} تومان</b>")
+        lines.append(f"   ▫️ خرید فرگمنت (0.015$): <b>{fragment_stars:,} تومان</b>")
     else:
-        lines.append("   ▫️ بدون ضرر / فرگمنت: <i>— (وابسته به نرخ تتر)</i>")
+        lines.append("   ▫️ بدون ضرر / فرگمنت: — (وابسته به نرخ تتر)")
     curr_stars_str = f"{current_stars_rate:,} ت" if current_stars_rate > 0 else "— (تنظیم‌نشده)"
     lines.append(f"   ⚙️ فعلی در بات: <b>{curr_stars_str}</b>")
 

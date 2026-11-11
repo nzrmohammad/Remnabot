@@ -356,65 +356,85 @@ def calc_usage_curves(
     has_traffic = (today_used_gb > 0) or (week_used_gb > 0) or (used_bytes > 0)
     base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 0.0)
 
-    # 12 2-hour slots (00-02, 02-04, ..., 22-24)
+    # 12 2-hour slots (for interval bar chart) + 24 exact 1-hour slots (for smooth curve & exact peak)
     hourly_curve_labels = [f"{h*2:02d}-{h*2+2:02d}" for h in range(12)]
+    hourly_labels_24 = [f"{h:02d}:00" for h in range(24)]
 
-    # Check snapshots for today and yesterday deltas
+    tz = ZoneInfo(tz_name) if tz_name else timezone.utc
+    now_local = now_dt.astimezone(tz) if now_dt.tzinfo else now_dt
+    curr_h = min(23, max(0, now_local.hour))
+    today_date = now_local.date()
+    yesterday_date = today_date - timedelta(days=1)
+
     today_slot_bytes = [0] * 12
     yesterday_slot_bytes = [0] * 12
+    today_hour_bytes = [0] * 24
+    yesterday_hour_bytes = [0] * 24
+
     if snapshots_24h:
-        tz = ZoneInfo(tz_name) if tz_name else timezone.utc
-        now_local = now_dt.astimezone(tz) if now_dt.tzinfo else now_dt
-        today_date = now_local.date()
-        yesterday_date = today_date - timedelta(days=1)
         for s in snapshots_24h:
             s_ts = getattr(s, "timestamp", None)
             s_delta = getattr(s, "delta_bytes", 0) or 0
             if s_ts:
                 local_s_ts = s_ts.replace(tzinfo=timezone.utc).astimezone(tz) if s_ts.tzinfo is None else s_ts.astimezone(tz)
-                h = (local_s_ts.hour // 2) % 12
+                h2 = (local_s_ts.hour // 2) % 12
+                h24 = local_s_ts.hour % 24
                 if local_s_ts.date() == today_date:
-                    today_slot_bytes[h] += s_delta
+                    today_slot_bytes[h2] += s_delta
+                    today_hour_bytes[h24] += s_delta
                 elif local_s_ts.date() == yesterday_date:
-                    yesterday_slot_bytes[h] += s_delta
+                    yesterday_slot_bytes[h2] += s_delta
+                    yesterday_hour_bytes[h24] += s_delta
 
-    # 1. Today Hourly Usage (12 2-hour intervals)
+    # 1. Today Hourly Usage
     total_today_snap = sum(today_slot_bytes)
     has_real_data = total_today_snap > 0
     if base_curve_gb <= 0.0:
         today_hourly_vals = [0.0] * 12
+        today_hourly_24 = [0.0] * 24
         peak_hour_str = None
     elif total_today_snap > 0:
         today_hourly_vals = [
             round(base_curve_gb * (b / total_today_snap), 2) for b in today_slot_bytes
         ]
-        peak_h = max(range(12), key=lambda i: today_hourly_vals[i])
-        peak_hour_str = f"{peak_h*2:02d}:00 - {peak_h*2+2:02d}:00"
+        today_hourly_24 = [
+            round(base_curve_gb * (b / total_today_snap), 2) if i <= curr_h else 0.0
+            for i, b in enumerate(today_hour_bytes)
+        ]
+        peak_h24 = max(range(curr_h + 1), key=lambda i: today_hourly_24[i])
+        peak_hour_str = f"{peak_h24:02d}:00"
     else:
-        # Realistic diurnal curve elapsed up to current 2-hour slot
-        cur_slot = min(11, max(0, now_dt.hour // 2))
+        cur_slot = min(11, max(0, curr_h // 2))
         today_hourly_vals = [0.0] * 12
         elapsed_slots = max(1, cur_slot + 1)
         portion = round(base_curve_gb / elapsed_slots, 2)
         for i in range(elapsed_slots):
             today_hourly_vals[i] = portion
-        peak_h = cur_slot
-        peak_hour_str = f"{peak_h*2:02d}:00 - {peak_h*2+2:02d}:00"
 
-    # 2. Yesterday Hourly Usage (12 2-hour intervals for Nightly report)
+        today_hourly_24 = [0.0] * 24
+        elapsed_hours = max(1, curr_h + 1)
+        portion_24 = round(base_curve_gb / elapsed_hours, 2)
+        for i in range(elapsed_hours):
+            today_hourly_24[i] = portion_24
+        peak_hour_str = f"{curr_h:02d}:00"
+
+    # 2. Yesterday Hourly Usage
     total_yesterday_snap = sum(yesterday_slot_bytes)
     y_base_gb = float(yesterday_used_gb or 0.0)
     if y_base_gb <= 0.0:
         yesterday_hourly_vals = [0.0] * 12
+        yesterday_hourly_24 = [0.0] * 24
         y_peak_hour_str = None
     elif total_yesterday_snap > 0:
         yesterday_hourly_vals = [
             round(y_base_gb * (b / total_yesterday_snap), 2) for b in yesterday_slot_bytes
         ]
-        y_peak_h = max(range(12), key=lambda i: yesterday_hourly_vals[i])
-        y_peak_hour_str = f"{y_peak_h*2:02d}:00 - {y_peak_h*2+2:02d}:00"
+        yesterday_hourly_24 = [
+            round(y_base_gb * (b / total_yesterday_snap), 2) for b in yesterday_hour_bytes
+        ]
+        y_peak_h24 = max(range(24), key=lambda i: yesterday_hourly_24[i])
+        y_peak_hour_str = f"{y_peak_h24:02d}:00"
     else:
-        # Standard realistic diurnal profile over 12 2-hour intervals
         diurnal_weights_12 = [
             0.03, 0.02, 0.03, 0.07, 0.11, 0.10,
             0.10, 0.10, 0.13, 0.17, 0.09, 0.05,
@@ -422,8 +442,9 @@ def calc_usage_curves(
         w_sum = sum(diurnal_weights_12)
         norm_weights = [w / w_sum for w in diurnal_weights_12]
         yesterday_hourly_vals = [round(y_base_gb * w, 2) for w in norm_weights]
-        y_peak_h = max(range(12), key=lambda i: yesterday_hourly_vals[i])
-        y_peak_hour_str = f"{y_peak_h*2:02d}:00 - {y_peak_h*2+2:02d}:00"
+        yesterday_hourly_24 = [round(yesterday_hourly_vals[h // 2] / 2.0, 2) for h in range(24)]
+        y_peak_h24 = max(range(24), key=lambda i: yesterday_hourly_24[i])
+        y_peak_hour_str = f"{y_peak_h24:02d}:00"
 
     platform_counts: dict[str, int] = {}
     for d in devices:
@@ -448,6 +469,9 @@ def calc_usage_curves(
         "hourly_usage": {
             "labels": hourly_curve_labels,
             "data": today_hourly_vals,
+            "hourly_labels_24": hourly_labels_24,
+            "hourly_data_24": today_hourly_24,
+            "current_hour": curr_h,
             "peak_hour": peak_hour_str,
             "is_estimated": False,
             "has_real_data": has_real_data,
@@ -456,6 +480,8 @@ def calc_usage_curves(
         "yesterday_hourly_usage": {
             "labels": hourly_curve_labels,
             "data": yesterday_hourly_vals,
+            "hourly_labels_24": hourly_labels_24,
+            "hourly_data_24": yesterday_hourly_24,
             "peak_hour": y_peak_hour_str,
             "has_traffic": y_base_gb > 0,
         },
@@ -545,7 +571,7 @@ async def build_active_subscription(
     if session:
         try:
             snapshot_repo = TrafficSnapshotRepository(session)
-            snapshots_24h = await snapshot_repo.get_last_hours(48, now_dt)
+            snapshots_24h = await snapshot_repo.get_last_hours(54, now_dt)
         except Exception as e:
             logger.warning("Failed to fetch traffic snapshots for hourly curve: %s", e)
 
@@ -594,7 +620,7 @@ async def build_active_subscription(
             burn_text = f"با الگوی مصرف فعلی، حجم شما تا حدود {int(projected_days) if projected_days.is_integer() else projected_days} روز دیگر به پایان می‌رسد."
     else:
         burn_status = "idle"
-        burn_text = "مصرف قابل توجهی در ۳ روز اخیر ثبت نشده است."
+        burn_text = "مصرف قابل توجهی در 3 روز اخیر ثبت نشده است."
 
     burn_rate = {
         "avg_daily_gb": avg_3days_gb,

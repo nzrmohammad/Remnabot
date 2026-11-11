@@ -149,4 +149,4 @@ def format_financial_summary(fin: dict[str, int], fmt_fn=None) -> str:
         return f"{orders_count} خرید ({fmt_fn(orders_revenue)} تومان)"
     elif topups_count > 0:
         return f"{topups_count} واریز نقدی ({fmt_fn(topups_amount)} تومان)"
-    return "۰"
+    return "0"

@@ -18,8 +18,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.common import admin_thread_kwargs
 from bot.db.models import CardAutoInvoice
 from bot.db.repositories.card_auto_repo import CardAutoRepository
+from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.app_settings import StoreSettings
+from bot.services.formatting import ltr_frag
 from bot.services.payment.bank_sms_parser import parse_bank_sms
 
 logger = logging.getLogger(__name__)
@@ -113,6 +115,7 @@ async def notify_admin_sms_webhook_log(
     invoice: CardAutoInvoice | None = None,
     new_balance: int | None = None,
     reason: str = "",
+    username: str | None = None,
 ) -> None:
     """Send real-time incoming SMS notification and bot decision to admin SMS topic."""
     if not bot or not settings or not getattr(settings, "ADMIN_CHAT_ID", None):
@@ -132,18 +135,25 @@ async def notify_admin_sms_webhook_log(
     sender_label = escape(sender)
     clean_preview = escape(raw_message.strip()[:400])
 
-    amount_str = f"<b>{parsed.amount_toman:,} تومان</b> ({parsed.amount_rial:,} ریال)" if getattr(parsed, "amount_toman", 0) else "<i>تشخیص داده نشد</i>"
+    amount_str = f"<b>{parsed.amount_toman:,} تومان</b> ({parsed.amount_rial:,} ریال)" if getattr(parsed, "amount_toman", 0) else "تشخیص داده نشد"
 
     if action == "credited" and invoice:
         status_header = "🟢 <b>تأیید و شارژ خودکار کیف پول</b>"
         missing_card_warn = (
-            "\n⚠️ <i>توجه: شماره کارت مقصد در متن پیامک درج نشده بود؛ مطابقت بر اساس مبلغ یکتا انجام شد.</i>"
+            "\n⚠️ توجه: شماره کارت مقصد در متن پیامک درج نشده بود؛ مطابقت بر اساس مبلغ یکتا انجام شد."
             if not getattr(parsed, "card_last4", None)
             else ""
         )
+        clean_uname = (username or "").strip().lstrip("@")
+        username_line = (
+            f"▫️ یوزرنیم کاربر: {ltr_frag(f'@{escape(clean_uname)}')}\n"
+            if clean_uname
+            else "▫️ یوزرنیم کاربر: ندارد\n"
+        )
         decision_details = (
-            f"▫️ شناسه فاکتور: <code>#{invoice.invoice_uuid}</code>\n"
+            f"▫️ شناسه فاکتور: {ltr_frag(f'<code>#{invoice.invoice_uuid}</code>')}\n"
             f"▫️ شناسه کاربر: <code>{invoice.telegram_id}</code>\n"
+            f"{username_line}"
             f"▫️ مبلغ شارژ: <b>{invoice.exact_amount:,} تومان</b>\n"
             f"▫️ موجودی جدید: <b>{new_balance:,} تومان</b>{missing_card_warn}"
         )
@@ -299,7 +309,7 @@ async def process_incoming_sms(
                     f"🏦 بانک: <b>{escape(parsed.bank_name or 'نامشخص')}</b>\n"
                     f"📱 فرستنده: <code>{escape(sender)}</code>\n\n"
                     f"📝 متن پیامک:\n<code>{escape(raw_message[:300])}</code>\n\n"
-                    "ℹ️ <i>علت: کاربر فاکتوری با این مبلغ ثبت نکرده یا مهلت فاکتور به پایان رسیده بود.</i>"
+                    "ℹ️ علت: کاربر فاکتوری با این مبلغ ثبت نکرده یا مهلت فاکتور به پایان رسیده بود."
                 )
                 await bot.send_message(
                     chat_id=settings.ADMIN_CHAT_ID,
@@ -336,8 +346,19 @@ async def process_incoming_sms(
                 await cache.invalidate_user(invoice.telegram_id)
             else:
                 await cache.delete(f"tma:user:{invoice.telegram_id}")
+                await cache.delete(f"tma:user:{invoice.telegram_id}:profile")
+                await cache.delete(f"tma:user:{invoice.telegram_id}:topup_info")
         except Exception as exc:
             logger.debug("Failed invalidating user cache for %s: %s", invoice.telegram_id, exc)
+
+    # Fetch user's Telegram username for admin reporting
+    user_username: str | None = None
+    try:
+        user_obj = await UserRepository(session).get_by_telegram_id(invoice.telegram_id)
+        if user_obj:
+            user_username = getattr(user_obj, "username", None)
+    except Exception:
+        user_username = None
 
     # 1. Notify user in Telegram
     if bot:
@@ -347,7 +368,6 @@ async def process_incoming_sms(
                 "──────────────────\n"
                 f"💰 مبلغ شارژ: <b>{credited_amount:,} تومان</b> ({invoice.exact_rial:,} ریال)\n"
                 f"💳 موجودی جدید کیف پول: <b>{new_bal:,} تومان</b>\n"
-                f"🏦 بانک: <b>{escape(parsed.bank_name or 'کارت بانکی')}</b>\n"
                 f"🆔 شناسه فاکتور: <code>{invoice.invoice_uuid}</code>\n\n"
                 "🎉 حساب شما به‌صورت آنی شارژ شد و می‌توانید از خدمات استفاده نمایید."
             )
@@ -363,7 +383,7 @@ async def process_incoming_sms(
     await notify_admin_sms_webhook_log(
         bot=bot, settings=settings, store=store, sender=sender,
         raw_message=raw_message, action="credited", parsed=parsed,
-        invoice=invoice, new_balance=new_bal
+        invoice=invoice, new_balance=new_bal, username=user_username,
     )
 
     # 3. Notify admin topups topic if distinct from SMS logs topic or if SMS logs topic not set
@@ -377,11 +397,14 @@ async def process_incoming_sms(
     if bot and settings and getattr(settings, "ADMIN_CHAT_ID", None) and (not sms_topic or sms_topic != topups_topic):
         try:
             thread_kwargs = admin_thread_kwargs(store, settings, kind="topups")
+            clean_uname = (user_username or "").strip().lstrip("@")
+            uname_line = f"🏷 یوزرنیم کاربر: {ltr_frag(f'@{escape(clean_uname)}')}\n" if clean_uname else "🏷 یوزرنیم کاربر: ندارد\n"
             admin_msg = (
                 "✅ <b>واریز خودکار کارت‌به‌کارت تأیید شد</b>\n"
                 "──────────────────\n"
-                f"🆔 شناسه فاکتور: <code>#{invoice.invoice_uuid}</code>\n"
+                f"🆔 شناسه فاکتور: {ltr_frag(f'<code>#{invoice.invoice_uuid}</code>')}\n"
                 f"👤 شناسه کاربر: <code>{invoice.telegram_id}</code>\n"
+                f"{uname_line}"
                 f"💰 مبلغ واریزی: <b>{credited_amount:,} تومان</b>\n"
                 f"🏦 بانک: <b>{escape(parsed.bank_name or 'بانک')}</b>\n"
                 f"📱 فرستنده: <code>{escape(sender)}</code>\n"
@@ -401,6 +424,7 @@ async def process_incoming_sms(
         "action": "credited",
         "invoice_uuid": invoice.invoice_uuid,
         "amount_toman": credited_amount,
+        "telegram_id": invoice.telegram_id,
         "user_id": invoice.telegram_id,
         "bank": parsed.bank_name,
     }

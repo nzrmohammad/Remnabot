@@ -652,7 +652,7 @@ async def test_services_policy_hint_rendered(async_session: AsyncSession):
     assert bot.send_message.call_count == 1
     text = bot.send_message.call_args[1]["text"]
     assert "بدون ریست" in text
-    assert "۱ روز" in text
+    assert "1 روز" in text
 
 
 @pytest.mark.anyio
@@ -769,7 +769,7 @@ async def test_admin_nightly_summary(async_session: AsyncSession):
     assert "گزارش جامع" in text
     assert "خلاصه وضعیت کل پنل" in text
     assert ("کاربران فعال امروز و مصرفشان" in text or "کاربران فعال روز قبل و مصرفشان" in text)
-    assert "کاربرانی که تا ۳ روز آینده منقضی می شوند" in text
+    assert "کاربرانی که تا 3 روز آینده منقضی می شوند" in text
     assert "کاربران منقضی (24 ساعت اخیر)" in text
     assert ("هشدارهای ارسال شده امروز" in text or "هشدارهای ارسال شده روز قبل" in text)
     assert "active_user" in text
@@ -805,7 +805,7 @@ async def test_admin_weekly_summary(async_session: AsyncSession):
         else bot.send_message.call_args[1].get("text", "")
     )
     assert "گزارش هفتگی پرمصرفترین کاربران" in text
-    assert "۲۰ کاربر برتر این هفته:" in text
+    assert "20 کاربر برتر این هفته:" in text
     assert "قهرمان هر روز هفته:" in text
     assert "Farinaz" in text
     assert "Benjamin" in text
