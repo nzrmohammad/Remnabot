@@ -50,6 +50,19 @@ _WITHDRAWAL_KEYWORDS = (
     "عدم موفقیت",
     "برگشت داده شد",
     "برگشت به حساب",
+    "از حساب شما پرید",
+)
+
+_OTP_KEYWORDS = ("رمز پویا", "رمز یکبار مصرف", "رمز موقت")
+_FAILED_KEYWORDS = (
+    "ناموفق",
+    "برگشت",
+    "برگشتی",
+    "لغو",
+    "خطا",
+    "عدم موفقیت",
+    "برگشت داده شد",
+    "برگشت به حساب",
 )
 
 # Deposit keywords confirming an incoming transfer/credit
@@ -67,7 +80,6 @@ _DEPOSIT_KEYWORDS = (
     "به سپرده شما",
     "کارت به کارت به کارت",  # Bank Mellat incoming transfer pattern
     "افزایش موجودی",
-    "+",
     "به حساب شما نشست",
     "نشست",
 )
@@ -123,6 +135,28 @@ class ParsedBankSms:
     card_last4: str | None
     tracking_code: str | None
     raw_text: str
+    reject_reason: str | None = None
+
+
+def _rejected_sms(raw_text: str, bank_name: str | None = None, reason: str = "") -> ParsedBankSms:
+    return ParsedBankSms(
+        is_deposit=False,
+        amount_toman=None,
+        amount_rial=None,
+        bank_name=bank_name,
+        card_last4=None,
+        tracking_code=None,
+        raw_text=raw_text,
+        reject_reason=reason or None,
+    )
+
+
+def _classify_withdrawal_reason(norm_lower: str) -> str:
+    if any(kw in norm_lower for kw in _OTP_KEYWORDS):
+        return "پیامک رمز یکبار مصرف یا احراز هویت است"
+    if any(kw in norm_lower for kw in _FAILED_KEYWORDS):
+        return "تراکنش ناموفق یا برگشتی بوده است"
+    return "تراکنش برداشت، خرید یا انتقال خروجی از حساب است"
 
 
 def normalize_sms_digits(text: str) -> str:
@@ -148,71 +182,37 @@ def detect_bank_name(text: str, sender: str = "") -> str | None:
 
 def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
     """Parse an Iranian bank SMS message into structured data."""
-    if not text:
-        return ParsedBankSms(
-            is_deposit=False,
-            amount_toman=None,
-            amount_rial=None,
-            bank_name=None,
-            card_last4=None,
-            tracking_code=None,
-            raw_text="",
-        )
+    if not text or not text.strip():
+        return _rejected_sms(text or "", reason="متن پیامک خالی است")
 
     norm_text = normalize_sms_digits(text)
     bank_name = detect_bank_name(norm_text, sender)
 
     # 1. Check for withdrawal keywords or negative amounts (e.g. 1,290,000-)
     norm_lower = norm_text.lower()
-    for kw in _WITHDRAWAL_KEYWORDS:
-        if kw in norm_lower:
-            return ParsedBankSms(
-                is_deposit=False,
-                amount_toman=None,
-                amount_rial=None,
-                bank_name=bank_name,
-                card_last4=None,
-                tracking_code=None,
-                raw_text=text,
-            )
+    if any(kw in norm_lower for kw in _WITHDRAWAL_KEYWORDS):
+        return _rejected_sms(text, bank_name=bank_name, reason=_classify_withdrawal_reason(norm_lower))
 
     if re.search(r"(?:خرید|برداشت|مبلغ)\s*[:：]?\s*[\d,]{4,15}\s*\-(?!\d)|(?:^|[\s:])[\d,]{4,15}\s*\-(?!\d)", norm_lower):
-        return ParsedBankSms(
-            is_deposit=False,
-            amount_toman=None,
-            amount_rial=None,
-            bank_name=bank_name,
-            card_last4=None,
-            tracking_code=None,
-            raw_text=text,
-        )
+        return _rejected_sms(text, bank_name=bank_name, reason="تراکنش برداشت یا کسر از حساب (علامت منفی) است")
 
     # Check for outgoing transfer without explicit deposit indicators (e.g. "انتقال به کارت ... مبلغ ... انجام شد")
     if (
         ("انتقال به کارت" in norm_lower or "انتقال به حساب" in norm_lower or "انتقال به سپرده" in norm_lower or "انتقال وجه" in norm_lower)
         and not ("شما" in norm_lower or "واریز" in norm_lower or "بستانکار" in norm_lower or "+" in norm_lower or "کارت به کارت به کارت" in norm_lower)
     ):
-        return ParsedBankSms(
-            is_deposit=False,
-            amount_toman=None,
-            amount_rial=None,
-            bank_name=bank_name,
-            card_last4=None,
-            tracking_code=None,
-            raw_text=text,
-        )
+        return _rejected_sms(text, bank_name=bank_name, reason="تراکنش انتقال خروجی از حساب است")
 
-    # 2. Check for deposit keywords
-    has_deposit = any(kw in norm_lower for kw in _DEPOSIT_KEYWORDS)
+    # 2. Check for deposit keywords (or explicit + amount notation, excluding phone numbers like +98912...)
+    has_plus_deposit = bool(
+        re.search(r"(?:[\d,]+\s*\+|\+\s*\d{1,3}(?:,\d{3})+|\+\s*[\d,]+\s*(?:ریال|تومان|ت|r|irr)\b)", norm_lower)
+    )
+    has_deposit = has_plus_deposit or any(kw in norm_lower for kw in _DEPOSIT_KEYWORDS)
     if not has_deposit:
-        return ParsedBankSms(
-            is_deposit=False,
-            amount_toman=None,
-            amount_rial=None,
+        return _rejected_sms(
+            text,
             bank_name=bank_name,
-            card_last4=None,
-            tracking_code=None,
-            raw_text=text,
+            reason="فاقد کلیدواژه واریز بانکی (پیامک تست وب‌هوک، تبلیغاتی یا اطلاع‌رسانی)",
         )
 
     # 3. Extract Card / Account Last 4 digits if present
@@ -239,6 +239,7 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
     # Pattern C: "50,370 تومان واریز شد" or "11,421,100ریال به حساب شما نشست"
     amount_toman = None
     amount_rial = None
+    has_explicit_unit = False
 
     patterns = [
         # Explicit "مبلغ: 559,370 ریال" or "واریز: 559,370 ریال"
@@ -273,7 +274,6 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
                 continue
 
             unit_lower = unit.lower()
-            has_explicit_unit = False
             if "تومان" in unit_lower or unit_lower == "ت":
                 amount_toman = val
                 amount_rial = val * 10
@@ -285,6 +285,9 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
                 has_explicit_unit = True
                 break
             elif "+" in raw_num or "+" in match.group(0):
+                # Require comma-grouping for unitless leading + amounts to avoid phone numbers (+98912...)
+                if match.group(0).lstrip().startswith("+") and "," not in raw_num:
+                    continue
                 amount_rial = val
                 amount_toman = val // 10
                 has_explicit_unit = True
@@ -296,6 +299,7 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
             break
 
     is_valid_deposit = bool(amount_toman is not None and amount_toman > 0 and has_explicit_unit)
+    reject_reason = None if is_valid_deposit else "کلیدواژه واریز یافت شد اما مبلغ یا واحد پول معتبر (ریال/تومان) در متن تشخیص داده نشد"
 
     return ParsedBankSms(
         is_deposit=is_valid_deposit,
@@ -305,4 +309,5 @@ def parse_bank_sms(text: str, sender: str = "") -> ParsedBankSms:
         card_last4=card_last4,
         tracking_code=tracking_code,
         raw_text=text,
+        reject_reason=reject_reason,
     )

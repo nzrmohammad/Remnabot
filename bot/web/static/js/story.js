@@ -95,7 +95,7 @@ function setupStoryCard() {
     ctx.font = 'bold 26px Vazirmatn, sans-serif';
     ctx.fillText('⚡️ RemnaStore Pro', 300, 65);
 
-    ctx.font = 'bold 12px monospace';
+    ctx.font = 'bold 12px Vazirmatn, sans-serif';
     ctx.fillStyle = '#fbbf24';
     ctx.fillText('VIP PASS', 300, 92);
 
@@ -154,7 +154,7 @@ function setupStoryCard() {
     ctx.fillText(sName, 300, 250);
 
     ctx.fillStyle = '#60a5fa';
-    ctx.font = '15px monospace';
+    ctx.font = '15px Vazirmatn, sans-serif';
     ctx.fillText(sUser, 300, 276);
 
     // Metrics container box
@@ -173,7 +173,7 @@ function setupStoryCard() {
       ? fmtTraffic(sub.traffic_remaining_gb, { html: false })
       : ((document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim());
     ctx.fillStyle = '#34d399';
-    ctx.font = 'bold 42px monospace';
+    ctx.font = 'bold 42px Vazirmatn, sans-serif';
     ctx.fillText(sTraf, 300, 400);
 
     const sDays = sub?.days_left != null

@@ -180,7 +180,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
           borderWidth: 1,
           bodyColor: tokens?.tooltipBody || (isLight ? '#0369a1' : '#38bdf8'),
           titleFont: { family: 'Vazirmatn', size: 11, weight: 'bold' },
-          bodyFont: { family: 'monospace', size: 12, weight: 'bold' },
+          bodyFont: { family: 'Vazirmatn', size: 12, weight: 'bold' },
           padding: 8,
           cornerRadius: 8,
           callbacks: {
@@ -219,7 +219,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
             maxTicksLimit: 12,
             maxRotation: 45,
             minRotation: 45,
-            font: { family: 'monospace', size: 8.5, weight: '600' },
+            font: { family: 'Vazirmatn', size: 8.5, weight: '600' },
             callback: function(val, index) {
               const raw = cleanLabels[index] ?? this.getLabelForValue(val);
               return toEnglishDigits(String(raw));
@@ -239,7 +239,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
           border: { display: false },
           ticks: {
             color: textColor,
-            font: { family: 'monospace', size: 9, weight: isLight ? '600' : '500' },
+            font: { family: 'Vazirmatn', size: 9, weight: isLight ? '600' : '500' },
             callback: function(val) {
               return fmtTraffic(val, { html: false, isolate: true });
             }
@@ -392,7 +392,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           borderWidth: 1,
           bodyColor: tokens?.tooltipBody || (isLight ? '#0369a1' : '#38bdf8'),
           titleFont: { family: 'Vazirmatn', size: 10, weight: 'bold' },
-          bodyFont: { family: 'monospace', size: 11, weight: 'bold' },
+          bodyFont: { family: 'Vazirmatn', size: 11, weight: 'bold' },
           padding: 8,
           cornerRadius: 8,
           callbacks: {
@@ -497,7 +497,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           borderWidth: 1,
           bodyColor: tokens?.warn || '#fbbf24',
           titleFont: { family: 'Vazirmatn', size: 10, weight: 'bold' },
-          bodyFont: { family: 'monospace', size: 11, weight: 'bold' },
+          bodyFont: { family: 'Vazirmatn', size: 11, weight: 'bold' },
           padding: 8,
           cornerRadius: 8,
           callbacks: {
@@ -512,7 +512,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           border: { display: false },
           ticks: {
             color: textColor,
-            font: { family: 'monospace', size: 9.5, weight: isLight ? '600' : '500' },
+            font: { family: 'Vazirmatn', size: 9.5, weight: isLight ? '600' : '500' },
             maxTicksLimit: 12,
           }
         },
@@ -524,7 +524,7 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null) 
           border: { display: false },
           ticks: {
             color: textColor,
-            font: { family: 'monospace', size: 9, weight: isLight ? '600' : '500' },
+            font: { family: 'Vazirmatn', size: 9, weight: isLight ? '600' : '500' },
             callback: (v) => fmtTraffic(v, { html: false, isolate: true })
           }
         }

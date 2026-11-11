@@ -29,7 +29,7 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
 }
 
 .font-mono, code, pre, kbd, samp, [dir="ltr"].font-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
 }
 
 * {

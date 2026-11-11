@@ -279,10 +279,14 @@ async def test_topic_sms_logs_notifications(async_session: AsyncSession):
         raw_message=sms_non_deposit,
     )
     assert res1["action"] == "ignored_non_deposit"
+    assert "Not recognized" not in res1["reason"]
     assert mock_bot.send_message.called
     call_args1 = mock_bot.send_message.call_args
     assert call_args1.kwargs.get("message_thread_id") == 999
-    assert "پیامک غیرواریزی" in call_args1.kwargs.get("text", "")
+    msg_text1 = call_args1.kwargs.get("text", "")
+    assert "پیامک غیرواریزی" in msg_text1
+    assert "Not recognized as deposit" not in msg_text1
+    assert "تراکنش برداشت، خرید یا انتقال خروجی از حساب است" in msg_text1
 
     # 2. Card mismatch SMS
     mock_bot.reset_mock()

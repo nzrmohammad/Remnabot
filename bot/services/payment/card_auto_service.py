@@ -229,12 +229,12 @@ async def process_incoming_sms(
         return {
             "ok": True,
             "action": "duplicate_ignored",
-            "reason": "Duplicate SMS replay blocked",
+            "reason": "پیامک تکراری نادیده گرفته شد",
         }
 
     if not parsed.is_deposit or not parsed.amount_toman:
         logger.info("Ignored non-deposit or unparsed SMS from %s: %s", sender, raw_message[:60])
-        reason = "Not recognized as deposit"
+        reason = getattr(parsed, "reject_reason", None) or "تراکنش واریز بانکی تشخیص داده نشد"
         await notify_admin_sms_webhook_log(
             bot=bot, settings=settings, store=store, sender=sender,
             raw_message=raw_message, action="ignored_non_deposit", parsed=parsed, reason=reason
@@ -256,7 +256,7 @@ async def process_incoming_sms(
                     "Bank deposit card mismatch: SMS card_last4=%s does not match store card_last4=%s (sender=%s)",
                     parsed.card_last4, store_card_last4, sender,
                 )
-                reason = f"Card {parsed.card_last4} does not match store card {store_card_last4}"
+                reason = f"شماره کارت پیامک ({parsed.card_last4}) با کارت فروشگاه ({store_card_last4}) مطابقت ندارد"
                 await notify_admin_sms_webhook_log(
                     bot=bot, settings=settings, store=store, sender=sender,
                     raw_message=raw_message, action="card_mismatch", parsed=parsed, reason=reason

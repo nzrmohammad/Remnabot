@@ -504,20 +504,68 @@ openUserChat(telegram_id, name, tag, topup_id) {
       }
     },
 
-    async deleteCampaign(id, name) {
-      if (!confirm(`آیا از حذف کمپین «${name}» اطمینان دارید؟`)) return;
+    openDeleteCampaignModal(id, name = '', code = '') {
+      const campaigns = window._adminCampaignsData || [];
+      const found = campaigns.find(item => item.id === id);
+      const resolvedName = name || found?.name || 'کمپین انتخابی';
+      const resolvedCode = code || found?.code || '';
+
+      this._pendingDeleteCampaignId = id;
+      const nameEl = $('deleteCampaignModalName');
+      const codeEl = $('deleteCampaignModalCode');
+      if (nameEl) nameEl.innerText = resolvedName;
+      if (codeEl) {
+        if (resolvedCode) {
+          codeEl.innerText = `ad_${resolvedCode}`;
+          codeEl.classList.remove('hidden');
+        } else {
+          codeEl.innerText = '';
+          codeEl.classList.add('hidden');
+        }
+      }
+      const modal = $('deleteCampaignModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeDeleteCampaignModal() {
+      const modal = $('deleteCampaignModal');
+      if (modal) modal.classList.add('hidden');
+      this._pendingDeleteCampaignId = null;
+    },
+
+    async executeDeleteCampaign() {
+      const id = this._pendingDeleteCampaignId;
+      if (!id) return;
+      const btn = $('confirmDeleteCampaignBtn');
+      const prevHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'در حال حذف...';
+      }
       try {
         const res = await window.api.deleteAdminCampaign(id);
         if (res && res.ok) {
           if (window.showToast) window.showToast('🗑 کمپین با موفقیت حذف شد.');
           if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeDeleteCampaignModal();
           this.fetchAdminCampaigns();
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در حذف کمپین'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
         }
       } catch (err) {
         if (window.showToast) window.showToast('خطای شبکه در حذف کمپین.');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = prevHtml;
+        }
       }
+    },
+
+    deleteCampaign(id, name, code = '') {
+      this.openDeleteCampaignModal(id, name, code);
     },
 
     async copyCampaignLink(deepLink) {
@@ -609,7 +657,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                   </button>
                   <!-- Delete Campaign Button -->
-                  <button type="button" data-id="${c.id}" data-name="${escapeHtml(c.name)}" class="btn-delete-campaign w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 t-danger border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
+                  <button type="button" data-id="${c.id}" data-name="${escapeHtml(c.name)}" data-code="${escapeHtml(c.code || '')}" class="btn-delete-campaign w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 t-danger border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>

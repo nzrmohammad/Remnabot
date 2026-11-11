@@ -371,7 +371,10 @@
   window.closeCampaignDetailModal = () => window.adminActions.closeCampaignDetailModal();
   window.closeCreateCampaignModal = () => window.adminActions.closeCreateCampaignModal();
   window.submitCreateCampaign = (e) => window.adminActions.submitCreateCampaign(e);
-  window.deleteCampaign = (id, name) => window.adminActions.deleteCampaign(id, name);
+  window.openDeleteCampaignModal = (id, name, code) => window.adminActions.openDeleteCampaignModal(id, name, code);
+  window.closeDeleteCampaignModal = () => window.adminActions.closeDeleteCampaignModal();
+  window.executeDeleteCampaign = () => window.adminActions.executeDeleteCampaign();
+  window.deleteCampaign = (id, name, code) => window.adminActions.deleteCampaign(id, name, code);
   window.copyCampaignLink = (url) => window.adminActions.copyCampaignLink(url);
   window.fetchAdminCampaigns = () => window.adminActions.fetchAdminCampaigns();
   window.deleteSslDomain = (domain) => window.adminActions.deleteSslDomain(domain);
@@ -434,7 +437,7 @@
     }
     const delCampBtn = e.target.closest('.btn-delete-campaign');
     if (delCampBtn) {
-      window.adminActions.deleteCampaign(Number(delCampBtn.dataset.id), delCampBtn.dataset.name);
+      window.adminActions.deleteCampaign(Number(delCampBtn.dataset.id), delCampBtn.dataset.name, delCampBtn.dataset.code);
       return;
     }
   });

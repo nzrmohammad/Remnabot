@@ -411,3 +411,69 @@ def test_orders_service_id_nullable_migration():
     assert "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;" in base_py
     assert "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;" in user_shop_py
     assert "Detected legacy NOT NULL on orders.service_id, executing inline self-healing migration..." in user_shop_py
+
+
+def test_coupon_card_ltr_code_copy_status_order():
+    """Coupon cards should lay out code -> copy icon -> status badge left-to-right."""
+    admin_plans = Path("bot/web/static/js/admin_plans.js").read_text(encoding="utf-8")
+
+    ltr_idx = admin_plans.find('<div class="flex items-center gap-2" dir="ltr">')
+    copy_idx = admin_plans.find('class="btn-quick-copy-coupon', ltr_idx)
+    badge_idx = admin_plans.find('${statusBadge}', copy_idx)
+    assert ltr_idx != -1 and copy_idx != -1 and badge_idx != -1
+    assert ltr_idx < copy_idx < badge_idx
+
+
+def test_birthday_edit_hidden_after_registration():
+    """Once birthday is registered, edit UI must not be shown in app frontend."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+
+    assert "✏️ ویرایش تاریخ تولد" not in app_html
+    assert "ویرایش تاریخ" not in app_js
+    assert "ویرایش ✏️" not in app_js
+    assert "if (hasBirthDate) {\n        bdayBtn.classList.add('hidden');" in app_js
+    assert "if (existingDate && String(existingDate).trim()) {" in app_js
+
+
+def test_campaign_delete_confirmation_modal():
+    """Campaign deletion must use a dedicated custom modal rather than window.confirm."""
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    admin_settings = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
+    admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
+
+    for html_id in [
+        'id="deleteCampaignModal"',
+        'id="deleteCampaignModalName"',
+        'id="deleteCampaignModalCode"',
+        'id="confirmDeleteCampaignBtn"',
+    ]:
+        assert html_id in admin_html
+
+    assert "openDeleteCampaignModal(" in admin_settings
+    assert "closeDeleteCampaignModal(" in admin_settings
+    assert "executeDeleteCampaign(" in admin_settings
+    assert "confirm(`آیا از حذف کمپین" not in admin_settings
+    assert "window.openDeleteCampaignModal" in admin_js
+
+
+def test_no_monospace_font_anywhere_in_web():
+    """Ensure monospace font family is completely replaced by Vazirmatn across web assets."""
+    for path_str in [
+        "bot/web/static/css/base.css",
+        "bot/web/static/css/components.css",
+        "bot/web/static/css/tailwind.min.css",
+        "bot/web/static/js/charts.js",
+        "bot/web/static/js/story.js",
+        "bot/web/static/js/app.js",
+        "bot/web/templates/app.html",
+        "bot/web/user_topup.py",
+    ]:
+        content = Path(path_str).read_text(encoding="utf-8")
+        assert "monospace" not in content, f"Found residual monospace font in {path_str}"
+
+    base_css = Path("bot/web/static/css/base.css").read_text(encoding="utf-8")
+    assert ".font-mono, code, pre, kbd, samp" in base_css
+    assert "Vazirmatn" in base_css
+    tailwind_cfg = Path("tailwind.config.js").read_text(encoding="utf-8")
+    assert "mono: ['Vazirmatn'" in tailwind_cfg

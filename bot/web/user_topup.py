@@ -1299,8 +1299,8 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     <a href="{safe_tronlink_url}" data-fallback="{safe_tron_uri}" class="btn btn-tronlink">⚡️ باز کردن مستقیم در ترون‌لینک (TronLink)</a>
     <a href="{safe_tron_uri}" class="btn btn-secondary-wallet">باز کردن در Trust Wallet / سایر کیف پول‌ها</a>
     <div class="info-box">
-      <div>مبلغ: <b style="color:#22d3ee;font-family:monospace;">{safe_amt} TRX</b></div>
-      <div style="margin-top:4px;font-family:monospace;font-size:10px;color:#94a3b8;">{safe_addr}</div>
+      <div>مبلغ: <b style="color:#22d3ee;font-family:'Vazirmatn',sans-serif;">{safe_amt} TRX</b></div>
+      <div style="margin-top:4px;font-family:'Vazirmatn',sans-serif;font-size:10px;color:#94a3b8;">{safe_addr}</div>
     </div>
   </div>
   <script>
@@ -1695,12 +1695,14 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                 pass
 
         # If not JSON, check URL-encoded form parameters or raw text
-        if not raw_message and raw_text_payload and "=" in raw_text_payload and ("from=" in raw_text_payload or "message=" in raw_text_payload or "text=" in raw_text_payload):
+        if not raw_message and raw_text_payload and "=" in raw_text_payload and any(
+            k in raw_text_payload for k in ("from=", "message=", "text=", "content=", "msg=")
+        ):
             try:
                 from urllib.parse import parse_qs
                 qs = parse_qs(raw_text_payload)
                 sender = str(qs.get("from", [""])[0] or qs.get("sender", [""])[0] or qs.get("phone", [""])[0] or "")
-                raw_message = str(qs.get("message", [""])[0] or qs.get("text", [""])[0] or qs.get("content", [""])[0] or "")
+                raw_message = str(qs.get("message", [""])[0] or qs.get("text", [""])[0] or qs.get("content", [""])[0] or qs.get("msg", [""])[0] or "")
                 if not provided_token and qs.get("token"):
                     provided_token = str(qs.get("token", [""])[0]).strip()
             except Exception:

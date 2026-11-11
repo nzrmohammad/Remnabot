@@ -187,5 +187,49 @@ def test_reject_unitless_amount_sms():
     res = parse_bank_sms(sms)
     assert res.is_deposit is False
     assert res.amount_toman is None
+    assert res.reject_reason
+
+
+def test_parse_blubank_with_sms_forwarder_metadata():
+    sms = """بلو
+واریز پول
+محمدجواد عزیز، 4,179,900ریال به حساب شما نشست.
+موجودی: 845,360,497 ریال
+۱۰:۲۶
+۱۴۰۵.۰۸.۱۹
+SIM1_
+SubId：0
+2026-11-10 11:04:40"""
+    res = parse_bank_sms(sms, sender="SMS_Forwarder")
+    assert res.is_deposit is True
+    assert res.amount_rial == 4179900
+    assert res.amount_toman == 417990
+    assert res.bank_name == "بلوبانک"
+    assert res.reject_reason is None
+
+
+def test_reject_blubank_withdrawal_and_phone_plus_and_webhook_test():
+    withdrawal = """بلو
+برداشت پول
+محمدجواد عزیز، 30,000,000ریال از حساب شما پرید.
+موجودی: 815,342,497 ریال
+۱۰:۴۰
+۱۴۰۵.۰۸.۱۹
+SIM1_
+SubId：0
+2026-11-10 11:04:04"""
+    res_wd = parse_bank_sms(withdrawal, sender="SMS_Forwarder")
+    assert res_wd.is_deposit is False
+    assert res_wd.reject_reason == "تراکنش برداشت، خرید یا انتقال خروجی از حساب است"
+
+    phone_sms = "تست پیامک از شماره +989123456789"
+    res_phone = parse_bank_sms(phone_sms)
+    assert res_phone.is_deposit is False
+    assert res_phone.amount_toman is None
+
+    test_sms = "[Remnabot Webhook] Congratulations, the sender test is successful, please continue to add forwarding rules!\n2026-11-10 10:58:47"
+    res_test = parse_bank_sms(test_sms, sender="19999999999")
+    assert res_test.is_deposit is False
+    assert "فاقد کلیدواژه واریز" in (res_test.reject_reason or "")
 
 

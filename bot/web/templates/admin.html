@@ -3894,6 +3894,45 @@
       </div>
     </div>
 
+    <!-- MODAL: Delete Campaign Confirmation (حذف کمپین و لینک تبلیغاتی) -->
+    <div id="deleteCampaignModal" onclick="if(event.target === this) window.adminActions.closeDeleteCampaignModal()" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+      <div class="modal-card border border-slate-700/80 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative">
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/15 t-danger flex items-center justify-center border border-rose-500/30">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <h4 class="text-xs font-bold t-main">تأیید حذف کمپین تبلیغاتی</h4>
+          </div>
+          <button type="button" onclick="window.adminActions.closeDeleteCampaignModal()" class="modal-close-btn" aria-label="بستن">✕</button>
+        </div>
+
+        <div class="space-y-2.5 text-xs">
+          <p class="t-main leading-relaxed">
+            آیا از حذف کمپین و لینک تبلیغاتی زیر اطمینان دارید؟
+          </p>
+          <div class="p-3.5 rounded-2xl card-inset border-2 border-rose-500/40 text-center space-y-1 shadow-inner">
+            <span id="deleteCampaignModalName" class="text-sm font-bold t-main block truncate">--</span>
+            <span id="deleteCampaignModalCode" class="text-[11px] font-sans num-bidi t-accent block" dir="ltr">--</span>
+          </div>
+          <p class="text-[11px] t-danger/90 flex items-center gap-1.5 pt-0.5 leading-relaxed">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>با حذف این کمپین، لینک تبلیغاتی و گزارش آمار فروش مربوط به آن از لیست حذف خواهد شد.</span>
+          </p>
+        </div>
+
+        <div class="flex gap-2 pt-2 border-t border-slate-700/60">
+          <button type="button" id="confirmDeleteCampaignBtn" onclick="window.adminActions.executeDeleteCampaign()" class="flex-1 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span>حذف کمپین</span>
+          </button>
+          <button type="button" onclick="window.adminActions.closeDeleteCampaignModal()" class="flex-1 btn btn-secondary text-xs py-2.5 rounded-xl transition">
+            انصراف
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 

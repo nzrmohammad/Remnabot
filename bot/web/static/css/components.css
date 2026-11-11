@@ -317,7 +317,7 @@ input.num-bidi::placeholder {
 input.font-en,
 input.font-mono,
 .font-en {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace, sans-serif !important;
+  font-family: 'Vazirmatn', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   font-variant-numeric: tabular-nums lining-nums !important;
   font-feature-settings: "cv01" 0, "ss01" 0, "numr" 0, "tnum" 1 !important;
 }

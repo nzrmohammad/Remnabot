@@ -1353,22 +1353,19 @@ function initBirthdaySelects() {
 }
 
 function openBirthdayModal() {
-  initBirthdaySelects();
   const existingDate = window.lastUserData?.user?.birth_date || '';
-  if (existingDate) {
-    try {
-      const parts = existingDate.replace(/-/g, '/').split('/').map(Number);
-      if (parts.length === 3) {
-        selectBdayItem('year', parts[0], String(parts[0]), false);
-        selectBdayItem('month', parts[1], JALALI_MONTHS[parts[1] - 1] || parts[1], false);
-        selectBdayItem('day', parts[2], String(parts[2]), false);
-      }
-    } catch (e) {}
-  } else {
-    selectBdayItem('year', 1375, '1375', false);
-    selectBdayItem('month', 1, 'فروردین', false);
-    selectBdayItem('day', 1, '1', false);
+  if (existingDate && String(existingDate).trim()) {
+    if (typeof window.openBirthdayCountdownModal === 'function') {
+      window.openBirthdayCountdownModal();
+    } else {
+      showToast('تاریخ تولد شما قبلاً ثبت شده و قابل تغییر نیست.');
+    }
+    return;
   }
+  initBirthdaySelects();
+  selectBdayItem('year', 1375, '1375', false);
+  selectBdayItem('month', 1, 'فروردین', false);
+  selectBdayItem('day', 1, '1', false);
   updateBdayDaysGrid();
   switchBdayPickerTab('day');
   openModal('birthdayModal');
@@ -1521,7 +1518,9 @@ async function saveBirthday() {
 
       // Immediately reflect in UI without delay
       const profBirth = $('profileBirthDate');
-      if (profBirth) profBirth.innerText = toPersianDigits(formattedDate);
+      if (profBirth) profBirth.innerText = toEnglishDigits(formattedDate);
+      const bdayBtn = $('openBirthdayModalBtn');
+      if (bdayBtn) bdayBtn.classList.add('hidden');
 
       if (window.lastUserData?.user) {
         window.lastUserData.user.birth_date = formattedDate;
@@ -1720,10 +1719,10 @@ function renderDashboardBirthdayCountdown(user) {
     if (badgeEl) badgeEl.innerHTML = `<span>⏳</span> <span id="birthdayDaysLeftNum">${toEnglishDigits(daysLeft)}</span> <span>روز</span>`;
   } else {
     card.classList.remove('hidden');
-    card.onclick = () => window.openBirthdayModal();
+    card.onclick = () => (typeof window.openBirthdayCountdownModal === 'function' ? window.openBirthdayCountdownModal() : null);
     if (titleEl) titleEl.innerText = 'تاریخ زادروز شما ثبت شده است';
-    if (subEl) subEl.innerText = `تاریخ: ${birthDate}`;
-    if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ویرایش ✏️</span>';
+    if (subEl) subEl.innerText = `تاریخ: ${toEnglishDigits(birthDate)}`;
+    if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ثبت‌شده ✅</span>';
   }
 }
 
@@ -2811,13 +2810,18 @@ function hydrateUserInterface(data) {
       }
     }
     if (profJoin) profJoin.innerText = user.created_at_jalali ? toEnglishDigits(user.created_at_jalali) : '—';
-    if (profBirth) profBirth.innerText = user.birth_date ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
+    const hasBirthDate = Boolean(user.birth_date && String(user.birth_date).trim());
+    if (profBirth) profBirth.innerText = hasBirthDate ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
 
     const bdayBtn = $('openBirthdayModalBtn');
     if (bdayBtn) {
-      bdayBtn.className = 't-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
-      bdayBtn.innerHTML = '<span>✏️</span>';
-      bdayBtn.title = user.birth_date ? 'ویرایش تاریخ تولد' : 'ثبت تاریخ تولد';
+      if (hasBirthDate) {
+        bdayBtn.classList.add('hidden');
+      } else {
+        bdayBtn.className = 't-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
+        bdayBtn.innerHTML = '<span>✏️</span>';
+        bdayBtn.title = 'ثبت تاریخ تولد';
+      }
     }
 
     const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
@@ -3648,20 +3652,44 @@ function renderUserAchievements(data) {
     if (ach.birthday_claimed) {
       bdayStatusEl.innerText = '🎁 دریافت شده';
       bdayStatusEl.className = 't-success text-[11px] font-bold truncate max-w-full';
-      if (bdayBtn) bdayBtn.innerText = 'هدیه ثبت شد';
+      if (bdayBtn) {
+        bdayBtn.innerText = 'هدیه ثبت شد';
+        bdayBtn.className = 'text-[11px] t-success mt-0.5 hover:underline bg-transparent border-0 p-0';
+        bdayBtn.onclick = () => window.openBirthdayCountdownModal();
+      }
     } else if (ach.is_birthday_today) {
       bdayStatusEl.innerText = '🎉 امروز زادروز شماست!';
       bdayStatusEl.className = 'text-amber-500 dark:text-amber-300 text-[11px] font-bold truncate max-w-full animate-pulse';
-      if (bdayBtn) bdayBtn.innerText = 'تبریک زادروز 🎂';
+      if (bdayBtn) {
+        bdayBtn.innerText = 'تبریک زادروز 🎂';
+        bdayBtn.className = 'text-[11px] t-warn mt-0.5 hover:underline bg-transparent border-0 p-0';
+        bdayBtn.onclick = () => window.openBirthdayCountdownModal();
+      }
     } else if (ach.has_birthday_set && ach.days_until_birthday !== null && ach.days_until_birthday !== undefined) {
       const d = ach.days_until_birthday;
       bdayStatusEl.innerText = d === 0 ? 'امروز' : `${d} روز مانده`;
       bdayStatusEl.className = 't-accent text-[11px] font-bold truncate max-w-full';
-      if (bdayBtn) bdayBtn.innerText = 'ویرایش تاریخ';
+      if (bdayBtn) {
+        bdayBtn.innerText = 'شمارش معکوس';
+        bdayBtn.className = 'text-[11px] t-accent mt-0.5 hover:underline bg-transparent border-0 p-0';
+        bdayBtn.onclick = () => window.openBirthdayCountdownModal();
+      }
+    } else if (ach.has_birthday_set) {
+      bdayStatusEl.innerText = 'ثبت شده';
+      bdayStatusEl.className = 't-accent text-[11px] font-bold truncate max-w-full';
+      if (bdayBtn) {
+        bdayBtn.innerText = 'مشاهده جزئیات';
+        bdayBtn.className = 'text-[11px] t-accent mt-0.5 hover:underline bg-transparent border-0 p-0';
+        bdayBtn.onclick = () => window.openBirthdayCountdownModal();
+      }
     } else {
       bdayStatusEl.innerText = 'ثبت نشده';
       bdayStatusEl.className = 't-warn text-[11px] font-bold truncate max-w-full';
-      if (bdayBtn) bdayBtn.innerText = 'ثبت تاریخ';
+      if (bdayBtn) {
+        bdayBtn.innerText = 'ثبت تاریخ';
+        bdayBtn.className = 'text-[11px] t-warn mt-0.5 hover:underline bg-transparent border-0 p-0';
+        bdayBtn.onclick = () => window.openBirthdayModal();
+      }
     }
   }
 
@@ -4911,7 +4939,7 @@ function printCurrentInvoice() {
       const invNum = currentInvoiceData.invoice_number || `INV-${currentInvoiceData.order_id || '---'}`;
       const invDate = currentInvoiceData.date_jalali || '---';
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '14px monospace';
+      ctx.font = '14px Vazirmatn, sans-serif';
       ctx.fillText(`فاکتور: ${invNum}   |   تاریخ: ${invDate}`, 300, 100);
 
       // Separator line
@@ -4926,10 +4954,10 @@ function printCurrentInvoice() {
       const buyerName = currentInvoiceData.buyer?.name || 'کاربر گرامی';
       const buyerTgId = currentInvoiceData.buyer?.telegram_id || '---';
       ctx.textAlign = 'right';
-      ctx.font = 'bold 16px sans-serif';
+      ctx.font = 'bold 16px Vazirmatn, sans-serif';
       ctx.fillStyle = '#e2e8f0';
       ctx.fillText(`مشترک: ${buyerName}`, 550, 160);
-      ctx.font = '13px monospace';
+      ctx.font = '13px Vazirmatn, sans-serif';
       ctx.fillStyle = '#64748b';
       ctx.fillText(`شناسه تلگرام: ${buyerTgId}`, 550, 190);
 
@@ -4943,17 +4971,17 @@ function printCurrentInvoice() {
       const trafficGb = currentInvoiceData.item?.traffic_gb || 0;
       const durationDays = currentInvoiceData.item?.duration_days || 0;
       ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 18px sans-serif';
+      ctx.font = 'bold 18px Vazirmatn, sans-serif';
       ctx.fillText(itemTitle, 540, 260);
 
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '14px sans-serif';
+      ctx.font = '14px Vazirmatn, sans-serif';
       ctx.fillText(`${trafficGb} گیگابایت   |   ${durationDays} روز اعتبار`, 540, 295);
 
       // Total Amount
       const finalAmount = currentInvoiceData.payment?.amount_toman || 0;
       ctx.fillStyle = '#10b981';
-      ctx.font = 'bold 22px monospace';
+      ctx.font = 'bold 22px Vazirmatn, sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText(`${Number(finalAmount).toLocaleString('en-US')} تومان`, 50, 280);
 
@@ -4962,18 +4990,18 @@ function printCurrentInvoice() {
       ctx.fillStyle = '#064e3b';
       ctx.fillRect(30, 370, 540, 50);
       ctx.fillStyle = '#34d399';
-      ctx.font = 'bold 16px sans-serif';
+      ctx.font = 'bold 16px Vazirmatn, sans-serif';
       ctx.fillText('✅ پرداخت موفق و فعال‌سازی سرویس انجام شد', 300, 402);
 
       // Tracking code
       const trackingCode = currentInvoiceData.payment?.tracking_code || `TRX-${currentInvoiceData.order_id || 'SUCCESS'}`;
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '13px monospace';
+      ctx.font = '13px Vazirmatn, sans-serif';
       ctx.fillText(`کد پیگیری تراکنش: ${trackingCode}`, 300, 460);
 
       // Footer branding
       ctx.fillStyle = '#475569';
-      ctx.font = '12px sans-serif';
+      ctx.font = '12px Vazirmatn, sans-serif';
       ctx.fillText('صادر شده توسط سامانه هوشمند مدیریت سرویس', 300, 710);
 
       // Trigger download

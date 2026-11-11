@@ -637,8 +637,8 @@
                 : '<span class="badge badge-danger font-medium">غیرفعال</span>');
 
           const discountHtml = c.discount_percent > 0
-            ? `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-sm font-black t-accent font-mono num-bidi" dir="ltr">${toEnglishDigits(c.discount_percent)}%</span><span class="text-[11px] font-sans t-muted">تخفیف</span></div>`
-            : `<div class="flex items-baseline gap-1 mt-1 leading-tight"><span class="text-sm font-black t-accent font-mono num-bidi" dir="ltr">${formatNumber(c.discount_amount || 0)}</span><span class="text-[11px] font-sans t-muted">تومان</span></div>`;
+            ? `<div class="flex items-baseline gap-1 leading-tight flex-shrink-0"><span class="text-sm font-black t-accent font-sans num-bidi" dir="ltr">${toEnglishDigits(c.discount_percent)}%</span><span class="text-[11px] font-sans t-muted">تخفیف</span></div>`
+            : `<div class="flex items-baseline gap-1 leading-tight flex-shrink-0"><span class="text-sm font-black t-accent font-sans num-bidi" dir="ltr">${formatNumber(c.discount_amount || 0)}</span><span class="text-[11px] font-sans t-muted">تومان</span></div>`;
 
           const maxText = c.max_uses > 0 ? `${toEnglishDigits(usedCount)} / ${toEnglishDigits(c.max_uses)}` : `${toEnglishDigits(usedCount)} (نامحدود)`;
           const expiryText = c.expires_at_jalali || (c.expires_at ? (window.formatDateToJalali ? window.formatDateToJalali(c.expires_at) : c.expires_at) : 'نامحدود (دائمی)');
@@ -679,23 +679,21 @@
 
           return `
             <div class="coupon-card card rounded-2xl p-4 border border-card-border space-y-3 shadow transition">
-              <div class="flex items-start justify-between">
-                <div>
-                  <div class="flex items-center gap-2">
-                    <button type="button" data-code="${escapeHtml(c.code)}" class="btn-quick-copy-coupon flex items-center gap-1.5 cursor-pointer bg-transparent hover:t-accent t-main border-0 p-0 transition active:scale-95 group" title="کلیک جهت کپی کد تخفیف">
-                      <span class="font-mono font-bold text-sm tracking-wider uppercase">${escapeHtml(c.code)}</span>
-                      <svg class="w-3.5 h-3.5 t-muted group-hover:t-accent transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    </button>
-                    ${statusBadge}
-                  </div>
-                  ${discountHtml}
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                ${discountHtml}
+                <div class="flex items-center gap-2" dir="ltr">
+                  <button type="button" data-code="${escapeHtml(c.code)}" class="btn-quick-copy-coupon flex items-center gap-1.5 cursor-pointer bg-transparent hover:t-accent t-main border-0 p-0 transition active:scale-95 group" title="کلیک جهت کپی کد تخفیف">
+                    <span class="font-sans font-bold text-sm tracking-wider uppercase">${escapeHtml(c.code)}</span>
+                    <svg class="w-3.5 h-3.5 t-muted group-hover:t-accent transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  </button>
+                  ${statusBadge}
                 </div>
               </div>
 
               <div class="grid grid-cols-3 gap-1.5 text-center text-[10.5px] card-inset p-2.5 rounded-xl font-sans border border-card-border">
                 <div>
                   <span class="t-muted block text-[11px] font-sans">دفعات استفاده:</span>
-                  <b class="t-main block font-bold font-mono num-bidi" dir="ltr">${maxText}</b>
+                  <b class="t-main block font-bold font-sans num-bidi" dir="ltr">${maxText}</b>
                 </div>
                 <div>
                   <span class="t-muted block text-[11px] font-sans">تاریخ انقضا:</span>
