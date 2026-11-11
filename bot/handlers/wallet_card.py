@@ -47,6 +47,20 @@ async def topup_receipt(
         await delete_message_silently(bot, message.chat.id, message.message_id)
         return
 
+    from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+    block_info = await CardAutoRepository(session).get_manual_card_block_info(user.telegram_id)
+    if block_info:
+        await delete_message_silently(bot, message.chat.id, message.message_id)
+        await state.clear()
+        back = InlineKeyboardBuilder()
+        back.button(text=t(lang, "btn_back"), callback_data="menu:wallet")
+        await render_menu(
+            bot, user, user_repo,
+            format_manual_card_block_message(block_info["remaining_seconds"], lang),
+            back.as_markup(),
+        )
+        return
+
     wallet_repo = WalletRepository(session)
     # Anti-spam: cap concurrent pending requests.
     if await wallet_repo.pending_count(user.telegram_id) >= MAX_PENDING_TOPUPS:

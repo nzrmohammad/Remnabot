@@ -1199,8 +1199,8 @@ function renderTutorialApps(osKey) {
           </div>
           <!-- Left side: Recommended/Alternative badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            ${app.isRecommended ? '<span class="inline-flex items-center justify-center text-base leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇</span>' : ''}
-            ${app.isAlternative ? '<span class="inline-flex items-center justify-center text-base leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="جایگزین">🥈</span>' : ''}
+            ${app.isRecommended ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇</span>' : ''}
+            ${app.isAlternative ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="جایگزین">🥈</span>' : ''}
             ${tutorialBtnHtml}
           </div>
         </div>

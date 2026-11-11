@@ -391,6 +391,7 @@ function updateTopupDisplays(amt) {
 
 const _cardTopupGuardState = {
   phoneLocked: false,
+  manualBlockUntilMs: 0,
   selectedImageBase64: null,
   selectedImageHash: null,
   selectedFileKey: null,
@@ -400,6 +401,74 @@ const _cardTopupGuardState = {
   serverRejectedKey: null,
   serverRejectedMsg: '',
 };
+
+let _manualCardLockTimerInterval = null;
+
+function formatLockCountdownHHMMSS(totalSeconds) {
+  const sec = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function applyManualCardLockState(blockedUntilIso, remainingSeconds = 0) {
+  let targetMs = 0;
+  if (blockedUntilIso) {
+    const parsed = Date.parse(blockedUntilIso);
+    if (!Number.isNaN(parsed)) targetMs = parsed;
+  }
+  if (!targetMs && Number(remainingSeconds) > 0) {
+    targetMs = Date.now() + Number(remainingSeconds) * 1000;
+  }
+
+  if (_manualCardLockTimerInterval) {
+    clearInterval(_manualCardLockTimerInterval);
+    _manualCardLockTimerInterval = null;
+  }
+
+  const toggleWrap = document.getElementById('manualReceiptToggleWrapper');
+  const lockBanner = document.getElementById('manualReceiptLockBanner');
+  const countdownEl = document.getElementById('manualReceiptLockCountdown');
+  const manualSection = document.getElementById('manualCardTopupSection');
+
+  const now = Date.now();
+  if (targetMs > now) {
+    _cardTopupGuardState.manualBlockUntilMs = targetMs;
+    if (window.storeSettings) {
+      window.storeSettings.manual_card_blocked = true;
+      window.storeSettings.manual_card_blocked_until = new Date(targetMs).toISOString();
+    }
+    toggleWrap?.classList.add('hidden');
+    manualSection?.classList.add('hidden');
+    lockBanner?.classList.remove('hidden');
+
+    const updateTimer = () => {
+      const remSecs = Math.max(0, Math.ceil((_cardTopupGuardState.manualBlockUntilMs - Date.now()) / 1000));
+      if (countdownEl) countdownEl.innerText = formatLockCountdownHHMMSS(remSecs);
+      if (remSecs <= 0) {
+        applyManualCardLockState(null, 0);
+      }
+    };
+    updateTimer();
+    _manualCardLockTimerInterval = setInterval(updateTimer, 1000);
+  } else {
+    _cardTopupGuardState.manualBlockUntilMs = 0;
+    if (window.storeSettings) {
+      window.storeSettings.manual_card_blocked = false;
+      window.storeSettings.manual_card_blocked_until = null;
+    }
+    lockBanner?.classList.add('hidden');
+    toggleWrap?.classList.remove('hidden');
+    if (window.storeSettings && !window.storeSettings.card_auto_enabled && window.storeSettings.card_enabled) {
+      manualSection?.classList.remove('hidden');
+    }
+  }
+
+  if (typeof window.updateCardTopupSubmitState === 'function') {
+    window.updateCardTopupSubmitState();
+  }
+}
 
 async function _computeSha256Hex(bytes) {
   try {
@@ -461,6 +530,12 @@ window.updateCardTopupSubmitState = function () {
   if (_cardTopupGuardState.phoneLocked) {
     submitCardBtn.innerText = '🔒 نیاز به تأیید شماره تماس';
     setDisabled(true, '');
+    return;
+  }
+
+  if (_cardTopupGuardState.manualBlockUntilMs > Date.now()) {
+    submitCardBtn.innerText = '🔒 ارسال دستی تا 6 ساعت مسدود است';
+    setDisabled(true, '🔒 به دلیل وجود فاکتور کارت‌به‌کارت خودکار، تا 6 ساعت امکان ثبت دستی فیش وجود ندارد.');
     return;
   }
 
@@ -620,6 +695,10 @@ async function loadTopupInfo() {
         if (cardAutoContainer) cardAutoContainer.classList.add('hidden');
         if (manualCardSection) manualCardSection.classList.remove('hidden');
       }
+      applyManualCardLockState(
+        res.manual_card_blocked ? res.manual_card_blocked_until : null,
+        res.manual_card_block_remaining_seconds || 0
+      );
       syncActiveInvoicesWithServer();
 
       const inputEl = document.getElementById('topupAmountInput');
@@ -740,8 +819,13 @@ let activeCardAutoUuid = null;
 async function checkActiveCardAutoInvoice() {
   try {
     const res = await window.api.getCardAutoStatus();
-    if (res && res.ok && res.status === 'pending' && res.invoice_uuid) {
-      renderCardAutoInvoice(res);
+    if (res && res.ok) {
+      if (res.manual_card_blocked) {
+        applyManualCardLockState(res.manual_card_blocked_until, res.manual_card_block_remaining_seconds || 0);
+      }
+      if (res.status === 'pending' && res.invoice_uuid) {
+        renderCardAutoInvoice(res);
+      }
     }
   } catch (e) {}
 }
@@ -783,6 +867,8 @@ function renderCardAutoInvoice(inv) {
   startCardAutoCountdownTimer(inv.remaining_seconds || 3600);
   startCardAutoPolling(inv.invoice_uuid);
   updatePendingCardUI(inv, inv.remaining_seconds || 3600, 'CARD');
+  const lockUntil = inv.manual_card_blocked_until || window.storeSettings?.manual_card_blocked_until || new Date(Date.now() + 6 * 3600 * 1000).toISOString();
+  applyManualCardLockState(lockUntil, inv.manual_card_block_remaining_seconds || 21600);
   updateTopupMutexUI();
 }
 
@@ -842,11 +928,13 @@ function startCardAutoPolling(uuid) {
             window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
           }
           resetCardAutoUI();
+          applyManualCardLockState(res.manual_card_blocked ? res.manual_card_blocked_until : null, res.manual_card_block_remaining_seconds || 0);
           if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
           if (typeof closeModal === 'function') closeModal('topupModal');
         } else if (res.status === 'expired' || res.status === 'cancelled') {
           stopCardAutoPolling();
           resetCardAutoUI();
+          applyManualCardLockState(res.manual_card_blocked ? res.manual_card_blocked_until : null, res.manual_card_block_remaining_seconds || 0);
         }
       }
     } catch (e) {}
@@ -884,6 +972,11 @@ window.createCardAutoInvoice = async function () {
   try {
     const res = await window.api.createCardAutoInvoice(amount);
     if (res && res.ok) {
+      if (window.storeSettings) {
+        window.storeSettings.manual_card_blocked = true;
+        window.storeSettings.manual_card_blocked_until = res.manual_card_blocked_until || new Date(Date.now() + 6 * 3600 * 1000).toISOString();
+        window.storeSettings.manual_card_block_remaining_seconds = res.manual_card_block_remaining_seconds || 21600;
+      }
       renderCardAutoInvoice(res);
       if (window.showToast) window.showToast('فاکتور پرداخت هوشمند با موفقیت ایجاد شد.', 'success');
     } else {
@@ -908,11 +1001,13 @@ window.checkCardAutoStatus = async function (isManual = false) {
         stopCardAutoPolling();
         if (window.showToast) window.showToast('✅ پرداخت تایید شد و حساب شما شارژ گردید!', 'success');
         resetCardAutoUI();
+        applyManualCardLockState(res.manual_card_blocked ? res.manual_card_blocked_until : null, res.manual_card_block_remaining_seconds || 0);
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
         if (typeof closeModal === 'function') closeModal('topupModal');
       } else if (res.status === 'expired') {
         if (window.showToast) window.showToast('مهلت پرداخت این فاکتور به پایان رسیده است.', 'warning');
         resetCardAutoUI();
+        applyManualCardLockState(res.manual_card_blocked ? res.manual_card_blocked_until : null, res.manual_card_block_remaining_seconds || 0);
       } else if (isManual) {
         if (window.showToast) window.showToast('هنوز پیامی مبنی بر واریز دریافت نشده است؛ لطفاً پس از واریز صبور باشید.', 'info');
       }
@@ -926,13 +1021,19 @@ window.cancelCardAutoInvoice = async function () {
     return;
   }
   try {
-    await window.api.cancelCardAutoInvoice(activeCardAutoUuid);
+    const cancelRes = await window.api.cancelCardAutoInvoice(activeCardAutoUuid);
+    if (cancelRes && cancelRes.ok === false) {
+      if (window.showToast) window.showToast(cancelRes.message || 'امکان لغو این فاکتور وجود ندارد.', 'warning');
+      loadTopupInfo();
+      return;
+    }
     stopCardAutoPolling();
     if (cardAutoTimerInterval) {
       clearInterval(cardAutoTimerInterval);
       cardAutoTimerInterval = null;
     }
     resetCardAutoUI();
+    loadTopupInfo();
     if (window.showToast) window.showToast('فاکتور پرداخت لغو گردید.', 'info');
   } catch (e) {}
 };
@@ -967,6 +1068,14 @@ window.copyCardAutoAmount = function (type) {
 
 window.toggleManualReceiptUpload = function () {
   const section = document.getElementById('manualCardTopupSection');
+  if (_cardTopupGuardState.manualBlockUntilMs > Date.now()) {
+    if (section) section.classList.add('hidden');
+    if (window.showToast) {
+      const rem = formatLockCountdownHHMMSS(Math.ceil((_cardTopupGuardState.manualBlockUntilMs - Date.now()) / 1000));
+      window.showToast(`🔒 تا 6 ساعت پس از ایجاد یا استفاده از فاکتور کارت‌به‌کارت خودکار (${rem})، امکان ارسال دستی فیش وجود ندارد.`, 'warning');
+    }
+    return;
+  }
   if (section) {
     section.classList.toggle('hidden');
     if (typeof window.updateCardTopupSubmitState === 'function') {
@@ -1543,6 +1652,12 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
         switchTopupTab('stars');
       }
       updateTopupMutexUI();
+      if (s) {
+        applyManualCardLockState(
+          s.manual_card_blocked ? s.manual_card_blocked_until : null,
+          s.manual_card_block_remaining_seconds || 0
+        );
+      }
     } catch (err) {
       console.warn('Error applying topup method tabs:', err);
     }

@@ -285,6 +285,20 @@ async def _render_topup_amount_prompt(
         await render_menu(bot, user, user_repo, notice_text, kb.as_markup())
         return
 
+    if method == "card" and not getattr(store, "card_auto_enabled", False):
+        from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+        block_info = await CardAutoRepository(session).get_manual_card_block_info(user.telegram_id)
+        if block_info:
+            kb_block = InlineKeyboardBuilder()
+            kb_block.button(text=t(lang, "btn_back"), callback_data="menu:wallet")
+            kb_block.adjust(1)
+            await render_menu(
+                bot, user, user_repo,
+                format_manual_card_block_message(block_info["remaining_seconds"], lang),
+                kb_block.as_markup(),
+            )
+            return
+
     await state.set_state(TopupStates.waiting_amount)
     await state.update_data(topup_method=method)
 
@@ -370,12 +384,10 @@ async def _create_and_render_card_auto_invoice(
         ttl_minutes=60,
     )
     await session.commit()
-    await state.update_data(amount=amount, auto_invoice_uuid=invoice.invoice_uuid)
-    await state.set_state(TopupStates.waiting_receipt)
+    await state.clear()
 
     kb = InlineKeyboardBuilder()
     kb.button(text="🔄 استعلام وضعیت پرداخت", callback_data=f"wallet:c2c_check:{invoice.invoice_uuid}")
-    kb.button(text="📤 ارسال دستی تصویر فیش", callback_data=f"wallet:manual_receipt:{invoice.invoice_uuid}")
     kb.button(text=t(lang, "btn_cancel"), callback_data=f"wallet:c2c_cancel:{invoice.invoice_uuid}")
     kb.adjust(1)
 
@@ -454,6 +466,15 @@ async def topup_preset_amount(
     if not (store.card_enabled and store.card_number and store.card_number.strip()):
         err_msg = "❌ پرداخت کارت به کارت موقتاً غیرفعال است." if lang == "fa" else "❌ Card payment is temporarily disabled."
         await call.answer(err_msg, show_alert=True)
+        return
+
+    from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+    block_info = await CardAutoRepository(session).get_manual_card_block_info(user.telegram_id)
+    if block_info:
+        await call.answer(
+            format_manual_card_block_message(block_info["remaining_seconds"], lang),
+            show_alert=True,
+        )
         return
 
     await state.update_data(amount=amount)
@@ -536,6 +557,16 @@ async def topup_amount(
     if not (store.card_enabled and store.card_number and store.card_number.strip()):
         err_msg = "❌ پرداخت کارت به کارت موقتاً غیرفعال است." if lang == "fa" else "❌ Card payment is temporarily disabled."
         await render_menu(bot, user, user_repo, err_msg, kb.as_markup())
+        return
+
+    from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+    block_info = await CardAutoRepository(session).get_manual_card_block_info(user.telegram_id)
+    if block_info:
+        await render_menu(
+            bot, user, user_repo,
+            format_manual_card_block_message(block_info["remaining_seconds"], lang),
+            kb.as_markup(),
+        )
         return
 
     await state.update_data(amount=amount)
@@ -655,25 +686,20 @@ async def c2c_manual_receipt_callback(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
     uuid_str = call.data.split(":", 2)[2]
-    from bot.db.repositories.card_auto_repo import CardAutoRepository
+    from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
     repo = CardAutoRepository(session)
-    invoice = await repo.get_invoice_by_uuid(uuid_str)
+    block_info = await repo.get_manual_card_block_info(user.telegram_id)
+    if block_info:
+        await call.answer(
+            format_manual_card_block_message(block_info["remaining_seconds"], lang),
+            show_alert=True,
+        )
+        return
 
+    invoice = await repo.get_invoice_by_uuid(uuid_str)
     if invoice and invoice.status == "paid":
         await call.answer("این فاکتور پیش‌تر به‌صورت خودکار توسط سیستم پیامک بانکی تأیید شده است.", show_alert=True)
         return
-
-    # Cancel auto invoice so delayed SMS will not double credit
-    if invoice and invoice.status == "pending":
-        cancelled = await repo.cancel_invoice(uuid_str, call.from_user.id)
-        await session.commit()
-        if not cancelled:
-            fresh = await repo.get_invoice_by_uuid(uuid_str)
-            if fresh and fresh.status == "paid":
-                await call.answer("این فاکتور هم‌اکنون به‌صورت خودکار توسط سیستم پیامک بانکی تأیید شد.", show_alert=True)
-                return
-            await call.answer("این فاکتور لغو شده یا منقضی گردیده است.", show_alert=True)
-            return
 
     amount = invoice.exact_amount if invoice else 0
     if not amount:

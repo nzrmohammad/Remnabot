@@ -249,6 +249,15 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         hist_page_val = 15 if type(raw_hist).__name__ == "MagicMock" or not isinstance(raw_hist, (int, float)) else int(raw_hist)
 
         recent_paid_auto_amounts, recent_receipt_hashes = await _collect_user_topup_guards(session, int(user_id))
+        manual_card_block: dict | None = None
+        if hasattr(session, "execute"):
+            try:
+                from bot.db.repositories.card_auto_repo import CardAutoRepository
+                block_res = await CardAutoRepository(session).get_manual_card_block_info(int(user_id))
+                if isinstance(block_res, dict) and block_res.get("unlock_at"):
+                    manual_card_block = block_res
+            except Exception:
+                pass
 
         payload = {
             "ok": True,
@@ -268,6 +277,9 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "card_locked_reason": card_locked_reason,
             "recent_paid_auto_amounts": recent_paid_auto_amounts,
             "recent_receipt_hashes": recent_receipt_hashes,
+            "manual_card_blocked": bool(manual_card_block),
+            "manual_card_blocked_until": manual_card_block["unlock_at"].isoformat() if manual_card_block else None,
+            "manual_card_block_remaining_seconds": int(manual_card_block["remaining_seconds"]) if manual_card_block else 0,
             "crypto_enabled": bool(store.crypto_enabled and ton_wallet_str and ton_rate_val > 0),
             "ton_wallet_address": ton_wallet_str,
             "ton_rate_toman": ton_rate_val,
@@ -284,7 +296,8 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "history_page_size": hist_page_val,
         }
         if cache and hasattr(cache, "set"):
-            await cache.set(cache_key, payload, ttl_seconds=60)
+            ttl = min(60, max(1, int(manual_card_block["remaining_seconds"]))) if manual_card_block else 60
+            await cache.set(cache_key, payload, ttl_seconds=ttl)
         return web.json_response(payload)
 
 
@@ -412,8 +425,21 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
         auto_paid_warn = ""
         if hasattr(session, "execute"):
             try:
-                from bot.db.repositories.card_auto_repo import CardAutoRepository
+                from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
                 card_auto_repo = CardAutoRepository(session)
+                block_info = await card_auto_repo.get_manual_card_block_info(telegram_id)
+                if isinstance(block_info, dict) and block_info.get("remaining_seconds"):
+                    rem_secs = int(block_info["remaining_seconds"])
+                    return web.json_response(
+                        {
+                            "ok": False,
+                            "error": "manual_card_cooldown",
+                            "remaining_seconds": rem_secs,
+                            "blocked_until": block_info["unlock_at"].isoformat(),
+                            "message": format_manual_card_block_message(rem_secs),
+                        },
+                        status=400,
+                    )
                 recent_paid_auto = await card_auto_repo.get_recent_paid_invoice_by_user(telegram_id, since_hours=6)
                 if recent_paid_auto:
                     if recent_paid_auto.exact_amount == amount:
@@ -426,10 +452,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                             f"\n\n⚠️ <b>هشدار همپوشانی:</b> این کاربر در 6 ساعت گذشته یک فاکتور خودکار "
                             f"به مبلغ <b>{recent_paid_auto.exact_amount:,} تومان</b> را با موفقیت شارژ کرده است. لطفاً زمان/پیگیری فیش را با دقت بررسی کنید."
                         )
-                active_auto_inv = await card_auto_repo.get_active_invoice_by_user(telegram_id)
-                if active_auto_inv:
-                    active_auto_inv.status = "cancelled"
-                    logger.info("Cancelled pending card-auto invoice %s on manual receipt upload by user %s", active_auto_inv.invoice_uuid, telegram_id)
+                pass  # non-cancelled recent card-auto check enforced above
             except Exception:
                 pass
 
@@ -1567,12 +1590,15 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
             ttl_minutes=60,
         )
         await session.commit()
+        await _invalidate_user_caches(request.app.get("cache"), telegram_id)
         logger.info(
             "Card-auto invoice generated: uuid=%s tg_id=%s base_amount=%s exact_amount=%s",
             invoice.invoice_uuid, telegram_id, invoice.base_amount, invoice.exact_amount,
         )
 
         remaining_secs = max(0, int((_as_utc(invoice.expires_at) - datetime.now(timezone.utc)).total_seconds()))
+        created_utc = _as_utc(getattr(invoice, "created_at", None)) or datetime.now(timezone.utc)
+        block_until = created_utc + timedelta(hours=6)
 
         return web.json_response({
             "ok": True,
@@ -1585,6 +1611,9 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
             "status": invoice.status,
             "expires_at": invoice.expires_at.isoformat(),
             "remaining_seconds": remaining_secs,
+            "manual_card_blocked": True,
+            "manual_card_blocked_until": block_until.isoformat(),
+            "manual_card_block_remaining_seconds": max(1, int((block_until - datetime.now(timezone.utc)).total_seconds())),
         })
 
 
@@ -1615,8 +1644,10 @@ async def get_user_topup_card_auto_status(request: web.Request) -> web.Response:
         if invoice.status == "pending" and exp_utc <= now:
             invoice.status = "expired"
             await session.commit()
+            await _invalidate_user_caches(request.app.get("cache"), telegram_id)
 
         remaining_secs = max(0, int((exp_utc - now).total_seconds()))
+        block_info = await repo.get_manual_card_block_info(telegram_id)
 
         return web.json_response({
             "ok": True,
@@ -1626,6 +1657,9 @@ async def get_user_topup_card_auto_status(request: web.Request) -> web.Response:
             "exact_amount": invoice.exact_amount,
             "exact_rial": invoice.exact_rial,
             "remaining_seconds": remaining_secs,
+            "manual_card_blocked": bool(block_info),
+            "manual_card_blocked_until": block_info["unlock_at"].isoformat() if block_info else None,
+            "manual_card_block_remaining_seconds": int(block_info["remaining_seconds"]) if block_info else 0,
         })
 
 
@@ -1652,6 +1686,7 @@ async def post_user_topup_card_auto_cancel(request: web.Request) -> web.Response
         if cancelled:
             logger.info("Cancelled card-auto invoice: uuid=%s tg_id=%s", uuid_str, telegram_id)
             await session.commit()
+            await _invalidate_user_caches(request.app.get("cache"), telegram_id)
             return web.json_response({"ok": True, "status": "cancelled"})
         return web.json_response({"ok": False, "message": "فاکتور معتبر برای لغو یافت نشد."}, status=400)
 

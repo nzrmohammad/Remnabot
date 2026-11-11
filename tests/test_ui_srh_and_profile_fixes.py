@@ -377,3 +377,139 @@ async def test_payment_methods_chart_includes_all_gateways(session_factory):
     # Guard against PostgreSQL GroupingError: must group directly on CryptoInvoice.currency column
     charts_src = Path("bot/web/admin_overview_charts.py").read_text(encoding="utf-8")
     assert ".group_by(CryptoInvoice.currency)" in charts_src
+
+    # 12. Iran badge border removal & margin separation, colored OS icons, larger medals, 6h manual-card lock UI
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+
+    iran_badge_css = components_css[components_css.find(".shop-plan-badge.badge-iran"):components_css.find(".btn-plan-iran") + 260]
+    assert "border-bottom: 2px solid #ffffff" not in iran_badge_css
+    assert "rgba(255, 255, 255, 0.65)" not in iran_badge_css
+    assert "${planBadge ? 'mt-4' : ''}" in shop_js
+    assert 'text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇' in app_js
+    for color_hex in ("#22c55e", "#3ddc84", "#f25022", "#38bdf8", "#f59e0b"):
+        assert color_hex in app_html
+        assert color_hex in admin_html
+    assert 'id="manualReceiptToggleWrapper"' in app_html
+    assert 'id="manualReceiptLockBanner"' in app_html
+    assert "applyManualCardLockState" in wallet_js
+    assert "_cardTopupGuardState.manualBlockUntilMs" in wallet_js
+
+
+@pytest.mark.anyio
+async def test_manual_card_blocked_for_6h_after_card_auto_invoice(session_factory, tmp_path, monkeypatch):
+    """Ensure pending/paid/expired CardAutoInvoice blocks manual card topup for 6h across WebApp and Bot."""
+    import base64
+    from contextlib import asynccontextmanager
+    from datetime import datetime, timedelta, timezone
+    from types import SimpleNamespace
+    from bot.db.models import CardAutoInvoice
+    from bot.db.repositories.card_auto_repo import CardAutoRepository
+    from bot.handlers.wallet import c2c_manual_receipt_callback
+    from bot.web.user_topup import get_user_topup_info, post_user_topup_card
+
+    monkeypatch.chdir(tmp_path)
+    tg_id = 555666777
+    now = datetime.now(timezone.utc)
+    store = SimpleNamespace(
+        card_require_phone_verification=False,
+        card_number="6219861912345678",
+        card_holder="Test",
+        card_enabled=True,
+        card_auto_enabled=True,
+        crypto_enabled=False,
+        trx_enabled=False,
+        pol_enabled=False,
+        stars_enabled=False,
+        topup_min_amount=10000,
+        topup_max_amount=50000000,
+    )
+
+    async with session_factory() as session:
+        @asynccontextmanager
+        async def _fake_db_session(_req):
+            yield session
+
+        def _make_post_req(img_payload: bytes, amount: int = 50000):
+            b64 = "data:image/jpeg;base64," + base64.b64encode(img_payload).decode()
+            body = {"amount": amount, "receipt_text": "", "receipt_image": b64}
+            req = make_mocked_request("POST", "/api/user/topup/card")
+            fake_app = {"cache": None, "bot": None, "settings": SimpleNamespace(ADMIN_CHAT_ID=0)}
+            return SimpleNamespace(app=fake_app, headers=req.headers, query={}, json=AsyncMock(return_value=body))
+
+        # 1. Pending auto-invoice locks manual entry & upload
+        pending_inv = CardAutoInvoice(
+            invoice_uuid="c2c_lock_pending",
+            telegram_id=tg_id,
+            base_amount=50000,
+            exact_amount=50321,
+            exact_rial=503210,
+            card_number="6219861912345678",
+            card_holder="Test",
+            status="pending",
+            expires_at=now + timedelta(minutes=55),
+            created_at=now,
+        )
+        session.add(pending_inv)
+        await session.commit()
+
+        info_req = SimpleNamespace(app={"cache": None}, query={}, headers={})
+        with patch("bot.web.user_topup.require_user", return_value=({"id": tg_id, "is_preview": False, "first_name": "T"}, None)), \
+             patch("bot.web.user_topup.enforce_invite_only", AsyncMock(return_value=None)), \
+             patch("bot.web.user_topup.db_session", side_effect=_fake_db_session), \
+             patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)):
+            info_resp = await get_user_topup_info(info_req)
+            info_data = json.loads(info_resp.text)
+            assert info_data["manual_card_blocked"] is True
+            assert info_data["manual_card_block_remaining_seconds"] > 18000
+
+            post_resp = await post_user_topup_card(_make_post_req(b"receipt-pending" * 8, amount=50000))
+            assert post_resp.status == 400
+            post_data = json.loads(post_resp.text)
+            assert post_data["error"] == "manual_card_cooldown"
+
+        # Bot callback c2c_manual_receipt_callback must also refuse while locked
+        call = MagicMock()
+        call.from_user = SimpleNamespace(id=tg_id, username="tester")
+        call.data = f"wallet:manual_receipt:{pending_inv.invoice_uuid}"
+        call.answer = AsyncMock()
+        mock_user_repo = MagicMock()
+        mock_user_repo.get_or_create = AsyncMock(return_value=SimpleNamespace(telegram_id=tg_id, language="fa"))
+        mock_state = MagicMock()
+        mock_state.set_state = AsyncMock()
+        await c2c_manual_receipt_callback(call, MagicMock(), mock_user_repo, session, mock_state)
+        call.answer.assert_awaited_once()
+        assert call.answer.call_args.kwargs.get("show_alert") is True
+        mock_state.set_state.assert_not_awaited()
+
+        # 2. Paid auto-invoice STILL locks manual upload even when submitted amount differs from exact_amount
+        pending_inv.status = "paid"
+        pending_inv.paid_at = now - timedelta(hours=2)
+        await session.commit()
+
+        with patch("bot.web.user_topup.require_user", return_value=({"id": tg_id, "is_preview": False, "first_name": "T"}, None)), \
+             patch("bot.web.user_topup.enforce_invite_only", AsyncMock(return_value=None)), \
+             patch("bot.web.user_topup.db_session", side_effect=_fake_db_session), \
+             patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)):
+            post_paid_resp = await post_user_topup_card(_make_post_req(b"receipt-paid-diff" * 8, amount=50000))
+            assert post_paid_resp.status == 400
+            assert json.loads(post_paid_resp.text)["error"] == "manual_card_cooldown"
+
+        # 3. Past 6 hours unlocks cleanly
+        pending_inv.paid_at = now - timedelta(hours=6, minutes=1)
+        pending_inv.created_at = now - timedelta(hours=6, minutes=1)
+        await session.commit()
+
+        block = await CardAutoRepository(session).get_manual_card_block_info(tg_id)
+        assert block is None
+
+        with patch("bot.web.user_topup.require_user", return_value=({"id": tg_id, "is_preview": False, "first_name": "T"}, None)), \
+             patch("bot.web.user_topup.enforce_invite_only", AsyncMock(return_value=None)), \
+             patch("bot.web.user_topup.db_session", side_effect=_fake_db_session), \
+             patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)):
+            post_ok_resp = await post_user_topup_card(_make_post_req(b"receipt-after-6h" * 8, amount=50000))
+            assert post_ok_resp.status == 200

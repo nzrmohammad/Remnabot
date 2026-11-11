@@ -708,7 +708,7 @@ function renderFilteredShopPlans() {
     return `
       <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
-        <div class="flex justify-between items-start gap-2 ${planBadge ? 'mt-1' : ''}">
+        <div class="flex justify-between items-start gap-2 ${planBadge ? 'mt-4' : ''}">
           <div class="min-w-0 flex-1">
             <h4 class="font-bold text-sm t-main truncate">${formatPlanTitle(p.name)}</h4>
             ${(discountVal > 0 || hasLoyaltyDiscount) ? `

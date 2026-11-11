@@ -15,6 +15,37 @@ from bot.services.payment.bank_sms_parser import normalize_sms_digits
 
 logger = logging.getLogger(__name__)
 
+MANUAL_CARD_COOLDOWN_HOURS = 6
+
+
+def _as_utc(dt: datetime | None) -> datetime | None:
+    if dt is None or not isinstance(dt, datetime):
+        return None
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
+
+def format_manual_card_block_message(remaining_seconds: int, lang: str = "fa") -> str:
+    """Format localized message explaining the 6-hour manual card receipt lockout."""
+    rem = max(1, int(remaining_seconds))
+    hours = rem // 3600
+    mins = (rem % 3600) // 60
+    if lang != "fa":
+        return (
+            f"Manual receipt submission is locked for {MANUAL_CARD_COOLDOWN_HOURS} hours "
+            f"while/after using an automated card-to-card invoice. "
+            f"Time remaining: {hours}h {mins}m."
+        )
+    if hours > 0 and mins > 0:
+        rem_str = f"{hours} ساعت و {mins} دقیقه"
+    elif hours > 0:
+        rem_str = f"{hours} ساعت"
+    else:
+        rem_str = f"{max(1, mins)} دقیقه"
+    return (
+        f"🔒 به دلیل وجود فاکتور کارت‌به‌کارت خودکار، امکان ورود و ارسال دستی فیش واریزی تا {MANUAL_CARD_COOLDOWN_HOURS} ساعت مسدود است.\n"
+        f"⏳ زمان باقیمانده تا آزادسازی: {rem_str}"
+    )
+
 
 class CardAutoRepository:
     def __init__(self, session: AsyncSession) -> None:
@@ -57,6 +88,55 @@ class CardAutoRepository:
         )
         res = await self.session.execute(stmt)
         return res.scalar_one_or_none()
+
+    async def get_manual_card_block_info(
+        self, telegram_id: int, since_hours: int = MANUAL_CARD_COOLDOWN_HOURS
+    ) -> dict | None:
+        """Return active 6-hour manual receipt block details if user has a pending, paid, or expired card-auto invoice."""
+        now = datetime.now(timezone.utc)
+        stmt = (
+            select(CardAutoInvoice)
+            .where(
+                and_(
+                    CardAutoInvoice.telegram_id == telegram_id,
+                    CardAutoInvoice.status != "cancelled",
+                )
+            )
+            .order_by(CardAutoInvoice.id.desc())
+            .limit(5)
+        )
+        res = await self.session.execute(stmt)
+        scalars_fn = getattr(res, "scalars", None)
+        rows = list(scalars_fn().all()) if callable(scalars_fn) else []
+        latest_unlock: datetime | None = None
+        blocking_inv: CardAutoInvoice | None = None
+
+        for inv in rows:
+            if not hasattr(inv, "status") or not isinstance(getattr(inv, "id", None), int):
+                continue
+            ref_dt = _as_utc(getattr(inv, "paid_at", None)) or _as_utc(getattr(inv, "created_at", None))
+            exp_dt = _as_utc(getattr(inv, "expires_at", None))
+            unlock_at: datetime | None = None
+            if ref_dt is not None:
+                unlock_at = ref_dt + timedelta(hours=since_hours)
+            if inv.status == "pending" and exp_dt is not None and exp_dt > now:
+                candidate = exp_dt + timedelta(hours=max(0, since_hours - 1))
+                unlock_at = max(unlock_at, candidate, exp_dt) if unlock_at is not None else max(candidate, exp_dt)
+            if unlock_at is None or unlock_at <= now:
+                continue
+            if latest_unlock is None or unlock_at > latest_unlock:
+                latest_unlock = unlock_at
+                blocking_inv = inv
+
+        if blocking_inv is None or latest_unlock is None:
+            return None
+        rem_secs = max(1, int((latest_unlock - now).total_seconds()))
+        return {
+            "invoice": blocking_inv,
+            "status": str(blocking_inv.status),
+            "unlock_at": latest_unlock,
+            "remaining_seconds": rem_secs,
+        }
 
     async def get_invoice_by_uuid(self, invoice_uuid: str) -> CardAutoInvoice | None:
         """Fetch invoice by its UUID string."""
