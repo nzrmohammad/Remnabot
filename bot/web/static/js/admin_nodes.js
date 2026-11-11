@@ -434,7 +434,7 @@
                   <b class="t-main font-semibold truncate text-left">${n.provider || 'ثبت‌نشده'}</b>
                 </div>
                 <div class="flex items-center justify-between gap-2 min-w-0">
-                  <span class="t-muted shrink-0">قیمت تمام‌شده:</span>
+                  <span class="t-muted shrink-0">قیمت تمام‌شده به ازای هر گیگ:</span>
                   <b class="t-main font-bold shrink-0">
                     ${n.cost_per_gb ? `
                       <span class="font-sans num-bidi" dir="ltr">${formatNumber(n.cost_per_gb)}</span>
@@ -445,19 +445,19 @@
               </div>
 
               <!-- Node Profit / Loss & Estimated Revenue Strip -->
-              <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-card-border text-[11px]">
-                <div>
-                  <span class="t-muted block mb-0.5">درآمد تخمینی نود:</span>
-                  <b class="t-main font-bold font-sans block">
-                    ${n.est_revenue_toman ? `<span class="num-bidi" dir="ltr">${formatNumber(n.est_revenue_toman)}</span> <span class="text-[11px] t-muted font-sans">تومان</span>` : '0 <span class="text-[11px] t-muted font-sans">تومان</span>'}
+              <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="t-muted shrink-0">درآمد تخمینی نود:</span>
+                  <b class="t-main font-bold font-sans shrink-0">
+                    ${n.est_revenue_toman ? `<span class="num-bidi" dir="ltr">${formatNumber(n.est_revenue_toman)}</span> <span class="text-[11px] t-muted font-sans font-medium">تومان</span>` : '0 <span class="text-[11px] t-muted font-sans font-medium">تومان</span>'}
                   </b>
                 </div>
-                <div>
-                  <span class="t-muted block mb-0.5">سود/زیان خالص:</span>
-                  <b class="${n.is_profitable ? 't-success' : 't-danger'} font-bold block text-xs">
-                    <span class="inline-flex items-center gap-1 font-sans">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="t-muted shrink-0">سود/زیان خالص:</span>
+                  <b class="${n.is_profitable ? 't-success' : 't-danger'} font-bold font-sans shrink-0">
+                    <span class="inline-flex items-center gap-1">
                       <span dir="ltr" class="num-bidi">${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span>
-                      <span class="font-sans text-[11px] t-muted font-medium">تومان</span>
+                      <span class="text-[11px] t-muted font-sans font-medium">تومان</span>
                     </span>
                   </b>
                 </div>

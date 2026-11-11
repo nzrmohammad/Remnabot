@@ -224,18 +224,18 @@
           return `
             <div data-plan-type="${planCategory}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
               <div class="space-y-1.5">
-                <!-- Top Row: Price and تومان on Right, Name + icon + statusBadge on Left (LTR) -->
+                <!-- Top Row: Price and تومان on Right, Icons + Name + statusBadge flush Left (LTR) -->
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]">
                     <span class="text-sm font-black t-success font-sans num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
                     <span class="text-[11px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
                   </div>
-                  <div class="flex items-center justify-end gap-1.5 min-w-0 flex-1" dir="ltr">
+                  <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1" dir="ltr">
                     <span class="w-7 h-7 rounded-xl card-inset text-slate-300 border border-slate-700/80 flex items-center justify-center flex-shrink-0" title="بسته">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     </span>
-                    <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                     ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
+                    <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                     <div class="flex-shrink-0">${statusBadge}</div>
                   </div>
                 </div>

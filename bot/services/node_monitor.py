@@ -7,12 +7,12 @@ Monitors nodes every 2 minutes:
 4. Prevents duplicate alert spam via cooldown timestamps.
 """
 import asyncio
+import html
 import logging
 from datetime import datetime, timezone
 from typing import Any
 
 from aiogram import Bot
-from aiogram.exceptions import TelegramAPIError
 
 from bot.common import admin_thread_kwargs
 from bot.config import get_settings
@@ -27,7 +27,7 @@ _NODE_STATES: dict[str, dict[str, Any]] = {}
 COOLDOWN_SECONDS = 3600  # 1 hour cooldown for repeated high-resource or offline alerts
 
 
-async def _notify_admins(bot: Bot, text: str, session_factory: Any = None) -> None:
+async def _notify_admins(bot: Bot, text: str, session_factory: Any = None) -> bool:
     """Send alert message to the dedicated alerts topic in the admin group, fallback to super admins."""
     settings = get_settings()
     topic_id = None
@@ -63,8 +63,11 @@ async def _notify_admins(bot: Bot, text: str, session_factory: Any = None) -> No
         for admin_id in settings.ADMIN_IDS:
             try:
                 await bot.send_message(admin_id, text, parse_mode="HTML")
-            except TelegramAPIError as exc:
+                delivered = True
+            except Exception as exc:
                 logger.warning("Failed to send node alert to admin %s: %s", admin_id, exc)
+
+    return delivered
 
 
 async def check_nodes_health_once(
@@ -156,19 +159,22 @@ async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
         return
     try:
         from bot.db.repositories.node_cost_repo import NodeCostRepository
+        settings = get_settings()
+        raw_tz = getattr(settings, "TIMEZONE", "Asia/Tehran")
+        tz_name = raw_tz if isinstance(raw_tz, str) and raw_tz else "Asia/Tehran"
+        now_local = now_tz(tz_name)
         async with session_factory() as session:
             repo = NodeCostRepository(session)
-            due_nodes = await repo.list_due_soon(days_threshold=3)
+            due_nodes = await repo.list_due_soon(days_threshold=3, reference_date=now_local)
             if not due_nodes:
                 return
 
-            now_utc = datetime.now(timezone.utc)
             for node in due_nodes:
                 if not node.due_date:
                     continue
-                days_left = (node.due_date.date() - now_utc.date()).days
-                node_name = node.node_name or f"Node {node.node_id or (node.node_uuid[:8] if node.node_uuid else '')}"
-                provider = node.provider or "نامشخص"
+                days_left = (node.due_date.date() - now_local.date()).days
+                node_name = html.escape(node.node_name or f"Node {node.node_id or (node.node_uuid[:8] if node.node_uuid else '')}")
+                provider = html.escape(node.provider or "نامشخص")
 
                 cost_parts = []
                 if node.monthly_cost_toman:
@@ -196,8 +202,11 @@ async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
                     f"وضعیت: {status_text}\n\n"
                     f"لطفاً جهت جلوگیری از مسدود شدن یا حذف سرور نسبت به پرداخت فاکتور اقدام فرمایید."
                 )
-                await _notify_admins(bot, msg, session_factory=session_factory)
-                await repo.mark_alert_sent(node.node_uuid, True)
+                delivered = await _notify_admins(bot, msg, session_factory=session_factory)
+                if delivered:
+                    await repo.mark_alert_sent(node.node_uuid, True)
+                else:
+                    logger.warning("Node billing due alert delivery failed for %s; will retry next cycle.", node.node_uuid)
 
             await session.commit()
     except Exception as exc:

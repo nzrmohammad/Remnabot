@@ -1,10 +1,18 @@
 """Repository for managing server / node infrastructure costs and billing."""
-from datetime import datetime, timezone
+from datetime import datetime, time, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import NodeCost
+
+
+def _same_calendar_day(dt_a: datetime | None, dt_b: datetime | None) -> bool:
+    if dt_a is None and dt_b is None:
+        return True
+    if dt_a is None or dt_b is None:
+        return False
+    return dt_a.date() == dt_b.date()
 
 
 class NodeCostRepository:
@@ -60,8 +68,8 @@ class NodeCostRepository:
             item.monthly_cost_toman = monthly_cost_toman
             item.monthly_cost_eur = monthly_cost_eur
             item.currency = currency
-            # If due date changed, reset alert_notified
-            if item.due_date != due_date:
+            # If due date changed, reset alert_notified (safe across naive/aware SQLite/PG datetimes)
+            if not _same_calendar_day(item.due_date, due_date):
                 item.due_date = due_date
                 item.alert_notified = False
             if notes is not None:
@@ -70,11 +78,14 @@ class NodeCostRepository:
         await self.session.flush()
         return item
 
-    async def list_due_soon(self, days_threshold: int = 3) -> list[NodeCost]:
-        """Return nodes whose due_date is within the next `days_threshold` days and not yet alerted."""
-        from datetime import timedelta
-        now = datetime.now(timezone.utc)
-        threshold = now + timedelta(days=days_threshold)
+    async def list_due_soon(
+        self, days_threshold: int = 3, reference_date: datetime | None = None
+    ) -> list[NodeCost]:
+        """Return nodes whose due_date is within the next `days_threshold` calendar days and not yet alerted."""
+        utc_now = datetime.now(timezone.utc)
+        ref_dt = reference_date or utc_now
+        max_date = max(utc_now.date(), ref_dt.date())
+        threshold = datetime.combine(max_date + timedelta(days=days_threshold), time.max, tzinfo=timezone.utc)
         result = await self.session.execute(
             select(NodeCost).where(
                 NodeCost.due_date.is_not(None),

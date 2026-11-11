@@ -271,7 +271,7 @@ def test_ui_fixes_markup_and_js_contracts():
     shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
     components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
 
-    assert "قیمت تمام‌شده:" in admin_nodes_js
+    assert "قیمت تمام‌شده به ازای هر گیگ:" in admin_nodes_js
     assert "قیمت تمام‌شده هر گیگ:" not in admin_nodes_js
     assert "roi_percent" not in admin_nodes_js
     assert "iran" in admin_plans_js and "سرور ایران" in admin_plans_js
@@ -315,7 +315,7 @@ def test_ui_fixes_markup_and_js_contracts():
     assert "py-2 px-2.5" in admin_html[plan_modal_start:plan_modal_end]
     assert "تولید کارت شارژ" not in admin_html[admin_html.find('id="subtabContentCoupons"'):admin_html.find('id="tab-admin-nodes"')]
     assert "<span>+</span> کارت شارژ" in admin_html
-    assert "Top Row: Price and تومان on Right, Name + icon + statusBadge on Left" in admin_plans_js
+    assert "Top Row: Price and تومان on Right, Icons + Name + statusBadge flush Left" in admin_plans_js
     assert "flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]" in admin_plans_js
 
 
@@ -513,3 +513,103 @@ async def test_manual_card_blocked_for_6h_after_card_auto_invoice(session_factor
              patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=store)):
             post_ok_resp = await post_user_topup_card(_make_post_req(b"receipt-after-6h" * 8, amount=50000))
             assert post_ok_resp.status == 200
+
+
+@pytest.mark.anyio
+async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(session_factory):
+    """Verify inline node revenue/profit rows, per-GB label, polished date input & fonts, left-aligned plan icons, and immediate/retryable 3-day node alerts."""
+    from datetime import datetime, timedelta, timezone
+    from aiohttp.test_utils import make_mocked_request
+    from bot.db.repositories.node_cost_repo import NodeCostRepository
+    from bot.services.node_monitor import check_nodes_billing_due_dates
+    from bot.web.admin_infra_api import post_admin_node_cost
+    from bot.web.cache import FastCache
+
+    admin_nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
+    admin_plans_js = Path("bot/web/static/js/admin_plans.js").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
+    charts_js = Path("bot/web/static/js/charts.js").read_text(encoding="utf-8")
+
+    # 1. Node inline revenue/net profit rows & per-GB label
+    rev_idx = admin_nodes_js.find("درآمد تخمینی نود:")
+    prof_idx = admin_nodes_js.find("سود/زیان خالص:")
+    assert 'flex items-center justify-between gap-2' in admin_nodes_js[rev_idx - 60:prof_idx]
+    assert 'flex items-center justify-between gap-2' in admin_nodes_js[prof_idx - 120:prof_idx + 20]
+    assert "قیمت تمام‌شده به ازای هر گیگ:" in admin_nodes_js
+
+    # 2. Node billing modal: split notes (اختیاری), polished Vazirmatn date input & no font-mono
+    billing_modal = admin_html[admin_html.find('id="nodeBillingModal"'):admin_html.find('id="campaignDetailModal"')]
+    assert "node-date-input" in billing_modal
+    assert "[color-scheme:dark]" not in billing_modal
+    assert "addDaysToNodeBillingDueDate(30)" in billing_modal
+    assert ">یادداشت و مشخصات:</label>" in billing_modal
+    assert ">(اختیاری)</span>" in billing_modal
+    assert 'input[type="date"]' in components_css
+    assert "::-webkit-datetime-edit" in components_css
+    assert "font-mono" not in charts_js
+
+    # 3. Admin plan card: flush left with icons before English name
+    plan_top = admin_plans_js[admin_plans_js.find("Top Row:"):admin_plans_js.find("Bottom Row:")]
+    assert "flex items-center justify-start gap-1.5 min-w-0 flex-1" in plan_top
+    assert plan_top.find("${pkgIcon}") < plan_top.find("${escapeHtml(cleanName)}")
+
+    # 4. Failed Telegram delivery must NOT mark alert_notified=True, and saving <=3d due_date fires alert immediately
+    now_utc = datetime.now(timezone.utc)
+    async with session_factory() as session:
+        repo = NodeCostRepository(session)
+        await repo.upsert(
+            node_uuid="nl-node-1",
+            node_name="Netherlands",
+            provider="Worldstream",
+            monthly_cost_toman=1200000,
+            due_date=now_utc + timedelta(days=3),
+        )
+        await session.commit()
+
+    failing_bot = MagicMock()
+    failing_bot.send_message = AsyncMock(side_effect=RuntimeError("Telegram temporary timeout"))
+    with patch("bot.services.node_monitor.get_settings") as mock_cfg:
+        mock_cfg.return_value.ADMIN_CHAT_ID = 0
+        mock_cfg.return_value.ADMIN_IDS = [777001]
+        mock_cfg.return_value.TIMEZONE = "Asia/Tehran"
+        await check_nodes_billing_due_dates(failing_bot, session_factory)
+
+    async with session_factory() as session:
+        item = await NodeCostRepository(session).get_by_uuid("nl-node-1")
+        assert item is not None and item.alert_notified is False
+
+    ok_bot = MagicMock()
+    ok_bot.send_message = AsyncMock()
+    req_post = make_mocked_request(
+        "POST",
+        "/api/admin/infra/node-cost",
+        headers={"content-type": "application/json"},
+        app={
+            "session_factory": session_factory,
+            "cache": FastCache(),
+            "bot": ok_bot,
+        },
+    )
+    req_post.json = AsyncMock(return_value={
+        "node_uuid": "nl-node-1",
+        "node_name": "Netherlands",
+        "provider": "Worldstream",
+        "monthly_cost_toman": 1200000,
+        "monthly_cost_eur": 10.0,
+        "currency": "EUR",
+        "due_date": (now_utc + timedelta(days=2)).strftime("%Y-%m-%d"),
+    })
+    with patch("bot.web.admin_infra_api._check_admin", return_value={"id": 12345, "is_admin": True}), \
+         patch("bot.services.node_monitor.get_settings") as mock_cfg:
+        mock_cfg.return_value.ADMIN_CHAT_ID = 0
+        mock_cfg.return_value.ADMIN_IDS = [777001]
+        mock_cfg.return_value.TIMEZONE = "Asia/Tehran"
+        resp = await post_admin_node_cost(req_post)
+        assert resp.status == 200
+        assert ok_bot.send_message.called
+        assert "Netherlands" in ok_bot.send_message.call_args[0][1]
+
+    async with session_factory() as session:
+        item_after = await NodeCostRepository(session).get_by_uuid("nl-node-1")
+        assert item_after is not None and item_after.alert_notified is True

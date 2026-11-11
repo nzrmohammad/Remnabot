@@ -266,7 +266,7 @@ function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت 
   container.innerHTML = nodes.map(n => `
     <div dir="ltr" class="card-inset p-2 rounded-xl flex items-center justify-between">
       <span class="text-base">${typeof renderFlagHtml === 'function' ? renderFlagHtml(n.flag || '🌐', 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : (n.flag || '🌐')}</span>
-      <span class="font-bold t-main font-mono num-bidi" dir="ltr">${fmtTraffic(n.total_formatted || '0 GB', { html: false })}</span>
+      <span class="font-bold t-main font-sans num-bidi" dir="ltr">${fmtTraffic(n.total_formatted || '0 GB', { html: false })}</span>
     </div>
   `).join('');
 }

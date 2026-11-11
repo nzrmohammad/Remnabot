@@ -3733,8 +3733,8 @@
 
           <!-- Provider -->
           <div>
-            <label class="text-[11px] text-slate-300 block mb-1">شرکت ارائه‌دهنده (Hosting Provider):</label>
-            <input type="text" id="nodeBillingProvider" placeholder="مثلاً: Hetzner, OVH, Contabo..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-cyan-500 transition" />
+            <label for="nodeBillingProvider" class="text-[11px] text-slate-300 block mb-1">شرکت ارائه‌دهنده (Hosting Provider):</label>
+            <input type="text" id="nodeBillingProvider" placeholder="مثلاً: Hetzner, OVH, Contabo..." class="input-base font-sans text-xs px-3 py-2 rounded-xl" />
           </div>
 
           <!-- Monthly Cost 3-Column Grid (Toman, Foreign Amount, Currency Unit) -->
@@ -3742,15 +3742,15 @@
             <div class="grid grid-cols-12 gap-2 items-end">
               <!-- Right: Toman Cost (5 cols) -->
               <div class="col-span-5">
-                <label class="text-[11px] text-slate-300 block mb-1 truncate">هزینه (تومان):</label>
-                <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="مثلاً: 2500000" class="w-full h-9 bg-slate-900 border border-slate-700 rounded-xl px-2.5 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                <label for="nodeBillingCostToman" class="text-[11px] text-slate-300 block mb-1 truncate">هزینه (تومان):</label>
+                <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="مثلاً: 2500000" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans font-bold text-cyan-300" />
               </div>
 
               <!-- Middle: Foreign Cost (3 cols) -->
               <div class="col-span-3">
-                <label class="text-[11px] text-slate-300 block mb-1 truncate">قیمت ارزی:</label>
+                <label for="nodeBillingCostEur" class="text-[11px] text-slate-300 block mb-1 truncate">قیمت ارزی:</label>
                 <div class="relative">
-                  <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="35.00" class="w-full h-9 bg-slate-900 border border-slate-700 rounded-xl px-2 text-xs font-sans text-indigo-300 outline-none focus:border-indigo-500 transition pl-5" />
+                  <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="35.00" class="input-base h-9 px-2 pl-5 rounded-xl text-xs font-sans font-bold text-indigo-300" />
                   <span id="nodeBillingCurrencySymbol" class="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 font-sans">€</span>
                 </div>
               </div>
@@ -3758,7 +3758,7 @@
               <!-- Left: Currency Selector (4 cols - clean segmented toggle) -->
               <div class="col-span-4">
                 <label class="text-[11px] text-slate-300 block mb-1 truncate">واحد ارز:</label>
-                <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-0.5 h-9 gap-1">
+                <div class="flex items-center card-inset border border-card-border rounded-xl p-0.5 h-9 gap-1">
                   <button type="button" id="nodeBillingCurrEur" onclick="setNodeBillingCurrency('EUR')" class="flex-1 h-full rounded-lg text-xs font-bold transition flex items-center justify-center text-white bg-blue-600 shadow">
                     یورو
                   </button>
@@ -3777,22 +3777,32 @@
             </div>
           </div>
 
-          <!-- Renewal Due Date (HTML5 Datepicker) -->
+          <!-- Renewal Due Date (Polished HTML5 Datepicker) -->
           <div>
-            <div class="flex items-center justify-between mb-1">
-              <label class="text-[11px] text-slate-300">تاریخ سررسید بعدی (Due Date):</label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="nodeBillingDueDate" class="text-[11px] text-slate-300 font-medium">تاریخ سررسید بعدی (Due Date):</label>
               <span id="nodeBillingJalaliPreview" class="text-[11px] font-sans t-warn font-bold" title="تاریخ به شمسی"></span>
             </div>
-            <div>
-              <input type="date" id="nodeBillingDueDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-amber-500 transition text-center cursor-pointer [color-scheme:dark]" onclick="this.showPicker && this.showPicker()" />
+            <div class="flex items-center gap-1.5">
+              <div class="relative flex-1">
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 t-warn pointer-events-none flex items-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </span>
+                <input type="date" id="nodeBillingDueDate" dir="ltr" class="node-date-input input-base w-full h-10 pr-9 pl-3 rounded-xl text-xs font-sans font-bold t-warn focus:border-amber-500 transition text-center cursor-pointer shadow-sm" onclick="this.showPicker && this.showPicker()" />
+              </div>
+              <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(30)" class="h-10 px-2.5 rounded-xl card-inset border border-amber-500/30 hover:border-amber-400 t-warn font-bold text-[11px] font-sans whitespace-nowrap transition active:scale-95" title="تنظیم سررسید برای 30 روز آینده">+30 روز</button>
+              <button type="button" onclick="window.adminActions.clearNodeBillingDueDate()" class="h-10 w-10 rounded-xl card-inset border border-card-border hover:border-rose-500/40 t-muted hover:text-rose-400 font-bold text-xs flex items-center justify-center transition active:scale-95 shrink-0" title="پاک کردن تاریخ سررسید" aria-label="پاک کردن تاریخ سررسید">✕</button>
             </div>
             <span class="text-[11px] text-slate-400 mt-1 block">در صورت رسیدن به 3 روز باقی‌مانده، پیام هشدار در تلگرام ارسال می‌شود.</span>
           </div>
 
           <!-- Notes -->
           <div>
-            <label class="text-[11px] text-slate-300 block mb-1">یادداشت و مشخصات (اختیاری):</label>
-            <input type="text" id="nodeBillingNotes" placeholder="مثلاً: سرور فنلاند - 32GB RAM" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-cyan-500 transition" />
+            <div class="flex items-center justify-between mb-1">
+              <label for="nodeBillingNotes" class="text-[11px] text-slate-300">یادداشت و مشخصات:</label>
+              <span class="text-[11px] t-muted">(اختیاری)</span>
+            </div>
+            <input type="text" id="nodeBillingNotes" placeholder="مثلاً: سرور فنلاند - 32GB RAM" class="input-base font-sans text-xs px-3 py-2 rounded-xl" />
           </div>
 
           <!-- Submit & Cancel Buttons -->

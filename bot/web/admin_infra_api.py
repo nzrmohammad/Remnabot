@@ -220,6 +220,16 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
     if cache:
         await cache.delete("tma:admin:overview")
 
+    bot_obj = request.app.get("bot")
+    sf_obj = request.app.get("session_factory")
+    if due_date is not None and bot_obj and sf_obj:
+        if (due_date.date() - datetime.now(timezone.utc).date()).days <= 4:
+            try:
+                from bot.services.node_monitor import check_nodes_billing_due_dates
+                await check_nodes_billing_due_dates(bot_obj, sf_obj)
+            except Exception as exc:
+                logger.warning("Immediate node billing due check failed: %s", exc)
+
     return web.json_response({
         "ok": True,
         "message": "اطلاعات مالی و سررسید سرور با موفقیت ثبت شد.",
