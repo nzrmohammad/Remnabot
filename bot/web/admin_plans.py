@@ -158,6 +158,11 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
         session.add(AdminLog(admin_id=admin["id"], action="save_plan", detail=f"{name} ({price:,} تومان)"))
         await session.commit()
 
+    cache = request.app.get("cache")
+    if cache and hasattr(cache, "delete"):
+        await cache.delete("tma:cluster:nodes_overview")
+        await cache.delete("tma:squad")
+
     return web.json_response({"ok": True, "message": msg})
 
 

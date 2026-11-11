@@ -37,12 +37,12 @@ def _extract_node_flag(node: dict[str, Any]) -> str | None:
     """Extract a country flag emoji from node metadata, name, or country code."""
     if not isinstance(node, dict):
         return None
-    cc = str(node.get("countryCode") or node.get("country_code") or "").strip().upper()
+    cc = str(node.get("countryCode") or node.get("country_code") or node.get("country") or "").strip().upper()
     if cc and len(cc) == 2 and cc.isalpha() and cc != "XX":
         f = country_flag(cc)
         if f and f != "🌐":
             return f
-    name = str(node.get("name") or "")
+    name = str(node.get("name") or node.get("nodeName") or "")
     m = FLAG_EMOJI_RE.search(name)
     if m:
         return m.group(0)
@@ -51,7 +51,44 @@ def _extract_node_flag(node: dict[str, Any]) -> str | None:
     for kw, (f_emoji, _) in sorted(COUNTRY_FLAGS_MAP.items(), key=lambda x: len(x[0]), reverse=True):
         if kw in search_text:
             return f_emoji
+    if "ایران" in search_text or "تهران" in search_text:
+        return "🇮🇷"
     return None
+
+
+def _collect_token_values(items: Any, keys: tuple[str, ...]) -> set[str]:
+    """Extract lowercased string identifiers from a dict list or string list."""
+    tokens: set[str] = set()
+    if not isinstance(items, list):
+        return tokens
+    for item in items:
+        if isinstance(item, dict):
+            for k in keys:
+                val = item.get(k)
+                if val is not None and str(val).strip():
+                    tokens.add(str(val).strip().lower())
+        elif item:
+            tokens.add(str(item).strip().lower())
+    return tokens
+
+
+def _extract_node_squad_and_inbound_tokens(node: dict[str, Any]) -> tuple[set[str], set[str]]:
+    """Collect squad aliases and active inbound UUIDs/tags linked to a panel node."""
+    squad_keys = ("uuid", "id", "name")
+    inbound_keys = ("uuid", "id", "tag", "inboundTag")
+    squad_tokens = _collect_token_values(
+        node.get("internalSquads") or node.get("squads") or node.get("activeInternalSquads"),
+        squad_keys,
+    )
+    inbounds = node.get("inbounds") or []
+    cfg_profile = node.get("configProfile") if isinstance(node.get("configProfile"), dict) else {}
+    active_inbounds = cfg_profile.get("activeInbounds") or node.get("activeInbounds") or []
+
+    inbound_tokens = _collect_token_values(inbounds, inbound_keys) | _collect_token_values(active_inbounds, inbound_keys)
+    for ib in inbounds:
+        if isinstance(ib, dict):
+            squad_tokens |= _collect_token_values(ib.get("internalSquads") or ib.get("squads"), squad_keys)
+    return squad_tokens, inbound_tokens
 from bot.web.cache import FastCache
 from bot.web.user_common import db_session, require_user
 
@@ -570,28 +607,84 @@ async def get_user_me(request: web.Request) -> web.Response:
         except Exception as node_err:
             logger.debug("Failed fetching nodes for plan flags: %s", node_err)
 
-        # Resolve squad lookup map (aliases)
+        # Resolve squad lookup map (aliases + inbound UUIDs/tags from Remnawave v2 internal squads)
         squad_alias_map: dict[str, set[str]] = {}
+        squad_inbound_map: dict[str, set[str]] = {}
+        squad_name_map: dict[str, str] = {}
         try:
             raw_squads = await remnawave.get_internal_squads() or []
             for sq in raw_squads:
                 if isinstance(sq, dict):
-                    tokens = set()
-                    for k in ("uuid", "id", "name"):
-                        val = sq.get(k)
-                        if val is not None and str(val).strip():
-                            tokens.add(str(val).strip().lower())
+                    tokens = _collect_token_values([sq], ("uuid", "id", "name"))
+                    ib_tokens = _collect_token_values(sq.get("inbounds") or sq.get("activeInbounds"), ("uuid", "id", "tag", "inboundTag"))
+                    sq_name = str(sq.get("name") or "")
                     for t in tokens:
                         squad_alias_map[t] = tokens
+                        if ib_tokens:
+                            squad_inbound_map[t] = squad_inbound_map.get(t, set()) | ib_tokens
+                        if sq_name:
+                            squad_name_map[t] = sq_name
         except Exception as sq_err:
             logger.debug("Failed fetching internal squads for plan flags: %s", sq_err)
 
         default_cluster_flags = []
+        node_by_uuid: dict[str, dict[str, Any]] = {}
+        node_tokens_cache: list[tuple[dict[str, Any], set[str], set[str]]] = []
         for n in cluster_nodes:
             if isinstance(n, dict):
                 f = _extract_node_flag(n)
                 if f and f != "🌐" and f not in default_cluster_flags:
                     default_cluster_flags.append(f)
+                n_uid = str(n.get("uuid") or n.get("id") or "").strip().lower()
+                if n_uid:
+                    node_by_uuid[n_uid] = n
+                sq_t, ib_t = _extract_node_squad_and_inbound_tokens(n)
+                node_tokens_cache.append((n, sq_t, ib_t))
+
+        # Fetch accessible nodes once per unresolved dedicated squad
+        unresolved_squads = set()
+        for s in filtered_services:
+            if s.squad_uuid:
+                s_key = str(s.squad_uuid).strip().lower()
+                matching_tokens = squad_alias_map.get(s_key, {s_key})
+                matching_inbounds = squad_inbound_map.get(s_key, set())
+                matched_any = any(
+                    (sq_t & matching_tokens) or (ib_t & matching_inbounds)
+                    for _, sq_t, ib_t in node_tokens_cache
+                )
+                if not matched_any:
+                    unresolved_squads.add(s_key)
+
+        squad_accessible_flags: dict[str, list[str]] = {}
+        if unresolved_squads and hasattr(remnawave, "get_internal_squad_accessible_nodes"):
+            async def _fetch_squad_acc_flags(s_key: str) -> tuple[str, list[str]]:
+                cache_key = f"tma:squad:{s_key}:accessible_nodes"
+                acc_nodes = await cache.get(cache_key)
+                if not isinstance(acc_nodes, list):
+                    try:
+                        raw_acc = await remnawave.get_internal_squad_accessible_nodes(s_key)
+                        if isinstance(raw_acc, list):
+                            acc_nodes = raw_acc
+                            await cache.set(cache_key, acc_nodes, ttl_seconds=60)
+                    except Exception as acc_err:
+                        logger.debug("Failed fetching accessible nodes for squad %s: %s", s_key, acc_err)
+                        acc_nodes = None
+                flags_out: list[str] = []
+                if isinstance(acc_nodes, list):
+                    for an in acc_nodes:
+                        if not isinstance(an, dict):
+                            continue
+                        f = _extract_node_flag(an)
+                        if (not f or f == "🌐"):
+                            ref_uid = str(an.get("uuid") or an.get("nodeUuid") or an.get("id") or "").strip().lower()
+                            if ref_uid and ref_uid in node_by_uuid:
+                                f = _extract_node_flag(node_by_uuid[ref_uid])
+                        if f and f != "🌐" and f not in flags_out:
+                            flags_out.append(f)
+                return s_key, flags_out
+
+            acc_results = await asyncio.gather(*(_fetch_squad_acc_flags(sk) for sk in unresolved_squads))
+            squad_accessible_flags = dict(acc_results)
 
         loyalty_data = await get_user_loyalty(session, telegram_id, cache=cache)
         loyalty_pct = loyalty_data.get("discount_percent", 0)
@@ -602,36 +695,18 @@ async def get_user_me(request: web.Request) -> web.Response:
             if s.squad_uuid:
                 s_key = str(s.squad_uuid).strip().lower()
                 matching_tokens = squad_alias_map.get(s_key, {s_key})
-                for n in cluster_nodes:
-                    if not isinstance(n, dict):
-                        continue
-                    node_tokens = set()
-                    sqs = n.get("internalSquads") or n.get("squads") or n.get("activeInternalSquads") or []
-                    for sq in sqs:
-                        if isinstance(sq, dict):
-                            for k in ("uuid", "id", "name"):
-                                v = sq.get(k)
-                                if v is not None and str(v).strip():
-                                    node_tokens.add(str(v).strip().lower())
-                        elif sq:
-                            node_tokens.add(str(sq).strip().lower())
-                    inbounds = n.get("inbounds") or []
-                    for ib in inbounds:
-                        if isinstance(ib, dict):
-                            ib_sqs = ib.get("internalSquads") or ib.get("squads") or []
-                            for sq in ib_sqs:
-                                if isinstance(sq, dict):
-                                    for k in ("uuid", "id", "name"):
-                                        v = sq.get(k)
-                                        if v is not None and str(v).strip():
-                                            node_tokens.add(str(v).strip().lower())
-                                elif sq:
-                                    node_tokens.add(str(sq).strip().lower())
-
-                    if node_tokens & matching_tokens:
+                matching_inbounds = squad_inbound_map.get(s_key, set())
+                for n, node_sq_tokens, node_ib_tokens in node_tokens_cache:
+                    if (node_sq_tokens & matching_tokens) or (node_ib_tokens & matching_inbounds):
                         f = _extract_node_flag(n)
                         if f and f != "🌐" and f not in plan_flags:
                             plan_flags.append(f)
+                if not plan_flags and squad_accessible_flags.get(s_key):
+                    plan_flags = list(squad_accessible_flags[s_key])
+                if not plan_flags:
+                    sq_hint = f"{squad_name_map.get(s_key, '')} {s.badge or ''}".lower()
+                    if "iran" in sq_hint or "ایران" in sq_hint:
+                        plan_flags = ["🇮🇷"]
             else:
                 plan_flags = list(default_cluster_flags)
 

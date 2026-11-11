@@ -669,7 +669,12 @@ function renderFilteredShopPlans() {
 
     const cleanFlags = (p.flags && Array.isArray(p.flags)) ? p.flags.filter(f => f && (p.flags.length === 1 || f !== '🌐')) : [];
     const clusterFlags = (cachedPlansData?.cluster_flags || window.lastUserData?.cluster_flags || []).filter(f => f && f !== '🌐');
-    const activeFlags = cleanFlags.length > 0 ? cleanFlags : clusterFlags;
+    const isExplicitIranPlan = planBadgeKey === 'iran' || (!planBadgeKey && planText.includes('سرور ایران'));
+    const activeFlags = cleanFlags.length > 0
+      ? cleanFlags
+      : (p.squad_uuid
+          ? (isExplicitIranPlan ? ['🇮🇷'] : [])
+          : clusterFlags);
     const flagsList = activeFlags.length > 0
       ? activeFlags.map(f => (typeof renderFlagHtml === 'function' ? renderFlagHtml(f, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : `<span class="text-xs inline-block" title="${f}">${f}</span>`)).join(' ')
       : '<span class="text-xs inline-block" title="سرور اختصاصی">🌐</span>';
@@ -712,22 +717,22 @@ function renderFilteredShopPlans() {
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0 flex-1 text-right">
             <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl">
-              <span class="text-base font-black t-success leading-tight num-bidi" dir="ltr">${formattedFinal}</span>
               ${hasAnyDiscount ? `<span class="line-through t-muted text-[11px] font-semibold leading-none num-bidi" dir="ltr">${formattedOriginal}</span>` : ''}
+              <span class="text-base font-black t-success leading-tight num-bidi" dir="ltr">${formattedFinal}</span>
               <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
             </div>
             <p class="text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1">${safeDesc}</p>
           </div>
           <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
             <h4 class="font-bold text-sm t-main truncate w-full text-left">${formatPlanTitle(p.name)}</h4>
-            ${hasDiscountBadges ? `
-              <div class="flex items-center justify-start gap-1 mt-1 flex-wrap">
-                ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% Loyality</span></span>` : ''}
-                ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
-              </div>
-            ` : ''}
           </div>
         </div>
+        ${hasDiscountBadges ? `
+          <div class="flex items-center justify-start gap-1.5 flex-wrap mt-2.5 mb-2.5" dir="ltr">
+            ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>Loyality (-${loyaltyPctEnglish}%)</span></span>` : ''}
+            ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} (-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
+          </div>
+        ` : ''}
         <div class="flex items-center justify-between my-1.5 text-[11px] card-inset px-2.5 py-1.5 whitespace-nowrap overflow-hidden">
           <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-sans t-main num-bidi">${trafficText}</b></span>
           ${durationText}
@@ -1004,84 +1009,104 @@ function setupBuyButtons() {
         return;
       }
 
-      // Squad Switch Detection: Warning modal MUST appear BEFORE the pre-invoice / checkout modal!
-      const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
-      const activeSquad = (activeSub?.squad_uuid || '').trim().toLowerCase();
-      const planSquadNorm = (planObj.squad_uuid || '').trim().toLowerCase();
-      const isSwitch = Boolean(
-        hasActiveSub &&
-        activeSub &&
-        !isExtraTraffic &&
-        !isTimeOnly &&
-        planSquadNorm &&
-        (!activeSquad || planSquadNorm !== activeSquad)
-      );
+      // Squad Switch & Category guidance step (triggered after any Iran-only notice)
+      const proceedPurchaseFlow = () => {
+        const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
+        const activeSquad = (activeSub?.squad_uuid || '').trim().toLowerCase();
+        const planSquadNorm = (planObj.squad_uuid || '').trim().toLowerCase();
+        const isSwitch = Boolean(
+          hasActiveSub &&
+          activeSub &&
+          !isExtraTraffic &&
+          !isTimeOnly &&
+          planSquadNorm &&
+          (!activeSquad || planSquadNorm !== activeSquad)
+        );
 
-      if (isSwitch) {
-        openShopGuidanceModal({
-          title: '⚠️ هشدار مهم تغییر دسته سرور',
-          badgeText: '🔄 تغییر دسته سرور',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
-          message: `شما در حال تغییر سرویس اشتراک فعلی خود به «<b>${escapeHtml(planObj.name)}</b>» هستید.<br><br>
+        if (isSwitch) {
+          openShopGuidanceModal({
+            title: '⚠️ هشدار مهم تغییر دسته سرور',
+            badgeText: '🔄 تغییر دسته سرور',
+            badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
+            message: `شما در حال تغییر سرویس اشتراک فعلی خود به «<b>${escapeHtml(planObj.name)}</b>» هستید.<br><br>
 📌 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
 1. با تغییر سرویس، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند).<br>
 2. <b>لینک اتصال اشتراک شما تغییری نمی‌کند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription (بروزرسانی اشتراک)</b> را در برنامه بزنید.<br>
 3. هزینه کامل بسته جدید دریافت خواهد شد.<br><br>
 💡 راهنما: چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، می‌توانید از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا «بسته افزایش حجم» تهیه فرمایید.<br><br>
 آیا برای مشاهده پیش‌فاکتور و خرید این بسته موافقید؟`,
-          actionText: '✅ متوجه شدم، مشاهده پیش‌فاکتور',
-          onAction: () => openCheckoutConfirmModal(planObj),
+            actionText: '✅ متوجه شدم، مشاهده پیش‌فاکتور',
+            onAction: () => openCheckoutConfirmModal(planObj),
+            secondaryText: '❌ انصراف',
+            onSecondary: () => closeModal('shopGuidanceModal'),
+          });
+          return;
+        }
+
+        // Rule 2: User has active subscription with plenty of days (> 3 days), and clicked on a Full Plan
+        if (hasActiveSub && daysLeft > 3 && isFullPlan) {
+          if (pctRemaining <= 25) {
+            openShopGuidanceModal({
+              title: 'پیشنهاد هوشمند خرید حجم',
+              badgeText: '⚡️ صرفه‌جویی در هزینه',
+              badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
+              message: `شما هنوز <b>${daysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
+              actionText: '⚡️ رفتن به بسته‌های افزایش حجم',
+              onAction: () => switchShopCategory('traffic'),
+              secondaryText: 'انصراف',
+              onSecondary: () => closeModal('shopGuidanceModal'),
+            });
+          } else {
+            openShopGuidanceModal({
+              title: 'اشتراک شما فعال است',
+              badgeText: 'ℹ️ سرویس فعال دارید',
+              badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/40',
+              message: `شما در حال حاضر دارای اشتراک فعال با <b>${daysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در 3 روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
+              actionText: '⚡️ بسته‌های افزایش حجم',
+              onAction: () => switchShopCategory('traffic'),
+              secondaryText: '⏳ بسته‌های افزایش زمان',
+              onSecondary: () => switchShopCategory('time'),
+            });
+          }
+          return;
+        }
+
+        // Rule 3: User has active subscription with low time (<= 3 days), but they clicked on a Traffic Addon
+        if (hasActiveSub && daysLeft <= 3 && isExtraTraffic) {
+          openShopGuidanceModal({
+            title: 'هشدار پایان اعتبار زمانی',
+            badgeText: '⏳ تمدید سرویس کامل',
+            badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
+            message: `تنها <b>${daysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
+            actionText: '💎 تمدید دوره کامل',
+            onAction: () => switchShopCategory('full'),
+            secondaryText: 'ادامه خرید بسته حجم',
+            onSecondary: () => openCheckoutConfirmModal(planObj),
+          });
+          return;
+        }
+
+        // Default: proceed to checkout
+        openCheckoutConfirmModal(planObj);
+      };
+
+      // Special pre-warning for Iran-only server badge BEFORE any server switch warning
+      const isIranServerPlan = planBadge === 'iran' || (planName || '').includes('سرور ایران');
+      if (isIranServerPlan) {
+        openShopGuidanceModal({
+          title: '🇮🇷 راهنمای سرویس سرور ایران',
+          badgeText: '🌍 ویژه ایرانیان خارج از کشور',
+          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40',
+          message: `این بسته <b>منحصراً متصل به سرورهای داخل ایران (🇮🇷)</b> است و تنها آی‌پی کشور ایران را در اختیار شما قرار می‌دهد.<br><br>📌 <b>نکات مهم پیش از خرید:</b><br>• ویژه <b>ایرانیان مقیم خارج از کشور</b> جهت دسترسی به سامانه‌های بانکی، درگاه‌های پرداخت، سایت‌های دولتی (ثنا، سخا و...) و سرویس‌های داخلی ایران.<br>• در این اشتراک <b>فقط به کشور ایران</b> دسترسی خواهید داشت و برای کاربران داخل ایران (جهت عبور از محدودیت‌های اینترنتی) مناسب <u>نیست</u>.<br><br>آیا شرایط این سرویس را مطالعه کرده و مایل به ادامه هستید؟`,
+          actionText: '✅ متوجه شدم، ادامه',
+          onAction: proceedPurchaseFlow,
           secondaryText: '❌ انصراف',
           onSecondary: () => closeModal('shopGuidanceModal'),
         });
         return;
       }
 
-      // Rule 2: User has active subscription with plenty of days (> 3 days), and clicked on a Full Plan
-      if (hasActiveSub && daysLeft > 3 && isFullPlan) {
-        if (pctRemaining <= 25) {
-          openShopGuidanceModal({
-            title: 'پیشنهاد هوشمند خرید حجم',
-            badgeText: '⚡️ صرفه‌جویی در هزینه',
-            badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
-            message: `شما هنوز <b>${daysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
-            actionText: '⚡️ رفتن به بسته‌های افزایش حجم',
-            onAction: () => switchShopCategory('traffic'),
-            secondaryText: 'انصراف',
-            onSecondary: () => closeModal('shopGuidanceModal'),
-          });
-        } else {
-          openShopGuidanceModal({
-            title: 'اشتراک شما فعال است',
-            badgeText: 'ℹ️ سرویس فعال دارید',
-            badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/40',
-            message: `شما در حال حاضر دارای اشتراک فعال با <b>${daysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در 3 روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
-            actionText: '⚡️ بسته‌های افزایش حجم',
-            onAction: () => switchShopCategory('traffic'),
-            secondaryText: '⏳ بسته‌های افزایش زمان',
-            onSecondary: () => switchShopCategory('time'),
-          });
-        }
-        return;
-      }
-
-      // Rule 3: User has active subscription with low time (<= 3 days), but they clicked on a Traffic Addon
-      if (hasActiveSub && daysLeft <= 3 && isExtraTraffic) {
-        openShopGuidanceModal({
-          title: 'هشدار پایان اعتبار زمانی',
-          badgeText: '⏳ تمدید سرویس کامل',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
-          message: `تنها <b>${daysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
-          actionText: '💎 تمدید دوره کامل',
-          onAction: () => switchShopCategory('full'),
-          secondaryText: 'ادامه خرید بسته حجم',
-          onSecondary: () => openCheckoutConfirmModal(planObj),
-        });
-        return;
-      }
-
-      // Default: proceed to checkout
-      openCheckoutConfirmModal(planObj);
+      proceedPurchaseFlow();
     });
   });
 }

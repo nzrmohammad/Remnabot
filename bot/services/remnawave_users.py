@@ -289,6 +289,30 @@ class RemnawaveUsersMixin:
                 logger.debug("Remnawave squad path %s failed: %s", path, exc)
         return []
 
+    async def get_internal_squad_accessible_nodes(self, squad_uuid: str) -> list[dict[str, Any]]:
+        """Fetch panel nodes accessible by a given internal squad UUID."""
+        if not squad_uuid:
+            return []
+        for path in (
+            f"/api/internal-squads/{squad_uuid}/accessible-nodes",
+            f"/api/squads/{squad_uuid}/accessible-nodes",
+        ):
+            try:
+                resp = await self._client.get(path)
+                if resp.status_code == 200:
+                    payload = resp.json()
+                    data = payload.get("response") if isinstance(payload, dict) and "response" in payload else payload
+                    if isinstance(data, list):
+                        return data
+                    if isinstance(data, dict):
+                        for key in ("accessibleNodes", "activeNodes", "nodes"):
+                            val = data.get(key)
+                            if isinstance(val, list):
+                                return val
+            except httpx.HTTPError as exc:
+                logger.debug("Remnawave accessible-nodes path %s failed: %s", path, exc)
+        return []
+
     async def set_user_squads(self, user_id: int, squad_uuids: list[str]) -> dict[str, Any] | None:
         """Assign squad UUIDs to an existing user."""
         payload = {

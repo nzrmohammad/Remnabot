@@ -625,7 +625,7 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
     components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
 
-    # 1. Shop card: corner badge top-left, compact inline Price (discounted + original + تومان) & Description on Right, Title & discount badges flush Left
+    # 1. Shop card: corner badge top-left, Price (strikethrough then final + تومان) & Description on Right, single-row discount badges with spacing
     assert "rounded-br-xl" in shop_js
     assert 'max-w-[46%] ${planBadge ? \'mt-4\' : \'\'}" dir="ltr"' in shop_js
     assert 'flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl"' in shop_js
@@ -705,12 +705,25 @@ def test_admin_plan_card_and_picker_ltr_and_shop_compact_price():
     assert ">فعال<" not in coupons_block
     assert ">مصرف\u200cشده<" in coupons_block
 
-    # 2. Shop plan card: compact inline price + original strikethrough + تومان & description directly below price on Right
+    # 2. Shop plan card: compact inline price (original strikethrough -> final -> تومان) & description on Right, single-row badges ('Loyality (-X%)') + Iran pre-warning + no foreign fallback on dedicated squads
     assert 'class="shop-plan-card card p-3' in shop_js
     right_col_idx = shop_js.find('<div class="min-w-0 flex-1 text-right">')
     assert right_col_idx != -1
     right_col = shop_js[right_col_idx:shop_js.find('max-w-[46%]', right_col_idx)]
-    assert "${formattedFinal}" in right_col and "${formattedOriginal}" in right_col and "تومان" in right_col and "${safeDesc}" in right_col
+    orig_pos = right_col.find("${formattedOriginal}")
+    final_pos = right_col.find("${formattedFinal}")
+    toman_pos = right_col.find("تومان")
+    assert orig_pos != -1 and final_pos != -1 and toman_pos != -1
+    assert orig_pos < final_pos < toman_pos
+    assert "${safeDesc}" in right_col
+    assert 'mt-2.5 mb-2.5" dir="ltr"' in shop_js
+    assert "Loyality (-${loyaltyPctEnglish}%)" in shop_js
+    assert "p.squad_uuid" in shop_js and "(isExplicitIranPlan ? ['🇮🇷'] : [])" in shop_js
+    iran_notice_pos = shop_js.find("راهنمای سرویس سرور ایران")
+    switch_warn_pos = shop_js.find("هشدار مهم تغییر دسته سرور")
+    assert iran_notice_pos != -1 and switch_warn_pos != -1
+    assert shop_js.find("isIranServerPlan") > shop_js.find("const proceedPurchaseFlow = () =>")
+    assert "proceedPurchaseFlow();" in shop_js and "onAction: proceedPurchaseFlow" in shop_js
 
     # 3. Create user Plan Picker keeps RTL 'custom' option and LTR complete plans; Squad Picker removes right 🧩 icon
     plan_picker_section = admin_users_js[admin_users_js.find("openPlanPickerModal"):admin_users_js.find("closePlanPickerModal")]
@@ -737,3 +750,101 @@ def test_admin_plan_card_and_picker_ltr_and_shop_compact_price():
     assert 'id="batchVoucherExpireDays" value="" placeholder="0 = نامحدود"' in batch_block
     assert "0=نامحدود</label>" not in batch_block
     assert "parseInt($('batchVoucherExpireDays')?.value || '0', 10)" in admin_plans_js
+
+
+@pytest.mark.anyio
+async def test_remnawave_squad_accessible_nodes_and_plan_country_flags(session_factory):
+    """Verify dedicated squad plans resolve exact country flags via activeInbounds and accessible-nodes without leaking foreign cluster flags."""
+    from bot.db.models import Service, User
+    from bot.web.user_profile import get_user_me
+
+    # 1. Verify RemnawaveClient.get_internal_squad_accessible_nodes parsing
+    client = RemnawaveClient.__new__(RemnawaveClient)
+
+    async def fake_get(path):
+        resp = MagicMock()
+        if path == "/api/internal-squads/sq-ir-acc/accessible-nodes":
+            resp.status_code = 200
+            resp.json.return_value = {
+                "response": {
+                    "accessibleNodes": [
+                        {"uuid": "node-ir-2", "nodeName": "Tehran Edge", "countryCode": "IR"}
+                    ]
+                }
+            }
+            return resp
+        resp.status_code = 404
+        return resp
+
+    client._client = MagicMock()
+    client._client.get = AsyncMock(side_effect=fake_get)
+    acc = await client.get_internal_squad_accessible_nodes("sq-ir-acc")
+    assert len(acc) == 1 and acc[0]["countryCode"] == "IR"
+
+    # 2. Verify get_user_me resolves per-squad country flags separately from foreign cluster flags
+    async with session_factory() as session:
+        session.add(User(telegram_id=880011, username="tester", full_name="Tester"))
+        session.add_all([
+            Service(name="Iran Inbound", price=100000, traffic_gb=20, duration_days=30, is_active=True, squad_uuid="sq-ir-ib", badge="iran"),
+            Service(name="Iran Accessible", price=120000, traffic_gb=30, duration_days=30, is_active=True, squad_uuid="sq-ir-acc", badge=""),
+            Service(name="Cluster Plan", price=150000, traffic_gb=40, duration_days=30, is_active=True, squad_uuid="", badge=""),
+        ])
+        await session.commit()
+
+    mock_remna = MagicMock()
+    mock_remna.get_users_by_telegram_id = AsyncMock(return_value=[])
+    mock_remna.get_nodes = AsyncMock(return_value=[
+        {
+            "uuid": "node-nl-1",
+            "name": "Netherlands 1",
+            "countryCode": "NL",
+            "configProfile": {"activeInbounds": [{"uuid": "ib-eu-1", "tag": "VLESS-EU"}]},
+        },
+        {
+            "uuid": "node-ir-1",
+            "name": "Iran Direct",
+            "countryCode": "IR",
+            "configProfile": {"activeInbounds": [{"uuid": "ib-ir-1", "tag": "VLESS-IR"}]},
+        },
+        {
+            "uuid": "node-ir-2",
+            "name": "Tehran Node 2",
+            "countryCode": "IR",
+        },
+    ])
+    mock_remna.get_internal_squads = AsyncMock(return_value=[
+        {"uuid": "sq-ir-ib", "name": "Iran Only", "inbounds": [{"uuid": "ib-ir-1", "tag": "VLESS-IR"}]},
+        {"uuid": "sq-ir-acc", "name": "Dedicated Access", "inbounds": []},
+    ])
+    mock_remna.get_internal_squad_accessible_nodes = AsyncMock(
+        side_effect=lambda uid: [{"uuid": "node-ir-2", "nodeName": "Tehran Node 2", "countryCode": "IR"}]
+        if str(uid).lower() == "sq-ir-acc"
+        else []
+    )
+
+    mock_settings = MagicMock()
+    mock_settings.TIMEZONE = "Asia/Tehran"
+    mock_settings.DEFAULT_LANGUAGE = "fa"
+
+    req = make_mocked_request(
+        "GET",
+        "/api/me",
+        app={
+            "session_factory": session_factory,
+            "remnawave": mock_remna,
+            "cache": FastCache(redis_client=None),
+            "settings": mock_settings,
+            "bot": None,
+        },
+    )
+    with patch("bot.web.user_profile.require_user", return_value=({"id": 880011, "is_admin": False}, None)):
+        resp = await get_user_me(req)
+        assert resp.status == 200
+        payload = json.loads(resp.text)
+
+    assert payload["ok"] is True
+    data = payload["data"]
+    plans_by_name = {p["name"]: p for p in data["plans"]}
+    assert plans_by_name["Iran Inbound"]["flags"] == ["🇮🇷"]
+    assert plans_by_name["Iran Accessible"]["flags"] == ["🇮🇷"]
+    assert plans_by_name["Cluster Plan"]["flags"] == ["🇳🇱", "🇮🇷"]
