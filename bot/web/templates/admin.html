@@ -4017,7 +4017,7 @@
           <div class="space-y-1">
             <div class="flex justify-between items-center">
               <label class="text-[11px] text-slate-300 font-medium">نام کاربری در پنل:</label>
-              <span class="text-[11px] text-slate-400 font-sans">اختیاری</span>
+              <span class="s-neutral-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg font-sans">اختیاری</span>
             </div>
             <input type="text" id="createUserUsername" oninput="window.adminActions.onUsernameInput(this.value)" placeholder="پیش‌فرض: خودکار" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-sans text-white outline-none focus:border-cyan-500 placeholder:text-right" dir="ltr" />
             <div id="createUserUsernameStatus" class="text-[11px] font-medium hidden"></div>
@@ -4091,7 +4091,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closePlanPickerModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95" aria-label="بستن">✕</button>
         </div>
-        <div id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[55vh] text-xs pr-0.5">
+        <div id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[55vh] text-xs px-2.5 py-1.5">
           <!-- Dynamically populated complete packages -->
         </div>
       </div>

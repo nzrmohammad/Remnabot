@@ -1208,8 +1208,8 @@ openHighRiskUsersModal() {
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2">
                     <span class="font-bold t-main text-xs truncate font-sans num-bidi" dir="ltr">${accountName}</span>
-                    <span class="text-[10px] font-sans num-bidi text-rose-600 dark:text-rose-400 font-bold shrink-0">
-                      🔥 ${devCount} دستگاه
+                    <span dir="rtl" class="text-[10px] font-sans inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold shrink-0">
+                      <span>🔥</span><bdi dir="ltr" class="num-bidi font-bold">${devCount}</bdi><span>دستگاه</span>
                     </span>
                   </div>
                   ${tgInfo ? `<span class="text-[10px] t-muted block truncate mt-0.5 font-sans num-bidi" dir="rtl">${escapeHtml(tgInfo)}</span>` : ''}

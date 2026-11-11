@@ -5011,7 +5011,7 @@ function renderInvoiceModalFields(inv, orderId) {
   if ($('invBuyerName')) $('invBuyerName').innerText = bName;
   if ($('invBuyerId')) {
     $('invBuyerId').innerText = bId ? String(bId) : '';
-    $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-sans num-bidi block select-all text-right' : 'hidden';
+    $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-sans block w-full select-all text-left' : 'hidden';
   }
 
   const rawItemTitle = (inv.item?.title || 'بسته اشتراک').trim();

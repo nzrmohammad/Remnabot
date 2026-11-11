@@ -625,18 +625,19 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
     components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
 
-    # 1. Shop card: inline pill badge + Price/Name opposite row without mt-4 void
-    assert "rounded-br-xl" not in shop_js[shop_js.find("if (isExtraTraffic)"):shop_js.find("const hasBadges")]
-    assert 'h4 dir="ltr" class="font-bold text-sm t-main truncate text-left min-w-0 flex-1"' in shop_js
-    assert 'flex items-center justify-start gap-1.5 mt-2 flex-wrap' in shop_js
-    assert "border-bottom: 1.5px solid" not in components_css[components_css.find("/* --- 16. Shop Plan Badges --- */"):]
+    # 1. Shop card: corner badge top-left, Price top-right, Title & discount/coupon badges left-aligned below corner badge
+    assert "rounded-br-xl" in shop_js
+    assert 'min-w-0 flex-1 ${planBadge ? \'mt-4\' : \'\'}" dir="ltr"' in shop_js
+    assert 'flex items-center justify-start gap-1.5 mt-1.5 flex-wrap' in shop_js
+    assert "border-bottom: 1.5px solid" in components_css[components_css.find("/* --- 16. Shop Plan Badges --- */"):]
 
-    # 2. Invoice modal Buyer content left-aligned while header stays unchanged
+    # 2. Invoice modal Buyer content full-width left-aligned in both HTML and JS (no inline-block .num-bidi override)
     buyer_idx = app_html.find("👤 خریدار:")
     buyer_block = app_html[buyer_idx:buyer_idx + 350]
-    assert 'class="text-left font-sans num-bidi" dir="ltr"' in buyer_block
-    assert 'id="invBuyerName" class="font-bold t-main block truncate text-xs select-all text-left"' in buyer_block
-    assert 'id="invBuyerId" class="text-[11px] text-slate-400 font-sans num-bidi block select-all text-left"' in buyer_block
+    assert 'class="w-full text-left font-sans" dir="ltr"' in buyer_block
+    assert 'id="invBuyerName" class="font-bold t-main block w-full truncate text-xs select-all text-left"' in buyer_block
+    assert 'id="invBuyerId" class="text-[11px] text-slate-400 font-sans block w-full select-all text-left"' in buyer_block
+    assert "text-[11px] text-slate-400 font-sans block w-full select-all text-left" in app_js
 
     # 3. Broadcast report modal light-mode contrast
     report_block = admin_html[admin_html.find('id="broadcastReportModal"'):admin_html.find('id="dismissReportModalBtn"')]
@@ -649,15 +650,21 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     assert "▾" in access_btn_block
     assert "t-success font-bold text-[11px] whitespace-nowrap" in admin_settings_js
 
-    # 5. Create user modal cleanup (no asterisk before الزامی, select placeholder, input placeholders)
+    # 5. Create user modal cleanup (no asterisk before الزامی, select placeholder, input placeholders, bordered اختیاری, planPickerList scroll gap)
     create_block = admin_html[admin_html.find('id="createUserModal"'):admin_html.find('id="planPickerModal"')]
     assert "* الزامی" not in create_block
     assert '>الزامی</span>' in create_block
+    assert 's-neutral-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg font-sans">اختیاری</span>' in create_block
     assert 'placeholder="پیش\u200cفرض: خودکار"' in create_block
     assert 'id="createUserPlanLabel" class="text-xs text-white font-medium truncate">انتخاب کنید<' in create_block
     assert 'placeholder="0 = نامحدود"' in create_block
     assert 'placeholder="مثلاً 30"' in create_block
+    assert 'id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[55vh] text-xs px-2.5 py-1.5"' in admin_html
     assert "if (labelEl) labelEl.innerText = 'انتخاب کنید';" in admin_users_js
+
+    # 5b. High-risk users modal device count renders in explicit RTL order (5 دستگاه, not دستگاه 5)
+    admin_charts_js = Path("bot/web/static/js/admin_charts.js").read_text(encoding="utf-8")
+    assert '<span>🔥</span><bdi dir="ltr" class="num-bidi font-bold">${devCount}</bdi><span>دستگاه</span>' in admin_charts_js
 
     # 6. Bulk users modal uses dedicated custom status picker modal instead of raw select
     bulk_block = admin_html[admin_html.find('id="bulkUsersModal"'):admin_html.find('id="bulkStatusPickerModal"')]
