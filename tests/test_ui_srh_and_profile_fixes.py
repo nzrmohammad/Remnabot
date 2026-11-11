@@ -337,7 +337,7 @@ async def test_payment_methods_chart_includes_all_gateways(session_factory):
             expires_at=datetime.now(timezone.utc),
         ))
         session.add(CryptoInvoice(
-            telegram_id=104, amount_toman=300_000, amount_ton="1.5", nanotons=1500, currency="TON", comment="t1", pay_address="a1", status="paid", expires_at=datetime.now(timezone.utc)
+            telegram_id=104, amount_toman=300_000, amount_ton="1.5", nanotons=1500, currency="ton", comment="t1", pay_address="a1", status="paid", expires_at=datetime.now(timezone.utc)
         ))
         session.add(CryptoInvoice(
             telegram_id=105, amount_toman=400_000, amount_ton="10", nanotons=1000, currency="TRX", comment="t2", pay_address="a2", status="paid", expires_at=datetime.now(timezone.utc)
@@ -355,3 +355,7 @@ async def test_payment_methods_chart_includes_all_gateways(session_factory):
         assert stats["ترون (TRX)"] == (1, 400_000)
         assert stats["پلیگان (POL)"] == (1, 500_000)
         assert stats["تلگرام استارز (XTR)"] == (1, 50_000)
+
+    # Guard against PostgreSQL GroupingError: must group directly on CryptoInvoice.currency column
+    charts_src = Path("bot/web/admin_overview_charts.py").read_text(encoding="utf-8")
+    assert ".group_by(CryptoInvoice.currency)" in charts_src

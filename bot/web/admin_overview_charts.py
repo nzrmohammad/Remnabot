@@ -534,12 +534,12 @@ async def _calc_retention_and_payments(session, now_utc: datetime) -> tuple[dict
 
     crypto_rows = (await session.execute(
         select(
-            func.upper(func.coalesce(CryptoInvoice.currency, "TON")),
+            CryptoInvoice.currency,
             func.count(CryptoInvoice.id),
             func.coalesce(func.sum(CryptoInvoice.amount_toman), 0),
         )
         .where(CryptoInvoice.status == "paid")
-        .group_by(func.upper(func.coalesce(CryptoInvoice.currency, "TON")))
+        .group_by(CryptoInvoice.currency)
     )).all()
     crypto_stats: dict[str, tuple[int, int]] = {}
     for curr_code, cnt, vol in crypto_rows:
