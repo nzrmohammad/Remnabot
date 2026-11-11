@@ -225,6 +225,26 @@ async def test_ban_check_middleware(async_session: AsyncSession):
     await middleware(handler_mock, normal_msg, data)
     assert handler_mock.call_count == 1
 
+    # 4. Update wrapper (outer_middleware in production dp.update) must also block /start & callbacks
+    from aiogram.types import Update
+
+    start_msg = MagicMock(spec=Message)
+    start_msg.from_user = banned_tg_user
+    start_msg.text = "/start"
+    start_msg.answer = AsyncMock()
+    upd = MagicMock(spec=Update)
+    upd.from_user = None
+    upd.message = start_msg
+    upd.edited_message = None
+    upd.callback_query = None
+    upd.inline_query = None
+
+    handler_mock.reset_mock()
+    await middleware(handler_mock, upd, data)
+    assert handler_mock.call_count == 0
+    assert start_msg.answer.call_count == 1
+    assert t("fa", "banned_user_notice") in start_msg.answer.call_args[0][0]
+
 
 @pytest.mark.anyio
 async def test_database_backup_service(async_session: AsyncSession):

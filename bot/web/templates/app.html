@@ -184,6 +184,36 @@
         </div>
       </div>
 
+      <!-- ======================================================== -->
+      <!-- 0.3 SYSTEM BANNED OVERLAY                                -->
+      <!-- ======================================================== -->
+      <div id="systemBannedScreen" class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
+        <div class="absolute w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
+        <div class="absolute w-56 h-56 bg-red-600/10 rounded-full blur-2xl pointer-events-none -bottom-4"></div>
+
+        <div class="system-status-card relative z-10 w-full max-w-sm mx-auto card rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
+          <div class="relative mb-5">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500/20 via-red-500/20 to-rose-500/10 border border-rose-500/30 flex items-center justify-center shadow-lg shadow-rose-500/10">
+              <span class="text-3xl select-none">⛔️</span>
+            </div>
+          </div>
+
+          <h2 class="text-base sm:text-lg font-black t-main tracking-wide">حساب کاربری مسدود شده است</h2>
+          <p class="text-xs t-muted mt-2.5 leading-relaxed font-normal">
+            دسترسی شما به ربات و پنل کاربری توسط مدیریت محدود گردیده است و در حال حاضر امکان مشاهده یا استفاده از خدمات را ندارید.
+          </p>
+          <span class="inline-block mt-3 px-3 py-1 rounded-full text-[11px] font-medium s-danger-soft border font-sans">
+            🚫 حساب کاربری غیرفعال / مسدود
+          </span>
+
+          <div id="bannedSupportBox" class="mt-6 w-full hidden">
+            <button type="button" onclick="window.openSupportContact()" class="w-full py-2.5 px-4 rounded-xl btn-danger font-bold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2">
+              <span>🎧 تماس با پشتیبانی</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- ===================================================== -->
       <!-- TAB 1: DASHBOARD (داشبورد اصلی)                        -->
       <!-- ===================================================== -->

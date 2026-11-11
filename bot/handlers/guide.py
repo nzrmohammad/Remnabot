@@ -39,6 +39,7 @@ APP_DISPLAY_NAMES: dict[str, str] = {
     "pattn": "PattN",
     "pattng": "PattNG",
     "zedsecure": "Zedsecure",
+    "v2raytun": "v2RayTun",
 }
 
 
@@ -103,6 +104,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("Karing", "https://github.com/KaringX/karing/releases/latest"),
             ("Zedsecure", "https://github.com/CluvexStudio/ZedSecure/releases/latest"),
             ("OneXray", "https://github.com/YuanDevTeam/OneXray/releases/latest"),
+            ("v2RayTun", "https://play.google.com/store/apps/details?id=com.v2raytun.android"),
         ],
     ),
     "ios": (
@@ -114,6 +116,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("V2Box", "https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"),
             ("Karing", "https://github.com/KaringX/karing/releases/latest"),
             ("OneXray", "https://apps.apple.com/us/app/onexray/id6745748773"),
+            ("v2RayTun", "https://apps.apple.com/app/id6476628951"),
         ],
     ),
     "windows": (
@@ -127,6 +130,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("Karing", "https://github.com/KaringX/karing/releases/latest"),
             ("Zedsecure", "https://github.com/CluvexStudio/ZedSecure/releases/latest"),
             ("OneXray", "https://github.com/YuanDevTeam/OneXray/releases/latest"),
+            ("v2RayTun", "https://v2raytun.com/"),
         ],
     ),
     "macos": (
@@ -140,6 +144,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("Zedsecure", "https://github.com/CluvexStudio/ZedSecure/releases/latest"),
             ("V2Box", "https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"),
             ("OneXray", "https://apps.apple.com/us/app/onexray/id6745748773"),
+            ("v2RayTun", "https://apps.apple.com/app/id6476628951"),
         ],
     ),
     "linux": (

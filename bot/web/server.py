@@ -83,14 +83,27 @@ async def api_ban_check_middleware(request: web.Request, handler):
 
     if is_banned:
         logger.warning("Blocked TMA request to %s from banned user %s", request.path, user_id)
-        return web.json_response(
-            {
-                "ok": False,
-                "error": "banned",
-                "message": "حساب کاربری شما مسدود شده است و امکان استفاده از خدمات را ندارید.",
-            },
-            status=403,
-        )
+        payload: dict[str, object] = {
+            "ok": False,
+            "error": "banned",
+            "is_banned": True,
+            "message": "حساب کاربری شما مسدود شده است و امکان استفاده از خدمات را ندارید.",
+        }
+        if request.path == "/api/user/me":
+            session_factory = request.app.get("session_factory")
+            if session_factory:
+                try:
+                    from bot.services.app_settings import get_store_settings
+                    from bot.web.user_common import format_support_link
+
+                    async with session_factory() as session:
+                        store = await get_store_settings(session)
+                        raw_sup = (getattr(store, "support_contact", "") or "").strip()
+                        payload["support_contact"] = raw_sup
+                        payload["support_link"] = format_support_link(raw_sup)
+                except Exception:
+                    pass
+        return web.json_response(payload, status=403)
 
     return await handler(request)
 

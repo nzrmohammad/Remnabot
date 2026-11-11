@@ -30,10 +30,10 @@
   ];
 
   const OS_APPS_MAP = {
-    ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify', 'karing'],
-    android: ['v2rayng', 'pattng', 'happ', 'hiddify', 'karing', 'zedsecure', 'incy'],
-    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy'],
-    macos: ['hiddify', 'karing', 'pattn', 'zedsecure', 'happ', 'incy', 'v2box'],
+    ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify', 'karing', 'v2raytun'],
+    android: ['v2rayng', 'pattng', 'happ', 'hiddify', 'karing', 'zedsecure', 'incy', 'v2raytun'],
+    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy', 'v2raytun'],
+    macos: ['hiddify', 'karing', 'pattn', 'zedsecure', 'happ', 'incy', 'v2box', 'v2raytun'],
     linux: ['hiddify', 'karing', 'pattn', 'zedsecure', 'incy', 'nekoray', 'v2raya'],
   };
 
@@ -49,18 +49,19 @@
     hiddify: { name: 'Hiddify' },
     nekoray: { name: 'NekoRay' },
     v2raya: { name: 'v2rayA' },
-    karing: { name: 'Karing', icon: '🚗', version: '1.2.26', hasGithub: true, hasPortable: true },
+    karing: { name: 'Karing', icon: '🚗', version: '1.2.26', hasGithub: true, hasPortable: true, hasStoreOnMac: true },
     pattn: { name: 'PattN', icon: '⚡️', version: '7.25.6', hasGithub: true, hasPortable: true },
     pattng: { name: 'PattNG', icon: '⚡️', version: '2.3.15', hasGithub: true },
     zedsecure: { name: 'Zedsecure', icon: '🛡️', version: '3.1.8', hasGithub: true, hasPortable: true },
+    v2raytun: { name: 'v2RayTun', icon: '🛡️', version: '2.4.0', hasPortable: true, hasStoreOnMac: true },
   };
 
   function renderAdminExtraAppCards() {
     const extraByOs = {
-      ios: ['karing'],
-      android: ['pattng', 'karing', 'zedsecure'],
-      windows: ['pattn', 'karing', 'zedsecure'],
-      macos: ['karing', 'pattn', 'zedsecure'],
+      ios: ['karing', 'v2raytun'],
+      android: ['pattng', 'karing', 'zedsecure', 'v2raytun'],
+      windows: ['pattn', 'karing', 'zedsecure', 'v2raytun'],
+      macos: ['karing', 'pattn', 'zedsecure', 'v2raytun'],
       linux: ['karing', 'pattn', 'zedsecure'],
     };
     for (const [os, appIds] of Object.entries(extraByOs)) {
@@ -68,15 +69,19 @@
       if (!container || container.dataset.rendered === '1') continue;
       container.innerHTML = appIds.map(appId => {
         const meta = CLIENT_APP_META[appId] || { name: appId, icon: '📱', version: '1.0.0' };
-        const isStoreOnly = os === 'ios';
-        const downloadLabel = os === 'ios'
-          ? 'لینک دانلود نرم‌افزار (اپ‌استور):'
-          : (os === 'windows'
-            ? 'لینک دانلود نسخه نصبی (Setup):'
-            : (os === 'android' ? 'لینک دانلود مستقیم / گیت‌هاب (APK):' : 'لینک دانلود نرم‌افزار:'));
-        const downloadPlaceholder = os === 'android'
-          ? 'مثلاً لینک فایل apk از گیت‌هاب'
+        const hasStoreBox = os === 'ios' || os === 'android' || (os === 'macos' && Boolean(meta.hasStoreOnMac));
+        const hasDirectExtraBox = os === 'android' || (os === 'macos' && Boolean(meta.hasStoreOnMac));
+        const downloadLabel = os === 'windows'
+          ? 'لینک دانلود نسخه نصبی (Setup):'
+          : (hasDirectExtraBox || hasStoreBox ? 'لینک دانلود نرم‌افزار:' : 'لینک دانلود مستقیم:');
+        const downloadPlaceholder = (!hasStoreBox && os !== 'windows')
+          ? 'مثلاً لینک مستقیم یا گیت‌هاب'
           : 'پیش‌فرض خالی (عدم نمایش)';
+        const extraRow = hasDirectExtraBox ? `
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود مستقیم:</label>
+            <input type="text" id="appDownloadExtra_${os}_${appId}" dir="ltr" placeholder="${os === 'android' ? 'مثلاً لینک فایل apk از گیت‌هاب' : 'مثلاً لینک گیت‌هاب یا فایل dmg'}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+          </div>` : '';
         const portableRow = (os === 'windows' && meta.hasPortable) ? `
           <div>
             <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه Portable:</label>
@@ -95,8 +100,9 @@
             </div>
             <div>
               <label class="text-[11px] text-slate-400 block mb-1">${downloadLabel}</label>
-              <input type="text" id="appDownload_${os}_${appId}"${isStoreOnly ? ' data-store-only="1"' : ''} dir="ltr" placeholder="${downloadPlaceholder}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              <input type="text" id="appDownload_${os}_${appId}"${hasStoreBox ? ' data-store-only="1"' : ''} dir="ltr" placeholder="${downloadPlaceholder}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
+            ${extraRow}
             ${portableRow}
             <div>
               <div class="flex items-center justify-between mb-1">

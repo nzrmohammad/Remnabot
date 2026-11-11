@@ -961,33 +961,48 @@ async applyUserModification() {
         }
 
         if (list) {
-          list.innerHTML = records.map(r => `
-            <div class="srh-card card-inset p-3 rounded-2xl border border-card-border space-y-2 text-xs overflow-hidden">
-              <!-- Line 1: Client name & tag on right, status badge on left -->
-              <div class="flex items-center justify-between gap-2 min-w-0">
-                <div class="flex items-center gap-2 min-w-0 flex-1">
-                  <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
-                  <b class="t-main text-xs truncate min-w-0 flex-1" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
-                  <span class="text-[10.5px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans flex-shrink-0 max-w-[85px] truncate">${escapeHtml(r.client_tag || 'App')}</span>
+          list.innerHTML = records.map(r => {
+            const rawClientName = String(r.client_name || 'کلاینت').replace(/\s*\((?:ویندوز|اندروید|آیفون|مک|لینوکس|Windows|Android|iOS|macOS|Linux)\)\s*$/i, '').trim() || 'کلاینت';
+            const errorBadgeHtml = !r.is_success ? `
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold s-danger-soft px-2 py-0.5 rounded-lg border flex-shrink-0">
+                ${r.status_code ? 'خطا ' + r.status_code : 'خطا'}
+              </span>
+            ` : '';
+            const tsText = toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'));
+            const relHtml = (r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str)
+              ? `<span class="text-[10.5px] t-subtle font-sans shrink-0" dir="rtl">${escapeHtml(r.relative_time)}</span>`
+              : '';
+            return `
+              <div class="srh-card card-inset p-3 rounded-2xl border border-card-border space-y-2 text-xs overflow-hidden">
+                <!-- Line 1: Client name & OS/platform tag -->
+                <div class="flex items-center justify-between gap-2 min-w-0">
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
+                    <b class="t-main text-xs truncate min-w-0 flex-1" title="${escapeHtml(r.user_agent || rawClientName)}">${escapeHtml(rawClientName)}</b>
+                    <span class="text-[10.5px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans flex-shrink-0 max-w-[90px] truncate">${escapeHtml(r.client_tag || 'App')}</span>
+                  </div>
+                  ${errorBadgeHtml}
                 </div>
-                <span class="inline-flex items-center gap-1 text-[11px] font-bold ${r.is_success ? 's-success-soft' : 's-danger-soft'} px-2 py-0.5 rounded-lg border flex-shrink-0">
-                  ${r.is_success ? 'موفق' : (r.status_code ? 'خطا ' + r.status_code : 'خطا')}
-                </span>
-              </div>
 
-              <!-- Line 2: IP with tap-to-copy, and requestAt time -->
-              <div class="flex flex-wrap items-center justify-between text-[11px] pt-1.5 border-t border-card-border t-muted gap-x-2 gap-y-1 min-w-0">
-                <button type="button" dir="ltr" class="font-sans t-accent font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r min-w-0 max-w-[165px] truncate" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
-                  <span class="truncate">🌐 ${escapeHtml(r.ip || '—')}</span>
-                </button>
-                <div class="flex items-center gap-1 text-[11px] t-muted font-sans min-w-0 max-w-full">
-                  <span class="shrink-0">⏱</span>
-                  <span class="font-bold t-main num-bidi truncate max-w-[135px]" dir="ltr" title="${escapeHtml(r.request_at || r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
-                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[10.5px] t-subtle font-sans truncate" dir="rtl">(${escapeHtml(r.relative_time)})</span>` : ''}
+                <!-- Stacked Meta Rows (LTR): IP row then Timestamp + relative time row -->
+                <div class="pt-2 border-t border-card-border space-y-1.5 text-[11px] t-muted">
+                  <div class="flex justify-start" dir="ltr">
+                    <button type="button" dir="ltr" class="font-sans t-accent font-bold select-all hover:underline cursor-pointer inline-flex items-center gap-1.5 btn-copy-ip-r max-w-full truncate" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
+                      <span>🌐</span>
+                      <span class="truncate">${escapeHtml(r.ip || '—')}</span>
+                    </button>
+                  </div>
+                  <div class="flex items-center justify-between gap-2 font-sans min-w-0" dir="ltr">
+                    <span class="inline-flex items-center gap-1.5 font-bold t-main num-bidi truncate" title="${escapeHtml(r.request_at || r.relative_time || '')}">
+                      <span>⏱</span>
+                      <span>${tsText}</span>
+                    </span>
+                    ${relHtml}
+                  </div>
                 </div>
               </div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
 
           list.querySelectorAll('.btn-copy-ip-r').forEach(btn => {
             btn.onclick = () => {

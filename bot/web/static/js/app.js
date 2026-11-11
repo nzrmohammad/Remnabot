@@ -729,6 +729,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت قدرتمند و سبک بر پایه هسته sing-box با پشتیبانی کامل از قوانین مسیریابی',
       icon: '🚗',
       scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
+    },
+    {
+      id: 'v2raytun',
+      name: 'v2RayTun',
+      version: '2.4.0',
+      desc: 'کلاینت سریع و پایدار iOS مبتنی بر هسته Xray با اتصال یک‌کلیکه',
+      icon: '🛡️',
+      scheme: (url) => `v2raytun://import/${url}`
     }
   ],
   android: [
@@ -787,6 +795,14 @@ const CLIENT_APPS_DATA = {
       desc: 'محیط خلوت و مینیمال با اتصال یک‌کلیکه و مصرف کم باتری',
       icon: '⚡',
       scheme: (url) => `incy://import/${url}`
+    },
+    {
+      id: 'v2raytun',
+      name: 'v2RayTun',
+      version: '2.4.0',
+      desc: 'کلاینت پرسرعت اندروید مبتنی بر هسته Xray با پشتیبانی کامل از پروتکل‌های نوین',
+      icon: '🛡️',
+      scheme: (url) => `v2raytun://import/${url}`
     }
   ],
   windows: [
@@ -845,6 +861,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت سبک برای اتصال فوری و بدون دردسر در کامپیوتر و لپ‌تاپ',
       icon: '⚡',
       scheme: null
+    },
+    {
+      id: 'v2raytun',
+      name: 'v2RayTun',
+      version: '2.4.0',
+      desc: 'نسخه دسکتاپ ویندوز کلاینت v2RayTun با اتصال سریع و پایدار',
+      icon: '🛡️',
+      scheme: (url) => `v2raytun://import/${url}`
     }
   ],
   macos: [
@@ -903,6 +927,14 @@ const CLIENT_APPS_DATA = {
       desc: 'نسخه مک اپلیکیشن باسابقه V2Box در اپ‌استور با تست پینگ',
       icon: '📦',
       scheme: (url) => `v2box://install-sub?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
+    },
+    {
+      id: 'v2raytun',
+      name: 'v2RayTun',
+      version: '2.4.0',
+      desc: 'نسخه macOS کلاینت v2RayTun مبتنی بر Xray برای اپل سیلیکون و اینتل',
+      icon: '🛡️',
+      scheme: (url) => `v2raytun://import/${url}`
     }
   ],
   linux: [
@@ -2916,65 +2948,67 @@ function renderActiveSubAnalytics(sub) {
 }
 
 // 15. Phased, Resilient UI Hydration Logic
-function hydrateUserInterface(data) {
-  if (!data || typeof data !== 'object') return;
-
-  // --- Support Contact Visibility & Handler ---
+function applySystemBlockScreen(mode, data = {}) {
   const rawSupportContact = data.support_contact || '';
   const supportLink = data.support_link || '';
   const hasSupportContact = Boolean(supportLink && rawSupportContact && rawSupportContact !== '—' && rawSupportContact !== '-');
 
-  const maintSupportBox = $('maintSupportBox');
-  if (maintSupportBox) {
-    if (hasSupportContact) maintSupportBox.classList.remove('hidden');
-    else maintSupportBox.classList.add('hidden');
-  }
+  ['maintSupportBox', 'inviteSupportBox', 'bannedSupportBox'].forEach(boxId => {
+    const el = $(boxId);
+    if (el) el.classList.toggle('hidden', !hasSupportContact);
+  });
 
-  const inviteSupportBox = $('inviteSupportBox');
-  if (inviteSupportBox) {
-    if (hasSupportContact) inviteSupportBox.classList.remove('hidden');
-    else inviteSupportBox.classList.add('hidden');
-  }
-
-  // --- Maintenance & Invite-Only Gateways (Unified Experience) ---
-  const isBlocked = (data.is_maintenance || data.is_invite_only) && !data.user?.is_admin;
-  window.isSystemBlocked = Boolean(isBlocked);
   const maintScreen = $('systemMaintenanceScreen');
   const inviteScreen = $('systemInviteOnlyScreen');
+  const bannedScreen = $('systemBannedScreen');
 
-  if (data.is_maintenance && !data.user?.is_admin) {
-    if (maintScreen) maintScreen.classList.remove('hidden');
-    if (inviteScreen) inviteScreen.classList.add('hidden');
-  } else if (data.is_invite_only && !data.user?.is_admin) {
-    if (inviteScreen) inviteScreen.classList.remove('hidden');
-    if (maintScreen) maintScreen.classList.add('hidden');
-  } else {
-    if (maintScreen) maintScreen.classList.add('hidden');
-    if (inviteScreen) inviteScreen.classList.add('hidden');
+  if (maintScreen) maintScreen.classList.toggle('hidden', mode !== 'maintenance');
+  if (inviteScreen) inviteScreen.classList.toggle('hidden', mode !== 'invite_only');
+  if (bannedScreen) bannedScreen.classList.toggle('hidden', mode !== 'banned');
+
+  const isBlocked = Boolean(mode);
+  window.isSystemBlocked = isBlocked;
+
+  if (!isBlocked) return false;
+
+  const splash = $('splashScreen');
+  if (splash) splash.classList.add('hidden');
+  if (typeof hideBanner === 'function') {
+    hideBanner('authErrorBanner');
+    hideBanner('apiErrorBanner');
+    hideBanner('partialBanner');
   }
+  $('topHeaderBar')?.classList.remove('hidden');
+  $('bottomNavigationBar')?.classList.add('hidden');
+  $('navBottom')?.classList.add('hidden');
+  document.querySelector('nav')?.classList.add('hidden');
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
 
-  if (isBlocked) {
-    const splash = $('splashScreen'); if (splash) splash.classList.add('hidden');
-    $('topHeaderBar')?.classList.remove('hidden');
-    $('bottomNavigationBar')?.classList.add('hidden');
-    $('navBottom')?.classList.add('hidden');
-    document.querySelector('nav')?.classList.add('hidden');
-    document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
-
-    // Populate user identity in header so avatar and username are shown cleanly
-    const user = data.user || {};
-    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    const sub = data.active_sub;
-    const avatarEl = $('headerUserAvatarInitial') || $('headerUserAvatar');
-    if (avatarEl) {
-      avatarEl.innerText = (user.first_name || user.username || tgUser?.first_name || tgUser?.username || 'U')[0].toUpperCase();
-    }
-    const usernameEl = $('headerUsername');
-    if (usernameEl) {
-      usernameEl.innerText = sub?.username || user.username || user.first_name || tgUser?.username || tgUser?.first_name || 'کاربر';
-    }
-    return;
+  const user = data.user || {};
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const sub = data.active_sub;
+  const avatarEl = $('headerUserAvatarInitial') || $('headerUserAvatar');
+  if (avatarEl) {
+    avatarEl.innerText = (user.first_name || user.username || tgUser?.first_name || tgUser?.username || 'U')[0].toUpperCase();
   }
+  const usernameEl = $('headerUsername');
+  if (usernameEl) {
+    usernameEl.innerText = sub?.username || user.username || user.first_name || tgUser?.username || tgUser?.first_name || 'کاربر';
+  }
+  return true;
+}
+
+function hydrateUserInterface(data) {
+  if (!data || typeof data !== 'object') return;
+
+  const isAdmin = Boolean(data.user?.is_admin);
+  let blockMode = null;
+  if (!isAdmin) {
+    if (data.is_banned) blockMode = 'banned';
+    else if (data.is_maintenance) blockMode = 'maintenance';
+    else if (data.is_invite_only) blockMode = 'invite_only';
+  }
+  if (applySystemBlockScreen(blockMode, data)) return;
 
   $('navBottom')?.classList.remove('hidden');
 
@@ -4358,6 +4392,21 @@ async function syncUserDataWithApi(accountId) {
     } else if (res && !res.ok) {
       console.warn('Live API response not ok:', res);
       const statusCode = res._status || res.status;
+      if ((statusCode === 403 && (res.error === 'banned' || res.is_banned)) || res.error === 'banned') {
+        try {
+          const uid = getCurrentTelegramUserId();
+          localStorage.removeItem(getScopedCacheKey(uid));
+        } catch (e) {}
+        const banPayload = {
+          is_banned: true,
+          support_contact: res.support_contact || '',
+          support_link: res.support_link || '',
+          user: { is_admin: false },
+        };
+        window.lastUserData = banPayload;
+        applySystemBlockScreen('banned', banPayload);
+        return;
+      }
       if (statusCode === 401 || res.error === 'Unauthorized') {
         if (typeof showBanner === 'function') {
           showBanner('نشست کاربری شما منقضی شده است. لطفاً مینی‌اپ را ببندید و مجدداً باز فرمایید.', 'error', {

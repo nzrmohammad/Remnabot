@@ -7,6 +7,20 @@ from bot.web.auth import get_authenticated_user, get_client_ip, require_auth, re
 from bot.web.db import db_session
 
 
+def format_support_link(raw_contact: str) -> str:
+    """Normalize Telegram username/URL into a clickable https support URL."""
+    raw = (raw_contact or "").strip()
+    if not raw or raw in ("—", "-"):
+        return ""
+    if raw.startswith(("http://", "https://")):
+        return raw
+    if raw.startswith("t.me/"):
+        return f"https://{raw}"
+    if raw.startswith("@"):
+        return f"https://t.me/{raw[1:]}"
+    return f"https://t.me/{raw}"
+
+
 def _check_user(request: web.Request) -> dict[str, Any] | None:
     """Validate user authorization for TMA requests (reusing cached middleware auth)."""
     return resolve_cached_auth(request, get_authenticated_user)

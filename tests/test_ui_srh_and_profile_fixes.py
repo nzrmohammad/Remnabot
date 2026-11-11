@@ -284,3 +284,74 @@ def test_ui_fixes_markup_and_js_contracts():
     assert 'data-store-only="1"' in admin_html
     assert "storeOnly" in admin_settings_js
     assert "DL_ICON_PLAYSTORE" in app_js and "DL_ICON_APPSTORE" in app_js and "DL_ICON_DIRECT" in app_js
+
+    # 10. Banned lock screen, app label cleanup, v2raytun, SRH stacked LTR layout & node FX subrow
+    assert 'id="systemBannedScreen"' in app_html
+    assert "applySystemBlockScreen('banned'" in app_js
+    assert "لینک دانلود نرم‌افزار (اپ‌استور):" not in admin_html
+    assert "لینک دانلود نرم‌افزار (گوگل‌پلی):" not in admin_html
+    assert "لینک دانلود گیت‌هاب / مستقیم" not in admin_html
+    assert "لینک دانلود مستقیم:" in admin_html
+    assert "appDownloadExtra_macos_hiddify" in admin_html
+    assert "id: 'v2raytun'" in app_js
+    assert "v2raytun:" in admin_settings_js
+    assert "ارائه‌دهنده (هاست)" not in admin_nodes_js
+    assert "هزینه ارزی سرویس:" in admin_nodes_js
+    assert "px-2.5 text-xs" in admin_html[admin_html.find('id="hwidModal"'):admin_html.find('id="bulkUsersModal"')]
+    assert "'موفق'" not in admin_users_js[admin_users_js.find("async loadUserSrh"):admin_users_js.find("async loadHwidDevices")]
+
+
+@pytest.mark.anyio
+async def test_srh_incy_no_duplicate_os_and_v2raytun_detection():
+    """Verify _parse_client_app avoids duplicate OS label on Incy and recognizes v2RayTun."""
+    from bot.web.admin_users_detail import _parse_client_app
+
+    incy_win = _parse_client_app("Incy/1.0.8 Windows")
+    assert incy_win["name"] == "Incy"
+    assert incy_win["tag"] == "ویندوز"
+
+    tun_ios = _parse_client_app("v2RayTun/2.4.0 CFNetwork iOS")
+    assert tun_ios["name"] == "v2RayTun"
+    assert tun_ios["tag"] == "iOS"
+
+
+@pytest.mark.anyio
+async def test_payment_methods_chart_includes_all_gateways(session_factory):
+    """Verify payment distribution includes manual card, auto card, TON, TRX, POL, and Stars."""
+    from datetime import datetime, timezone
+    from bot.db.models import CardAutoInvoice, CryptoInvoice, Topup, TopupStatus
+    from bot.web.admin_overview_charts import _calc_retention_and_payments
+
+    async with session_factory() as session:
+        session.add(Topup(telegram_id=101, amount=100_000, status=TopupStatus.APPROVED.value, receipt_hash="photo:abc"))
+        session.add(Topup(telegram_id=102, amount=50_000, status=TopupStatus.APPROVED.value, receipt_hash="stars:xyz"))
+        session.add(CardAutoInvoice(
+            invoice_uuid="ca-1",
+            telegram_id=103,
+            base_amount=200_000,
+            exact_amount=200_123,
+            exact_rial=2_001_230,
+            card_number="6037",
+            card_holder="Test",
+            status="paid",
+            expires_at=datetime.now(timezone.utc),
+        ))
+        session.add(CryptoInvoice(
+            telegram_id=104, amount_toman=300_000, amount_ton="1.5", nanotons=1500, currency="TON", comment="t1", pay_address="a1", status="paid", expires_at=datetime.now(timezone.utc)
+        ))
+        session.add(CryptoInvoice(
+            telegram_id=105, amount_toman=400_000, amount_ton="10", nanotons=1000, currency="TRX", comment="t2", pay_address="a2", status="paid", expires_at=datetime.now(timezone.utc)
+        ))
+        session.add(CryptoInvoice(
+            telegram_id=106, amount_toman=500_000, amount_ton="20", nanotons=2000, currency="POL", comment="t3", pay_address="a3", status="paid", expires_at=datetime.now(timezone.utc)
+        ))
+        await session.commit()
+
+        p_dist, _ = await _calc_retention_and_payments(session, datetime.now(timezone.utc))
+        stats = dict(zip(p_dist["labels"], zip(p_dist["counts"], p_dist["volumes"])))
+        assert stats["کارت به کارت (دستی)"] == (1, 100_000)
+        assert stats["کارت به کارت (خودکار)"] == (1, 200_000)
+        assert stats["تون‌کوین (TON)"] == (1, 300_000)
+        assert stats["ترون (TRX)"] == (1, 400_000)
+        assert stats["پلیگان (POL)"] == (1, 500_000)
+        assert stats["تلگرام استارز (XTR)"] == (1, 50_000)

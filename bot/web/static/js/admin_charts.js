@@ -966,14 +966,26 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const labels = paymentDist?.labels || ['کارت به کارت (ریالی)', 'ارز دیجیتال (کریپتو / TON)', 'تلگرام استارز (XTR)'];
-    const values = paymentDist?.counts || [0, 0, 0];
-    const volumes = paymentDist?.volumes || [0, 0, 0];
+    const labels = paymentDist?.labels || [
+      'کارت به کارت (دستی)',
+      'کارت به کارت (خودکار)',
+      'تون‌کوین (TON)',
+      'ترون (TRX)',
+      'پلیگان (POL)',
+      'تلگرام استارز (XTR)',
+    ];
+    const values = paymentDist?.counts || [0, 0, 0, 0, 0, 0];
+    const volumes = paymentDist?.volumes || [0, 0, 0, 0, 0, 0];
 
     const chartColors = [
-      'rgba(6, 182, 212, 0.85)',
-      'rgba(168, 85, 247, 0.85)',
-      'rgba(250, 204, 21, 0.85)',
+      'rgba(6, 182, 212, 0.88)',
+      'rgba(16, 185, 129, 0.88)',
+      'rgba(59, 130, 246, 0.88)',
+      'rgba(244, 63, 94, 0.88)',
+      'rgba(168, 85, 247, 0.88)',
+      'rgba(250, 204, 21, 0.88)',
+      'rgba(249, 115, 22, 0.88)',
+      'rgba(20, 184, 166, 0.88)',
     ];
 
     if (paymentChartInstance) {

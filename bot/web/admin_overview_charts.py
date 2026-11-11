@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, or_, select
 
 from bot.common.helpers import get_used_bytes
-from bot.db.models import CryptoInvoice, KnownDevice, Order, Service, Topup, User
+from bot.db.models import CardAutoInvoice, CryptoInvoice, KnownDevice, Order, Service, Topup, User
 from bot.db.repositories.traffic_snapshot_repo import TrafficSnapshotRepository
 from bot.services.formatting import country_name, ltr_frag
 from bot.web.admin_common import format_service_name_icon_first
@@ -523,13 +523,29 @@ async def _calc_retention_and_payments(session, now_utc: datetime) -> tuple[dict
         select(func.count(Topup.id), func.coalesce(func.sum(Topup.amount), 0))
         .where(Topup.status == "approved", or_(Topup.receipt_hash.is_(None), ~Topup.receipt_hash.startswith("stars:")))
     )).first() or (0, 0)
+    card_auto_count, card_auto_sum = (await session.execute(
+        select(func.count(CardAutoInvoice.id), func.coalesce(func.sum(CardAutoInvoice.base_amount), 0))
+        .where(CardAutoInvoice.status == "paid")
+    )).first() or (0, 0)
     stars_count, stars_sum = (await session.execute(
         select(func.count(Topup.id), func.coalesce(func.sum(Topup.amount), 0))
         .where(Topup.status == "approved", Topup.receipt_hash.startswith("stars:"))
     )).first() or (0, 0)
-    c_count, c_sum = (await session.execute(
-        select(func.count(CryptoInvoice.id), func.coalesce(func.sum(CryptoInvoice.amount_toman), 0)).where(CryptoInvoice.status == "paid")
-    )).first() or (0, 0)
+
+    crypto_rows = (await session.execute(
+        select(
+            func.upper(func.coalesce(CryptoInvoice.currency, "TON")),
+            func.count(CryptoInvoice.id),
+            func.coalesce(func.sum(CryptoInvoice.amount_toman), 0),
+        )
+        .where(CryptoInvoice.status == "paid")
+        .group_by(func.upper(func.coalesce(CryptoInvoice.currency, "TON")))
+    )).all()
+    crypto_stats: dict[str, tuple[int, int]] = {}
+    for curr_code, cnt, vol in crypto_rows:
+        code = str(curr_code or "TON").upper()
+        prev_cnt, prev_vol = crypto_stats.get(code, (0, 0))
+        crypto_stats[code] = (prev_cnt + int(cnt or 0), prev_vol + int(vol or 0))
 
     user_orders = dict((await session.execute(
         select(Order.telegram_id, func.count(Order.id)).where(Order.status == "paid").group_by(Order.telegram_id)
@@ -544,10 +560,47 @@ async def _calc_retention_and_payments(session, now_utc: datetime) -> tuple[dict
     )).scalars().all())
     active_single = max(0, single_order_customers - churned_count)
 
+    crypto_labels = {
+        "TON": "تون‌کوین (TON)",
+        "TRX": "ترون (TRX)",
+        "POL": "پلیگان (POL)",
+        "USDT": "تتر (USDT)",
+    }
+    p_labels = [
+        "کارت به کارت (دستی)",
+        "کارت به کارت (خودکار)",
+        "تون‌کوین (TON)",
+        "ترون (TRX)",
+        "پلیگان (POL)",
+    ]
+    p_counts = [
+        int(card_count or 0),
+        int(card_auto_count or 0),
+        crypto_stats.get("TON", (0, 0))[0],
+        crypto_stats.get("TRX", (0, 0))[0],
+        crypto_stats.get("POL", (0, 0))[0],
+    ]
+    p_volumes = [
+        int(card_sum or 0),
+        int(card_auto_sum or 0),
+        crypto_stats.get("TON", (0, 0))[1],
+        crypto_stats.get("TRX", (0, 0))[1],
+        crypto_stats.get("POL", (0, 0))[1],
+    ]
+    for code, (cnt, vol) in sorted(crypto_stats.items()):
+        if code not in ("TON", "TRX", "POL") and cnt > 0:
+            p_labels.append(crypto_labels.get(code, f"رمزارز ({code})"))
+            p_counts.append(cnt)
+            p_volumes.append(vol)
+
+    p_labels.append("تلگرام استارز (XTR)")
+    p_counts.append(int(stars_count or 0))
+    p_volumes.append(int(stars_sum or 0))
+
     payment_dist = {
-        "labels": ["کارت به کارت (ریالی)", "ارز دیجیتال (کریپتو / TON)", "تلگرام استارز (XTR)"],
-        "counts": [int(card_count or 0), int(c_count or 0), int(stars_count or 0)],
-        "volumes": [int(card_sum or 0), int(c_sum or 0), int(stars_sum or 0)],
+        "labels": p_labels,
+        "counts": p_counts,
+        "volumes": p_volumes,
     }
     retention_stats = {
         "total_customers": total_customers,

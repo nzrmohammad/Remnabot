@@ -42,7 +42,9 @@ def _parse_client_app(ua: str) -> dict[str, str]:
 
     # Specific client applications
     if "incy" in ua_lower:
-        return {"name": f"Incy ({os_name})", "icon": os_icon, "tag": os_name}
+        return {"name": "Incy", "icon": os_icon, "tag": os_name}
+    if "v2raytun" in ua_lower:
+        return {"name": "v2RayTun", "icon": "🛡️", "tag": os_name if os_name != "دستگاه" else "Multi"}
     if "pattng" in ua_lower:
         return {"name": "PattNG", "icon": "⚡", "tag": "اندروید"}
     if "pattn" in ua_lower:
@@ -81,7 +83,7 @@ def _parse_client_app(ua: str) -> dict[str, str]:
     # Fallback: if OS was recognized, present it gracefully instead of generic "Client"
     if os_name != "دستگاه":
         clean_ua = ua_str.split("/")[0] if "/" in ua_str else ua_str[:20]
-        display_name = f"{clean_ua} ({os_name})" if clean_ua and len(clean_ua) <= 15 else os_name
+        display_name = clean_ua if clean_ua and len(clean_ua) <= 15 else os_name
         return {"name": display_name, "icon": os_icon, "tag": os_name}
 
     return {"name": ua_str[:25] if ua_str else "دستگاه متصل", "icon": "🌐", "tag": "دستگاه"}

@@ -361,18 +361,28 @@
 
             <!-- Infra-Billing & Server Cost Details Strip -->
             <div class="bg-transparent p-2.5 rounded-xl border border-card-border space-y-2 text-[11px]">
-              <div class="flex items-center justify-between">
-                <span class="t-muted flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span>هزینه ماهانه سرور:</span>
-                </span>
-                <div class="flex items-center gap-1 font-bold">
-                  ${n.monthly_cost_toman ? `
-                    <span class="font-sans t-success">${formatNumber(n.monthly_cost_toman)}</span>
-                    <span class="text-[11px] t-muted font-sans">تومان</span>
-                    ${n.monthly_cost_eur ? `<span class="t-info font-sans text-[11px] mr-1">(${n.currency === 'USD' ? '$' : '€'}${n.monthly_cost_eur})</span>` : ''}
-                  ` : '<span class="t-subtle font-medium">ثبت‌نشده</span>'}
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="t-muted flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>هزینه ماهانه سرور:</span>
+                  </span>
+                  <div class="flex items-center gap-1 font-bold">
+                    ${n.monthly_cost_toman ? `
+                      <span class="font-sans t-success num-bidi" dir="ltr">${formatNumber(n.monthly_cost_toman)}</span>
+                      <span class="text-[11px] t-muted font-sans">تومان</span>
+                    ` : '<span class="t-subtle font-medium">ثبت‌نشده</span>'}
+                  </div>
                 </div>
+                ${n.monthly_cost_eur ? `
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="t-muted">هزینه ارزی سرویس:</span>
+                    <span class="inline-flex items-center gap-1 font-sans font-bold t-info">
+                      <span class="num-bidi" dir="ltr">${n.currency === 'USD' ? '$' : '€'}${toEnglishDigits(n.monthly_cost_eur)}</span>
+                      <span class="text-[10.5px] t-muted font-medium">${n.currency === 'USD' ? 'دلار' : 'یورو'}</span>
+                    </span>
+                  </div>
+                ` : ''}
               </div>
 
               <div class="flex items-center justify-between">
@@ -385,7 +395,7 @@
 
               <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-card-border text-[11px]">
                 <div>
-                  <span class="t-muted block mb-0.5">ارائه‌دهنده (هاست):</span>
+                  <span class="t-muted block mb-0.5">ارائه‌دهنده:</span>
                   <b class="t-main font-semibold truncate block">${n.provider || 'ثبت‌نشده'}</b>
                 </div>
                 <div>
