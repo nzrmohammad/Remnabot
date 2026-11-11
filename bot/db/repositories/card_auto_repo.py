@@ -15,7 +15,7 @@ from bot.services.payment.bank_sms_parser import normalize_sms_digits
 
 logger = logging.getLogger(__name__)
 
-MANUAL_CARD_COOLDOWN_HOURS = 6
+MANUAL_CARD_COOLDOWN_HOURS = 1
 
 
 def _as_utc(dt: datetime | None) -> datetime | None:
@@ -25,13 +25,14 @@ def _as_utc(dt: datetime | None) -> datetime | None:
 
 
 def format_manual_card_block_message(remaining_seconds: int, lang: str = "fa") -> str:
-    """Format localized message explaining the 6-hour manual card receipt lockout."""
+    """Format localized message explaining the 1-hour manual card receipt lockout."""
     rem = max(1, int(remaining_seconds))
     hours = rem // 3600
     mins = (rem % 3600) // 60
     if lang != "fa":
+        unit = "hour" if MANUAL_CARD_COOLDOWN_HOURS == 1 else "hours"
         return (
-            f"Manual receipt submission is locked for {MANUAL_CARD_COOLDOWN_HOURS} hours "
+            f"Manual receipt submission is locked for {MANUAL_CARD_COOLDOWN_HOURS} {unit} "
             f"while/after using an automated card-to-card invoice. "
             f"Time remaining: {hours}h {mins}m."
         )
@@ -70,7 +71,7 @@ class CardAutoRepository:
         return res.scalar_one_or_none()
 
     async def get_recent_paid_invoice_by_user(
-        self, telegram_id: int, since_hours: int = 6
+        self, telegram_id: int, since_hours: int = MANUAL_CARD_COOLDOWN_HOURS
     ) -> CardAutoInvoice | None:
         """Return the most recent paid card-auto invoice within `since_hours`."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=since_hours)
@@ -92,7 +93,7 @@ class CardAutoRepository:
     async def get_manual_card_block_info(
         self, telegram_id: int, since_hours: int = MANUAL_CARD_COOLDOWN_HOURS
     ) -> dict | None:
-        """Return active 6-hour manual receipt block details if user has a pending, paid, or expired card-auto invoice."""
+        """Return active 1-hour manual receipt block details if user has a pending, paid, or expired card-auto invoice."""
         now = datetime.now(timezone.utc)
         stmt = (
             select(CardAutoInvoice)

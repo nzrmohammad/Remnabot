@@ -68,6 +68,15 @@ async def _invalidate_user_caches(cache: FastCache | None, telegram_id: int | st
     await cache.delete(f"tma:user:{telegram_id}:topup_info")
 
 
+def _manual_block_payload(block_info: dict | None) -> dict[str, Any]:
+    """Serialize manual card receipt lock state for wallet API responses."""
+    return {
+        "manual_card_blocked": bool(block_info),
+        "manual_card_blocked_until": block_info["unlock_at"].isoformat() if block_info else None,
+        "manual_card_block_remaining_seconds": int(block_info["remaining_seconds"]) if block_info else 0,
+    }
+
+
 _PLACEHOLDER_RECEIPT_TEXT_HASHES = frozenset(
     "text:" + hashlib.sha256(p.encode("utf-8")).hexdigest()[:48]
     for p in ("تصویر فیش پیوست شد", "بدون توضیحات", "رسید ثبت‌شده در وب‌اپ")
@@ -75,7 +84,7 @@ _PLACEHOLDER_RECEIPT_TEXT_HASHES = frozenset(
 
 
 async def _collect_user_topup_guards(session: Any, user_id: int) -> tuple[list[int], list[str]]:
-    """Collect recent 6h paid auto-invoice exact amounts and active/approved receipt hashes for duplicate UI prevention."""
+    """Collect recent cooldown paid auto-invoice exact amounts and active/approved receipt hashes for duplicate UI prevention."""
     recent_paid_auto_amounts: list[int] = []
     recent_receipt_hashes: list[str] = []
     if not hasattr(session, "execute") or type(session).__name__ in ("MagicMock", "AsyncMock"):
@@ -84,8 +93,9 @@ async def _collect_user_topup_guards(session: Any, user_id: int) -> tuple[list[i
     try:
         from sqlalchemy import select
         from bot.db.models import CardAutoInvoice, Topup
+        from bot.db.repositories.card_auto_repo import MANUAL_CARD_COOLDOWN_HOURS
 
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=6)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=MANUAL_CARD_COOLDOWN_HOURS)
         auto_res = await session.execute(
             select(CardAutoInvoice)
             .where(CardAutoInvoice.telegram_id == int(user_id), CardAutoInvoice.status == "paid")
@@ -277,9 +287,7 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
             "card_locked_reason": card_locked_reason,
             "recent_paid_auto_amounts": recent_paid_auto_amounts,
             "recent_receipt_hashes": recent_receipt_hashes,
-            "manual_card_blocked": bool(manual_card_block),
-            "manual_card_blocked_until": manual_card_block["unlock_at"].isoformat() if manual_card_block else None,
-            "manual_card_block_remaining_seconds": int(manual_card_block["remaining_seconds"]) if manual_card_block else 0,
+            **_manual_block_payload(manual_card_block),
             "crypto_enabled": bool(store.crypto_enabled and ton_wallet_str and ton_rate_val > 0),
             "ton_wallet_address": ton_wallet_str,
             "ton_rate_toman": ton_rate_val,
@@ -419,13 +427,17 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
             )
 
         # Guard against double-crediting with card-auto:
-        # 1) Block exact-amount duplicate if user was already auto-credited in last 6h
+        # 1) Block exact-amount duplicate if user was already auto-credited in cooldown window
         # 2) Warn admin if user had a recent paid auto-invoice with the same base amount
         # 3) Cancel any active pending card-auto invoice so late SMS won't double-credit
         auto_paid_warn = ""
         if hasattr(session, "execute"):
             try:
-                from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+                from bot.db.repositories.card_auto_repo import (
+                    MANUAL_CARD_COOLDOWN_HOURS,
+                    CardAutoRepository,
+                    format_manual_card_block_message,
+                )
                 card_auto_repo = CardAutoRepository(session)
                 block_info = await card_auto_repo.get_manual_card_block_info(telegram_id)
                 if isinstance(block_info, dict) and block_info.get("remaining_seconds"):
@@ -440,7 +452,9 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                         },
                         status=400,
                     )
-                recent_paid_auto = await card_auto_repo.get_recent_paid_invoice_by_user(telegram_id, since_hours=6)
+                recent_paid_auto = await card_auto_repo.get_recent_paid_invoice_by_user(
+                    telegram_id, since_hours=MANUAL_CARD_COOLDOWN_HOURS
+                )
                 if recent_paid_auto:
                     if recent_paid_auto.exact_amount == amount:
                         return web.json_response(
@@ -449,7 +463,7 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                         )
                     if recent_paid_auto.base_amount == amount:
                         auto_paid_warn = (
-                            f"\n\n⚠️ <b>هشدار همپوشانی:</b> این کاربر در 6 ساعت گذشته یک فاکتور خودکار "
+                            f"\n\n⚠️ <b>هشدار همپوشانی:</b> این کاربر در {MANUAL_CARD_COOLDOWN_HOURS} ساعت گذشته یک فاکتور خودکار "
                             f"به مبلغ <b>{recent_paid_auto.exact_amount:,} تومان</b> را با موفقیت شارژ کرده است. لطفاً زمان/پیگیری فیش را با دقت بررسی کنید."
                         )
                 pass  # non-cancelled recent card-auto check enforced above
@@ -1546,7 +1560,7 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
             )
 
         # Mutex: check if user already has an active pending card-auto or crypto invoice
-        from bot.db.repositories.card_auto_repo import CardAutoRepository
+        from bot.db.repositories.card_auto_repo import MANUAL_CARD_COOLDOWN_HOURS, CardAutoRepository
         card_auto_repo = CardAutoRepository(session)
         existing_card = await card_auto_repo.get_active_invoice_by_user(telegram_id)
         if existing_card and existing_card.status == "pending" and _as_utc(existing_card.expires_at) > datetime.now(timezone.utc):
@@ -1559,6 +1573,7 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
                     status=400,
                 )
             remaining_secs = max(0, int((_as_utc(existing_card.expires_at) - datetime.now(timezone.utc)).total_seconds()))
+            block_info = await card_auto_repo.get_manual_card_block_info(telegram_id)
             return web.json_response({
                 "ok": True,
                 "invoice_uuid": existing_card.invoice_uuid,
@@ -1570,6 +1585,7 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
                 "status": existing_card.status,
                 "expires_at": existing_card.expires_at.isoformat(),
                 "remaining_seconds": remaining_secs,
+                **_manual_block_payload(block_info),
             })
 
         crypto_repo = CryptoRepository(session)
@@ -1598,7 +1614,8 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
 
         remaining_secs = max(0, int((_as_utc(invoice.expires_at) - datetime.now(timezone.utc)).total_seconds()))
         created_utc = _as_utc(getattr(invoice, "created_at", None)) or datetime.now(timezone.utc)
-        block_until = created_utc + timedelta(hours=6)
+        block_until = created_utc + timedelta(hours=MANUAL_CARD_COOLDOWN_HOURS)
+        block_rem = max(1, int((block_until - datetime.now(timezone.utc)).total_seconds()))
 
         return web.json_response({
             "ok": True,
@@ -1613,7 +1630,7 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
             "remaining_seconds": remaining_secs,
             "manual_card_blocked": True,
             "manual_card_blocked_until": block_until.isoformat(),
-            "manual_card_block_remaining_seconds": max(1, int((block_until - datetime.now(timezone.utc)).total_seconds())),
+            "manual_card_block_remaining_seconds": block_rem,
         })
 
 
@@ -1637,7 +1654,13 @@ async def get_user_topup_card_auto_status(request: web.Request) -> web.Response:
             invoice = await repo.get_active_invoice_by_user(telegram_id)
 
         if not invoice:
-            return web.json_response({"ok": True, "status": "none", "invoice_uuid": None})
+            block_info = await repo.get_manual_card_block_info(telegram_id)
+            return web.json_response({
+                "ok": True,
+                "status": "none",
+                "invoice_uuid": None,
+                **_manual_block_payload(block_info),
+            })
 
         exp_utc = _as_utc(invoice.expires_at)
         now = datetime.now(timezone.utc)
@@ -1657,9 +1680,7 @@ async def get_user_topup_card_auto_status(request: web.Request) -> web.Response:
             "exact_amount": invoice.exact_amount,
             "exact_rial": invoice.exact_rial,
             "remaining_seconds": remaining_secs,
-            "manual_card_blocked": bool(block_info),
-            "manual_card_blocked_until": block_info["unlock_at"].isoformat() if block_info else None,
-            "manual_card_block_remaining_seconds": int(block_info["remaining_seconds"]) if block_info else 0,
+            **_manual_block_payload(block_info),
         })
 
 
@@ -1687,7 +1708,12 @@ async def post_user_topup_card_auto_cancel(request: web.Request) -> web.Response
             logger.info("Cancelled card-auto invoice: uuid=%s tg_id=%s", uuid_str, telegram_id)
             await session.commit()
             await _invalidate_user_caches(request.app.get("cache"), telegram_id)
-            return web.json_response({"ok": True, "status": "cancelled"})
+            block_info = await repo.get_manual_card_block_info(telegram_id)
+            return web.json_response({
+                "ok": True,
+                "status": "cancelled",
+                **_manual_block_payload(block_info),
+            })
         return web.json_response({"ok": False, "message": "فاکتور معتبر برای لغو یافت نشد."}, status=400)
 
 

@@ -112,8 +112,8 @@
         if (adminPlansData.length === 0) {
           container.innerHTML = `
             <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
-              <div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-400 flex items-center justify-center mx-auto">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+              <div class="w-10 h-10 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center mx-auto text-xl">
+                📦
               </div>
               <p class="text-xs">هیچ سرویس یا تعرفه‌ای هنوز ثبت نشده است.</p>
               <button onclick="window.adminActions.openPlanModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
@@ -248,19 +248,19 @@
               ${descHtml}
               ${specsHtml}
 
-              <!-- 3 Action Buttons with Icons & Labels: Calm, Cohesive Design System Tokens -->
+              <!-- 3 Action Buttons with Semantic Colored Icons & Labels -->
               <div class="flex gap-2 pt-1">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-slate-500 t-main border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
-                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-cyan-500/40 t-main border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
+                  <svg class="w-4 h-4 t-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span class="text-[11px] font-bold">ویرایش</span>
                 </button>
-                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset hover:border-slate-500 ${p.is_active ? 't-main hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
+                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
                   ${p.is_active
-                    ? '<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
-                    : '<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
+                    ? '<svg class="w-4 h-4 t-warn shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
+                    : '<svg class="w-4 h-4 t-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
                 </button>
                 <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
-                  <svg class="w-4 h-4 text-slate-400 group-hover:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <svg class="w-4 h-4 t-danger shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   <span class="text-[11px] font-bold">حذف</span>
                 </button>
               </div>

@@ -41,6 +41,7 @@ from bot.services.formatting import format_datetime
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.render import render_wallet
 from bot.states.wallet import TopupStates
+from bot.web.cache import FastCache
 
 logger = logging.getLogger(__name__)
 
@@ -373,6 +374,7 @@ async def _create_and_render_card_auto_invoice(
     state: FSMContext,
     store: Any,
     amount: int,
+    cache: FastCache | None = None,
 ) -> None:
     from bot.services.payment.card_auto_service import generate_card_auto_invoice
     lang = user.language or "fa"
@@ -384,6 +386,8 @@ async def _create_and_render_card_auto_invoice(
         ttl_minutes=60,
     )
     await session.commit()
+    if cache and hasattr(cache, "invalidate_user"):
+        await cache.invalidate_user(user.telegram_id)
     await state.clear()
 
     kb = InlineKeyboardBuilder()
@@ -407,7 +411,7 @@ async def _create_and_render_card_auto_invoice(
 @router.callback_query(F.data.startswith("wallet:amt:"))
 async def topup_preset_amount(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
-    state: FSMContext,
+    state: FSMContext, cache: FastCache | None = None,
 ):
     try:
         amount = int(call.data.split(":", 2)[2])
@@ -459,7 +463,9 @@ async def topup_preset_amount(
         return
 
     if getattr(store, "card_auto_enabled", False):
-        await _create_and_render_card_auto_invoice(bot, user, user_repo, session, state, store, amount)
+        await _create_and_render_card_auto_invoice(
+            bot, user, user_repo, session, state, store, amount, cache=cache
+        )
         await call.answer()
         return
 
@@ -500,7 +506,7 @@ async def topup_preset_amount(
 @router.message(TopupStates.waiting_amount, F.text)
 async def topup_amount(
     message: Message, bot: Bot, user_repo: UserRepository, session: AsyncSession,
-    state: FSMContext,
+    state: FSMContext, cache: FastCache | None = None,
 ):
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language
@@ -551,7 +557,9 @@ async def topup_amount(
         return
 
     if getattr(store, "card_auto_enabled", False):
-        await _create_and_render_card_auto_invoice(bot, user, user_repo, session, state, store, amount)
+        await _create_and_render_card_auto_invoice(
+            bot, user, user_repo, session, state, store, amount, cache=cache
+        )
         return
 
     if not (store.card_enabled and store.card_number and store.card_number.strip()):
@@ -665,13 +673,15 @@ async def c2c_check_callback(
 @router.callback_query(F.data.startswith("wallet:c2c_cancel:"))
 async def c2c_cancel_callback(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
-    state: FSMContext,
+    state: FSMContext, cache: FastCache | None = None,
 ):
     uuid_str = call.data.split(":", 2)[2]
     from bot.db.repositories.card_auto_repo import CardAutoRepository
     repo = CardAutoRepository(session)
     await repo.cancel_invoice(uuid_str, call.from_user.id)
     await session.commit()
+    if cache and hasattr(cache, "invalidate_user"):
+        await cache.invalidate_user(call.from_user.id)
     await state.clear()
     await call.answer("فاکتور پرداخت لغو گردید.")
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
