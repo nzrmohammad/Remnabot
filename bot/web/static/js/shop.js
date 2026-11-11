@@ -707,49 +707,40 @@ function renderFilteredShopPlans() {
 
     const hasDiscountBadges = Boolean(discountVal > 0 || hasLoyaltyDiscount);
     return `
-      <div class="shop-plan-card card p-4 border ${badgeBorderClass} relative overflow-hidden group">
+      <div class="shop-plan-card card p-3 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
         <div class="flex items-start justify-between gap-2">
-          <div class="text-right font-sans num-bidi shrink-0">
-            <div class="flex flex-col items-start">
-              ${hasAnyDiscount ? `
-                <span class="line-through t-muted text-xs font-semibold leading-tight mb-0.5" dir="ltr">${formattedOriginal}</span>
-                <div class="flex items-baseline gap-1" dir="rtl">
-                  <span class="text-base font-black t-success leading-tight" dir="ltr">${formattedFinal}</span>
-                  <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
-                </div>
-              ` : `
-                <span class="text-base font-black t-success leading-tight" dir="ltr">${formattedFinal}</span>
-                <span class="text-[11px] t-muted font-sans leading-none mt-0.5">تومان</span>
-              `}
+          <div class="min-w-0 flex-1 text-right">
+            <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl">
+              <span class="text-base font-black t-success leading-tight num-bidi" dir="ltr">${formattedFinal}</span>
+              ${hasAnyDiscount ? `<span class="line-through t-muted text-[11px] font-semibold leading-none num-bidi" dir="ltr">${formattedOriginal}</span>` : ''}
+              <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
             </div>
+            <p class="text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1">${safeDesc}</p>
           </div>
-          <div class="min-w-0 flex-1 ${planBadge ? 'mt-4' : ''}" dir="ltr">
-            <h4 class="font-bold text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
+          <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
+            <h4 class="font-bold text-sm t-main truncate w-full text-left">${formatPlanTitle(p.name)}</h4>
+            ${hasDiscountBadges ? `
+              <div class="flex items-center justify-start gap-1 mt-1 flex-wrap">
+                ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% Loyality</span></span>` : ''}
+                ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
+              </div>
+            ` : ''}
           </div>
         </div>
-        <div class="flex items-center justify-between gap-2 mt-1.5">
-          <p class="text-[10.5px] leading-snug t-muted text-right min-w-0 flex-1 line-clamp-2 tracking-tight">${safeDesc}</p>
-          ${hasDiscountBadges ? `
-            <div class="flex items-center justify-start gap-1 flex-wrap shrink-0" dir="ltr">
-              ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>${loyaltyPctEnglish}% Loyality</span></span>` : ''}
-              ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'}</span><span>(-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
-            </div>
-          ` : ''}
-        </div>
-        <div class="flex items-center justify-between my-2.5 text-[11px] card-inset px-3 py-2 whitespace-nowrap overflow-hidden">
+        <div class="flex items-center justify-between my-1.5 text-[11px] card-inset px-2.5 py-1.5 whitespace-nowrap overflow-hidden">
           <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-sans t-main num-bidi">${trafficText}</b></span>
           ${durationText}
           <span class="flex items-center gap-1">📱 <b class="t-main">${devLimitText}</b></span>
         </div>
-        <div class="flex items-center justify-between mt-1 mb-2.5 px-1 text-[11px] t-muted">
+        <div class="flex items-center justify-between mb-1.5 px-1 text-[11px] t-muted">
           <span class="flex items-center gap-1">
             <span>🌍</span>
             <span>کشورها:</span>
           </span>
           <span class="inline-flex items-center gap-1 text-xs tracking-wider" dir="ltr">${flagsList}</span>
         </div>
-        <button class="buy-plan-btn w-full ${btnClass} text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${p.badge || ''}" data-squad="${p.squad_uuid || ''}">
+        <button class="buy-plan-btn w-full ${btnClass} text-xs py-2 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${p.badge || ''}" data-squad="${p.squad_uuid || ''}">
           🛒 ${buttonLabel} (${formattedFinal} تومان)
         </button>
       </div>

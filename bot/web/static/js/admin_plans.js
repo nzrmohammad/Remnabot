@@ -130,7 +130,7 @@
 
         container.innerHTML = adminPlansData.map(p => {
           const statusBadge = p.is_active
-            ? '<span class="text-[11px] bg-emerald-500/10 t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg font-bold">فعال</span>'
+            ? ''
             : '<span class="text-[11px] bg-slate-500/10 t-muted border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
 
           const trafficHtml = p.traffic_gb > 0
@@ -233,7 +233,7 @@
                   <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1" dir="ltr">
                     ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
                     <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
-                    <div class="flex-shrink-0">${statusBadge}</div>
+                    ${statusBadge ? `<div class="flex-shrink-0">${statusBadge}</div>` : ''}
                   </div>
                 </div>
 
@@ -619,7 +619,7 @@
         container.innerHTML = adminCouponsData.map(c => {
           const usedCount = c.used_count || 0;
           const statusBadge = c.is_active
-            ? '<span class="badge badge-success font-bold">فعال</span>'
+            ? ''
             : (usedCount > 0
                 ? '<span class="badge card-inset t-muted border border-card-border font-medium">مصرف‌شده</span>'
                 : '<span class="badge badge-danger font-medium">غیرفعال</span>');
@@ -732,7 +732,7 @@
       const count = parseInt($('batchVoucherCount')?.value || '10', 10);
       const prefix = $('batchVoucherPrefix')?.value?.trim() || 'GIFT-';
       const max_uses = parseInt($('batchVoucherMaxUses')?.value || '1', 10);
-      const expire_days = parseInt($('batchVoucherExpireDays')?.value || '30', 10);
+      const expire_days = parseInt($('batchVoucherExpireDays')?.value || '0', 10);
 
       if (amount <= 0) {
         if (window.showToast) window.showToast('مبلغ هر کارت شارژ باید بیشتر از صفر باشد.');

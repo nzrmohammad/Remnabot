@@ -1438,17 +1438,17 @@ async applyUserModification() {
       };
 
       let html = `
-        <div onclick="window.adminActions.selectCreateUserPlan('custom')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-          <div class="min-w-0 flex-1 text-left">
-            <span dir="rtl" class="font-bold t-main text-xs block text-left">تنظیمات سفارشی (دستی)</span>
-            <span dir="rtl" class="text-[11px] t-muted block mt-0.5 text-left">تعیین دستی حجم، روز و محدودیت دلخواه</span>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            ${selectedId === 'custom' ? '<span class="text-blue-400 text-sm font-bold">✓</span>' : ''}
+        <div onclick="window.adminActions.selectCreateUserPlan('custom')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div class="flex items-center justify-between min-w-0 flex-1 gap-3">
+            <div class="min-w-0 flex-1">
+              <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
+              <span class="text-[11px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
+            </div>
             <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm shrink-0">
               ⚙️
             </div>
           </div>
+          <div class="shrink-0 text-blue-400 text-sm font-bold">${selectedId === 'custom' ? '✓' : ''}</div>
         </div>
       `;
 
@@ -1543,10 +1543,7 @@ async applyUserModification() {
         html += `
           <div onclick="window.adminActions.selectCreateUserSquad('${escapeHtml(sqId)}', '${escapeHtml(sqName)}', '🧩')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
             <span class="text-xs font-bold truncate text-left min-w-0 flex-1 ${isSelected ? 't-info' : 't-main'}">${escapeHtml(sqName)}</span>
-            <div class="flex items-center gap-2 shrink-0">
-              ${isSelected ? '<span class="text-xs font-bold t-info">✓</span>' : ''}
-              <span class="text-base leading-none">🧩</span>
-            </div>
+            ${isSelected ? '<span class="text-xs font-bold t-info shrink-0">✓</span>' : ''}
           </div>
         `;
       });

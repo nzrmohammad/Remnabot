@@ -3325,7 +3325,7 @@
             </div>
             <div>
               <label class="text-slate-400 block mb-1">پیشوند کد</label>
-              <input type="text" id="batchVoucherPrefix" value="GIFT-" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 font-sans text-white outline-none focus:border-cyan-500 transition uppercase" />
+              <input type="text" id="batchVoucherPrefix" value="GIFT-" dir="ltr" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 font-sans text-white text-left outline-none focus:border-cyan-500 transition uppercase" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
@@ -3334,8 +3334,8 @@
               <input type="number" id="batchVoucherMaxUses" value="1" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 font-sans text-white outline-none focus:border-cyan-500 transition" />
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">انقضا (روز) - <span class="num-bidi font-sans">0</span>=نامحدود</label>
-              <input type="number" id="batchVoucherExpireDays" value="30" min="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 font-sans text-white outline-none focus:border-cyan-500 transition" />
+              <label class="text-slate-400 block mb-1">انقضا (روز)</label>
+              <input type="number" id="batchVoucherExpireDays" value="" placeholder="0 = نامحدود" min="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 font-sans text-white outline-none focus:border-cyan-500 transition" />
             </div>
           </div>
           <div id="batchVoucherResultsBox" class="hidden space-y-1.5 pt-2 border-t border-slate-800">
