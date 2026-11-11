@@ -447,10 +447,14 @@ def format_full_crypto_market_alert(
         else:
             val = "عدم دسترسی"
         lines.append(f"   ▫️ {name}: {val}")
+    def _bot_rate_line(rate: int, diff_str: str) -> str:
+        if rate > 0:
+            return f"   ⚙️ فعلی در بات: <b>{rate:,} ت</b> ({diff_str})"
+        return "   ⚙️ فعلی در بات: <b>— (تنظیم‌نشده)</b>"
+
     if global_usd:
         lines.append(f"   🌐 {global_source} جهانی: <b>${global_usd:.2f}</b>")
-    curr_ton_str = f"{current_ton_rate:,} ت" if current_ton_rate > 0 else "— (تنظیم‌نشده)"
-    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_ton_str}</b> ({diff_ton_str})")
+    lines.append(_bot_rate_line(current_ton_rate, diff_ton_str))
 
     lines.append("")
     lines.append("💵 <b>قیمت تتر (USDT / دلار):</b>")
@@ -463,8 +467,7 @@ def format_full_crypto_market_alert(
         else:
             val = "عدم دسترسی"
         lines.append(f"   ▫️ {name}: {val}")
-    curr_usdt_str = f"{current_usdt_rate:,} ت" if current_usdt_rate > 0 else "— (تنظیم‌نشده)"
-    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_usdt_str}</b> ({diff_usdt_str})")
+    lines.append(_bot_rate_line(current_usdt_rate, diff_usdt_str))
 
     lines.append("")
     lines.append("🔴 <b>قیمت ترون (TRX):</b>")
@@ -479,8 +482,7 @@ def format_full_crypto_market_alert(
         lines.append(f"   ▫️ {name}: {val}")
     if binance_trx_usd:
         lines.append(f"   🌐 بایننس جهانی: <b>${binance_trx_usd:.4f}</b>")
-    curr_trx_str = f"{current_trx_rate:,} ت" if current_trx_rate > 0 else "— (تنظیم‌نشده)"
-    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_trx_str}</b> ({diff_trx_str})")
+    lines.append(_bot_rate_line(current_trx_rate, diff_trx_str))
 
     lines.append("")
     lines.append("🟣 <b>قیمت پلیگان (POL):</b>")
@@ -495,8 +497,7 @@ def format_full_crypto_market_alert(
         lines.append(f"   ▫️ {name}: {val}")
     if binance_pol_usd:
         lines.append(f"   🌐 بایننس جهانی: <b>${binance_pol_usd:.4f}</b>")
-    curr_pol_str = f"{current_pol_rate:,} ت" if current_pol_rate > 0 else "— (تنظیم‌نشده)"
-    lines.append(f"   ⚙️ فعلی در بات: <b>{curr_pol_str}</b> ({diff_pol_str})")
+    lines.append(_bot_rate_line(current_pol_rate, diff_pol_str))
 
     lines.append("")
     lines.append("⭐️ <b>نرخ پیشنهادی استارز تلگرام:</b>")

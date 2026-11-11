@@ -238,16 +238,49 @@ def test_ui_fixes_markup_and_js_contracts():
     assert "زمان ثبت:" in admin_users_js
     assert "آخرین فعالیت:" in admin_users_js
 
-    # 6. User profile modal has admin edit UI, and bot profile menu hides Edit Birthday when set
+    # 6. User profile modal has birthday-only admin edit UI with icon-only toggle, and bot profile menu hides Edit Birthday when set
     assert 'id="userProfModalEditToggleBtn"' in admin_html
     assert 'id="userProfEditBirthday"' in admin_html
-    assert 'id="userProfEditPhone"' in admin_html
-    assert 'id="userProfEditFullName"' in admin_html
+    assert 'id="userProfEditPhone"' not in admin_html
+    assert 'id="userProfEditFullName"' not in admin_html
+    assert "<span>ویرایش</span>" not in admin_html[admin_html.find('id="userProfileModal"'):admin_html.find('id="modifyUserModal"')]
     assert "saveUserProfileEdit" in admin_users_js
     assert "ویرایش تاریخ تولد" not in profile_py
 
-    # 7. Recommended & alternative app icons in app.js have no tinted circular background
+    # 7. Recommended & alternative app icons in app.js are gold/silver medals with no tinted circular background
     assert 'bg-amber-500/25' not in app_js
     assert 'bg-sky-500/20' not in app_js
-    assert 'title="پیشنهادی">⭐️</span>' in app_js
-    assert 'title="جایگزین">🔄</span>' in app_js
+    assert 'title="پیشنهادی">🥇</span>' in app_js
+    assert 'title="جایگزین">🥈</span>' in app_js
+
+    # 8. Admin devices modal: overflow guards, no IP copy icon in devices tab, create user squad mandatory & HWID placeholder
+    assert "btn-copy-hwid-ip" in admin_users_js
+    assert 'data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">${escapeHtml(ip)}</button>' in admin_users_js
+    assert 'placeholder="خالی = پیش‌فرض پنل"' in admin_html
+    assert "انتخاب اسکواد داخلی الزامی است" in admin_users_js
+    create_start = admin_html.find('id="createUserModal"')
+    create_end = admin_html.find('id="planPickerModal"', create_start)
+    create_block = admin_html[create_start:create_end]
+    assert "s-danger-soft border" in create_block
+    assert "اختیاری" not in create_block[create_block.find("اسکواد داخلی"):]
+
+    # 9. Admin node billing strip & Iran flag badge & Admin apps tutorial cleanup
+    admin_nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
+    admin_plans_js = Path("bot/web/static/js/admin_plans.js").read_text(encoding="utf-8")
+    admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
+
+    assert "قیمت تمام‌شده:" in admin_nodes_js
+    assert "قیمت تمام‌شده هر گیگ:" not in admin_nodes_js
+    assert "roi_percent" not in admin_nodes_js
+    assert "iran" in admin_plans_js and "سرور ایران" in admin_plans_js
+    assert "badge-iran" in shop_js and "btn-plan-iran" in shop_js
+    assert ".shop-plan-badge.badge-iran" in components_css and ".btn-plan-iran" in components_css
+    assert "appTutorial_" not in admin_html
+    assert "appTutorial_" not in admin_settings_js
+    assert "لینک دانلود نسخه اصلی / نصبی (Setup):" not in admin_html
+    assert "لینک دانلود نسخه نصبی (Setup):" in admin_html
+    assert 'data-store-only="1"' in admin_html
+    assert "storeOnly" in admin_settings_js
+    assert "DL_ICON_PLAYSTORE" in app_js and "DL_ICON_APPSTORE" in app_js and "DL_ICON_DIRECT" in app_js

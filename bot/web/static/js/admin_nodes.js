@@ -383,34 +383,37 @@
                 <div>${dueBadgeHtml}</div>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[11px]">
+              <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-card-border text-[11px]">
                 <div>
-                  <span class="text-slate-400 block mb-0.5">ارائه‌دهنده (هاست):</span>
-                  <b class="text-cyan-300 truncate block">${n.provider || 'ثبت‌نشده'}</b>
+                  <span class="t-muted block mb-0.5">ارائه‌دهنده (هاست):</span>
+                  <b class="t-main font-semibold truncate block">${n.provider || 'ثبت‌نشده'}</b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block mb-0.5">قیمت تمام‌شده هر گیگ:</span>
-                  <b class="text-indigo-300 font-bold block">
+                  <span class="t-muted block mb-0.5">قیمت تمام‌شده:</span>
+                  <b class="t-main font-bold block">
                     ${n.cost_per_gb ? `
-                      <span class="font-sans">${formatNumber(n.cost_per_gb)}</span>
-                      <span class="text-[11px] text-slate-400 font-sans">تومان</span>
+                      <span class="font-sans num-bidi" dir="ltr">${formatNumber(n.cost_per_gb)}</span>
+                      <span class="text-[11px] t-muted font-sans">تومان</span>
                     ` : '—'}
                   </b>
                 </div>
               </div>
 
               <!-- Node Profit / Loss & Estimated Revenue Strip -->
-              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[11px]">
+              <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-card-border text-[11px]">
                 <div>
-                  <span class="text-slate-400 block mb-0.5">درآمد تخمینی نود:</span>
-                  <b class="t-success font-sans block">
-                    ${n.est_revenue_toman ? `${formatNumber(n.est_revenue_toman)} <span class="text-[11px] text-slate-400 font-sans">تومان</span>` : '0 تومان'}
+                  <span class="t-muted block mb-0.5">درآمد تخمینی نود:</span>
+                  <b class="t-main font-bold font-sans block">
+                    ${n.est_revenue_toman ? `<span class="num-bidi" dir="ltr">${formatNumber(n.est_revenue_toman)}</span> <span class="text-[11px] t-muted font-sans">تومان</span>` : '0 <span class="text-[11px] t-muted font-sans">تومان</span>'}
                   </b>
                 </div>
                 <div>
-                  <span class="text-slate-400 block mb-0.5">سود/زیان خالص:</span>
+                  <span class="t-muted block mb-0.5">سود/زیان خالص:</span>
                   <b class="${n.is_profitable ? 't-success' : 't-danger'} font-bold block text-xs">
-                    <span class="inline-flex items-center gap-1 font-sans" dir="ltr"><span>${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span> <span class="font-sans text-[11px] text-slate-300">تومان</span> ${n.roi_percent !== null && n.roi_percent !== undefined ? `<span dir="ltr">(${n.roi_percent > 0 ? '+' : ''}${n.roi_percent}%)</span>` : ''}</span>
+                    <span class="inline-flex items-center gap-1 font-sans">
+                      <span dir="ltr" class="num-bidi">${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span>
+                      <span class="font-sans text-[11px] t-muted font-medium">تومان</span>
+                    </span>
                   </b>
                 </div>
               </div>

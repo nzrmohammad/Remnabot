@@ -852,9 +852,10 @@ def test_format_full_crypto_market_alert_unset_rate_behavior():
         eur_rate_toman=0,
     )
     text, _ = format_full_crypto_market_alert(market_data, mock_store)
-    # Must NOT say 'بدون تغییر' for unset rates
+    # Must NOT say 'بدون تغییر' for unset rates, and must NOT duplicate '(تنظیم‌نشده)'
     assert "بدون تغییر" not in text
     assert "(تنظیم‌نشده)" in text
+    assert "(تنظیم‌نشده) (تنظیم‌نشده)" not in text
     # Must display the real global source name
     assert "🌐 TonAPI جهانی: <b>$1.35</b>" in text
 

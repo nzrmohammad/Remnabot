@@ -398,23 +398,24 @@ def _extract_github_downloads(app_id: str, assets_raw: Any) -> dict[str, dict[st
 
     win_setup = _pick_first(
         assets,
-        lambda n: n.endswith((".exe", ".msi")) and is_x64(n) and not_alt_arch(n),
-        lambda n: n.endswith(".zip") and ("windows-64-desktop" in n or "setup" in n) and is_x64(n) and not_alt_arch(n),
+        lambda n: n.endswith((".exe", ".msi")) and "portable" not in n and is_x64(n) and not_alt_arch(n),
+        lambda n: n.endswith((".exe", ".msi")) and "portable" not in n and ("windows" in n or "win" in n or "setup" in n or "installer" in n) and not_alt_arch(n),
+        lambda n: n.endswith(".zip") and ("setup" in n or "installer" in n) and "portable" not in n and is_x64(n) and not_alt_arch(n),
     )
     win_portable = _pick_first(
         assets,
-        lambda n: n.endswith(".zip") and is_x64(n) and not_alt_arch(n) and "windows-64-desktop" not in n and (
-            "portable" in n or "windows" in n or "win" in n
+        lambda n: "portable" in n and n.endswith((".zip", ".7z", ".exe")) and is_x64(n) and not_alt_arch(n),
+        lambda n: "portable" in n and n.endswith((".zip", ".7z", ".exe")) and ("windows" in n or "win" in n or "64" in n) and not_alt_arch(n),
+        lambda n: n.endswith((".zip", ".7z")) and "setup" not in n and "installer" not in n and is_x64(n) and not_alt_arch(n) and (
+            "windows" in n or "win" in n or "desktop" in n
         ),
     )
     if win_setup or win_portable:
         win_cfg: dict[str, str] = {}
         if win_setup:
             win_cfg["url"] = win_setup
-            if win_portable and win_portable != win_setup:
-                win_cfg["portable_url"] = win_portable
-        elif win_portable:
-            win_cfg["url"] = win_portable
+        if win_portable and win_portable != win_setup:
+            win_cfg["portable_url"] = win_portable
         downloads["windows"] = win_cfg
 
     mac_dmg = _pick_first(

@@ -68,15 +68,19 @@
       if (!container || container.dataset.rendered === '1') continue;
       container.innerHTML = appIds.map(appId => {
         const meta = CLIENT_APP_META[appId] || { name: appId, icon: '📱', version: '1.0.0' };
+        const isStoreOnly = os === 'ios';
+        const downloadLabel = os === 'ios'
+          ? 'لینک دانلود نرم‌افزار (اپ‌استور):'
+          : (os === 'windows'
+            ? 'لینک دانلود نسخه نصبی (Setup):'
+            : (os === 'android' ? 'لینک دانلود مستقیم / گیت‌هاب (APK):' : 'لینک دانلود نرم‌افزار:'));
+        const downloadPlaceholder = os === 'android'
+          ? 'مثلاً لینک فایل apk از گیت‌هاب'
+          : 'پیش‌فرض خالی (عدم نمایش)';
         const portableRow = (os === 'windows' && meta.hasPortable) ? `
           <div>
             <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه Portable:</label>
             <input type="text" id="appDownloadPortable_${os}_${appId}" dir="ltr" placeholder="لینک نسخه پرتابل (اختیاری)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
-          </div>` : '';
-        const extraRow = (os === 'android' && meta.hasExtra) ? `
-          <div>
-            <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود گیت‌هاب / مستقیم (اختیاری):</label>
-            <input type="text" id="appDownloadExtra_${os}_${appId}" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
           </div>` : '';
         const ghBtn = meta.hasGithub ? `
           <button type="button" onclick="window.fetchGithubAppVersion('${appId}', '${os}')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه و لینک از گیت‌هاب">
@@ -90,15 +94,10 @@
               <b class="text-white text-xs">${meta.name}</b>
             </div>
             <div>
-              <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود نرم‌افزار:</label>
-              <input type="text" id="appDownload_${os}_${appId}" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              <label class="text-[11px] text-slate-400 block mb-1">${downloadLabel}</label>
+              <input type="text" id="appDownload_${os}_${appId}"${isStoreOnly ? ' data-store-only="1"' : ''} dir="ltr" placeholder="${downloadPlaceholder}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
             ${portableRow}
-            ${extraRow}
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">لینک پست آموزش ${meta.name} (اختیاری):</label>
-              <input type="text" id="appTutorial_${os}_${appId}" dir="ltr" placeholder="مثلاً: https://t.me/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
-            </div>
             <div>
               <div class="flex items-center justify-between mb-1">
                 <label class="text-[11px] text-slate-400">نسخه نرم‌افزار (Version):</label>
@@ -903,7 +902,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const pickerRole = role === 'alternative' ? 'alternative' : 'recommended';
       const osNames = { ios: 'iOS', android: 'اندروید', windows: 'ویندوز', macos: 'مک', linux: 'لینوکس' };
       const emptyLabel = pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی';
-      const roleIcon = pickerRole === 'alternative' ? '🔄' : '⭐️';
+      const roleIcon = pickerRole === 'alternative' ? '🥈' : '🥇';
       const roleTitle = pickerRole === 'alternative' ? 'انتخاب برنامه جایگزین' : 'انتخاب برنامه پیشنهادی';
       if (title) title.innerHTML = `<span>${roleIcon}</span><span>${roleTitle} (${osNames[os] || os})</span>`;
 
@@ -1472,12 +1471,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
                 const downloadEl = $(`appDownload_${os}_${appId}`);
                 const downloadPortableEl = $(`appDownloadPortable_${os}_${appId}`);
                 const downloadExtraEl = $(`appDownloadExtra_${os}_${appId}`);
-                const tutorialEl = $(`appTutorial_${os}_${appId}`);
                 const versionEl = $(`appVersion_${os}_${appId}`);
                 if (downloadEl) downloadEl.value = item?.download_url || '';
                 if (downloadPortableEl) downloadPortableEl.value = item?.download_portable_url || '';
                 if (downloadExtraEl) downloadExtraEl.value = item?.download_extra_url || '';
-                if (tutorialEl) tutorialEl.value = item?.tutorial_url || '';
                 if (versionEl) versionEl.value = item?.version || '';
               }
             }
@@ -1739,7 +1736,6 @@ openUserChat(telegram_id, name, tag, topup_id) {
             const downloadEl = $(`appDownload_${os}_${appId}`);
             const downloadPortableEl = $(`appDownloadPortable_${os}_${appId}`);
             const downloadExtraEl = $(`appDownloadExtra_${os}_${appId}`);
-            const tutorialEl = $(`appTutorial_${os}_${appId}`);
             const versionEl = $(`appVersion_${os}_${appId}`);
             const downloadUrl = downloadEl?.value?.trim() || '';
             const downloadPortableUrl = downloadPortableEl?.value?.trim() || '';
@@ -1749,7 +1745,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
               download_url: downloadUrl,
               download_portable_url: downloadPortableUrl,
               download_extra_url: downloadExtraUrl,
-              tutorial_url: tutorialEl?.value?.trim() || '',
+              tutorial_url: '',
               version: versionEl?.value?.trim() || ''
             };
           }
@@ -1935,20 +1931,21 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (extraEl) {
         extraEl.value = dl.direct_url;
         updated++;
-      } else if (mainEl) {
+      } else if (mainEl && mainEl.dataset?.storeOnly !== '1') {
         mainEl.value = dl.direct_url;
         updated++;
-      }
-      if (!extraEl && !mainEl) return updated;
-      // For pure GitHub APKs with no Google Play store URL, also fill main download if empty
-      if (extraEl && mainEl && ['pattng', 'karing', 'zedsecure'].includes(appId) && !mainEl.value.trim()) {
-        mainEl.value = dl.direct_url;
       }
       return updated;
     }
     if (dl.url) {
       const mainEl = $(`appDownload_${os}_${appId}`);
-      if (mainEl) {
+      const extraEl = $(`appDownloadExtra_${os}_${appId}`);
+      if (mainEl?.dataset?.storeOnly === '1') {
+        if (extraEl) {
+          extraEl.value = dl.url;
+          updated++;
+        }
+      } else if (mainEl) {
         mainEl.value = dl.url;
         updated++;
       }

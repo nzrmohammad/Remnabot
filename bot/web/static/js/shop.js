@@ -623,6 +623,10 @@ function renderFilteredShopPlans() {
       planBadge = '<div class="shop-plan-badge badge-family absolute top-0 left-0 bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl border-b border-r border-sky-400/50 shadow-md flex items-center gap-1">👨‍👩‍👧 چند کاربره</div>';
       badgeBorderClass = 'border-sky-500/70 shadow-lg shadow-sky-500/20';
       btnClass = 'btn-plan-family';
+    } else if (planBadgeKey === 'iran' || (!planBadgeKey && planText.includes('سرور ایران'))) {
+      planBadge = '<div class="shop-plan-badge badge-iran absolute top-0 left-0 text-white text-[11px] font-black px-3 py-0.5 rounded-br-xl flex items-center gap-1">🇮🇷 سرور ایران</div>';
+      badgeBorderClass = 'border-emerald-500/70 shadow-lg shadow-red-500/15';
+      btnClass = 'btn-plan-iran';
     }
 
     const hasLoyaltyDiscount = Boolean(p.loyalty_discount_percent && p.loyalty_discount_percent > 0 && p.original_price && p.original_price > p.price);
@@ -697,6 +701,8 @@ function renderFilteredShopPlans() {
       tagThemeClass = 'badge-danger';
     } else if (planBadgeKey === 'family') {
       tagThemeClass = 'badge-info';
+    } else if (planBadgeKey === 'iran' || (!planBadgeKey && planText.includes('سرور ایران'))) {
+      tagThemeClass = 'badge-success';
     }
 
     return `

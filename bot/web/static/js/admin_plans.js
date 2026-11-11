@@ -44,6 +44,7 @@
     'stream': '🎬 ویژه استریم و یوتیوب',
     'family': '👨‍👩‍👧 چند کاربره (خانوادگی)',
     'tunnel': '🚇 تانل (اختصاصی)',
+    'iran': '🇮🇷 سرور ایران',
     'traffic': '⚡️ بسته افزایش حجم',
     'time': '⏳ بسته افزایش زمان'
   };
@@ -165,6 +166,7 @@
             stream: '🎬 استریم',
             family: '👥 چند کاربره',
             tunnel: '🚇 تانل اختصاصی',
+            iran: '🇮🇷 سرور ایران',
           };
           let tagBadge = TAG_LABELS[bKey] ? `<span class="badge badge-plan-type">${TAG_LABELS[bKey]}</span>` : '';
           if (p.max_purchases) {

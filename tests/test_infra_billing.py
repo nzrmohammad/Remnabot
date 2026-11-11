@@ -365,5 +365,16 @@ def test_extract_github_downloads_per_platform():
     assert dl_hiddify["macos"]["url"] == "https://ex/mac.dmg"
     assert dl_hiddify["linux"]["url"] == "https://ex/linux.AppImage"
 
+    # Portable-only Windows archive (no Setup .exe) must populate portable_url only, never url (Setup)
+    dl_v2rayn = _extract_github_downloads(
+        "v2rayn",
+        [
+            {"name": "v2rayN-windows-64-SelfContained.zip", "browser_download_url": "https://ex/v2rayn-sc.zip"},
+            {"name": "v2rayN-windows-64-desktop.zip", "browser_download_url": "https://ex/v2rayn-desktop.zip"},
+        ],
+    )
+    assert dl_v2rayn["windows"].get("portable_url") is not None
+    assert "url" not in dl_v2rayn["windows"]
+
 
 

@@ -722,20 +722,15 @@ async applyUserModification() {
       const shouldEdit = typeof forceEdit === 'boolean' ? forceEdit : !isCurrentlyEditing;
 
       if (shouldEdit && currentProfileTarget) {
-        const nameInput = $('userProfEditFullName');
-        const phoneInput = $('userProfEditPhone');
         const bdayInput = $('userProfEditBirthday');
-        const fallbackName = `کاربر ${currentProfileTarget.telegram_id}`;
-        const curName = currentProfileTarget.full_name || '';
-        if (nameInput) nameInput.value = (curName && curName !== fallbackName) ? curName : '';
-        if (phoneInput) phoneInput.value = currentProfileTarget.phone_number || '';
         if (bdayInput) bdayInput.value = currentProfileTarget.birth_date ? toEnglishDigits(currentProfileTarget.birth_date) : '';
       }
 
       viewBody.classList.toggle('hidden', shouldEdit);
       editBody.classList.toggle('hidden', !shouldEdit);
       if (toggleBtn) {
-        toggleBtn.innerHTML = shouldEdit ? '<span>👁️</span><span>مشاهده</span>' : '<span>✏️</span><span>ویرایش</span>';
+        toggleBtn.innerHTML = shouldEdit ? '<span>👁️</span>' : '<span>✏️</span>';
+        toggleBtn.title = shouldEdit ? 'بازگشت به حالت مشاهده' : 'ویرایش تاریخ تولد';
       }
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
@@ -743,8 +738,6 @@ async applyUserModification() {
     async saveUserProfileEdit() {
       if (!currentProfileTarget) return;
       const saveBtn = $('userProfEditSaveBtn');
-      const full_name = ($('userProfEditFullName')?.value || '').trim();
-      const phone_number = ($('userProfEditPhone')?.value || '').trim();
       const birth_date = ($('userProfEditBirthday')?.value || '').trim();
 
       if (saveBtn) {
@@ -755,20 +748,16 @@ async applyUserModification() {
       try {
         const res = await window.api.updateAdminUserProfile({
           telegram_id: currentProfileTarget.telegram_id,
-          full_name,
-          phone_number,
           birth_date,
         });
         if (res && res.ok) {
           const updated = res.user || {};
-          currentProfileTarget.full_name = updated.full_name || `کاربر ${currentProfileTarget.telegram_id}`;
-          currentProfileTarget.phone_number = updated.phone_number || '';
           currentProfileTarget.birth_date = updated.birth_date || '';
           if (Array.isArray(window.currentAdminUsersList)) {
             renderUsersList(window.currentAdminUsersList);
           }
           this.openUserProfileModal(currentProfileTarget.telegram_id);
-          if (window.showToast) window.showToast(res.message || '✅ مشخصات کاربر ذخیره شد.');
+          if (window.showToast) window.showToast(res.message || '✅ تاریخ تولد کاربر ذخیره شد.');
           if (window.hapticFeedback) window.hapticFeedback('success');
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ویرایش مشخصات کاربر'}`);
@@ -898,7 +887,7 @@ async applyUserModification() {
       const modal = $('hwidModal');
       const title = $('hwidModalTitle');
       if (modal) modal.classList.remove('hidden');
-      if (title) title.innerText = `📱 دستگاه‌ها و نشست‌ها: ${name}`;
+      if (title) title.innerText = `دستگاه‌ها و نشست‌ها: ${name}`;
       if (window.hapticFeedback) window.hapticFeedback('impact');
       await this.switchDeviceModalTab(initialTab);
     },
@@ -912,8 +901,8 @@ async applyUserModification() {
       const sessionsPane = $('sessionsTabPane');
       const srhPane = $('srhTabPane');
 
-      const activeClass = 'py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1 transition';
-      const inactiveClass = 'py-1.5 rounded-xl t-muted hover:t-main font-medium text-center flex items-center justify-center gap-1 transition';
+      const activeClass = 'py-1.5 px-1 rounded-xl font-bold bg-cyan-600 text-white shadow text-center flex items-center justify-center gap-1 transition min-w-0';
+      const inactiveClass = 'py-1.5 px-1 rounded-xl t-muted hover:t-main font-medium text-center flex items-center justify-center gap-1 transition min-w-0';
 
       if (hwidBtn) hwidBtn.className = (tab === 'hwid') ? activeClass : inactiveClass;
       if (sessionsBtn) sessionsBtn.className = (tab === 'sessions') ? activeClass : inactiveClass;
@@ -973,13 +962,13 @@ async applyUserModification() {
 
         if (list) {
           list.innerHTML = records.map(r => `
-            <div class="srh-card card-inset p-3 rounded-2xl border border-card-border space-y-2 text-xs">
+            <div class="srh-card card-inset p-3 rounded-2xl border border-card-border space-y-2 text-xs overflow-hidden">
               <!-- Line 1: Client name & tag on right, status badge on left -->
-              <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center justify-between gap-2 min-w-0">
                 <div class="flex items-center gap-2 min-w-0 flex-1">
-                  <span class="text-lg flex-shrink-0">${r.client_icon || '📱'}</span>
-                  <b class="t-main text-xs truncate" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
-                  <span class="text-[11px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans flex-shrink-0">${escapeHtml(r.client_tag || 'App')}</span>
+                  <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
+                  <b class="t-main text-xs truncate min-w-0 flex-1" title="${escapeHtml(r.user_agent || r.client_name || '')}">${escapeHtml(r.client_name || 'کلاینت')}</b>
+                  <span class="text-[10.5px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans flex-shrink-0 max-w-[85px] truncate">${escapeHtml(r.client_tag || 'App')}</span>
                 </div>
                 <span class="inline-flex items-center gap-1 text-[11px] font-bold ${r.is_success ? 's-success-soft' : 's-danger-soft'} px-2 py-0.5 rounded-lg border flex-shrink-0">
                   ${r.is_success ? 'موفق' : (r.status_code ? 'خطا ' + r.status_code : 'خطا')}
@@ -987,15 +976,14 @@ async applyUserModification() {
               </div>
 
               <!-- Line 2: IP with tap-to-copy, and requestAt time -->
-              <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-card-border t-muted gap-2">
-                <button type="button" dir="ltr" class="font-sans t-accent font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
-                  <span>🌐 ${escapeHtml(r.ip || '—')}</span>
-                  <span class="text-[11px] opacity-70">📋</span>
+              <div class="flex flex-wrap items-center justify-between text-[11px] pt-1.5 border-t border-card-border t-muted gap-x-2 gap-y-1 min-w-0">
+                <button type="button" dir="ltr" class="font-sans t-accent font-bold select-all hover:underline cursor-pointer flex items-center gap-1 btn-copy-ip-r min-w-0 max-w-[165px] truncate" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
+                  <span class="truncate">🌐 ${escapeHtml(r.ip || '—')}</span>
                 </button>
-                <div class="flex items-center gap-1 text-[11px] t-muted font-sans flex-shrink-0">
-                  <span>⏱</span>
-                  <span class="font-bold t-main num-bidi" dir="ltr" title="${escapeHtml(r.request_at || r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
-                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[11px] t-subtle font-sans" dir="rtl">(${escapeHtml(r.relative_time)})</span>` : ''}
+                <div class="flex items-center gap-1 text-[11px] t-muted font-sans min-w-0 max-w-full">
+                  <span class="shrink-0">⏱</span>
+                  <span class="font-bold t-main num-bidi truncate max-w-[135px]" dir="ltr" title="${escapeHtml(r.request_at || r.relative_time || '')}">${toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'))}</span>
+                  ${r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str ? `<span class="text-[10.5px] t-subtle font-sans truncate" dir="rtl">(${escapeHtml(r.relative_time)})</span>` : ''}
                 </div>
               </div>
             </div>
@@ -1058,28 +1046,26 @@ async applyUserModification() {
             ` : '';
 
             const addedHtml = addedDate ? `
-              <div class="flex items-center justify-between t-muted">
-                <span class="flex items-center gap-1"><span>📅</span> زمان ثبت:</span>
-                <span class="font-sans font-medium t-muted num-bidi" dir="ltr">${addedDate}</span>
+              <div class="flex items-center justify-between gap-2 min-w-0 t-muted">
+                <span class="flex items-center gap-1 shrink-0 whitespace-nowrap"><span>📅</span> زمان ثبت:</span>
+                <span class="font-sans font-medium t-muted num-bidi truncate max-w-[180px]" dir="ltr">${addedDate}</span>
               </div>
             ` : '';
 
             const updatedHtml = updatedDate ? `
-              <div class="flex items-center justify-between t-muted">
-                <span class="flex items-center gap-1"><span>🔄</span> آخرین فعالیت:</span>
-                <span class="font-sans font-medium t-main num-bidi" dir="ltr">${updatedDate}</span>
+              <div class="flex items-center justify-between gap-2 min-w-0 t-muted">
+                <span class="flex items-center gap-1 shrink-0 whitespace-nowrap"><span>🔄</span> آخرین فعالیت:</span>
+                <span class="font-sans font-medium t-main num-bidi truncate max-w-[180px]" dir="ltr">${updatedDate}</span>
               </div>
             ` : '';
 
             return `
-              <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2 text-xs">
-                <div class="flex items-center justify-between gap-2">
+              <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2 text-xs overflow-hidden">
+                <div class="flex items-center justify-between gap-2 min-w-0">
                   <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                    <span class="text-2xl shrink-0">${icon}</span>
+                    <span class="text-xl shrink-0">${icon}</span>
                     <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="text-xs font-bold t-main truncate">${escapeHtml(model)}</span>
-                      </div>
+                      <span class="text-xs font-bold t-main truncate block">${escapeHtml(model)}</span>
                       ${uaHtml}
                     </div>
                   </div>
@@ -1089,19 +1075,16 @@ async applyUserModification() {
                 </div>
 
                 <!-- Device Meta: OS, IP, Added, Updated -->
-                <div class="pt-1.5 border-t border-card-border text-[11px] font-sans space-y-1">
+                <div class="pt-1.5 border-t border-card-border text-[11px] font-sans space-y-1.5">
                   ${resolvedOs ? `
-                    <div class="flex items-center justify-between t-muted">
-                      <span class="flex items-center gap-1"><span>💻</span> سیستم‌عامل:</span>
-                      <span class="font-sans font-bold t-main num-bidi" dir="ltr">${escapeHtml(resolvedOs)}</span>
+                    <div class="flex items-center justify-between gap-2 min-w-0 t-muted">
+                      <span class="flex items-center gap-1 shrink-0 whitespace-nowrap"><span>💻</span> سیستم‌عامل:</span>
+                      <span class="font-sans font-bold t-main num-bidi truncate max-w-[180px]" dir="ltr" title="${escapeHtml(resolvedOs)}">${escapeHtml(resolvedOs)}</span>
                     </div>
                   ` : ''}
-                  <div class="flex items-center justify-between t-muted">
-                    <span class="flex items-center gap-1"><span>🌐</span> آی‌پی:</span>
-                    <button type="button" dir="ltr" class="font-sans font-bold t-accent num-bidi hover:underline cursor-pointer flex items-center gap-1 btn-copy-hwid-ip" data-ip="${escapeHtml(ip)}" title="کپی آی‌پی">
-                      <span>${escapeHtml(ip)}</span>
-                      ${ip && ip !== '—' ? '<span class="text-[11px] opacity-70">📋</span>' : ''}
-                    </button>
+                  <div class="flex items-center justify-between gap-2 min-w-0 t-muted">
+                    <span class="flex items-center gap-1 shrink-0 whitespace-nowrap"><span>🌐</span> آی‌پی:</span>
+                    <button type="button" dir="ltr" class="font-sans font-bold t-accent num-bidi truncate max-w-[180px] hover:underline cursor-pointer btn-copy-hwid-ip" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">${escapeHtml(ip)}</button>
                   </div>
                   ${addedHtml}
                   ${updatedHtml}
@@ -1177,23 +1160,20 @@ async applyUserModification() {
         const nodeName = nc.nodeName || 'سرور';
         const ips = nc.ips || [];
         const ipsHtml = ips.map(ip => `
-          <div class="flex items-center justify-between pt-1.5 border-t border-card-border text-[11px]">
-            <span class="t-muted flex items-center gap-1"><span>🌐</span> آی‌پی کلاینت:</span>
-            <button type="button" dir="ltr" class="btn-copy-ip-direct font-sans t-accent font-bold num-bidi select-all hover:underline cursor-pointer flex items-center gap-1" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">
-              <span>${escapeHtml(ip)}</span>
-              <span class="text-[11px] opacity-70">📋</span>
-            </button>
+          <div class="flex items-center justify-between gap-2 min-w-0 pt-1.5 border-t border-card-border text-[11px]">
+            <span class="t-muted flex items-center gap-1 shrink-0 whitespace-nowrap"><span>🌐</span> آی‌پی کلاینت:</span>
+            <button type="button" dir="ltr" class="btn-copy-ip-direct font-sans t-accent font-bold num-bidi truncate max-w-[180px] select-all hover:underline cursor-pointer" data-ip="${escapeHtml(ip)}" title="کلیک جهت کپی آی‌پی">${escapeHtml(ip)}</button>
           </div>
         `).join('');
 
         return `
-          <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="t-main font-bold text-xs flex items-center gap-1.5">
-                <span class="text-sm">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
-                <span>${escapeHtml(nodeName)}</span>
+          <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2 text-xs overflow-hidden">
+            <div class="flex items-center justify-between gap-2 min-w-0">
+              <span class="t-main font-bold text-xs flex items-center gap-1.5 min-w-0 flex-1">
+                <span class="text-sm shrink-0">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
+                <span class="truncate">${escapeHtml(nodeName)}</span>
               </span>
-              <span class="badge badge-accent text-[11px] font-sans font-bold">
+              <span class="badge badge-accent text-[11px] font-sans font-bold shrink-0">
                 ${formatNumber(ips.length)} اتصال
               </span>
             </div>
@@ -1438,6 +1418,7 @@ async applyUserModification() {
         'stream': '🎬 ویژه استریم',
         'family': '👨‍👩‍👧 چند کاربره',
         'tunnel': '🚇 تانل (اختصاصی)',
+        'iran': '🇮🇷 سرور ایران',
         'special': '✨ ویژه'
       };
 
@@ -1471,7 +1452,7 @@ async applyUserModification() {
           if (bKey.includes('vip')) badgeClass = 'border-rose-500/40 text-rose-500 dark:text-rose-400 bg-rose-500/10';
           else if (bKey.includes('seller')) badgeClass = 'border-amber-500/40 text-amber-500 dark:text-amber-400 bg-amber-500/10';
           else if (bKey.includes('popular')) badgeClass = 'border-purple-500/40 text-purple-500 dark:text-purple-400 bg-purple-500/10';
-          else if (bKey.includes('eco')) badgeClass = 'border-emerald-500/40 text-emerald-500 dark:text-emerald-400 bg-emerald-500/10';
+          else if (bKey.includes('eco') || bKey.includes('iran')) badgeClass = 'border-emerald-500/40 text-emerald-500 dark:text-emerald-400 bg-emerald-500/10';
           const badgeHtml = badgeText ? `<span class="px-1.5 py-0.5 text-[11px] rounded border font-bold ${badgeClass}">${badgeText}</span>` : '';
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
           const pEmojiMatches = (p.name || '').match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu);
@@ -1535,15 +1516,10 @@ async applyUserModification() {
         }
       }
 
-      let html = `
-        <div onclick="window.adminActions.selectCreateUserSquad('', 'انتخاب کنید', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === '' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <span class="text-base">🧩</span>
-            <span class="text-xs font-bold ${currentVal === '' ? 't-info' : 't-main'}">انتخاب کنید</span>
-          </div>
-          <span class="text-xs font-bold t-info">${currentVal === '' ? '✓' : ''}</span>
-        </div>
-      `;
+      let html = '';
+      if (squads.length === 0) {
+        html = '<div class="p-4 text-center t-muted text-xs">هیچ اسکواد داخلی در پنل یافت نشد.</div>';
+      }
 
       squads.forEach(sq => {
         const sqId = sq.uuid || sq.id;
@@ -1645,6 +1621,11 @@ async applyUserModification() {
       const duration_days = durationInput ? parseInt(durationInput.value, 10) || 30 : 30;
       const hwid_limit = hwidInput && hwidInput.value.trim() ? parseInt(hwidInput.value.trim(), 10) : null;
       const squad_uuid = squadSelect && squadSelect.value ? squadSelect.value.trim() : null;
+      if (!squad_uuid) {
+        if (window.showToast) window.showToast('انتخاب اسکواد داخلی الزامی است.', 'error');
+        this.openSquadPickerModal();
+        return;
+      }
 
       if (submitBtn) {
         submitBtn.disabled = true;

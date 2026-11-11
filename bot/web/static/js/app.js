@@ -986,20 +986,30 @@ function detectUserOS() {
 
 let currentTutorialOS = 'ios';
 
-function getDownloadButtonInfo(url, defaultLabel, defaultIcon = '📥') {
+const DL_ICON_PLAYSTORE = '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M3.61 1.814L13.793 12 3.61 22.186a1.75 1.75 0 01-.61-1.34V3.154c0-.517.225-.996.61-1.34z"/><path fill="#34A853" d="M17.224 8.568L13.793 12 3.61 1.814c.36-.306.883-.39 1.384-.105l12.23 6.859z"/><path fill="#EA4335" d="M13.793 12l3.431 3.432-12.23 6.859c-.501.285-1.024.201-1.384-.105L13.793 12z"/><path fill="#FBBC04" d="M21.02 10.695l-3.796-2.127L13.793 12l3.431 3.432 3.796-2.127c.845-.474.845-2.136 0-2.61z"/></svg>';
+const DL_ICON_APPSTORE = '<svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>';
+const DL_ICON_DIRECT = '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>';
+const DL_ICON_PORTABLE = '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>';
+const DL_ICON_GITHUB = '<svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>';
+
+function getDownloadButtonInfo(url, defaultLabel = 'دانلود مستقیم', defaultIcon = DL_ICON_DIRECT) {
   if (!url) return { label: defaultLabel, icon: defaultIcon };
   const lower = url.toLowerCase();
+  const cleanPath = lower.split(/[?#]/)[0];
   if (lower.includes('play.google.com') || lower.includes('market://') || lower.includes('google.com/store')) {
-    return { label: 'گوگل‌پلی', icon: '🛍' };
+    return { label: 'گوگل‌پلی', icon: DL_ICON_PLAYSTORE };
   }
   if (lower.includes('apps.apple.com') || lower.includes('itunes.apple.com')) {
-    return { label: 'اپ‌استور', icon: '🍏' };
+    return { label: 'اپ‌استور', icon: DL_ICON_APPSTORE };
+  }
+  if (
+    lower.includes('/releases/download/') ||
+    /\.(apk|exe|msi|dmg|pkg|appimage|deb|rpm|zip|7z|tar\.gz|tar\.xz)$/.test(cleanPath)
+  ) {
+    return { label: 'دانلود مستقیم', icon: DL_ICON_DIRECT };
   }
   if (lower.includes('github.com')) {
-    return { label: 'گیت‌هاب', icon: '🐙' };
-  }
-  if (lower.endsWith('.apk') || lower.includes('/releases/download/')) {
-    return { label: 'دانلود مستقیم', icon: '📦' };
+    return { label: 'گیت‌هاب', icon: DL_ICON_GITHUB };
   }
   return { label: defaultLabel, icon: defaultIcon };
 }
@@ -1078,18 +1088,18 @@ function renderTutorialApps(osKey) {
     const addedUrls = new Set();
 
     if (app.downloadUrl && !addedUrls.has(app.downloadUrl)) {
-      const d = getDownloadButtonInfo(app.downloadUrl, 'دانلود اصلی', '📥');
+      const d = getDownloadButtonInfo(app.downloadUrl, 'دانلود مستقیم', DL_ICON_DIRECT);
       dlButtons.push({ url: app.downloadUrl, label: d.label, icon: d.icon });
       addedUrls.add(app.downloadUrl);
     }
     if (app.downloadPortableUrl && !addedUrls.has(app.downloadPortableUrl)) {
-      dlButtons.push({ url: app.downloadPortableUrl, label: 'نسخه Portable', icon: '💼' });
+      dlButtons.push({ url: app.downloadPortableUrl, label: 'نسخه Portable', icon: DL_ICON_PORTABLE });
       addedUrls.add(app.downloadPortableUrl);
     }
     if (app.downloadExtraUrl && !addedUrls.has(app.downloadExtraUrl)) {
-      let d = getDownloadButtonInfo(app.downloadExtraUrl, 'لینک کمکی', '🔗');
+      let d = getDownloadButtonInfo(app.downloadExtraUrl, 'دانلود مستقیم', DL_ICON_DIRECT);
       if (dlButtons.length > 0 && dlButtons[0].label === d.label) {
-        d = { label: 'لینک کمکی (گیت‌هاب)', icon: '🐙' };
+        d = { label: 'لینک کمکی', icon: d.icon };
       }
       dlButtons.push({ url: app.downloadExtraUrl, label: d.label, icon: d.icon });
       addedUrls.add(app.downloadExtraUrl);
@@ -1157,8 +1167,8 @@ function renderTutorialApps(osKey) {
           </div>
           <!-- Left side: Recommended/Alternative badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            ${app.isRecommended ? '<span class="inline-flex items-center justify-center text-base leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">⭐️</span>' : ''}
-            ${app.isAlternative ? '<span class="inline-flex items-center justify-center text-base leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="جایگزین">🔄</span>' : ''}
+            ${app.isRecommended ? '<span class="inline-flex items-center justify-center text-base leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇</span>' : ''}
+            ${app.isAlternative ? '<span class="inline-flex items-center justify-center text-base leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="جایگزین">🥈</span>' : ''}
             ${tutorialBtnHtml}
           </div>
         </div>
