@@ -1463,7 +1463,7 @@ async applyUserModification() {
           else if (bKey.includes('seller')) badgeClass = 'border-amber-500/40 text-amber-500 dark:text-amber-400 bg-amber-500/10';
           else if (bKey.includes('popular')) badgeClass = 'border-purple-500/40 text-purple-500 dark:text-purple-400 bg-purple-500/10';
           else if (bKey.includes('eco') || bKey.includes('iran')) badgeClass = 'border-emerald-500/40 text-emerald-500 dark:text-emerald-400 bg-emerald-500/10';
-          const badgeHtml = badgeText ? `<span dir="rtl" class="px-1.5 py-0.5 text-[11px] rounded border font-bold ${badgeClass}">${badgeText}</span>` : '';
+          const badgeHtml = badgeText ? `<span dir="rtl" class="px-1.5 py-0.5 text-[11px] rounded border font-semibold ${badgeClass}">${badgeText}</span>` : '';
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
 
           return `

@@ -26,6 +26,8 @@
 
 html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3, h4, h5, h6, a, b, strong, label, th, td, table, option, i, em, small, mark, section, header, footer, main, form {
   font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-mono, code, pre, kbd, samp, [dir="ltr"].font-mono {

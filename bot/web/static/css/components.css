@@ -242,7 +242,8 @@ html.theme-light .textarea-base:focus {
   align-items: center;
   gap: 0.25rem;
   font-size: 0.6875rem;
-  font-weight: 700;
+  line-height: 1.35;
+  font-weight: 600;
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
@@ -260,7 +261,7 @@ html.theme-light .textarea-base:focus {
   border: 1.5px solid #64748b;
   background-color: var(--inset-bg);
   color: var(--text-main);
-  font-weight: 800;
+  font-weight: 600;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 html.theme-light .badge-plan-type {
