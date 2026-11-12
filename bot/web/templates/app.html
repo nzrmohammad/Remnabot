@@ -1624,6 +1624,19 @@
                 <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
               </div>
             </div>
+
+            <!-- Icon Pack Switcher (تغییر سبک آیکون‌ها) -->
+            <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
+              <div>
+                <span class="t-main font-medium block">🎨 سبک آیکون‌ها</span>
+                <span class="text-[11px] t-muted">انتخاب ظاهر آیکون‌های سراسر برنامه</span>
+              </div>
+              <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg" id="iconPackSwitcher">
+                <button type="button" id="iconPackBtn_solar" onclick="window.setIconPack('solar'); if(window.hapticFeedback) window.hapticFeedback('selection');" class="px-2 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white shadow-xs" title="سبک مدرن و دوتون Solar">سولار (ترند)</button>
+                <button type="button" id="iconPackBtn_phosphor" onclick="window.setIconPack('phosphor'); if(window.hapticFeedback) window.hapticFeedback('selection');" class="px-2 py-1 text-xs rounded-md font-medium transition t-muted hover:t-main card-inset" title="سبک مینیمال و خطی Phosphor">فسفر</button>
+                <button type="button" id="iconPackBtn_fluent" onclick="window.setIconPack('fluent'); if(window.hapticFeedback) window.hapticFeedback('selection');" class="px-2 py-1 text-xs rounded-md font-medium transition t-muted hover:t-main card-inset" title="سبک رنگی Fluent">فلوئنت</button>
+              </div>
+            </div>
           </div>
         </div>
 
