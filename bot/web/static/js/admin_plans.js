@@ -157,30 +157,51 @@
         const emojiMatch = rawName.match(emojiRegex);
         const pkgIcon = emojiMatch ? emojiMatch[0] : '';
         const cleanName = pkgIcon ? rawName.replace(emojiRegex, '').trim() : rawName;
+        const TIER_SVG_ICONS = {
+          '🥇': ['award', 't-warn'],
+          '🏅': ['award', 't-warn'],
+          '🏆': ['award', 't-warn'],
+          '🥈': ['award', 't-muted'],
+          '🥉': ['award', 'text-amber-500'],
+          '👑': ['crown', 't-warn'],
+          '💎': ['diamond', 't-accent'],
+          '⚡': ['zap', 't-warn'],
+          '⚡️': ['zap', 't-warn'],
+          '🔥': ['flame', 't-warn'],
+          '⭐': ['star', 't-warn'],
+          '⭐️': ['star', 't-warn'],
+        };
+        const tierMeta = TIER_SVG_ICONS[pkgIcon];
+        const pkgIconHtml = tierMeta
+          ? `<span class="w-5 h-5 rounded-lg card-inset border border-card-border flex items-center justify-center flex-shrink-0" title="نشان بسته">${uiIcon(tierMeta[0], `w-3 h-3 ${tierMeta[1]}`)}</span>`
+          : (pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : '');
 
         const bKey = (p.badge || '').toLowerCase();
         const planCategory = getPlanCategory(p);
         const isExtraTraffic = planCategory === 'traffic';
         const isExtraTime = planCategory === 'time';
-        let typeBadge = '<span class="badge badge-plan-type">💎 دوره کامل</span>';
+        let typeBadge = `<span class="badge badge-plan-type">${uiIcon('diamond', 'w-3 h-3 t-accent')}<span>دوره کامل</span></span>`;
         if (isExtraTraffic) {
-          typeBadge = '<span class="badge badge-plan-type">⚡️ بسته حجمی</span>';
+          typeBadge = `<span class="badge badge-plan-type">${uiIcon('zap', 'w-3 h-3 t-warn')}<span>بسته حجمی</span></span>`;
         } else if (isExtraTime) {
-          typeBadge = '<span class="badge badge-plan-type">⏳ بسته زمانی</span>';
+          typeBadge = `<span class="badge badge-plan-type">${uiIcon('clock', 'w-3 h-3 t-info')}<span>بسته زمانی</span></span>`;
         }
 
+        const iranFlagHtml = typeof renderFlagHtml === 'function'
+          ? renderFlagHtml('IR', 'w-3.5 h-2.5 inline-block rounded-[2px] object-cover shrink-0')
+          : '🇮🇷';
         const TAG_LABELS = {
-          bestseller: '🔥 پرفروش‌ترین',
-          popular: '⭐️ پرطرفدار',
-          economic: '💰 اقتصادی',
-          vip: '👑 پیشنهاد ویژه',
-          gaming: '🎮 گیمینگ',
-          antifilter: '🛡 ضد فیلتر',
-          speed: '⚡️ فوق سریع',
-          stream: '🎬 استریم',
-          family: '👥 چند کاربره',
-          tunnel: '🚇 تانل اختصاصی',
-          iran: '🇮🇷 سرور ایران',
+          bestseller: `${uiIcon('flame', 'w-3 h-3 t-warn')}<span>پرفروش‌ترین</span>`,
+          popular: `${uiIcon('star', 'w-3 h-3 t-accent')}<span>پرطرفدار</span>`,
+          economic: `${uiIcon('coins', 'w-3 h-3 t-success')}<span>اقتصادی</span>`,
+          vip: `${uiIcon('crown', 'w-3 h-3 t-warn')}<span>پیشنهاد ویژه</span>`,
+          gaming: `${uiIcon('gamepad', 'w-3 h-3 t-purple')}<span>گیمینگ</span>`,
+          antifilter: `${uiIcon('shield', 'w-3 h-3 t-success')}<span>ضد فیلتر</span>`,
+          speed: `${uiIcon('zap', 'w-3 h-3 t-warn')}<span>فوق سریع</span>`,
+          stream: `${uiIcon('play', 'w-3 h-3 t-danger')}<span>استریم</span>`,
+          family: `${uiIcon('users', 'w-3 h-3 t-info')}<span>چند کاربره</span>`,
+          tunnel: `${uiIcon('route', 'w-3 h-3 t-accent')}<span>تانل اختصاصی</span>`,
+          iran: `${iranFlagHtml}<span>سرور ایران</span>`,
         };
         let tagBadge = TAG_LABELS[bKey] ? `<span class="badge badge-plan-type">${TAG_LABELS[bKey]}</span>` : '';
         if (p.max_purchases) {
@@ -228,7 +249,7 @@
 
         const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
         const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
-        const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
+        const squadBadge = squadName ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">${uiIcon('layers', 'w-3 h-3 t-accent')}<span>${escapeHtml(squadName)}</span></span>` : '';
 
         const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
           ? `<p class="text-[11px] text-slate-400 line-clamp-1">${escapeHtml(p.description)}</p>`
@@ -244,7 +265,7 @@
                   <span class="text-[11px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
                 </div>
                 <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1" dir="ltr">
-                  ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
+                  ${pkgIconHtml}
                   <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                   ${statusBadge ? `<div class="flex-shrink-0">${statusBadge}</div>` : ''}
                 </div>

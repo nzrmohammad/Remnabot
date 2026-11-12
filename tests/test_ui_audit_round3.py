@@ -507,7 +507,7 @@ def test_latest_ui_and_font_polish_batch():
     assert "border-slate-700/80" in admin_plans
     assert "badge-stream" in shop_js
     assert "badge-family" in shop_js
-    assert "border: 1.5px solid #64748b;" in comp_css
+    assert "border: 1px solid var(--card-border);" in comp_css
 
     # 3. Discount codes tab polish: no copy svg icon, compact buttons without .btn, 'نامحدود' without '(دائمی)'
     assert "نامحدود (دائمی)" not in admin_plans

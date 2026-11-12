@@ -2097,13 +2097,13 @@ function setupThemeToggle() {
     if (isDark) {
       document.documentElement.classList.remove('theme-light');
       document.documentElement.classList.add('dark');
-      if (themeIcon) themeIcon.innerText = '🌙';
+      if (themeIcon) themeIcon.innerHTML = typeof uiIcon === 'function' ? uiIcon('moon', 'w-3.5 h-3.5 t-accent') : '🌙';
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#111a2e'); } catch(e) {}
       try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#0c1220'); } catch(e) {}
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('theme-light');
-      if (themeIcon) themeIcon.innerText = '☀️';
+      if (themeIcon) themeIcon.innerHTML = typeof uiIcon === 'function' ? uiIcon('sun', 'w-3.5 h-3.5 t-warn') : '☀️';
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
       try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#f1f5f9'); } catch(e) {}
     }

@@ -964,11 +964,11 @@ def test_plan_picker_icon_removal_1h_lock_ui_and_colored_service_icons():
     check_fn = wallet_js[wallet_js.find("async function checkActiveCardAutoInvoice"):wallet_js.find("function renderCardAutoInvoice")]
     assert "applyManualCardLockState(null, 0)" in check_fn
 
-    # 3. Admin Services section icons are colorful & semantically colored
+    # 3. Admin Services section icons use unified SVG icons & semantically colored action buttons
     plans_tab = admin_html[admin_html.find('id="tab-admin-plans"'):admin_html.find('id="tab-admin-nodes"')]
-    assert ">📦<" in plans_tab
-    assert ">🎟️<" in plans_tab
-    assert ">🛍️<" in plans_tab
+    assert 'id="subtabBtnPlans"' in plans_tab and "<svg " in plans_tab
+    assert 'id="subtabBtnCoupons"' in plans_tab
+    assert "تعرفه‌های فروش" in plans_tab
     action_block = admin_plans_js[admin_plans_js.find("<!-- 3 Action Buttons"):admin_plans_js.find("filterPlans(this.currentPlanFilter")]
     assert "text-slate-400" not in action_block
     for token_cls in ("t-accent", "t-warn", "t-success", "t-danger"):
