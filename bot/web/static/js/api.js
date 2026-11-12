@@ -428,6 +428,10 @@ const api = {
     return this.post('/api/admin/plan/save', data);
   },
 
+  async reorderAdminPlans(plan_ids) {
+    return this.post('/api/admin/plan/reorder', { plan_ids });
+  },
+
   async toggleAdminPlan(id, is_active) {
     return this.post('/api/admin/plan/toggle', { id, is_active });
   },

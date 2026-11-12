@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 # Bot instance resolved dynamically from request.app["bot"]
 from aiohttp import web
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 from bot.db.models import (
     AdminLog,
@@ -12,6 +12,7 @@ from bot.db.models import (
     Service,
 )
 from bot.db.repositories.coupon_repo import CouponRepository
+from bot.db.repositories.service_repo import SERVICE_ORDER_BY
 from bot.db.repositories.user_repo import UserRepository
 from bot.web.admin_common import _check_admin, db_session
 
@@ -23,6 +24,15 @@ except ImportError:
     jdatetime = None
 
 
+async def _invalidate_plans_cache(request: web.Request) -> None:
+    """Clear node overview, squad, and user dashboard caches after plan mutations."""
+    cache = request.app.get("cache")
+    if cache and hasattr(cache, "delete"):
+        await cache.delete("tma:cluster:nodes_overview")
+        await cache.delete("tma:squad")
+        await cache.delete("tma:user")
+
+
 async def get_admin_plans(request: web.Request) -> web.Response:
     """List all subscription plans/services."""
     admin = _check_admin(request)
@@ -31,7 +41,7 @@ async def get_admin_plans(request: web.Request) -> web.Response:
 
     async with db_session(request) as session:
         try:
-            result = await session.execute(select(Service).order_by(Service.price.asc(), Service.id.asc()))
+            result = await session.execute(select(Service).order_by(*SERVICE_ORDER_BY))
             services = result.scalars().all()
         except Exception as exc:
             await session.rollback()
@@ -51,6 +61,7 @@ async def get_admin_plans(request: web.Request) -> web.Response:
                 "max_purchases": s.max_purchases,
                 "purchases_count": s.purchases_count or 0,
                 "squad_uuid": s.squad_uuid or "",
+                "sort_order": s.sort_order or 0,
             }
             for s in services
         ]
@@ -122,6 +133,14 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
     if not squad_uuid:
         return web.json_response({"ok": False, "error": "انتخاب اسکواد (دسته سرور) برای بسته الزامی است."}, status=400)
 
+    raw_sort_order = body.get("sort_order")
+    sort_order: int | None = None
+    if raw_sort_order is not None and str(raw_sort_order).strip() != "":
+        try:
+            sort_order = max(0, int(raw_sort_order))
+        except (ValueError, TypeError):
+            return web.json_response({"ok": False, "error": "ترتیب نمایش نامعتبر است."}, status=400)
+
     async with db_session(request) as session:
         if plan_id:
             service = await session.get(Service, int(plan_id))
@@ -137,8 +156,13 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
             service.hwid_limit = hwid_limit
             service.max_purchases = max_purchases
             service.squad_uuid = squad_uuid
+            if sort_order is not None:
+                service.sort_order = sort_order
             msg = "پلن با موفقیت ویرایش شد."
         else:
+            if sort_order is None:
+                max_sort = await session.scalar(select(func.coalesce(func.max(Service.sort_order), 0)))
+                sort_order = (int(max_sort) + 1) if max_sort and int(max_sort) > 0 else 0
             service = Service(
                 name=name,
                 price=price,
@@ -150,6 +174,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
                 hwid_limit=hwid_limit,
                 max_purchases=max_purchases,
                 squad_uuid=squad_uuid,
+                sort_order=sort_order,
                 purchases_count=0,
             )
             session.add(service)
@@ -157,13 +182,74 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
 
         session.add(AdminLog(admin_id=admin["id"], action="save_plan", detail=f"{name} ({price:,} تومان)"))
         await session.commit()
+        saved_id = service.id
+        saved_sort_order = service.sort_order or 0
 
-    cache = request.app.get("cache")
-    if cache and hasattr(cache, "delete"):
-        await cache.delete("tma:cluster:nodes_overview")
-        await cache.delete("tma:squad")
+    await _invalidate_plans_cache(request)
 
-    return web.json_response({"ok": True, "message": msg})
+    return web.json_response({
+        "ok": True,
+        "message": msg,
+        "plan": {"id": saved_id, "sort_order": saved_sort_order},
+    })
+
+
+async def post_admin_plan_reorder(request: web.Request) -> web.Response:
+    """Persist display sort order of subscription plans for Admin & Store listings."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    raw_ids = body.get("plan_ids")
+    if not isinstance(raw_ids, list) or not raw_ids:
+        return web.json_response({"ok": False, "error": "لیست ترتیب پلن‌ها الزامی است."}, status=400)
+
+    seen_ids: set[int] = set()
+    ordered_ids: list[int] = []
+    for raw_id in raw_ids:
+        try:
+            pid = int(raw_id)
+        except (ValueError, TypeError):
+            return web.json_response({"ok": False, "error": "شناسه پلن نامعتبر است."}, status=400)
+        if pid not in seen_ids:
+            seen_ids.add(pid)
+            ordered_ids.append(pid)
+
+    async with db_session(request) as session:
+        result = await session.execute(select(Service).order_by(*SERVICE_ORDER_BY))
+        services = list(result.scalars().all())
+        by_id = {s.id: s for s in services}
+
+        valid_ids = [pid for pid in ordered_ids if pid in by_id]
+        if not valid_ids:
+            return web.json_response({"ok": False, "error": "پلن معتبری برای مرتب‌سازی یافت نشد."}, status=404)
+
+        valid_set = set(valid_ids)
+        final_sequence = [by_id[pid] for pid in valid_ids] + [s for s in services if s.id not in valid_set]
+        for idx, svc in enumerate(final_sequence, start=1):
+            svc.sort_order = idx
+
+        session.add(
+            AdminLog(
+                admin_id=admin["id"],
+                action="reorder_plans",
+                detail=f"تغییر ترتیب نمایش {len(final_sequence)} پلن",
+            )
+        )
+        await session.commit()
+
+    await _invalidate_plans_cache(request)
+
+    return web.json_response({
+        "ok": True,
+        "message": "ترتیب نمایش پلن‌ها ذخیره شد.",
+        "order": [s.id for s in final_sequence],
+    })
 
 
 async def post_admin_plan_toggle(request: web.Request) -> web.Response:
@@ -188,6 +274,8 @@ async def post_admin_plan_toggle(request: web.Request) -> web.Response:
 
         service.is_active = bool(body.get("is_active", not service.is_active))
         await session.commit()
+
+    await _invalidate_plans_cache(request)
 
     return web.json_response({"ok": True, "is_active": service.is_active, "message": "وضعیت پلن تغییر یافت."})
 
@@ -215,6 +303,8 @@ async def post_admin_plan_delete(request: web.Request) -> web.Response:
         await session.delete(service)
         session.add(AdminLog(admin_id=admin["id"], action="delete_plan", detail=f"حذف پلن #{plan_id}: {service.name}"))
         await session.commit()
+
+    await _invalidate_plans_cache(request)
 
     return web.json_response({"ok": True, "message": "پلن با موفقیت حذف شد."})
 

@@ -49,6 +49,15 @@
     'time': '⏳ بسته افزایش زمان'
   };
 
+  function getPlanCategory(p) {
+    const bKey = (p?.badge || '').toLowerCase();
+    const isTraffic = (bKey === 'traffic' || (Number(p?.duration_days) === 0 && Number(p?.traffic_gb) > 0)) && bKey !== 'time';
+    const isTime = !isTraffic && (bKey === 'time' || (Number(p?.traffic_gb) === 0 && Number(p?.duration_days) > 0 && bKey !== 'traffic'));
+    if (isTraffic) return 'traffic';
+    if (isTime) return 'time';
+    return 'full';
+  }
+
   window.switchServicesSubtab = function(subtab) {
     const btnPlans = $('subtabBtnPlans');
     const btnCoupons = $('subtabBtnCoupons');
@@ -88,12 +97,206 @@
             : 'admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:text-white transition whitespace-nowrap text-center';
         });
       }
-      const cards = document.querySelectorAll('.admin-plan-card');
+      const cards = Array.from(document.querySelectorAll('.admin-plan-card'));
+      const visibleCards = [];
       cards.forEach(card => {
         const type = card.dataset.planType;
         const show = (cat === 'all' || type === cat);
         card.style.display = show ? '' : 'none';
+        if (show) visibleCards.push(card);
       });
+      visibleCards.forEach((card, idx) => {
+        const upBtn = card.querySelector('[data-move-up]');
+        const downBtn = card.querySelector('[data-move-down]');
+        const isFirst = idx === 0;
+        const isLast = idx === visibleCards.length - 1;
+        if (upBtn) {
+          upBtn.disabled = isFirst;
+          upBtn.classList.toggle('opacity-35', isFirst);
+          upBtn.classList.toggle('pointer-events-none', isFirst);
+        }
+        if (downBtn) {
+          downBtn.disabled = isLast;
+          downBtn.classList.toggle('opacity-35', isLast);
+          downBtn.classList.toggle('pointer-events-none', isLast);
+        }
+      });
+    },
+
+    renderAdminPlansList() {
+      const container = $('adminPlansList');
+      if (!container) return;
+      if (!adminPlansData || adminPlansData.length === 0) {
+        container.innerHTML = `
+          <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center mx-auto text-xl">
+              📦
+            </div>
+            <p class="text-xs">هیچ سرویس یا تعرفه‌ای هنوز ثبت نشده است.</p>
+            <button onclick="window.adminActions.openPlanModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
+              + ایجاد اولین سرویس
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = adminPlansData.map(p => {
+        const statusBadge = p.is_active
+          ? ''
+          : '<span class="text-[11px] bg-slate-500/10 t-muted border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
+
+        const trafficHtml = p.traffic_gb > 0
+          ? fmtTraffic(p.traffic_gb, { html: true })
+          : '<span class="t-main font-bold">نامحدود</span>';
+        const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
+        const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
+
+        const rawName = (p.name || '').trim();
+        const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/u;
+        const emojiMatch = rawName.match(emojiRegex);
+        const pkgIcon = emojiMatch ? emojiMatch[0] : '';
+        const cleanName = pkgIcon ? rawName.replace(emojiRegex, '').trim() : rawName;
+
+        const bKey = (p.badge || '').toLowerCase();
+        const planCategory = getPlanCategory(p);
+        const isExtraTraffic = planCategory === 'traffic';
+        const isExtraTime = planCategory === 'time';
+        let typeBadge = '<span class="badge badge-plan-type">💎 دوره کامل</span>';
+        if (isExtraTraffic) {
+          typeBadge = '<span class="badge badge-plan-type">⚡️ بسته حجمی</span>';
+        } else if (isExtraTime) {
+          typeBadge = '<span class="badge badge-plan-type">⏳ بسته زمانی</span>';
+        }
+
+        const TAG_LABELS = {
+          bestseller: '🔥 پرفروش‌ترین',
+          popular: '⭐️ پرطرفدار',
+          economic: '💰 اقتصادی',
+          vip: '👑 پیشنهاد ویژه',
+          gaming: '🎮 گیمینگ',
+          antifilter: '🛡 ضد فیلتر',
+          speed: '⚡️ فوق سریع',
+          stream: '🎬 استریم',
+          family: '👥 چند کاربره',
+          tunnel: '🚇 تانل اختصاصی',
+          iran: '🇮🇷 سرور ایران',
+        };
+        let tagBadge = TAG_LABELS[bKey] ? `<span class="badge badge-plan-type">${TAG_LABELS[bKey]}</span>` : '';
+        if (p.max_purchases) {
+          const pCount = p.purchases_count || 0;
+          tagBadge += ` <span class="badge badge-neutral font-bold font-sans num-bidi">سقف: ${pCount}/${p.max_purchases}</span>`;
+        }
+
+        let specsHtml = '';
+        if (isExtraTraffic) {
+          specsHtml = `
+            <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
+              <div>
+                <span class="t-muted block text-[11px] font-sans">حجم اضافه</span>
+                ${trafficHtml}
+              </div>
+            </div>
+          `;
+        } else if (isExtraTime) {
+          specsHtml = `
+            <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
+              <div>
+                <span class="t-muted block text-[11px] font-sans">مدت زمان اضافه</span>
+                <b class="t-main font-bold">${durationText}</b>
+              </div>
+            </div>
+          `;
+        } else {
+          specsHtml = `
+            <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
+              <div>
+                <span class="t-muted block text-[11px] font-sans">حجم ترافیک</span>
+                ${trafficHtml}
+              </div>
+              <div>
+                <span class="t-muted block text-[11px] font-sans">مدت زمان</span>
+                <b class="t-main font-bold">${durationText}</b>
+              </div>
+              <div>
+                <span class="t-muted block text-[11px] font-sans">محدودیت HWID</span>
+                <b class="t-main font-bold">${hwidText}</b>
+              </div>
+            </div>
+          `;
+        }
+
+        const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
+        const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
+        const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
+
+        const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
+          ? `<p class="text-[11px] text-slate-400 line-clamp-1">${escapeHtml(p.description)}</p>`
+          : '';
+
+        return `
+          <div data-plan-type="${planCategory}" data-plan-id="${p.id}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+            <div class="space-y-1.5">
+              <!-- Top Row: Price and تومان on Right, Icons + Name + statusBadge flush Left (LTR) -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]">
+                  <span class="text-sm font-black t-success font-sans num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
+                  <span class="text-[11px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
+                </div>
+                <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1" dir="ltr">
+                  ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
+                  <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
+                  ${statusBadge ? `<div class="flex-shrink-0">${statusBadge}</div>` : ''}
+                </div>
+              </div>
+
+              <!-- Bottom Row: Badges on Right, Reorder Arrows on Left -->
+              <div class="flex items-center justify-between gap-2 pt-0.5">
+                <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                  ${typeBadge}
+                  ${tagBadge}
+                  ${squadBadge}
+                </div>
+                <div class="flex items-center gap-1 shrink-0" dir="ltr">
+                  <button type="button" data-move-up onclick="window.adminActions.movePlan(${p.id}, 'up')" class="w-7 h-7 rounded-lg card-inset border border-slate-700/60 hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به بالا" aria-label="انتقال به بالا">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+                  </button>
+                  <button type="button" data-move-down onclick="window.adminActions.movePlan(${p.id}, 'down')" class="w-7 h-7 rounded-lg card-inset border border-slate-700/60 hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به پایین" aria-label="انتقال به پایین">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            ${descHtml}
+            ${specsHtml}
+
+            <!-- 3 Action Buttons + Duplicate with Semantic Colored Icons & Labels -->
+            <div class="flex gap-1.5 pt-1">
+              <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-cyan-500/40 t-main border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
+                <svg class="w-3.5 h-3.5 t-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <span class="text-[11px] font-bold">ویرایش</span>
+              </button>
+              <button type="button" onclick="window.adminActions.duplicatePlan(${p.id})" class="flex-1 card-inset hover:border-purple-500/40 t-main border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 active:scale-95" title="تکثیر / کپی بسته" aria-label="تکثیر بسته">
+                <svg class="w-3.5 h-3.5 t-purple shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span class="text-[11px] font-bold">تکثیر</span>
+              </button>
+              <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
+                ${p.is_active
+                  ? '<svg class="w-3.5 h-3.5 t-warn shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
+                  : '<svg class="w-3.5 h-3.5 t-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
+              </button>
+              <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
+                <svg class="w-3.5 h-3.5 t-danger shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <span class="text-[11px] font-bold">حذف</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      if (typeof this.filterPlans === 'function') {
+        this.filterPlans(this.currentPlanFilter || 'full');
+      }
     },
 
     async fetchAdminPlans() {
@@ -109,169 +312,58 @@
           return;
         }
         adminPlansData = res.plans || [];
-        if (adminPlansData.length === 0) {
-          container.innerHTML = `
-            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
-              <div class="w-10 h-10 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center mx-auto text-xl">
-                📦
-              </div>
-              <p class="text-xs">هیچ سرویس یا تعرفه‌ای هنوز ثبت نشده است.</p>
-              <button onclick="window.adminActions.openPlanModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
-                + ایجاد اولین سرویس
-              </button>
-            </div>
-          `;
-          return;
-        }
-
-        if (!adminRemnawaveSquads || adminRemnawaveSquads.length === 0) {
+        window.adminPlansData = adminPlansData;
+        if (adminPlansData.length > 0 && (!adminRemnawaveSquads || adminRemnawaveSquads.length === 0)) {
           loadRemnawaveSquads();
         }
-
-        container.innerHTML = adminPlansData.map(p => {
-          const statusBadge = p.is_active
-            ? ''
-            : '<span class="text-[11px] bg-slate-500/10 t-muted border border-slate-400/30 px-2 py-0.5 rounded-lg font-medium">غیرفعال</span>';
-
-          const trafficHtml = p.traffic_gb > 0
-            ? fmtTraffic(p.traffic_gb, { html: true })
-            : '<span class="t-main font-bold">نامحدود</span>';
-          const durationText = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
-          const hwidText = p.hwid_limit > 0 ? `${p.hwid_limit} کاربر` : 'پیش‌فرض';
-
-          const rawName = (p.name || '').trim();
-          const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/u;
-          const emojiMatch = rawName.match(emojiRegex);
-          const pkgIcon = emojiMatch ? emojiMatch[0] : '';
-          const cleanName = pkgIcon ? rawName.replace(emojiRegex, '').trim() : rawName;
-
-          const bKey = (p.badge || '').toLowerCase();
-          const isExtraTraffic = (bKey === 'traffic' || (Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0)) && bKey !== 'time';
-          const isExtraTime = !isExtraTraffic && (bKey === 'time' || (Number(p.traffic_gb) === 0 && Number(p.duration_days) > 0 && bKey !== 'traffic'));
-          let typeBadge = '<span class="badge badge-plan-type">💎 دوره کامل</span>';
-          if (isExtraTraffic) {
-            typeBadge = '<span class="badge badge-plan-type">⚡️ بسته حجمی</span>';
-          } else if (isExtraTime) {
-            typeBadge = '<span class="badge badge-plan-type">⏳ بسته زمانی</span>';
-          }
-
-          const TAG_LABELS = {
-            bestseller: '🔥 پرفروش‌ترین',
-            popular: '⭐️ پرطرفدار',
-            economic: '💰 اقتصادی',
-            vip: '👑 پیشنهاد ویژه',
-            gaming: '🎮 گیمینگ',
-            antifilter: '🛡 ضد فیلتر',
-            speed: '⚡️ فوق سریع',
-            stream: '🎬 استریم',
-            family: '👥 چند کاربره',
-            tunnel: '🚇 تانل اختصاصی',
-            iran: '🇮🇷 سرور ایران',
-          };
-          let tagBadge = TAG_LABELS[bKey] ? `<span class="badge badge-plan-type">${TAG_LABELS[bKey]}</span>` : '';
-          if (p.max_purchases) {
-            const pCount = p.purchases_count || 0;
-            tagBadge += ` <span class="badge badge-neutral font-bold font-sans num-bidi">سقف: ${pCount}/${p.max_purchases}</span>`;
-          }
-
-          let specsHtml = '';
-          if (isExtraTraffic) {
-            specsHtml = `
-              <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
-                <div>
-                  <span class="t-muted block text-[11px] font-sans">حجم اضافه</span>
-                  ${trafficHtml}
-                </div>
-              </div>
-            `;
-          } else if (isExtraTime) {
-            specsHtml = `
-              <div class="grid grid-cols-1 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
-                <div>
-                  <span class="t-muted block text-[11px] font-sans">مدت زمان اضافه</span>
-                  <b class="t-main font-bold">${durationText}</b>
-                </div>
-              </div>
-            `;
-          } else {
-            specsHtml = `
-              <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] card-inset p-2 rounded-xl font-sans">
-                <div>
-                  <span class="t-muted block text-[11px] font-sans">حجم ترافیک</span>
-                  ${trafficHtml}
-                </div>
-                <div>
-                  <span class="t-muted block text-[11px] font-sans">مدت زمان</span>
-                  <b class="t-main font-bold">${durationText}</b>
-                </div>
-                <div>
-                  <span class="t-muted block text-[11px] font-sans">محدودیت HWID</span>
-                  <b class="t-main font-bold">${hwidText}</b>
-                </div>
-              </div>
-            `;
-          }
-
-          const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
-          const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
-          const squadBadge = squadName ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">🧩 ${escapeHtml(squadName)}</span>` : '';
-
-          const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
-            ? `<p class="text-[11px] text-slate-400 line-clamp-1">${escapeHtml(p.description)}</p>`
-            : '';
-
-          const planCategory = isExtraTraffic ? 'traffic' : (isExtraTime ? 'time' : 'full');
-          return `
-            <div data-plan-type="${planCategory}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
-              <div class="space-y-1.5">
-                <!-- Top Row: Price and تومان on Right, Icons + Name + statusBadge flush Left (LTR) -->
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]">
-                    <span class="text-sm font-black t-success font-sans num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
-                    <span class="text-[11px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
-                  </div>
-                  <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1" dir="ltr">
-                    ${pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : ''}
-                    <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
-                    ${statusBadge ? `<div class="flex-shrink-0">${statusBadge}</div>` : ''}
-                  </div>
-                </div>
-
-                <!-- Bottom Row: Badges on Right -->
-                <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
-                  ${typeBadge}
-                  ${tagBadge}
-                  ${squadBadge}
-                </div>
-              </div>
-
-              ${descHtml}
-              ${specsHtml}
-
-              <!-- 3 Action Buttons with Semantic Colored Icons & Labels -->
-              <div class="flex gap-2 pt-1">
-                <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-cyan-500/40 t-main border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
-                  <svg class="w-4 h-4 t-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                  <span class="text-[11px] font-bold">ویرایش</span>
-                </button>
-                <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
-                  ${p.is_active
-                    ? '<svg class="w-4 h-4 t-warn shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">غیرفعال</span>'
-                    : '<svg class="w-4 h-4 t-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-bold">فعال‌سازی</span>'}
-                </button>
-                <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
-                  <svg class="w-4 h-4 t-danger shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                  <span class="text-[11px] font-bold">حذف</span>
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-        if (typeof this.filterPlans === 'function') {
-          this.filterPlans(this.currentPlanFilter || 'full');
-        }
+        this.renderAdminPlansList();
       } catch (e) {
         container.innerHTML = '<div class="p-6 text-center t-danger text-xs">خطای شبکه در دریافت تعرفه‌ها</div>';
+      }
+    },
+
+    async movePlan(planId, direction = 'up') {
+      if (this._reorderingPlans || !Array.isArray(adminPlansData) || adminPlansData.length < 2) return;
+      const cat = this.currentPlanFilter || 'full';
+      const curIdx = adminPlansData.findIndex(p => Number(p.id) === Number(planId));
+      if (curIdx === -1) return;
+
+      const visibleIndices = adminPlansData
+        .map((p, idx) => ((cat === 'all' || getPlanCategory(p) === cat) ? idx : -1))
+        .filter(idx => idx !== -1);
+      const visPos = visibleIndices.indexOf(curIdx);
+      const targetVisPos = direction === 'up' ? visPos - 1 : visPos + 1;
+      if (visPos === -1 || targetVisPos < 0 || targetVisPos >= visibleIndices.length) return;
+
+      const targetIdx = visibleIndices[targetVisPos];
+      const previousOrder = [...adminPlansData];
+      const nextOrder = [...adminPlansData];
+      [nextOrder[curIdx], nextOrder[targetIdx]] = [nextOrder[targetIdx], nextOrder[curIdx]];
+
+      adminPlansData = nextOrder;
+      window.adminPlansData = adminPlansData;
+      this.renderAdminPlansList();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+
+      this._reorderingPlans = true;
+      try {
+        const res = await window.api.reorderAdminPlans(adminPlansData.map(p => p.id));
+        if (res && res.ok) {
+          adminPlansData.forEach((p, idx) => { p.sort_order = idx + 1; });
+          if (window.showToast) window.showToast('✓ ترتیب نمایش پلن‌ها ذخیره شد');
+        } else {
+          adminPlansData = previousOrder;
+          window.adminPlansData = adminPlansData;
+          this.renderAdminPlansList();
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ذخیره ترتیب پلن‌ها'}`);
+        }
+      } catch (e) {
+        adminPlansData = previousOrder;
+        window.adminPlansData = adminPlansData;
+        this.renderAdminPlansList();
+        if (window.showToast) window.showToast('خطای شبکه در ذخیره ترتیب پلن‌ها');
+      } finally {
+        this._reorderingPlans = false;
       }
     },
 
@@ -367,16 +459,30 @@
       }
     },
 
-    openPlanModal(planOrId = null) {
+    duplicatePlan(planId) {
+      this.openPlanModal(planId, { duplicate: true });
+      if (window.hapticFeedback) window.hapticFeedback('light');
+    },
+
+    openPlanModal(planOrId = null, options = {}) {
+      const isDuplicate = Boolean(options && options.duplicate);
       let plan = planOrId;
       if (typeof planOrId === 'number') {
         plan = adminPlansData.find(p => p.id === planOrId) || null;
       }
       const modal = $('planModal');
       if (modal) modal.classList.remove('hidden');
-      $('planModalTitle').innerText = plan ? `ویرایش تعرفه: ${plan.name}` : 'ایجاد تعرفه جدید';
-      $('planModalId').value = plan ? plan.id : '';
-      $('planModalName').value = plan ? plan.name : '';
+
+      const baseName = plan ? String(plan.name || '').trim() : '';
+      const duplicateName = baseName
+        ? (baseName.endsWith('(کپی)') ? `${baseName} ۲` : `${baseName} (کپی)`)
+        : '';
+
+      $('planModalTitle').innerText = (plan && isDuplicate)
+        ? `تکثیر تعرفه: ${plan.name}`
+        : (plan ? `ویرایش تعرفه: ${plan.name}` : 'ایجاد تعرفه جدید');
+      $('planModalId').value = (plan && !isDuplicate) ? plan.id : '';
+      $('planModalName').value = (plan && isDuplicate) ? duplicateName : (plan ? plan.name : '');
       $('planModalPrice').value = plan ? plan.price : '';
       $('planModalTraffic').value = plan ? plan.traffic_gb : '';
       $('planModalDuration').value = plan ? plan.duration_days : '';
@@ -392,13 +498,17 @@
       $('planModalActive').checked = plan ? !!plan.is_active : true;
 
       if (plan) {
-        const isTraffic = (Number(plan.duration_days) === 0 && Number(plan.traffic_gb) > 0) || (plan.badge === 'traffic');
-        const isTime = (Number(plan.traffic_gb) === 0 && Number(plan.duration_days) > 0) || (plan.badge === 'time');
-        if (isTraffic) this.setPlanType('traffic');
-        else if (isTime) this.setPlanType('time');
-        else this.setPlanType('full');
+        const planCat = getPlanCategory(plan);
+        this.setPlanType(planCat);
       } else {
         this.setPlanType('full');
+      }
+
+      if (plan && isDuplicate) {
+        setTimeout(() => {
+          const nameInput = $('planModalName');
+          if (nameInput) nameInput.focus();
+        }, 50);
       }
     },
 
@@ -515,6 +625,9 @@
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ ${res.message}`);
           if (window.hapticFeedback) window.hapticFeedback('success');
+          if (this.currentPlanFilter !== 'all' && window._currentAdminPlanType) {
+            this.currentPlanFilter = window._currentAdminPlanType;
+          }
           this.closePlanModal();
           this.fetchAdminPlans();
         } else {

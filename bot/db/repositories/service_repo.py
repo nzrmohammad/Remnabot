@@ -1,12 +1,15 @@
 """Repository for the admin-managed services (plans) shown to users."""
 import logging
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Service
 
 logger = logging.getLogger(__name__)
+
+# Single Source of Truth for service/plan ordering across Shop, Admin, and Telegram bot menus.
+SERVICE_ORDER_BY = (Service.sort_order.asc(), Service.price.asc(), Service.id.asc())
 
 
 class ServiceRepository:
@@ -15,7 +18,7 @@ class ServiceRepository:
 
     async def list_all(self) -> list[Service]:
         result = await self.session.execute(
-            select(Service).order_by(Service.id)
+            select(Service).order_by(*SERVICE_ORDER_BY)
         )
         return list(result.scalars().all())
 
@@ -28,7 +31,7 @@ class ServiceRepository:
                         Service.max_purchases.is_(None),
                         Service.purchases_count < Service.max_purchases,
                     ),
-                ).order_by(Service.id)
+                ).order_by(*SERVICE_ORDER_BY)
             )
             return list(result.scalars().all())
         except Exception as exc:
@@ -36,7 +39,7 @@ class ServiceRepository:
             await self.session.rollback()
             try:
                 result = await self.session.execute(
-                    select(Service).where(Service.is_active.is_(True)).order_by(Service.id)
+                    select(Service).where(Service.is_active.is_(True)).order_by(*SERVICE_ORDER_BY)
                 )
                 return list(result.scalars().all())
             except Exception as exc2:
@@ -64,7 +67,12 @@ class ServiceRepository:
         traffic_strategy: str = "NO_RESET",
         hwid_limit: int | None = None,
         squad_uuid: str | None = None,
+        sort_order: int | None = None,
     ) -> Service:
+        resolved_order = sort_order
+        if resolved_order is None:
+            max_sort = await self.session.scalar(select(func.coalesce(func.max(Service.sort_order), 0)))
+            resolved_order = (int(max_sort) + 1) if max_sort and int(max_sort) > 0 else 0
         service = Service(
             name=name,
             price=price,
@@ -74,6 +82,7 @@ class ServiceRepository:
             traffic_strategy=traffic_strategy,
             hwid_limit=hwid_limit,
             squad_uuid=squad_uuid,
+            sort_order=resolved_order,
         )
         self.session.add(service)
         await self.session.flush()  # populates service.id

@@ -22,9 +22,21 @@ from aiohttp import web
 from sqlalchemy import func, or_, select
 
 from bot.common.links import ref_link as build_ref_link
-from bot.db.models import AdminLog, CardAutoInvoice, Coupon, CouponUsage, CryptoInvoice, Order, Service, Topup, User, Wallet
+from bot.db.models import (
+    AdminLog,
+    CardAutoInvoice,
+    Coupon,
+    CouponUsage,
+    CryptoInvoice,
+    Order,
+    Service,
+    Topup,
+    User,
+    Wallet,
+)
 from bot.db.repositories.alert_repo import AlertRepository
 from bot.db.repositories.report_repo import ReportRepository
+from bot.db.repositories.service_repo import SERVICE_ORDER_BY
 from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag, now_tz
@@ -475,7 +487,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                         Service.max_purchases.is_(None),
                         Service.purchases_count < Service.max_purchases,
                     ),
-                ).order_by(Service.price.asc())
+                ).order_by(*SERVICE_ORDER_BY)
             )
             raw_services = list(services_res.scalars().all())
         except Exception as exc:
@@ -483,7 +495,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             logger.warning("Failed to query active services with purchase limits in profile: %s", exc)
             try:
                 services_res = await session.execute(
-                    select(Service).where(Service.is_active.is_(True)).order_by(Service.price.asc())
+                    select(Service).where(Service.is_active.is_(True)).order_by(*SERVICE_ORDER_BY)
                 )
                 raw_services = list(services_res.scalars().all())
             except Exception:
@@ -726,6 +738,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "hwid_limit": s.hwid_limit,
                 "badge": s.badge or "",
                 "squad_uuid": s.squad_uuid or "",
+                "sort_order": s.sort_order or 0,
                 "flags": plan_flags,
                 "flags_label": "اسکواد اختصاصی" if s.squad_uuid else "بدون اسکواد",
             })

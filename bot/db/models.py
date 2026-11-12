@@ -157,6 +157,8 @@ class Service(Base):
     max_purchases: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
     # Current completed purchase count
     purchases_count: Mapped[int] = mapped_column(Integer, default=0)
+    # Display order in store & admin listings (lower comes first; ties broken by price, id)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

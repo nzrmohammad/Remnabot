@@ -43,6 +43,7 @@ from bot.web.admin_plans import (
     post_admin_coupon_save,
     post_admin_coupon_toggle,
     post_admin_plan_delete,
+    post_admin_plan_reorder,
     post_admin_plan_save,
     post_admin_plan_toggle,
 )
@@ -107,6 +108,7 @@ __all__ = [
     "get_admin_plans",
     "get_admin_remnawave_squads",
     "post_admin_plan_save",
+    "post_admin_plan_reorder",
     "post_admin_plan_toggle",
     "post_admin_plan_delete",
     "get_admin_coupons",

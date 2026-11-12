@@ -973,3 +973,156 @@ def test_plan_picker_icon_removal_1h_lock_ui_and_colored_service_icons():
     assert "text-slate-400" not in action_block
     for token_cls in ("t-accent", "t-warn", "t-success", "t-danger"):
         assert token_cls in action_block
+
+
+@pytest.mark.anyio
+async def test_plan_reorder_api_persists_sort_order_and_updates_shop_and_repo(session_factory):
+    """Admin reorder API persists sort_order across admin list, Shop (/api/me), and ServiceRepository."""
+    import json
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.db.models import Service, User
+    from bot.db.repositories.service_repo import ServiceRepository
+    from bot.web.admin_plans import get_admin_plans, post_admin_plan_reorder, post_admin_plan_save
+    from bot.web.cache import FastCache
+    from bot.web.user_profile import get_user_me
+
+    # Ensure schema includes sort_order with default 0
+    col = Service.__table__.columns["sort_order"]
+    assert str(getattr(col.server_default, "arg", "")) == "0"
+
+    cache = FastCache(redis_client=None)
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": cache,
+        "settings": SimpleNamespace(TIMEZONE="Asia/Tehran", PANEL_URL="https://panel.example.com"),
+        "remnawave": SimpleNamespace(
+            get_users_by_telegram_id=AsyncMock(return_value=[]),
+            get_nodes=AsyncMock(return_value=[]),
+            get_all_users=AsyncMock(return_value=[]),
+            get_internal_squads=AsyncMock(return_value=[]),
+        ),
+    }
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=777, username="buyer_user", full_name="Buyer User"))
+        await session.commit()
+
+    # Seed 3 plans via admin save endpoint (unsorted prices -> price asc order initially)
+    created_ids = {}
+    for name, price in (("Bronze", 50000), ("Silver", 100000), ("Gold", 200000)):
+        req = make_mocked_request("POST", "/api/admin/plan/save?user_id=99999", app=app)
+        req.json = AsyncMock(return_value={
+            "name": name,
+            "price": price,
+            "traffic_gb": 30,
+            "duration_days": 30,
+            "squad_uuid": "sq-order",
+            "is_active": True,
+        })
+        resp = await post_admin_plan_save(req)
+        assert resp.status == 200
+        body = json.loads(resp.text)
+        assert body["ok"] is True
+        created_ids[name] = body["plan"]["id"]
+
+    # Seed cached user dashboard entry to ensure reorder invalidates Store cache
+    await cache.set("tma:user:777:dashboard:default", {"stale": True}, ttl_seconds=30)
+
+    # Validation checks on /api/admin/plan/reorder
+    req_forbidden = make_mocked_request("POST", "/api/admin/plan/reorder?user_id=777", app=app)
+    req_forbidden.json = AsyncMock(return_value={"plan_ids": list(created_ids.values())})
+    assert (await post_admin_plan_reorder(req_forbidden)).status == 403
+
+    req_bad = make_mocked_request("POST", "/api/admin/plan/reorder?user_id=99999", app=app)
+    req_bad.json = AsyncMock(return_value={"plan_ids": []})
+    assert (await post_admin_plan_reorder(req_bad)).status == 400
+
+    # Reorder: Gold first, then Bronze, then Silver
+    desired_order = [created_ids["Gold"], created_ids["Bronze"], created_ids["Silver"]]
+    req_reorder = make_mocked_request("POST", "/api/admin/plan/reorder?user_id=99999", app=app)
+    req_reorder.json = AsyncMock(return_value={"plan_ids": desired_order})
+    resp_reorder = await post_admin_plan_reorder(req_reorder)
+    assert resp_reorder.status == 200
+    reorder_data = json.loads(resp_reorder.text)
+    assert reorder_data["ok"] is True
+    assert reorder_data["order"] == desired_order
+
+    # Cache invalidated immediately
+    assert await cache.get("tma:user:777:dashboard:default") is None
+
+    # Admin plans listing matches custom order
+    req_admin_list = make_mocked_request("GET", "/api/admin/plans?user_id=99999", app=app)
+    resp_admin_list = await get_admin_plans(req_admin_list)
+    admin_plans = json.loads(resp_admin_list.text)["plans"]
+    assert [p["name"] for p in admin_plans] == ["Gold", "Bronze", "Silver"]
+    assert [p["sort_order"] for p in admin_plans] == [1, 2, 3]
+
+    # ServiceRepository (bot handlers) matches custom order
+    async with session_factory() as session:
+        repo = ServiceRepository(session)
+        assert [s.name for s in await repo.list_active()] == ["Gold", "Bronze", "Silver"]
+        assert [s.name for s in await repo.list_all()] == ["Gold", "Bronze", "Silver"]
+
+    # Shop (/api/me) returns plans in exact custom order
+    req_me = make_mocked_request("GET", "/api/me?user_id=777", app=app)
+    resp_me = await get_user_me(req_me)
+    assert resp_me.status == 200
+    me_plans = json.loads(resp_me.text)["data"]["plans"]
+    assert [p["name"] for p in me_plans] == ["Gold", "Bronze", "Silver"]
+    assert [p["sort_order"] for p in me_plans] == [1, 2, 3]
+
+    # Creating a new/duplicated plan after reordering appends to the end (sort_order = 4)
+    req_dup = make_mocked_request("POST", "/api/admin/plan/save?user_id=99999", app=app)
+    req_dup.json = AsyncMock(return_value={
+        "name": "Gold (کپی)",
+        "price": 10000,  # Cheaper than all others, yet must appear last due to sort_order
+        "traffic_gb": 30,
+        "duration_days": 30,
+        "squad_uuid": "sq-order",
+        "is_active": True,
+    })
+    resp_dup = await post_admin_plan_save(req_dup)
+    assert resp_dup.status == 200
+    assert json.loads(resp_dup.text)["plan"]["sort_order"] == 4
+
+    resp_admin_after = await get_admin_plans(req_admin_list)
+    assert [p["name"] for p in json.loads(resp_admin_after.text)["plans"]] == [
+        "Gold", "Bronze", "Silver", "Gold (کپی)"
+    ]
+
+
+def test_plan_duplicate_and_reorder_frontend_contracts():
+    """Verify duplicate plan modal copy flow and move up/down reorder controls in admin frontend."""
+    root = Path(__file__).resolve().parents[1]
+    api_js = (root / "bot" / "web" / "static" / "js" / "api.js").read_text(encoding="utf-8")
+    admin_plans_js = (root / "bot" / "web" / "static" / "js" / "admin_plans.js").read_text(encoding="utf-8")
+    server_py = (root / "bot" / "web" / "server.py").read_text(encoding="utf-8")
+    routes_admin_py = (root / "bot" / "web" / "routes_admin.py").read_text(encoding="utf-8")
+
+    assert "/api/admin/plan/reorder" in api_js
+    assert "async reorderAdminPlans(plan_ids)" in api_js
+    assert '"/api/admin/plan/reorder"' in server_py
+    assert "post_admin_plan_reorder" in routes_admin_py
+
+    assert "function getPlanCategory(p)" in admin_plans_js
+    assert "duplicatePlan(planId)" in admin_plans_js
+    assert "openPlanModal(planId, { duplicate: true })" in admin_plans_js
+    assert "$('planModalId').value = (plan && !isDuplicate) ? plan.id : '';" in admin_plans_js
+    assert "تکثیر تعرفه:" in admin_plans_js
+    assert "(کپی)" in admin_plans_js
+
+    # Card includes semantic colored duplicate button and accessible move up/down buttons
+    assert "t-purple" in admin_plans_js
+    assert "movePlan(${p.id}, 'up')" in admin_plans_js
+    assert "movePlan(${p.id}, 'down')" in admin_plans_js
+    assert "data-move-up" in admin_plans_js
+    assert "data-move-down" in admin_plans_js
+    assert "window.api.reorderAdminPlans" in admin_plans_js
+
