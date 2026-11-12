@@ -57,6 +57,8 @@ node_modules/
 AGENTS.md
 Agents.md
 Agent.md
+.agents/
+skills-lock.json
 
 # Graphify knowledge graph outputs (Local only)
 graphify-out/

@@ -84,7 +84,10 @@ function updateMonthlyReportView(index) {
   const mData = history[currentMonthlyIndex];
 
   const repMonthlyTitle = $('repMonthlyTitle');
-  if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${mData.month_name || ''}`;
+  if (repMonthlyTitle) {
+    const iconHtml = typeof uiIcon === 'function' ? uiIcon('reports', 'w-4 h-4') : '';
+    repMonthlyTitle.innerHTML = `${iconHtml}<span>گزارش جامع ماه ${escapeHtml(mData.month_name || '')}</span>`;
+  }
 
   const repMonthlyCurrentLabel = $('repMonthlyCurrentLabel');
   if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = mData.full_name || mData.month_name || 'ماه جاری';
@@ -3178,7 +3181,11 @@ function hydrateUserInterface(data) {
     const headerBadge = $('headerLoyaltyBadge');
     if (headerBadge) {
       if (isLoyaltyEnabled) {
-        headerBadge.innerText = loyalty.icon || '🥉';
+        if (typeof uiEmojiIcon === 'function') {
+          headerBadge.innerHTML = uiEmojiIcon(loyalty.icon || '🥉', 'w-5 h-5');
+        } else {
+          headerBadge.innerText = loyalty.icon || '🥉';
+        }
         headerBadge.classList.remove('hidden');
         headerBadge.className = 'w-7 h-7 flex items-center justify-center text-lg bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
       } else {
@@ -3192,7 +3199,11 @@ function hydrateUserInterface(data) {
         loyaltyCard.classList.add('hidden');
       } else {
         loyaltyCard.classList.remove('hidden');
-        if ($('loyaltyTierIcon')) $('loyaltyTierIcon').innerText = loyalty.icon || '🥉';
+        if ($('loyaltyTierIcon')) {
+          $('loyaltyTierIcon').innerHTML = typeof uiEmojiIcon === 'function'
+            ? uiEmojiIcon(loyalty.icon || '🥉', 'w-6 h-6')
+            : escapeHtml(loyalty.icon || '🥉');
+        }
         if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
         const discBadge = $('loyaltyDiscountBadge');
         if (discBadge) {
@@ -3809,7 +3820,10 @@ function hydrateUserInterface(data) {
         updateMonthlyReportView(currentMonthlyIndex);
       } else {
         const repMonthlyTitle = $('repMonthlyTitle');
-        if (repMonthlyTitle) repMonthlyTitle.innerText = `📅 گزارش جامع ماه ${sub.current_month_name || ''}`;
+        if (repMonthlyTitle) {
+          const iconHtml = typeof uiIcon === 'function' ? uiIcon('reports', 'w-4 h-4') : '';
+          repMonthlyTitle.innerHTML = `${iconHtml}<span>گزارش جامع ماه ${escapeHtml(sub.current_month_name || '')}</span>`;
+        }
         const repMonthlyTotal = $('repMonthlyTotal');
         if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(sub.month_used_gb ?? '0.00', { html: true });
         if (typeof renderBarChart === 'function') {

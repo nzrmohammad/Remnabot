@@ -62,14 +62,14 @@ function showBanner(msg, type = 'warning', options = {}) {
     success: 's-success-soft',
   };
   const iconMap = {
-    error: '🚫',
-    warning: '⚠️',
-    info: 'ℹ️',
-    success: '✅',
+    error: uiIcon('ban', 'w-4 h-4'),
+    warning: uiIcon('zap', 'w-4 h-4'),
+    info: uiIcon('sparkles', 'w-4 h-4'),
+    success: uiIcon('shield', 'w-4 h-4'),
   };
 
   const styleClasses = bgBorderMap[type] || bgBorderMap.warning;
-  const icon = options.icon || iconMap[type] || '⚠️';
+  const icon = options.icon || iconMap[type] || uiIcon('zap', 'w-4 h-4');
 
   if (!banner) {
     banner = document.createElement('div');
@@ -367,6 +367,38 @@ const UI_ICON_FILES = {
 function uiIcon(name, className = 'w-4 h-4') {
   const file = UI_ICON_FILES[name] || 'sparkles';
   return `<img src="/static/img/icons/${file}.svg" class="ui-icon ui-icon-img shrink-0 ${className}" alt="" aria-hidden="true" loading="eager" />`;
+}
+
+const EMOJI_TO_UI_ICON = {
+  '🥉': 'medal_bronze',
+  '🥈': 'medal_silver',
+  '🥇': 'medal_gold',
+  '💎': 'diamond',
+  '👑': 'crown',
+  '🏆': 'trophy',
+  '🎖️': 'award',
+  '⭐': 'star',
+  '🌟': 'sparkles',
+  '🔥': 'flame',
+  '📅': 'reports',
+  '📆': 'reports',
+  '🌙': 'moon',
+  '☀️': 'sun',
+  '🎫': 'ticket',
+  '🎟️': 'ticket',
+  '⚙️': 'settings',
+  '🛡️': 'shield',
+  '🔐': 'lock_shield',
+  '🚫': 'ban',
+  '⛔️': 'ban',
+  '🎧': 'chat',
+};
+
+function uiEmojiIcon(emojiOrKey, className = 'w-4 h-4') {
+  const raw = String(emojiOrKey || '').trim();
+  const key = EMOJI_TO_UI_ICON[raw] || (UI_ICON_FILES[raw] ? raw : null);
+  if (key) return uiIcon(key, className);
+  return `<span aria-hidden="true">${escapeHtml(raw)}</span>`;
 }
 
 function getFlagEmoji(code) {
@@ -826,6 +858,7 @@ function parseDeviceMeta(d = {}) {
 
 if (typeof window !== 'undefined') {
   window.uiIcon = uiIcon;
+  window.uiEmojiIcon = uiEmojiIcon;
   window.renderFlagHtml = renderFlagHtml;
   window.getCountryCodeFromEmoji = getCountryCodeFromEmoji;
   window.toEnglishDigits = toEnglishDigits;
@@ -848,6 +881,37 @@ if (typeof window !== 'undefined') {
   window.parseDeviceMeta = parseDeviceMeta;
   window.getDonutPalette = getDonutPalette;
   window.getChartThemeTokens = getChartThemeTokens;
+
+  // Global keyboard accessibility: Enter/Space on [role="button"] & Escape to close open dialog
+  if (typeof document !== 'undefined' && !window.__remnaA11yBound) {
+    window.__remnaA11yBound = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const openModals = Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]:not(.hidden)'));
+        const topModal = openModals[openModals.length - 1];
+        if (!topModal) return;
+        const closeBtn = topModal.querySelector('.modal-close-btn');
+        if (closeBtn && typeof closeBtn.click === 'function') {
+          closeBtn.click();
+        } else {
+          topModal.click();
+        }
+        return;
+      }
+
+      if (e.key === 'Enter' || e.key === ' ') {
+        const target = e.target;
+        if (!target || typeof target.closest !== 'function') return;
+        const tag = target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON' || tag === 'A') return;
+        const roleBtn = target.closest('[role="button"][tabindex="0"]');
+        if (roleBtn && target === roleBtn) {
+          e.preventDefault();
+          roleBtn.click();
+        }
+      }
+    });
+  }
 }
 
 if (typeof module !== 'undefined' && module.exports) {
