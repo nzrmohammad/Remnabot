@@ -565,17 +565,17 @@
         <div id="viewRepDaily" class="card p-4 space-y-3 shadow-md">
           <div class="flex justify-between items-center border-b border-card-border pb-2">
             <span class="text-xs font-bold t-main flex items-center gap-1.5">
-              <span>☀️</span> گزارش روزانه
+              <img src="/static/img/icons/sun.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>گزارش روزانه</span>
             </span>
             <span id="repDailyDate" class="text-[11px] font-sans num-bidi t-muted">--/--/-- - 23:59</span>
           </div>
 
           <div class="space-y-1.5 text-xs t-muted">
-            <div class="flex justify-between"><span>📊 حجم کل بسته:</span><b id="repDailyTotal" class="font-sans t-main num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>🔥 حجم مصرف‌شده:</span><b id="repDailyUsed" class="font-sans t-warn num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>📥 حجم باقیمانده:</span><b id="repDailyRemain" class="font-sans t-success num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>⚡️ مجموع مصرف امروز:</span><b id="repDailyToday" class="font-sans t-accent text-sm num-bidi" dir="ltr">0.00 GB</b></div>
-            <div class="flex justify-between"><span>📅 انقضا:</span><span id="repDailyExpire" class="font-semibold t-main">--</span></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/package.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>حجم کل بسته:</span></span><b id="repDailyTotal" class="font-sans t-main num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/flame.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>حجم مصرف‌شده:</span></span><b id="repDailyUsed" class="font-sans t-warn num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/inbox.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>حجم باقیمانده:</span></span><b id="repDailyRemain" class="font-sans t-success num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>مجموع مصرف امروز:</span></span><b id="repDailyToday" class="font-sans t-accent text-sm num-bidi" dir="ltr">0.00 GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/clock.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>انقضا:</span></span><span id="repDailyExpire" class="font-semibold t-main">--</span></div>
           </div>
 
           <!-- Daily Hourly Bar Chart (نمودار مصرف ساعتی امروز) -->
@@ -602,17 +602,17 @@
         <div id="viewRepNightly" class="card p-4 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-card-border pb-2">
             <span class="text-xs font-bold t-main flex items-center gap-1.5">
-              <span>🌙</span> گزارش شبانه
+              <img src="/static/img/icons/moon.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>گزارش شبانه</span>
             </span>
             <span id="repNightlyDate" class="text-[11px] font-sans num-bidi t-muted">--/--/-- - 23:59</span>
           </div>
 
           <div class="space-y-1.5 text-xs t-muted">
-            <div class="flex justify-between"><span>📊 حجم کل بسته:</span><b id="repNightlyTotal" class="font-sans t-main num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>🔥 حجم مصرف‌شده:</span><b id="repNightlyUsed" class="font-sans t-warn num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>📥 حجم باقیمانده:</span><b id="repNightlyRemain" class="font-sans t-success num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>⚡️ مجموع مصرف دیروز:</span><b id="repNightlyYesterday" class="font-sans t-accent text-sm num-bidi" dir="ltr">0.00 GB</b></div>
-            <div class="flex justify-between"><span>📅 انقضا:</span><span id="repNightlyExpire" class="font-semibold t-main">--</span></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/package.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>حجم کل بسته:</span></span><b id="repNightlyTotal" class="font-sans t-main num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/flame.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>حجم مصرف‌شده:</span></span><b id="repNightlyUsed" class="font-sans t-warn num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/inbox.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>حجم باقیمانده:</span></span><b id="repNightlyRemain" class="font-sans t-success num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>مجموع مصرف دیروز:</span></span><b id="repNightlyYesterday" class="font-sans t-accent text-sm num-bidi" dir="ltr">0.00 GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/clock.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>انقضا:</span></span><span id="repNightlyExpire" class="font-semibold t-main">--</span></div>
           </div>
 
           <!-- Nightly Hourly Bar Chart (نمودار مصرف ساعتی دیشب / شبانه) -->
@@ -642,8 +642,8 @@
             <span class="text-[11px] t-muted font-sans num-bidi">7 روز اخیر</span>
           </div>
           <div class="space-y-1.5 text-xs t-muted">
-            <div class="flex justify-between"><span>⚡️ کل مصرف این هفته :</span><b id="repWeeklyTotal" class="font-sans t-accent text-sm num-bidi" dir="ltr">-- GB</b></div>
-            <div class="flex justify-between"><span>🏆 پرمصرف‌ترین روز شما :</span><span id="repWeeklyBusiest" class="font-bold t-main">—</span></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>کل مصرف این هفته:</span></span><b id="repWeeklyTotal" class="font-sans t-accent text-sm num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/trophy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>پرمصرف‌ترین روز شما:</span></span><span id="repWeeklyBusiest" class="font-bold t-main">—</span></div>
           </div>
           <div class="pt-2 border-t border-card-border">
             <span class="text-[11px] t-muted font-medium block mb-2">نمودار مصرف هفتگی (7 روز اخیر):</span>
@@ -687,7 +687,7 @@
           </div>
 
           <div class="space-y-1.5 text-xs t-muted">
-            <div class="flex justify-between"><span>⚡️ کل مصرف ماهانه اکانت :</span><b id="repMonthlyTotal" class="font-sans t-purple text-sm num-bidi" dir="ltr">-- GB</b></div>
+            <div class="flex justify-between"><span class="flex items-center gap-1"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>کل مصرف ماهانه اکانت:</span></span><b id="repMonthlyTotal" class="font-sans t-purple text-sm num-bidi" dir="ltr">-- GB</b></div>
           </div>
 
           <!-- Monthly 4-Week Chart (نمودار مصرف هفته‌های ماه) -->
@@ -721,7 +721,7 @@
                 <span>هدایا و دستاوردهای من</span>
               </span>
               <button type="button" onclick="window.openLuckyWheel()" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center gap-1 active:scale-95 shadow-sm">
-                <span>🎡</span> گردونه شانس
+                <img src="/static/img/icons/wheel.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>گردونه شانس</span>
               </button>
             </div>
 
@@ -751,11 +751,11 @@
             <!-- Streak & Spin tickets footer -->
             <div class="flex items-center justify-between card-inset rounded-xl px-3 py-1.5 text-[11px]">
               <div class="flex items-center gap-1.5 t-muted">
-                <span>🔥 روزهای متوالی چرخش:</span>
+                <span class="flex items-center gap-1"><img src="/static/img/icons/flame.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>روزهای متوالی چرخش:</span></span>
                 <b id="achieveStreakCount" class="font-sans t-warn font-bold" dir="rtl">0 روز</b>
               </div>
               <div class="flex items-center gap-1.5 t-muted">
-                <span>🎫 بلیط گردونه:</span>
+                <span class="flex items-center gap-1"><img src="/static/img/icons/ticket.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>بلیط گردونه:</span></span>
                 <b id="achieveSpinTickets" class="font-sans t-info font-bold" dir="rtl">0 عدد</b>
               </div>
             </div>
@@ -985,10 +985,10 @@
         <!-- Smart Shop Sub-tabs (سرویس کامل / افزایش حجم / افزایش زمان / بسته دلخواه) -->
         <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1">
           <button type="button" onclick="window.switchShopCategory('full')" id="shopCategoryBtn-full" class="flex-1 py-1.5 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-blue-600 text-white shadow">
-            <span>💎</span> سرویس کامل
+            <img src="/static/img/icons/diamond.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>سرویس کامل</span>
           </button>
           <button type="button" onclick="window.switchShopCategory('traffic')" id="shopCategoryBtn-traffic" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 t-muted hover:t-main">
-            <span>⚡️</span> افزایش حجم
+            <img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>افزایش حجم</span>
           </button>
           <button type="button" onclick="window.switchShopCategory('time')" id="shopCategoryBtn-time" class="flex-1 py-1.5 px-2 rounded-xl font-medium transition flex items-center justify-center gap-1 t-muted hover:t-main">
             <img src="/static/img/icons/clock.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" aria-hidden="true" /> <span>افزایش زمان</span>
@@ -1097,7 +1097,7 @@
           </div>
 
           <button id="submitCustomPlanBtn" type="button" onclick="window.purchaseCustomPlan && window.purchaseCustomPlan()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-2">
-            <span>🚀</span> خرید و فعال‌سازی آنی بسته اختصاصی
+            <img src="/static/img/icons/rocket.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>خرید و فعال‌سازی آنی بسته اختصاصی</span>
           </button>
           </div>
         </div>
@@ -1624,19 +1624,6 @@
                 <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
               </div>
             </div>
-
-            <!-- Icon Pack Switcher (تغییر سبک آیکون‌ها) -->
-            <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
-              <div>
-                <span class="t-main font-medium block">🎨 سبک آیکون‌ها</span>
-                <span class="text-[11px] t-muted">انتخاب ظاهر آیکون‌های سراسر برنامه</span>
-              </div>
-              <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg" id="iconPackSwitcher">
-                <button type="button" id="iconPackBtn_solar" onclick="window.setIconPack('solar'); if(window.hapticFeedback) window.hapticFeedback('selection');" class="px-2 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white shadow-xs" title="سبک مدرن و دوتون Solar">سولار (ترند)</button>
-                <button type="button" id="iconPackBtn_phosphor" onclick="window.setIconPack('phosphor'); if(window.hapticFeedback) window.hapticFeedback('selection');" class="px-2 py-1 text-xs rounded-md font-medium transition t-muted hover:t-main card-inset" title="سبک مینیمال و خطی Phosphor">فسفر</button>
-                <button type="button" id="iconPackBtn_fluent" onclick="window.setIconPack('fluent'); if(window.hapticFeedback) window.hapticFeedback('selection');" class="px-2 py-1 text-xs rounded-md font-medium transition t-muted hover:t-main card-inset" title="سبک رنگی Fluent">فلوئنت</button>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -1852,7 +1839,7 @@
             <img src="/static/img/icons/credit-card.svg" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" aria-hidden="true" /><span>کارت</span>
           </button>
           <button id="topupMethodCryptoBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <span>💎</span> TON
+            <img src="/static/img/icons/diamond.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>TON</span>
           </button>
           <button id="topupMethodTrxBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
             <span>🔴</span> ترون
@@ -1861,7 +1848,7 @@
             <span>🟣</span> پلیگان
           </button>
           <button id="topupMethodStarsBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <span>⭐</span> استارز
+            <img src="/static/img/icons/star.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>استارز</span>
           </button>
         </div>
 
@@ -2197,7 +2184,7 @@
           <div id="cryptoInvoiceInitial" class="text-center py-2 space-y-2">
             <p class="text-[11px] t-muted">پرداخت خودکار و آنی از طریق شبکه ارز دیجیتال تون (TON)</p>
             <button id="generateTonInvoiceBtn" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98]">
-              💎 ایجاد فاکتور پرداخت TON
+              <img src="/static/img/icons/diamond.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>ایجاد فاکتور پرداخت TON</span>
             </button>
           </div>
 

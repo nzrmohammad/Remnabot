@@ -364,53 +364,9 @@ const UI_ICON_FILES = {
   lightning: 'lightning',
 };
 
-function getActiveIconPack() {
-  if (typeof localStorage !== 'undefined') {
-    const saved = localStorage.getItem('remna_icon_pack');
-    if (saved && (saved === 'solar' || saved === 'phosphor' || saved === 'fluent')) {
-      return saved;
-    }
-  }
-  return 'solar';
-}
-
-function setIconPack(pack) {
-  if (pack !== 'solar' && pack !== 'phosphor' && pack !== 'fluent') return;
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('remna_icon_pack', pack);
-  }
-  updateAllIconsInDOM(pack);
-}
-
-function updateAllIconsInDOM(pack = getActiveIconPack()) {
-  if (typeof document === 'undefined') return;
-  const subPath = pack === 'solar' ? 'solar' : (pack === 'phosphor' ? 'phosphor' : 'fluent');
-  document.querySelectorAll('img.ui-icon-img, img[src*="/static/img/icons/"]').forEach(img => {
-    const currentSrc = img.getAttribute('src') || '';
-    const match = currentSrc.match(/\/static\/img\/icons\/(?:solar\/|phosphor\/|fluent\/)?([a-z0-9-]+\.svg)/);
-    if (match && match[1]) {
-      img.src = `/static/img/icons/${subPath}/${match[1]}`;
-    }
-  });
-
-  // Sync active states on switcher buttons if present
-  ['solar', 'phosphor', 'fluent'].forEach(p => {
-    const btn = document.getElementById(`iconPackBtn_${p}`);
-    if (btn) {
-      const isCur = p === pack;
-      btn.classList.toggle('is-active', isCur);
-      btn.classList.toggle('bg-blue-600', isCur);
-      btn.classList.toggle('text-white', isCur);
-      btn.classList.toggle('card-inset', !isCur);
-    }
-  });
-}
-
 function uiIcon(name, className = 'w-4 h-4') {
   const file = UI_ICON_FILES[name] || 'sparkles';
-  const pack = getActiveIconPack();
-  const sub = pack === 'solar' ? 'solar' : (pack === 'phosphor' ? 'phosphor' : 'fluent');
-  return `<img src="/static/img/icons/${sub}/${file}.svg" class="ui-icon ui-icon-img shrink-0 ${className}" alt="" aria-hidden="true" loading="eager" />`;
+  return `<img src="/static/img/icons/${file}.svg" class="ui-icon ui-icon-img shrink-0 ${className}" alt="" aria-hidden="true" loading="eager" />`;
 }
 
 const EMOJI_TO_UI_ICON = {
@@ -925,18 +881,6 @@ if (typeof window !== 'undefined') {
   window.parseDeviceMeta = parseDeviceMeta;
   window.getDonutPalette = getDonutPalette;
   window.getChartThemeTokens = getChartThemeTokens;
-  window.getActiveIconPack = getActiveIconPack;
-  window.setIconPack = setIconPack;
-  window.updateAllIconsInDOM = updateAllIconsInDOM;
-
-  // Initialize icon pack sync on DOMContentLoaded
-  if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => updateAllIconsInDOM());
-    } else {
-      setTimeout(() => updateAllIconsInDOM(), 0);
-    }
-  }
 
   // Global keyboard accessibility: Enter/Space on [role="button"] & Escape to close open dialog
   if (typeof document !== 'undefined' && !window.__remnaA11yBound) {
