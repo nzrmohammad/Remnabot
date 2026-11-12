@@ -158,49 +158,49 @@
         const pkgIcon = emojiMatch ? emojiMatch[0] : '';
         const cleanName = pkgIcon ? rawName.replace(emojiRegex, '').trim() : rawName;
         const TIER_SVG_ICONS = {
-          '🥇': ['award', 't-warn'],
-          '🏅': ['award', 't-warn'],
-          '🏆': ['award', 't-warn'],
-          '🥈': ['award', 't-muted'],
-          '🥉': ['award', 'text-amber-500'],
-          '👑': ['crown', 't-warn'],
-          '💎': ['diamond', 't-accent'],
-          '⚡': ['zap', 't-warn'],
-          '⚡️': ['zap', 't-warn'],
-          '🔥': ['flame', 't-warn'],
-          '⭐': ['star', 't-warn'],
-          '⭐️': ['star', 't-warn'],
+          '🥇': 'medal_gold',
+          '🏅': 'award',
+          '🏆': 'trophy',
+          '🥈': 'medal_silver',
+          '🥉': 'medal_bronze',
+          '👑': 'crown',
+          '💎': 'diamond',
+          '⚡': 'zap',
+          '⚡️': 'zap',
+          '🔥': 'flame',
+          '⭐': 'star',
+          '⭐️': 'star',
         };
-        const tierMeta = TIER_SVG_ICONS[pkgIcon];
-        const pkgIconHtml = tierMeta
-          ? `<span class="w-5 h-5 rounded-lg card-inset border border-card-border flex items-center justify-center flex-shrink-0" title="نشان بسته">${uiIcon(tierMeta[0], `w-3 h-3 ${tierMeta[1]}`)}</span>`
+        const tierKey = TIER_SVG_ICONS[pkgIcon];
+        const pkgIconHtml = tierKey
+          ? `<span class="w-5 h-5 rounded-lg card-inset border border-card-border flex items-center justify-center flex-shrink-0" title="نشان بسته">${uiIcon(tierKey, 'w-3.5 h-3.5')}</span>`
           : (pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : '');
 
         const bKey = (p.badge || '').toLowerCase();
         const planCategory = getPlanCategory(p);
         const isExtraTraffic = planCategory === 'traffic';
         const isExtraTime = planCategory === 'time';
-        let typeBadge = `<span class="badge badge-plan-type">${uiIcon('diamond', 'w-3 h-3 t-accent')}<span>دوره کامل</span></span>`;
+        let typeBadge = `<span class="badge badge-plan-type">${uiIcon('diamond', 'w-3.5 h-3.5')}<span>دوره کامل</span></span>`;
         if (isExtraTraffic) {
-          typeBadge = `<span class="badge badge-plan-type">${uiIcon('zap', 'w-3 h-3 t-warn')}<span>بسته حجمی</span></span>`;
+          typeBadge = `<span class="badge badge-plan-type">${uiIcon('zap', 'w-3.5 h-3.5')}<span>بسته حجمی</span></span>`;
         } else if (isExtraTime) {
-          typeBadge = `<span class="badge badge-plan-type">${uiIcon('clock', 'w-3 h-3 t-info')}<span>بسته زمانی</span></span>`;
+          typeBadge = `<span class="badge badge-plan-type">${uiIcon('clock', 'w-3.5 h-3.5')}<span>بسته زمانی</span></span>`;
         }
 
         const iranFlagHtml = typeof renderFlagHtml === 'function'
           ? renderFlagHtml('IR', 'w-3.5 h-2.5 inline-block rounded-[2px] object-cover shrink-0')
           : '🇮🇷';
         const TAG_LABELS = {
-          bestseller: `${uiIcon('flame', 'w-3 h-3 t-warn')}<span>پرفروش‌ترین</span>`,
-          popular: `${uiIcon('star', 'w-3 h-3 t-accent')}<span>پرطرفدار</span>`,
-          economic: `${uiIcon('coins', 'w-3 h-3 t-success')}<span>اقتصادی</span>`,
-          vip: `${uiIcon('crown', 'w-3 h-3 t-warn')}<span>پیشنهاد ویژه</span>`,
-          gaming: `${uiIcon('gamepad', 'w-3 h-3 t-purple')}<span>گیمینگ</span>`,
-          antifilter: `${uiIcon('shield', 'w-3 h-3 t-success')}<span>ضد فیلتر</span>`,
-          speed: `${uiIcon('zap', 'w-3 h-3 t-warn')}<span>فوق سریع</span>`,
-          stream: `${uiIcon('play', 'w-3 h-3 t-danger')}<span>استریم</span>`,
-          family: `${uiIcon('users', 'w-3 h-3 t-info')}<span>چند کاربره</span>`,
-          tunnel: `${uiIcon('route', 'w-3 h-3 t-accent')}<span>تانل اختصاصی</span>`,
+          bestseller: `${uiIcon('flame', 'w-3.5 h-3.5')}<span>پرفروش‌ترین</span>`,
+          popular: `${uiIcon('star', 'w-3.5 h-3.5')}<span>پرطرفدار</span>`,
+          economic: `${uiIcon('coins', 'w-3.5 h-3.5')}<span>اقتصادی</span>`,
+          vip: `${uiIcon('crown', 'w-3.5 h-3.5')}<span>پیشنهاد ویژه</span>`,
+          gaming: `${uiIcon('gamepad', 'w-3.5 h-3.5')}<span>گیمینگ</span>`,
+          antifilter: `${uiIcon('shield', 'w-3.5 h-3.5')}<span>ضد فیلتر</span>`,
+          speed: `${uiIcon('zap', 'w-3.5 h-3.5')}<span>فوق سریع</span>`,
+          stream: `${uiIcon('play', 'w-3.5 h-3.5')}<span>استریم</span>`,
+          family: `${uiIcon('users', 'w-3.5 h-3.5')}<span>چند کاربره</span>`,
+          tunnel: `${uiIcon('route', 'w-3.5 h-3.5')}<span>تانل اختصاصی</span>`,
           iran: `${iranFlagHtml}<span>سرور ایران</span>`,
         };
         let tagBadge = TAG_LABELS[bKey] ? `<span class="badge badge-plan-type">${TAG_LABELS[bKey]}</span>` : '';
@@ -249,7 +249,7 @@
 
         const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
         const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
-        const squadBadge = squadName ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">${uiIcon('layers', 'w-3 h-3 t-accent')}<span>${escapeHtml(squadName)}</span></span>` : '';
+        const squadBadge = squadName ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">${uiIcon('layers', 'w-3.5 h-3.5')}<span>${escapeHtml(squadName)}</span></span>` : '';
 
         const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
           ? `<p class="text-[11px] text-slate-400 line-clamp-1">${escapeHtml(p.description)}</p>`
@@ -292,23 +292,23 @@
             ${descHtml}
             ${specsHtml}
 
-            <!-- 3 Action Buttons + Duplicate with Semantic Colored Icons & Labels -->
+            <!-- 3 Action Buttons + Duplicate with Colorful Fluent Icons & Labels -->
             <div class="flex gap-1.5 pt-1">
-              <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-cyan-500/40 t-main border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
-                <svg class="w-3.5 h-3.5 t-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-cyan-500/40 t-main border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
+                ${uiIcon('edit', 'w-4 h-4 t-accent')}
                 <span class="text-[11px] font-semibold">ویرایش</span>
               </button>
-              <button type="button" onclick="window.adminActions.duplicatePlan(${p.id})" class="flex-1 card-inset hover:border-purple-500/40 t-main border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 active:scale-95" title="تکثیر / کپی بسته" aria-label="تکثیر بسته">
-                <svg class="w-3.5 h-3.5 t-purple shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <button type="button" onclick="window.adminActions.duplicatePlan(${p.id})" class="flex-1 card-inset hover:border-purple-500/40 t-main border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="تکثیر / کپی بسته" aria-label="تکثیر بسته">
+                ${uiIcon('copy', 'w-4 h-4 t-purple')}
                 <span class="text-[11px] font-semibold">تکثیر</span>
               </button>
-              <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
+              <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
                 ${p.is_active
-                  ? '<svg class="w-3.5 h-3.5 t-warn shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-semibold">غیرفعال</span>'
-                  : '<svg class="w-3.5 h-3.5 t-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[11px] font-semibold">فعال‌سازی</span>'}
+                  ? `${uiIcon('pause', 'w-4 h-4 t-warn')}<span class="text-[11px] font-semibold">غیرفعال</span>`
+                  : `${uiIcon('play_btn', 'w-4 h-4 t-success')}<span class="text-[11px] font-semibold">فعال‌سازی</span>`}
               </button>
-              <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
-                <svg class="w-3.5 h-3.5 t-danger shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
+                ${uiIcon('trash', 'w-4 h-4 t-danger')}
                 <span class="text-[11px] font-semibold">حذف</span>
               </button>
             </div>

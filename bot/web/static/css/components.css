@@ -413,6 +413,28 @@ input.node-date-input::-webkit-calendar-picker-indicator:hover {
   flex-shrink: 0;
 }
 
+.ui-icon-img {
+  display: inline-block;
+  object-fit: contain;
+  vertical-align: middle;
+  user-select: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+.nav-btn .nav-icon-pill .ui-icon-img,
+.admin-nav-btn .nav-icon-pill .ui-icon-img {
+  opacity: 0.86;
+}
+
+.nav-btn.is-active .nav-icon-pill .ui-icon-img,
+.nav-btn[aria-selected="true"] .nav-icon-pill .ui-icon-img,
+.admin-nav-btn.is-active .nav-icon-pill .ui-icon-img,
+.admin-nav-btn[aria-selected="true"] .nav-icon-pill .ui-icon-img {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
 .nav-btn.is-active span:last-child,
 .nav-btn[aria-selected="true"] span:last-child,
 .admin-nav-btn.is-active span:last-child,

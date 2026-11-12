@@ -39,7 +39,7 @@
     <div id="splashScreen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500" style="background: var(--page-bg); color: var(--text-main);">
       <div class="relative mb-6">
         <div class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-cyan-600 via-sky-600 to-blue-500 flex items-center justify-center shadow-xl shadow-cyan-500/25 pulse-glow text-white">
-          <svg class="w-11 h-11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+          <img src="/static/img/icons/crown.svg" class="ui-icon-img w-12 h-12 shrink-0" alt="" aria-hidden="true" loading="eager" />
         </div>
         <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-[var(--c-warn)] rounded-full border-4 flex items-center justify-center text-xs text-white font-bold" style="border-color: var(--page-bg);">
           ✓
@@ -67,7 +67,7 @@
 
       <button id="adminThemeToggle" class="header-action-btn card-inset border border-slate-200 dark:border-slate-800 text-xs p-1.5 w-9 h-9 min-w-[36px] min-h-[36px] t-muted hover:t-main rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="تغییر تم" aria-label="تغییر تم پنل مدیریت">
         <span id="adminThemeIcon">
-          <svg class="w-3.5 h-3.5 t-warn" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+          <img src="/static/img/icons/sun.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
       </button>
     </div>
@@ -378,7 +378,7 @@
             <div class="space-y-2 border-b border-slate-700/60 pb-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                  <svg class="w-4 h-4 t-warn shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                  <img src="/static/img/icons/trophy.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
                   <span>برترین مصرف‌کنندگان دوره</span>
                 </span>
               </div>
@@ -538,11 +538,11 @@
         <!-- Subtab Switcher: Plans vs Coupons -->
         <div class="admin-subtab-bar">
           <button id="subtabBtnPlans" type="button" onclick="window.switchServicesSubtab('plans')" class="admin-subtab-btn is-active group" aria-selected="true">
-            <svg class="w-4 h-4 shrink-0 group-hover:scale-110 transition" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/></svg>
+            <img src="/static/img/icons/package.svg" class="ui-icon-img w-4 h-4 shrink-0 group-hover:scale-110 transition" alt="" aria-hidden="true" loading="eager" />
             <span>سرویس‌ها و تعرفه‌ها</span>
           </button>
           <button id="subtabBtnCoupons" type="button" onclick="window.switchServicesSubtab('coupons')" class="admin-subtab-btn group" aria-selected="false">
-            <svg class="w-4 h-4 shrink-0 group-hover:scale-110 transition" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+            <img src="/static/img/icons/ticket.svg" class="ui-icon-img w-4 h-4 shrink-0 group-hover:scale-110 transition" alt="" aria-hidden="true" loading="eager" />
             <span>کدهای تخفیف</span>
           </button>
         </div>
@@ -552,7 +552,7 @@
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold t-main flex items-center gap-1.5">
               <span class="w-6 h-6 rounded-lg card-inset border border-card-border flex items-center justify-center shrink-0">
-                <svg class="w-3.5 h-3.5 t-accent" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <img src="/static/img/icons/shop.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
               </span>
               <span>تعرفه‌های فروش</span>
             </h3>
@@ -563,15 +563,15 @@
           <!-- Plans Category Filter Bar -->
           <div class="flex items-center gap-1.5 p-1 card-inset rounded-xl border border-card-border text-[11px] overflow-x-auto custom-scroll" id="adminPlanFilterBar">
             <button type="button" onclick="window.adminActions.filterPlans('full')" data-plan-filter="full" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-semibold bg-blue-600 text-white shadow transition whitespace-nowrap flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>
+              <img src="/static/img/icons/diamond.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" aria-hidden="true" loading="eager" />
               <span>دوره کامل</span>
             </button>
             <button type="button" onclick="window.adminActions.filterPlans('time')" data-plan-filter="time" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-semibold t-muted hover:t-main transition whitespace-nowrap flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <img src="/static/img/icons/clock.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" aria-hidden="true" loading="eager" />
               <span>افزایش زمان</span>
             </button>
             <button type="button" onclick="window.adminActions.filterPlans('traffic')" data-plan-filter="traffic" class="admin-plan-filter-btn flex-1 py-1 px-2.5 rounded-lg font-semibold t-muted hover:t-main transition whitespace-nowrap flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+              <img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" aria-hidden="true" loading="eager" />
               <span>افزایش حجم</span>
             </button>
           </div>
@@ -585,7 +585,7 @@
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold t-main flex items-center gap-1.5">
               <span class="w-6 h-6 rounded-lg card-inset border border-card-border flex items-center justify-center shrink-0">
-                <svg class="w-3.5 h-3.5 t-purple" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+                <img src="/static/img/icons/ticket.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
               </span>
               <span>کدهای تخفیف</span>
             </h3>
@@ -2533,37 +2533,37 @@
     <div id="adminNavBottom" class="bottom-nav-bar absolute bottom-0 inset-x-0 backdrop-blur-xl px-1.5 py-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex justify-between items-center z-30 overflow-x-auto no-scrollbar">
       <button class="admin-nav-btn is-active flex flex-col items-center justify-center gap-1 transition min-w-[48px] min-h-[44px] py-0.5 cursor-pointer active:scale-95" data-admin-tab="tab-admin-overview" aria-label="داشبورد" aria-selected="true">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/></svg>
+          <img src="/static/img/icons/dashboard.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px] font-bold">داشبورد</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[48px] min-h-[44px] py-0.5 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-users" aria-label="کاربران">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <img src="/static/img/icons/users.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px] font-medium">کاربران</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[48px] min-h-[44px] py-0.5 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-plans" aria-label="سرویس و تخفیف">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+          <img src="/static/img/icons/plans.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px] font-medium">سرویس‌ها</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[48px] min-h-[44px] py-0.5 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-nodes" aria-label="سرورها">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+          <img src="/static/img/icons/nodes.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px] font-medium">سرورها</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[48px] min-h-[44px] py-0.5 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-tickets" aria-label="مالی و کمپین">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+          <img src="/static/img/icons/finance.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px] font-medium">مالی</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[48px] min-h-[44px] py-0.5 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-settings" aria-label="تنظیمات">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <img src="/static/img/icons/settings.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px] font-medium">تنظیمات</span>
       </button>

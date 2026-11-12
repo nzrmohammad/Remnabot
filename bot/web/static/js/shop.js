@@ -575,7 +575,7 @@ function renderFilteredShopPlans() {
     let badgeBorderClass = 'border-slate-700/80';
     let btnClass = 'btn-plan-default';
 
-    const badgeIcon = (name) => (typeof uiIcon === 'function' ? uiIcon(name, 'w-3 h-3 text-white') : '');
+    const badgeIcon = (name) => (typeof uiIcon === 'function' ? uiIcon(name, 'w-3.5 h-3.5') : '');
     const iranFlagBadge = typeof renderFlagHtml === 'function'
       ? renderFlagHtml('IR', 'w-3.5 h-2.5 inline-block rounded-[2px] object-cover shrink-0')
       : '🇮🇷';

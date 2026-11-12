@@ -93,14 +93,14 @@
       <div class="flex items-center gap-1 flex-shrink-0">
         <button id="headerOnlineBadge" class="hidden"><span id="headerOnlineCount"></span></button>
         <button id="openSupportBtn" class="header-support-btn text-xs t-success card-inset border border-slate-200 dark:border-slate-800 w-8 h-8 min-w-[32px] min-h-[32px] rounded-xl transition flex items-center justify-center font-semibold active:scale-95 shadow-sm" title="پشتیبانی آنلاین" aria-label="پشتیبانی آنلاین">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+          <img src="/static/img/icons/chat.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
         </button>
         <button id="themeToggle" class="text-xs w-8 h-8 min-w-[32px] min-h-[32px] card-inset border border-slate-200 dark:border-slate-800 t-muted hover:t-main rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="تغییر تم" aria-label="تغییر تم (روشن/تاریک)">
-          <span id="themeIcon" class="flex items-center justify-center"><svg class="w-3.5 h-3.5 t-accent" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+          <span id="themeIcon" class="flex items-center justify-center"><img src="/static/img/icons/moon.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" /></span>
         </button>
         <button id="closeBtn" class="hidden t-accent text-[11px] font-semibold hover:opacity-80 transition px-2 py-1 min-h-[32px] rounded-lg bg-transparent border-0" aria-label="بستن برنامه">بستن</button>
         <button id="reloadBtn" class="hidden t-muted hover:t-main text-xs p-1 min-w-[32px] min-h-[32px] rounded-lg bg-transparent border-0 flex items-center justify-center" title="تازه‌سازی" aria-label="تازه‌سازی">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <img src="/static/img/icons/sync.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
         </button>
       </div>
     </div>
@@ -226,26 +226,26 @@
           <button id="openLuckyWheelBtn" class="lucky-wheel-entry-btn bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/10 hover:from-amber-500/30 p-2.5 rounded-2xl border border-amber-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
               <span class="text-xs font-black t-warn flex items-center gap-1.5 lucky-wheel-title">
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+                <img src="/static/img/icons/wheel.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
                 <span>گردونه شانس</span>
               </span>
               <span class="text-[10.5px] font-bold text-amber-700 dark:text-amber-300 mt-0.5 lucky-wheel-sub">1 شانس روزانه</span>
             </div>
-            <span class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center t-warn group-hover:rotate-12 transition transform shrink-0">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
+            <span class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center group-hover:rotate-12 transition transform shrink-0">
+              <img src="/static/img/icons/gift.svg" class="ui-icon-img w-5 h-5 shrink-0" alt="" aria-hidden="true" loading="eager" />
             </span>
           </button>
 
           <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="tutorial-entry-btn card-inset p-2.5 rounded-2xl border border-cyan-500/30 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <div class="flex flex-col">
               <span class="text-xs font-black t-accent flex items-center gap-1.5 tutorial-title">
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                <img src="/static/img/icons/phone.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
                 <span>راهنمای اتصال</span>
               </span>
               <span class="text-[10.5px] font-bold text-cyan-700 dark:text-cyan-300 mt-0.5 tutorial-sub">دانلود برنامه‌ها و آموزش</span>
             </div>
-            <span class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center t-accent group-hover:scale-105 transition shrink-0">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+            <span class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center group-hover:scale-105 transition shrink-0">
+              <img src="/static/img/icons/rocket.svg" class="ui-icon-img w-5 h-5 shrink-0" alt="" aria-hidden="true" loading="eager" />
             </span>
           </button>
         </div>
@@ -254,7 +254,7 @@
         <button id="openSpeedTestModalBtn" type="button" onclick="window.openSpeedTestModal()" class="w-full speedtest-entry-btn bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-cyan-500/10 hover:from-emerald-500/25 p-3 rounded-2xl border border-emerald-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 t-success border border-emerald-500/30 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+              <img src="/static/img/icons/zap.svg" class="ui-icon-img w-5 h-5 shrink-0" alt="" aria-hidden="true" loading="eager" />
             </div>
             <div class="flex flex-col">
               <span class="text-xs font-black t-success speedtest-title">
@@ -302,8 +302,8 @@
           </div>
 
           <!-- Modern Rocket Illustration -->
-          <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-500/20 via-cyan-500/15 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center t-accent shadow-inner group">
-            <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+          <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-500/20 via-cyan-500/15 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center shadow-inner group">
+            <img src="/static/img/icons/rocket.svg" class="ui-icon-img w-7 h-7 shrink-0 group-hover:scale-110 transition-transform duration-300" alt="" aria-hidden="true" loading="eager" />
           </div>
 
           <!-- Headline & Description -->
@@ -317,15 +317,15 @@
           <!-- Value Proposition Chips (Single line, icon beside text) -->
           <div class="grid grid-cols-3 gap-1.5 py-0.5 text-center">
             <div class="card-inset rounded-xl py-1.5 px-1 flex items-center justify-center gap-1">
-              <svg class="w-3.5 h-3.5 t-warn shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+              <img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" aria-hidden="true" loading="eager" />
               <span class="text-[11px] text-slate-300 font-semibold truncate">پرسرعت</span>
             </div>
             <div class="card-inset rounded-xl py-1.5 px-1 flex items-center justify-center gap-1">
-              <svg class="w-3.5 h-3.5 t-success shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+              <img src="/static/img/icons/shield.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" aria-hidden="true" loading="eager" />
               <span class="text-[11px] text-slate-300 font-semibold truncate">ضد فیلتر</span>
             </div>
             <div class="card-inset rounded-xl py-1.5 px-1 flex items-center justify-center gap-1">
-              <svg class="w-3.5 h-3.5 t-accent shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+              <img src="/static/img/icons/chat.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" aria-hidden="true" loading="eager" />
               <span class="text-[11px] text-slate-300 font-semibold truncate">پشتیبانی</span>
             </div>
           </div>
@@ -411,7 +411,7 @@
             <div class="flex items-center gap-2">
               <span id="countryChevron" class="text-xs text-slate-400 transition-transform duration-300 transform">◀</span>
               <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                <svg class="w-4 h-4 t-info shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <img src="/static/img/icons/globe.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
                 <span>ریز مصرف</span>
               </span>
             </div>
@@ -435,7 +435,7 @@
             <div class="flex items-center gap-2">
               <span id="subChevron" class="text-xs text-slate-400 transition-transform duration-300 transform">◀</span>
               <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                <svg class="w-4 h-4 t-accent shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <img src="/static/img/icons/route.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
                 <span>لینک اشتراک</span>
               </span>
             </div>
@@ -498,7 +498,7 @@
             <!-- Configs Viewer Button -->
             <div class="pt-2">
               <button id="openConfigsModalBtn" type="button" class="w-full btn btn-secondary t-accent text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-[0.98]">
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+                <img src="/static/img/icons/layers.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
                 <span>مشاهده کانفیگ‌ها</span>
               </button>
             </div>
@@ -518,7 +518,7 @@
             <div class="flex items-center gap-2">
               <span id="sessionsChevron" class="text-xs text-slate-400 transition-transform duration-300 transform">◀</span>
               <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                <svg class="w-4 h-4 t-accent shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                <img src="/static/img/icons/phone.svg" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" />
                 <span>نشست‌های فعال</span>
               </span>
             </div>
@@ -1654,31 +1654,31 @@
     <div id="navBottom" class="absolute bottom-0 inset-x-0 backdrop-blur-xl px-2 pt-1.5 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] flex justify-around items-center z-30 transition-colors">
       <button class="nav-btn is-active flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-dashboard" onclick="window.switchTab && window.switchTab('tab-dashboard')" aria-label="تب داشبورد" aria-selected="true">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/></svg>
+          <img src="/static/img/icons/dashboard.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px]">داشبورد</span>
       </button>
       <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-reports" onclick="window.switchTab && window.switchTab('tab-reports')" aria-label="تب گزارش‌ها" aria-selected="false">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          <img src="/static/img/icons/reports.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px]">گزارش‌ها</span>
       </button>
       <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-shop" onclick="window.switchTab && window.switchTab('tab-shop')" aria-label="تب فروشگاه" aria-selected="false">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <img src="/static/img/icons/shop.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px]">فروشگاه</span>
       </button>
       <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-wallet" onclick="window.switchTab && window.switchTab('tab-wallet')" aria-label="تب کیف پول" aria-selected="false">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+          <img src="/static/img/icons/wallet.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px]">کیف پول</span>
       </button>
       <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-profile" onclick="window.switchTab && window.switchTab('tab-profile')" aria-label="تب حساب من" aria-selected="false">
         <span class="nav-icon-pill">
-          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <img src="/static/img/icons/profile.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" />
         </span>
         <span class="text-[11px]">حساب من</span>
       </button>
