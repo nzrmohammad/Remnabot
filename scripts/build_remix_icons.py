@@ -107,8 +107,8 @@ COLOR_THEMES = {
     'wallet': ('#38bdf8', '#0284c7'),          # Azure Sky (Unified Nav Accent)
     'profile': ('#38bdf8', '#0284c7'),         # Azure Sky (Unified Nav Accent)
     
-    'zap': ('#fbbf24', '#f59e0b'),             # Electric Amber
-    'lightning': ('#fbbf24', '#f59e0b'),
+    'zap': ('#f59e0b', '#d97706'),             # High-Contrast Amber Zap
+    'lightning': ('#f59e0b', '#d97706'),
     'shield': ('#38bdf8', '#0284c7'),          # Cyan Shield
     'lock-shield': ('#38bdf8', '#0284c7'),
     'lock_shield': ('#38bdf8', '#0284c7'),
@@ -118,7 +118,7 @@ COLOR_THEMES = {
     'trophy': ('#fbbf24', '#d97706'),          # Golden Trophy
     'award': ('#fbbf24', '#d97706'),
     'crown': ('#fbbf24', '#d97706'),           # Gold Crown
-    'diamond': ('#38bdf8', '#2563eb'),         # Blue Diamond
+    'diamond': ('#0284c7', '#1d4ed8'),         # Deep Royal Diamond
     'star': ('#fbbf24', '#f59e0b'),            # Gold Star
     'sparkles': ('#f472b6', '#c084fc'),        # Magic Sparkles
     'flame': ('#fb923c', '#ea580c'),           # Warm Flame
@@ -154,6 +154,13 @@ COLOR_THEMES = {
     'chat': ('#38bdf8', '#0284c7'),
     'support': ('#38bdf8', '#0284c7'),
     'phone': ('#38bdf8', '#0284c7'),
+    'calendar': ('#8b5cf6', '#6d28d9'),        # High-Contrast Violet Calendar
+    'clock': ('#f59e0b', '#b45309'),           # High-Contrast Amber Time
+    'inbox': ('#10b981', '#047857'),           # High-Contrast Emerald Volume
+    'settings': ('#0284c7', '#0369a1'),        # High-Contrast Azure Controls
+    'globe': ('#0284c7', '#0369a1'),           # Azure Globe
+    'sync': ('#0284c7', '#0369a1'),            # Azure Sync
+    'key': ('#f59e0b', '#b45309'),             # Amber Key
     'ios': ('#94a3b8', '#64748b'),
     'android': ('#3ddc84', '#10b981'),
     'windows': ('#38bdf8', '#0284c7'),
@@ -186,8 +193,8 @@ for name, rel_path in REMIX_MAPPINGS.items():
     if theme_colors:
         c1, c2 = theme_colors
     else:
-        # Crisp silver-slate for tools, hardware, controls
-        c1, c2 = '#e2e8f0', '#94a3b8'
+        # High-contrast slate for tools, hardware, controls (visible in both light & dark)
+        c1, c2 = '#94a3b8', '#475569'
         
     fill_def = f'''<defs>
     <linearGradient id="{grad_id}" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">

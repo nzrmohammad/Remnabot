@@ -189,9 +189,12 @@ function switchShopCategory(cat, shouldRender = true) {
   if (tunnelBanner) {
     if (currentShopCategory === 'full') {
       tunnelBanner.classList.remove('hidden');
-      if (bannerTitle) bannerTitle.textContent = 'راهنمای کیفیت و پیشنهاد تست تانل';
-      if (bannerBadge) bannerBadge.textContent = 'پیشنهاد تست';
-      if (bannerDesc) bannerDesc.textContent = 'اگر روی اینترنت خود با کندی یا افت کیفیت مواجه هستید، پیشنهاد می‌کنیم بسته‌های تانل اختصاصی را انتخاب و تست فرمایید (مجهز به سرورهای ضد فیلتر و پرسرعت برای تمامی اپراتورها).';
+      if (bannerTitle) bannerTitle.textContent = 'راهنمای کیفیت بسته‌های تانل';
+      if (bannerBadge) {
+        bannerBadge.textContent = '';
+        bannerBadge.classList.add('hidden');
+      }
+      if (bannerDesc) bannerDesc.textContent = 'اگر روی اینترنت خود با کندی یا افت کیفیت مواجه هستید، پیشنهاد می‌کنیم بسته‌های تانل اختصاصی را انتخاب و تست فرمایید.';
     } else if (currentShopCategory === 'custom') {
       tunnelBanner.classList.remove('hidden');
       if (bannerTitle) bannerTitle.textContent = 'ساخت اشتراک اختصاصی با حجم و زمان دلخواه';
@@ -1123,9 +1126,17 @@ function setupBuyButtons() {
       if (isIranServerPlan) {
         openShopGuidanceModal({
           title: '🇮🇷 راهنمای سرویس سرور ایران',
-          badgeText: '🌍 ویژه ایرانیان خارج از کشور',
+          badgeText: '🌍 ویژه هم‌وطنان خارج از کشور',
           badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40',
-          message: `این بسته <b>منحصراً متصل به سرورهای داخل ایران (🇮🇷)</b> است و تنها آی‌پی کشور ایران را در اختیار شما قرار می‌دهد.<br><br>📌 <b>نکات مهم پیش از خرید:</b><br>• ویژه <b>ایرانیان مقیم خارج از کشور</b> جهت دسترسی به سامانه‌های بانکی، درگاه‌های پرداخت، سایت‌های دولتی (ثنا، سخا و...) و سرویس‌های داخلی ایران.<br>• در این اشتراک <b>فقط به کشور ایران</b> دسترسی خواهید داشت و برای کاربران داخل ایران (جهت عبور از محدودیت‌های اینترنتی) مناسب <u>نیست</u>.<br><br>آیا شرایط این سرویس را مطالعه کرده و مایل به ادامه هستید؟`,
+          message: `<div class="text-justify leading-relaxed space-y-2 text-xs">
+<p>این بسته <b>منحصراً متصل به سرورهای داخل ایران (🇮🇷)</b> بوده و تنها آی‌پی کشور ایران را در اختیار شما قرار می‌دهد.</p>
+<p class="font-bold">📌 نکات مهم پیش از خرید:</p>
+<ul class="list-disc pr-4 space-y-1.5 leading-relaxed">
+  <li>ویژه <b>ایرانیان مقیم خارج از کشور</b> جهت دسترسی به سامانه‌های بانکی، درگاه‌های پرداخت اینترنتی، سایت‌های دولتی (ثنا، سخا و...) و سرویس‌های داخلی ایران.</li>
+  <li>در این اشتراک <b>فقط به کشور ایران</b> دسترسی خواهید داشت و برای کاربران داخل ایران (جهت عبور از محدودیت‌های اینترنتی) مناسب <u>نیست</u>.</li>
+</ul>
+<p class="pt-1 font-semibold">آیا شرایط این سرویس را مطالعه کرده و مایل به ادامه هستید؟</p>
+</div>`,
           actionText: '✅ متوجه شدم، ادامه',
           onAction: proceedPurchaseFlow,
           secondaryText: '❌ انصراف',

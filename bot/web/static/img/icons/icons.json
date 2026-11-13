@@ -43,8 +43,8 @@
     "remix_source": "System/settings-3-fill.svg",
     "category": "System",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#0284c7",
+      "#0369a1"
     ]
   },
   "users": {
@@ -91,16 +91,16 @@
     "remix_source": "Weather/flashlight-fill.svg",
     "category": "Weather",
     "colors": [
-      "#fbbf24",
-      "#f59e0b"
+      "#f59e0b",
+      "#d97706"
     ]
   },
   "lightning": {
     "remix_source": "Weather/flashlight-fill.svg",
     "category": "Weather",
     "colors": [
-      "#fbbf24",
-      "#f59e0b"
+      "#f59e0b",
+      "#d97706"
     ]
   },
   "shield": {
@@ -179,8 +179,8 @@
     "remix_source": "Finance/vip-diamond-fill.svg",
     "category": "Finance",
     "colors": [
-      "#38bdf8",
-      "#2563eb"
+      "#0284c7",
+      "#1d4ed8"
     ]
   },
   "star": {
@@ -211,16 +211,16 @@
     "remix_source": "System/time-fill.svg",
     "category": "System",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#f59e0b",
+      "#b45309"
     ]
   },
   "calendar": {
     "remix_source": "Business/calendar-2-fill.svg",
     "category": "Business",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#8b5cf6",
+      "#6d28d9"
     ]
   },
   "copy": {
@@ -291,56 +291,56 @@
     "remix_source": "System/delete-bin-6-fill.svg",
     "category": "System",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "edit": {
     "remix_source": "Design/edit-2-fill.svg",
     "category": "Design",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "plus": {
     "remix_source": "System/add-line.svg",
     "category": "System",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "search": {
     "remix_source": "System/search-2-line.svg",
     "category": "System",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "globe": {
     "remix_source": "Business/global-fill.svg",
     "category": "Business",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#0284c7",
+      "#0369a1"
     ]
   },
   "link": {
     "remix_source": "Editor/link-m.svg",
     "category": "Editor",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "key": {
     "remix_source": "Others/key-2-fill.svg",
     "category": "Others",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#f59e0b",
+      "#b45309"
     ]
   },
   "phone": {
@@ -355,32 +355,32 @@
     "remix_source": "Device/computer-fill.svg",
     "category": "Device",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "antenna": {
     "remix_source": "Media/broadcast-fill.svg",
     "category": "Media",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "signal": {
     "remix_source": "Device/signal-cellular-3-fill.svg",
     "category": "Device",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "wifi": {
     "remix_source": "Device/wifi-fill.svg",
     "category": "Device",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "chat": {
@@ -419,8 +419,8 @@
     "remix_source": "Document/bill-fill.svg",
     "category": "Document",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "coins": {
@@ -483,32 +483,32 @@
     "remix_source": "System/refresh-line.svg",
     "category": "System",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#0284c7",
+      "#0369a1"
     ]
   },
   "inbox": {
     "remix_source": "Business/inbox-archive-fill.svg",
     "category": "Business",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#10b981",
+      "#047857"
     ]
   },
   "download": {
     "remix_source": "System/download-2-fill.svg",
     "category": "System",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "database": {
     "remix_source": "Device/database-2-fill.svg",
     "category": "Device",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "wheel": {
@@ -523,40 +523,40 @@
     "remix_source": "Device/qr-code-fill.svg",
     "category": "Device",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "layers": {
     "remix_source": "Business/stack-fill.svg",
     "category": "Business",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "route": {
     "remix_source": "Map/route-fill.svg",
     "category": "Map",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "recycle": {
     "remix_source": "Others/recycle-fill.svg",
     "category": "Others",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "lightbulb": {
     "remix_source": "Others/lightbulb-flash-fill.svg",
     "category": "Others",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#94a3b8",
+      "#475569"
     ]
   },
   "medal-gold": {

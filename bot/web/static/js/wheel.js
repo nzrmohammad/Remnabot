@@ -232,23 +232,8 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
   const isCooldown = nextSeconds > 0;
 
   if (wheelSubEl) {
-    if (!hasActiveSub) {
-      wheelSubEl.textContent = 'قفل (ویژه اشتراک‌های فعال)';
-      wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 'text-slate-300');
-      wheelSubEl.classList.add('t-warn');
-    } else if (isCooldown && hasTicket) {
-      wheelSubEl.textContent = `شانس با تیکت دعوت (${fNum(currentWheelTickets)} عدد)`;
-      wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 't-warn/80', 'text-slate-300');
-      wheelSubEl.classList.add('t-muted');
-    } else if (isCooldown) {
-      wheelSubEl.textContent = 'شانس بعدی تا 24 ساعت';
-      wheelSubEl.classList.remove('t-warn', 't-muted', 't-success', 't-purple', 't-warn/80', 't-success');
-      wheelSubEl.classList.add('t-muted');
-    } else {
-      wheelSubEl.textContent = '1 شانس روزانه';
-      wheelSubEl.classList.remove('t-warn', 't-success', 't-purple', 't-warn/80', 'text-slate-300');
-      wheelSubEl.classList.add('t-muted');
-    }
+    wheelSubEl.textContent = '';
+    wheelSubEl.classList.add('hidden');
   }
 
   if (!spinBtn) return;
