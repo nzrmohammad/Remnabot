@@ -899,7 +899,7 @@
               <span class="text-[11px] t-muted block mt-0.5">ردیابی قیمت تبدیل و درآمد هر منبع تبلیغات</span>
             </div>
             <button type="button" onclick="window.adminActions.openCreateCampaignModal()" class="px-3 py-1.5 bg-transparent hover:bg-blue-600/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95">
-              <span>➕ ساخت لینک</span>
+              <span class="inline-flex items-center gap-1"><img src="/static/img/icons/plus.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />ساخت لینک</span>
             </button>
           </div>
 
@@ -1116,7 +1116,7 @@
             <div id="smsForwarderConfigContainer" class="border-t border-[var(--card-border)] pt-3 space-y-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
-                  <span>📱</span> تنظیمات SMS Forwarder
+                  <span class="inline-flex items-center gap-1"><img src="/static/img/icons/phone.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /></span> تنظیمات SMS Forwarder
                 </span>
                 <div class="flex items-center gap-1.5">
                   <a href="https://github.com/pppscn/SmsForwarder" target="_blank" rel="noopener noreferrer" class="p-1 rounded-lg t-muted hover:t-main transition flex items-center justify-center border-0 bg-transparent" title="سورس‌کد SMS Forwarder در گیت‌هاب">
@@ -1137,7 +1137,7 @@
                 </div>
               </div>
               <p class="text-[11px] t-muted leading-relaxed pt-1">
-                💡 <b>راهنمای اتصال:</b> اپلیکیشن اندروید <b>SMS Forwarder</b> را روی گوشی متصل به سیم‌کارت حساب بانکی نصب کنید. یک فورواردر Webhook با متد POST ایجاد نموده و آدرس فوق را در آن قرار دهید. پیامک‌های واریزی در کمتر از 5 ثانیه شناسایی شده و کیف پول کاربر خودکار شارژ می‌شود.
+                <img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /><b>راهنمای اتصال:</b> اپلیکیشن اندروید <b>SMS Forwarder</b> را روی گوشی متصل به سیم‌کارت حساب بانکی نصب کنید. یک فورواردر Webhook با متد POST ایجاد نموده و آدرس فوق را در آن قرار دهید. پیامک‌های واریزی در کمتر از 5 ثانیه شناسایی شده و کیف پول کاربر خودکار شارژ می‌شود.
               </p>
             </div>
           </div>
@@ -1405,54 +1405,54 @@
             </p>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">💳 تاپیک فیش‌های واریزی</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/credit-card.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک فیش‌های واریزی</label>
                 <input type="text" id="settingTopicTopups" data-topic-label="Topups" dir="ltr" placeholder="مثلاً: 2" class="w-full card-inset rounded-lg px-2 py-1 text-[10px] font-sans num-bidi font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[10px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">🛒 تاپیک سفارشات و خرید</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/cart.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک سفارشات و خرید</label>
                 <input type="text" id="settingTopicOrders" data-topic-label="Orders" dir="ltr" placeholder="مثلاً: 3" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">💬 تاپیک پشتیبانی و تیکت</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/chat.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک پشتیبانی و تیکت</label>
                 <input type="text" id="settingTopicSupport" data-topic-label="Support" dir="ltr" placeholder="مثلاً: 4" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-blue-700 dark:text-blue-300 outline-none focus:border-blue-500 transition placeholder:text-[11px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">⚡ تاپیک هشدارهای سیستم</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک هشدارهای سیستم</label>
                 <input type="text" id="settingTopicAlerts" data-topic-label="Alerts" dir="ltr" placeholder="مثلاً: 5" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-amber-700 dark:text-amber-300 outline-none focus:border-amber-500 transition placeholder:text-[11px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">💾 تاپیک بکاپ دیتابیس</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/database.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک بکاپ دیتابیس</label>
                 <input type="text" id="settingTopicBackups" data-topic-label="Backups" dir="ltr" placeholder="مثلاً: 6" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">🖥️ تاپیک وضعیت سرورها</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/desktop.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک وضعیت سرورها</label>
                 <input type="text" id="settingTopicNodes" data-topic-label="Nodes" dir="ltr" placeholder="مثلاً: 7" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-success outline-none focus:border-emerald-500 transition placeholder:text-[11px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">📊 تاپیک گزارش‌های مدیریتی</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/reports.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک گزارش‌های مدیریتی</label>
                 <input type="text" id="settingTopicReports" data-topic-label="Reports" dir="ltr" placeholder="مثلاً: 8" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-cyan-700 dark:text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[11px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">🪙 تاپیک پرداخت کریپتو</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/coins.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک پرداخت کریپتو</label>
                 <input type="text" id="settingTopicCrypto" data-topic-label="Crypto" dir="ltr" placeholder="مثلاً: 9" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium text-purple-700 dark:text-purple-300 outline-none focus:border-purple-500 transition placeholder:text-[11px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">⚠️ تاپیک لاگ و خطای سیستم</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/warning.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک لاگ و خطای سیستم</label>
                 <input type="text" id="settingTopicErrors" data-topic-label="Errors" dir="ltr" placeholder="مثلاً: 10" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-danger outline-none focus:border-rose-500 transition placeholder:text-[11px]" />
               </div>
               <div>
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">📥 تاپیک ثبت دستی پیامک بانک</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/inbox.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک ثبت دستی پیامک بانک</label>
                 <input type="text" id="settingTopicSmsManual" data-topic-label="SmsManual" dir="ltr" placeholder="مثلاً: 11" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-warn outline-none focus:border-amber-500 transition placeholder:text-[11px]" />
               </div>
               <div class="col-span-2">
-                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate">📡 تاپیک لاگ وب‌هوک پیامک</label>
+                <label class="text-[11px] t-muted block mb-0.5 font-medium truncate flex items-center gap-1"><img src="/static/img/icons/antenna.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تاپیک لاگ وب‌هوک پیامک</label>
                 <input type="text" id="settingTopicSmsLogs" data-topic-label="SmsLogs" dir="ltr" placeholder="مثلاً: 12" class="w-full card-inset rounded-lg px-2 py-1 text-[11px] font-sans num-bidi font-medium t-accent outline-none focus:border-cyan-500 transition placeholder:text-[11px]" />
               </div>
             </div>
             <!-- Auto Clean Previous Reports Switch -->
             <div class="flex items-center justify-between pt-3 border-t border-[var(--card-border)] mt-3">
               <div>
-                <span class="t-main font-medium text-xs block">🗑️ حذف خودکار گزارش قبلی</span>
+                <span class="t-main font-medium text-xs block flex items-center gap-1"><img src="/static/img/icons/trash.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />حذف خودکار گزارش قبلی</span>
                 <span class="text-[11px] t-muted block mt-0.5">پس از ارسال هر گزارش جدید، پیام گزارش قبلی حذف شود تا تاپیک گزارش‌ها همیشه خلوت باشد.</span>
               </div>
               <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mr-3">
@@ -2493,7 +2493,7 @@
                 <p class="text-[11px] t-muted leading-snug">این تصویر در بالای فاکتورها، رسیدهای دیجیتال تلگرام و مینی‌اپ نمایش داده می‌شود.</p>
                 <div class="flex items-center gap-2 pt-1">
                   <label class="btn btn-primary text-xs py-1.5 px-3 rounded-xl cursor-pointer active:scale-95 transition inline-flex items-center gap-1 shadow-sm">
-                    <span>📤 آپلود فایل لوگو</span>
+                    <span class="inline-flex items-center gap-1"><img src="/static/img/icons/plus.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />آپلود فایل لوگو</span>
                     <input type="file" id="settingLogoFileInput" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="window.adminActions.uploadStoreLogoFile(event)" />
                   </label>
                   <button type="button" id="adminDeleteLogoBtn" onclick="window.adminActions.clearStoreLogo()" class="text-xs py-1.5 px-3 rounded-xl border border-rose-500/30 bg-rose-500/10 t-danger hover:bg-rose-500/20 active:scale-95 transition hidden">
@@ -2613,7 +2613,7 @@
             <!-- Username -->
             <div class="card-inset p-2.5 rounded-xl border border-[var(--card-border)] flex items-center justify-between gap-2 shadow-xs">
               <span class="t-muted text-xs font-bold flex items-center gap-1.5 flex-shrink-0">
-                <span>👤</span>
+                <span><img src="/static/img/icons/profile.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
                 <span>نام کاربری:</span>
               </span>
               <div class="flex items-center gap-1.5 min-w-0" dir="ltr">
@@ -2630,7 +2630,7 @@
             <!-- Telegram ID -->
             <div class="card-inset p-2.5 rounded-xl border border-[var(--card-border)] flex items-center justify-between gap-2 shadow-xs">
               <span class="t-muted text-xs font-bold flex items-center gap-1.5 flex-shrink-0">
-                <span>🆔</span>
+                <span><img src="/static/img/icons/shield.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
                 <span>شناسه عددی تلگرام:</span>
               </span>
               <div class="flex items-center gap-1.5 min-w-0" dir="ltr">
@@ -2647,7 +2647,7 @@
             <!-- Phone Number -->
             <div class="card-inset p-2.5 rounded-xl border border-[var(--card-border)] flex items-center justify-between gap-2 shadow-xs">
               <span class="t-muted text-xs font-bold flex items-center gap-1.5 flex-shrink-0">
-                <span>📞</span>
+                <span><img src="/static/img/icons/phone.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
                 <span>شماره تماس:</span>
               </span>
               <div class="flex items-center gap-1.5 min-w-0" dir="ltr">
@@ -2664,7 +2664,7 @@
             <!-- Birthday -->
             <div class="card-inset p-2.5 rounded-xl border border-[var(--card-border)] flex items-center justify-between gap-2 shadow-xs">
               <span class="t-muted text-xs font-bold flex items-center gap-1.5 flex-shrink-0">
-                <span>🎂</span>
+                <span><img src="/static/img/icons/cake.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
                 <span>تاریخ تولد:</span>
               </span>
               <span id="userProfModalBirthday" class="font-sans t-pink font-extrabold text-xs">-</span>
@@ -2673,7 +2673,7 @@
             <!-- Wallet Balance -->
             <div class="card-inset p-2.5 rounded-xl border border-[var(--card-border)] flex items-center justify-between gap-2 shadow-xs">
               <span class="t-muted text-xs font-bold flex items-center gap-1.5 flex-shrink-0">
-                <span>👛</span>
+                <span><img src="/static/img/icons/wallet.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
                 <span>موجودی کیف پول:</span>
               </span>
               <span id="userProfModalWallet" class="font-sans t-success font-black text-sm">-</span>
@@ -2682,7 +2682,7 @@
             <!-- Registration Date -->
             <div class="card-inset p-2.5 rounded-xl border border-[var(--card-border)] flex items-center justify-between gap-2 shadow-xs">
               <span class="t-muted text-xs font-bold flex items-center gap-1.5 flex-shrink-0">
-                <span>📅</span>
+                <span><img src="/static/img/icons/calendar.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
                 <span>تاریخ عضویت در ربات:</span>
               </span>
               <span id="userProfModalCreatedAt" class="font-sans t-main font-bold text-xs">-</span>
@@ -2702,7 +2702,7 @@
         <div id="userProfModalEditBody" class="space-y-3 text-xs hidden">
           <div class="space-y-1">
             <label for="userProfEditBirthday" class="text-[11px] t-muted font-bold flex items-center gap-1.5">
-              <span>🎂</span>
+              <span><img src="/static/img/icons/cake.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
               <span>تاریخ تولد (شمسی):</span>
             </label>
             <input type="text" id="userProfEditBirthday" dir="ltr" maxlength="16" placeholder="1375/07/22" class="input-base text-xs font-sans num-bidi" />
@@ -2873,7 +2873,7 @@
         <!-- Compact Footer Actions -->
         <div class="flex items-center pt-2 border-t border-card-border flex-shrink-0">
           <button id="hwidKillAllSessionsBtn" onclick="window.adminActions.killSessionsFromModal()" class="w-full s-danger-soft hover:opacity-90 border font-bold text-xs py-2.5 px-3 rounded-xl transition active:scale-95 flex items-center justify-center gap-1.5" title="قطع کامل تمامی نشست‌های این کاربر">
-            <span>⛔️</span>
+            <span><img src="/static/img/icons/ban.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
             <span class="truncate">قطع کامل تمامی نشست‌های این کاربر</span>
           </button>
         </div>
@@ -2896,13 +2896,13 @@
         <!-- Action Type Tabs: Add Traffic (GB) vs Add Days vs Delete Users -->
         <div class="grid grid-cols-3 p-1 card-inset rounded-2xl text-[11px] gap-1">
           <button id="bulkTypeBtn_traffic" type="button" onclick="window.adminActions.setBulkActionType('add_traffic')" class="py-2 rounded-xl font-bold bg-blue-600 text-white shadow-md text-center flex items-center justify-center gap-1 transition active:scale-95">
-            <span>🎁 افزایش حجم</span>
+            <span class="inline-flex items-center gap-1"><img src="/static/img/icons/gift.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />افزایش حجم</span>
           </button>
           <button id="bulkTypeBtn_days" type="button" onclick="window.adminActions.setBulkActionType('add_days')" class="py-2 rounded-xl font-semibold t-muted hover:t-main hover:bg-slate-500/10 text-center flex items-center justify-center gap-1 transition active:scale-95">
-            <span>⏳ تمدید روز</span>
+            <span class="inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />تمدید روز</span>
           </button>
           <button id="bulkTypeBtn_delete" type="button" onclick="window.adminActions.setBulkActionType('delete_users')" class="py-2 rounded-xl font-semibold text-rose-500 hover:t-danger hover:bg-rose-500/10 text-center flex items-center justify-center gap-1 transition active:scale-95">
-            <span>🗑️ حذف کاربران</span>
+            <span class="inline-flex items-center gap-1"><img src="/static/img/icons/trash.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />حذف کاربران</span>
           </button>
         </div>
 
@@ -3043,13 +3043,13 @@
             <label class="text-[11px] t-main block mb-1 font-semibold">نوع بسته:</label>
             <div class="grid grid-cols-3 gap-1.5 p-1 card-inset rounded-xl text-[11px]">
               <button type="button" id="planTypeBtn-full" onclick="window.adminActions.setPlanType('full')" class="py-1.5 px-1 rounded-lg font-bold bg-blue-600 text-white transition flex items-center justify-center gap-1 shadow">
-                <span>💎</span> دوره کامل
+                <span class="inline-flex items-center gap-1"><img src="/static/img/icons/diamond.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />دوره کامل</span>
               </button>
               <button type="button" id="planTypeBtn-traffic" onclick="window.adminActions.setPlanType('traffic')" class="py-1.5 px-1 rounded-lg font-medium t-muted hover:t-main transition flex items-center justify-center gap-1">
-                <span>⚡️</span> افزایش حجم
+                <span class="inline-flex items-center gap-1"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />افزایش حجم</span>
               </button>
               <button type="button" id="planTypeBtn-time" onclick="window.adminActions.setPlanType('time')" class="py-1.5 px-1 rounded-lg font-medium t-muted hover:t-main transition flex items-center justify-center gap-1">
-                <span>⏳</span> افزایش زمان
+                <span class="inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />افزایش زمان</span>
               </button>
             </div>
             <div id="planTypeNotice" class="text-[11px] t-muted mt-1.5 p-1.5 rounded-lg card-inset hidden leading-relaxed"></div>
@@ -4000,7 +4000,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 w-full max-w-[360px] space-y-3.5 shadow-2xl relative max-h-[85vh] flex flex-col overflow-hidden">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <h4 id="recommendedAppPickerTitle" class="text-xs font-bold t-main flex items-center gap-1.5">
-            <span>⭐️</span>
+            <span><img src="/static/img/icons/star.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /></span>
             <span>انتخاب برنامه پیشنهادی</span>
           </h4>
           <button type="button" onclick="window.adminActions.closeRecommendedAppModal()" class="modal-close-btn" aria-label="بستن">✕</button>
@@ -4047,7 +4047,7 @@
             <label class="text-[11px] t-muted font-medium">بسته اشتراک انتخابی:</label>
             <div role="button" tabindex="0" onclick="window.adminActions.openPlanPickerModal()" class="w-full bg-slate-900 border border-[var(--card-border)] hover:border-blue-500/60 rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
               <div class="flex items-center gap-2 min-w-0">
-                <span id="createUserPlanIcon" class="text-sm">📦</span>
+                <span id="createUserPlanIcon" class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg" class="ui-icon-img w-4 h-4" width="16" height="16" alt="" /></span>
                 <span id="createUserPlanLabel" class="text-xs text-white font-medium truncate">انتخاب کنید</span>
               </div>
               <span class="t-muted text-xs group-hover:text-white transition">▼</span>

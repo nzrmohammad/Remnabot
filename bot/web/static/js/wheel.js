@@ -42,7 +42,13 @@ function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = 
     return;
   }
 
-  if (iconEl) iconEl.innerText = icon;
+  if (iconEl) {
+    if (typeof window.uiEmojiIcon === 'function') {
+      iconEl.innerHTML = window.uiEmojiIcon(icon, 'w-8 h-8');
+    } else {
+      iconEl.innerText = icon;
+    }
+  }
   if (titleEl) titleEl.innerText = title;
   if (bodyEl) bodyEl.innerHTML = message;
 

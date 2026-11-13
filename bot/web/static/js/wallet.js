@@ -182,7 +182,7 @@ function getTxPurchaseInfo(tx) {
       else emojiStr = '📦';
     }
 
-    const iconHtml = `<span class="shrink-0 text-base leading-none">${emojiStr || '📦'}</span>`;
+    const iconHtml = `<span class="shrink-0 flex items-center justify-center">${uiEmojiIcon(emojiStr || '📦', 'w-4 h-4')}</span>`;
     planHtml = `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
   }
 
@@ -215,7 +215,7 @@ function renderWalletTransactions(transactions) {
   if (txList.length === 0) {
     txContainer.innerHTML = `
       <div class="p-4 rounded-xl bg-transparent border border-[var(--card-border)] text-center text-xs text-slate-400">
-        <span>🧾 هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
+        <span>${uiIcon('receipt', 'w-4 h-4 inline-block ml-1')} هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
       </div>
     `;
     const oldPag = document.getElementById('walletTxPagination');
@@ -255,8 +255,8 @@ function renderWalletTransactions(transactions) {
     }
 
     const invoiceBtn = isOrder ? `
-      <button type="button" onclick="event.stopPropagation(); window.openInvoiceModal && window.openInvoiceModal(${tx.id});" class="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-0.5 font-bold" title="مشاهده و دانلود فاکتور رسمی">
-        <span>🧾</span> <span>فاکتور</span>
+      <button type="button" onclick="event.stopPropagation(); window.openInvoiceModal && window.openInvoiceModal(${tx.id});" class="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 font-bold" title="مشاهده و دانلود فاکتور رسمی">
+        ${uiIcon('receipt', 'w-3.5 h-3.5')} <span>فاکتور</span>
       </button>
     ` : '';
 
@@ -264,7 +264,7 @@ function renderWalletTransactions(transactions) {
     return `
     <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
-        <span class="text-xl shrink-0">${txIcon}</span>
+        <span class="shrink-0 flex items-center justify-center">${uiEmojiIcon(txIcon, 'w-5 h-5')}</span>
         <div class="min-w-0 flex-1 space-y-1">
           ${titleBlock}
           <span class="text-[10px] t-muted font-sans num-bidi block" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>

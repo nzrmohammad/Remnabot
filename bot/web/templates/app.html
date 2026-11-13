@@ -40,7 +40,7 @@
     <div id="splashScreen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500" style="background: var(--page-bg); color: var(--text-main);">
       <div class="relative mb-6">
         <div class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-cyan-600 via-sky-600 to-blue-500 flex items-center justify-center shadow-xl shadow-cyan-500/25 pulse-glow">
-          <span class="text-4xl">⚡️</span>
+          <img src="/static/img/icons/zap.svg" class="ui-icon-img w-10 h-10 mx-auto" width="40" height="40" alt="" />
         </div>
         <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-[var(--c-success)] rounded-full border-4 flex items-center justify-center text-xs text-white font-bold" style="border-color: var(--page-bg);">
           ✓
@@ -278,8 +278,8 @@
         <!-- Birthday Countdown Card (Hidden if birthday not set) -->
         <div role="button" tabindex="0" id="dashboardBirthdayCard" onclick="window.openBirthdayCountdownModal()" class="hidden bg-gradient-to-r from-pink-500/15 via-rose-500/15 to-purple-500/10 rounded-2xl p-3 border border-pink-500/30 shadow-sm flex items-center justify-between cursor-pointer active:scale-[0.98] transition select-none hover:border-pink-500/60" title="مشاهده شمارش معکوس زادروز">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-300 border border-pink-500/30 flex items-center justify-center text-xl flex-shrink-0">
-              🎂
+            <div class="w-10 h-10 rounded-xl bg-pink-500/20 border border-pink-500/30 flex items-center justify-center flex-shrink-0">
+              <img src="/static/img/icons/cake.svg" class="ui-icon-img w-6 h-6" width="24" height="24" alt="" />
             </div>
             <div>
               <span id="birthdayCardTitle" class="text-xs font-black t-pink block">شمارش معکوس زادروز شما</span>
@@ -287,7 +287,7 @@
             </div>
           </div>
           <div id="birthdayCardBadge" class="px-2.5 py-1 rounded-xl s-pink-soft text-[11px] font-bold flex items-center gap-1 font-sans">
-            <span>🎁</span>
+            <img src="/static/img/icons/gift.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" />
             <span id="birthdayDaysLeftNum">--</span>
             <span>روز</span>
           </div>
@@ -554,11 +554,11 @@
 
         <!-- Periodic Reports Sub-Tabs (5 items: Daily & Nightly on the right) -->
         <div class="flex bg-transparent p-1 rounded-xl border border-slate-200 dark:border-card-border text-xs">
-          <button id="repSubDaily" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm transition">☀️ روزانه</button>
-          <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">🌙 شبانه</button>
-          <button id="repSubWeekly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">📊 هفتگی</button>
-          <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">📅 ماهانه</button>
-          <button id="repSubAnalytics" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">⚡️ تحلیل</button>
+          <button id="repSubDaily" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm transition"><img src="/static/img/icons/sun.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />روزانه</button>
+          <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"><img src="/static/img/icons/moon.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />شبانه</button>
+          <button id="repSubWeekly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"><img src="/static/img/icons/reports.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />هفتگی</button>
+          <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"><img src="/static/img/icons/calendar.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />ماهانه</button>
+          <button id="repSubAnalytics" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />تحلیل</button>
         </div>
 
         <!-- 0. Daily Report Card -->
@@ -638,7 +638,7 @@
         <!-- 2. Weekly Report Card -->
         <div id="viewRepWeekly" class="card p-4 space-y-3 shadow-md hidden">
           <div class="flex justify-between items-center border-b border-card-border pb-2">
-            <span class="text-xs font-bold t-main flex items-center gap-1">📊 گزارش جامع 7 روز گذشته</span>
+            <span class="text-xs font-bold t-main flex items-center gap-1"><img src="/static/img/icons/reports.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />گزارش جامع 7 روز گذشته</span>
             <span class="text-[11px] t-muted font-sans num-bidi">7 روز اخیر</span>
           </div>
           <div class="space-y-1.5 text-xs t-muted">
@@ -717,7 +717,7 @@
           <div id="userAchievementsCard" class="card rounded-2xl p-4 space-y-3 shadow-md border border-indigo-500/30">
             <div class="flex justify-between items-center border-b border-card-border pb-2">
               <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                <span class="text-sm">🎁</span>
+                <img src="/static/img/icons/gift.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" />
                 <span>هدایا و دستاوردهای من</span>
               </span>
               <button type="button" onclick="window.openLuckyWheel()" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center gap-1 active:scale-95 shadow-sm">
@@ -794,7 +794,7 @@
             <div class="space-y-2 border-b border-card-border pb-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                  <span class="text-sm">🏆</span>
+                  <img src="/static/img/icons/trophy.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />
                   <span>برترین مصرف‌کنندگان دوره</span>
                 </span>
               </div>
@@ -844,7 +844,7 @@
 
             <!-- Dynamic User Status / Rank Notice -->
             <div id="userLeaderboardNotice" class="p-2.5 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border border-card-border">
-              <span id="userLbNoticeIcon" class="text-base shrink-0">📊</span>
+              <span id="userLbNoticeIcon" class="shrink-0 flex items-center"><img src="/static/img/icons/reports.svg" class="ui-icon-img w-4 h-4" width="16" height="16" alt="" /></span>
               <span id="userLbNoticeText" class="text-[11px] leading-relaxed t-main">در حال بارگذاری رتبه‌بندی...</span>
             </div>
 
@@ -852,7 +852,7 @@
             <div class="h-52 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center overflow-hidden">
               <canvas id="userLeaderboardChartCanvas" dir="ltr" class="w-full h-full"></canvas>
               <div id="userLeaderboardEmptyState" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-3 t-muted space-y-1">
-                <span class="text-xl">🏆</span>
+                <img src="/static/img/icons/trophy.svg" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
                 <span class="text-[11px] font-medium t-muted">داده‌ای برای رده‌بندی ثبت نشده است</span>
                 <span class="text-[11px] text-slate-500">پس از مصرف ترافیک در این بازه، نمودار رسم خواهد شد.</span>
               </div>
@@ -863,7 +863,7 @@
           <div class="card rounded-2xl p-4 space-y-2.5 shadow-md">
             <div class="flex justify-between items-center border-b border-card-border pb-2">
               <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                <span>📈</span> منحنی ساعات اوج مصرف
+                <img src="/static/img/icons/reports.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>منحنی ساعات اوج مصرف</span>
               </span>
               <span id="repPeakHourBadge" class="text-[11px] font-sans font-bold t-accent bg-transparent p-0" dir="ltr">---</span>
             </div>
@@ -875,7 +875,7 @@
             <div class="h-36 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
               <canvas id="repPeakHoursChartCanvas" dir="ltr" class="w-full h-full"></canvas>
               <div id="repPeakHoursEmptyState" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-3 text-slate-400 space-y-1 bg-slate-900/90 rounded-xl">
-                <span class="text-xl">📊</span>
+                <img src="/static/img/icons/reports.svg" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
                 <span class="text-[11px] font-medium t-muted">داده‌ای برای ساعات اوج مصرف ثبت نشده است</span>
                 <span class="text-[11px] text-slate-500">پس از مصرف ترافیک در طول شبانه‌روز، منحنی اوج مصرف رسم می‌شود.</span>
               </div>
@@ -885,7 +885,7 @@
             <div id="repPeakHoursBarContainer" class="pt-2 border-t border-card-border space-y-2">
               <div class="flex justify-between items-center px-1">
                 <span class="text-[11px] font-semibold t-muted flex items-center gap-1">
-                  <span>📊</span> توزیع مصرف بازه‌ها
+                  <img src="/static/img/icons/reports.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>توزیع مصرف بازه‌ها</span>
                 </span>
                 <span class="text-[11px] t-muted font-sans">حجم مصرف (GB)</span>
               </div>
@@ -897,28 +897,28 @@
               <div id="repHourlyPeriodsSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 font-sans text-[11px]">
                 <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between t-muted text-[11px] font-sans">
-                    <span class="flex items-center gap-1"><span>🌙 بامداد</span> <span dir="ltr" class="font-sans text-[11px] t-muted">(00-06)</span></span>
+                    <span class="flex items-center gap-1"><span><img src="/static/img/icons/moon.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />بامداد</span> <span dir="ltr" class="font-sans text-[11px] t-muted">(00-06)</span></span>
                     <span id="periodDawnPercent" class="t-accent font-bold font-sans">0%</span>
                   </div>
                   <b id="periodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between t-muted text-[11px] font-sans">
-                    <span class="flex items-center gap-1"><span>🌅 صبح</span> <span dir="ltr" class="font-sans text-[11px] t-muted">(06-12)</span></span>
+                    <span class="flex items-center gap-1"><span><img src="/static/img/icons/sunrise.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />صبح</span> <span dir="ltr" class="font-sans text-[11px] t-muted">(06-12)</span></span>
                     <span id="periodMorningPercent" class="t-success font-bold font-sans">0%</span>
                   </div>
                   <b id="periodMorningVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between t-muted text-[11px] font-sans">
-                    <span class="flex items-center gap-1"><span>☀️ عصر</span> <span dir="ltr" class="font-sans text-[11px] t-muted">(12-18)</span></span>
+                    <span class="flex items-center gap-1"><span><img src="/static/img/icons/sun.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />عصر</span> <span dir="ltr" class="font-sans text-[11px] t-muted">(12-18)</span></span>
                     <span id="periodAfternoonPercent" class="t-warn font-bold font-sans">0%</span>
                   </div>
                   <b id="periodAfternoonVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
                 </div>
                 <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
                   <div class="flex items-center justify-between t-muted text-[11px] font-sans">
-                    <span class="flex items-center gap-1"><span>🌆 شب</span> <span dir="ltr" class="font-sans text-[11px] t-muted">(18-24)</span></span>
+                    <span class="flex items-center gap-1"><span><img src="/static/img/icons/sunset.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />شب</span> <span dir="ltr" class="font-sans text-[11px] t-muted">(18-24)</span></span>
                     <span id="periodNightPercent" class="t-purple font-bold font-sans">0%</span>
                   </div>
                   <b id="periodNightVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
@@ -933,14 +933,14 @@
             <div class="card rounded-2xl p-4 space-y-2 shadow-md">
               <div class="flex justify-between items-center border-b border-card-border pb-2">
                 <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                  <span>🍩</span> سهم منطقه‌ها و کشورها
+                  <img src="/static/img/icons/globe.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>سهم منطقه‌ها و کشورها</span>
                 </span>
                 <span class="text-[11px] t-muted font-sans">تفکیک جغرافیایی</span>
               </div>
               <div class="h-44 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
                 <canvas id="repCountryChartCanvas" dir="ltr" class="w-full h-full"></canvas>
                 <div id="repCountryEmptyState" class="hidden flex flex-col items-center justify-center text-center p-3 t-muted space-y-1">
-                  <span class="text-xl">🌍</span>
+                  <img src="/static/img/icons/globe.svg" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
                   <span class="text-[11px] font-bold t-main">داده‌ای برای تفکیک موقعیت جغرافیایی ثبت نشده است</span>
                   <span class="text-[11px] t-muted">پس از اتصال و مصرف ترافیک روی سرورها، سهم مصرف کشورها رسم می‌شود.</span>
                 </div>
@@ -951,14 +951,14 @@
             <div class="card rounded-2xl p-4 space-y-2 shadow-md">
               <div class="flex justify-between items-center border-b border-card-border pb-2">
                 <span class="text-xs font-bold t-main flex items-center gap-1.5">
-                  <span>📱</span> توزیع پلتفرم و دستگاه‌ها
+                  <img src="/static/img/icons/phone.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>توزیع پلتفرم و دستگاه‌ها</span>
                 </span>
                 <span class="text-[11px] t-muted font-sans">سهم نشست‌ها</span>
               </div>
               <div class="h-40 w-full p-2 bg-transparent rounded-xl relative flex items-center justify-center">
                 <canvas id="repDeviceChartCanvas" dir="ltr" class="w-full h-full"></canvas>
                 <div id="repDeviceEmptyState" class="hidden flex flex-col items-center justify-center text-center p-3 t-muted space-y-1">
-                  <span class="text-xl">📱</span>
+                  <img src="/static/img/icons/phone.svg" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
                   <span class="text-[11px] font-bold t-main">دستگاه یا پلتفرم فعالی ثبت نشده است</span>
                   <span class="text-[11px] t-muted">با اتصال دستگاه‌ها به اشتراک، توزیع پلتفرم‌ها رسم خواهد شد.</span>
                 </div>
@@ -1005,7 +1005,7 @@
         <div id="customPlanBuilderContainer" class="card p-4 space-y-4 hidden shadow-md">
           <!-- Disabled Notice (when custom plan is disabled by admin) -->
           <div id="customPlanDisabledNotice" class="hidden card-inset p-5 rounded-2xl text-center space-y-2.5">
-            <span class="text-3xl block">🛠️</span>
+            <span class="flex items-center justify-center"><img src="/static/img/icons/settings.svg" class="ui-icon-img w-10 h-10 shrink-0" width="40" height="40" alt="" /></span>
             <b class="text-sm font-bold t-main block">امکان سفارش بسته دلخواه موقتاً غیرفعال است</b>
             <p class="text-xs t-muted leading-relaxed max-w-xs mx-auto">
               در حال حاضر سفارش بسته با حجم و زمان دلخواه توسط مدیریت غیرفعال شده است. لطفاً از سایر بسته‌های استاندارد فروشگاه استفاده فرمایید.
@@ -1025,7 +1025,7 @@
               </div>
               <div class="flex items-center gap-1.5 flex-wrap justify-end">
                 <span id="customPlanVolumeBadge" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-success-soft border whitespace-nowrap">
-                  🔥 تخفیف حجم: <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanVolumePct">0</span>%</span>
+                  <img src="/static/img/icons/flame.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />تخفیف حجم: <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanVolumePct">0</span>%</span>
                 </span>
                 <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-warn-soft border whitespace-nowrap">
                   تخفیف وفاداری: <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
@@ -1113,13 +1113,13 @@
         <div id="shopCouponSection" class="space-y-2 hidden">
           <div class="card-inset rounded-xl p-2.5 flex items-center gap-2 border border-slate-200 dark:border-card-border">
             <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-sans tracking-wide" id="couponInput" />
-            <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0">⚡️ اعمال</button>
+            <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0"><span class="flex items-center gap-1"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />اعمال</span></button>
           </div>
 
           <!-- Won Lucky Wheel Coupons (User Active Discounts) -->
           <div id="userCouponsContainer" class="space-y-1.5 hidden bg-transparent">
             <span class="text-[11px] font-bold t-main flex items-center gap-1">
-              <span>🎟</span> کدهای تخفیف شانس شما :
+              <img src="/static/img/icons/ticket.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>کدهای تخفیف شانس شما:</span>
             </span>
             <div id="userCouponsList" class="flex flex-wrap gap-1.5 bg-transparent"></div>
           </div>
@@ -1134,7 +1134,7 @@
         <div class="wallet-hero-card card p-5 shadow-xl relative overflow-hidden text-center space-y-3">
           <div class="flex justify-between items-center text-xs t-muted">
             <span class="flex items-center gap-1.5 font-medium">
-              <span>👛</span> موجودی کیف پول شما
+              <img src="/static/img/icons/wallet.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>موجودی کیف پول شما</span>
             </span>
           </div>
 
@@ -1147,10 +1147,10 @@
 
           <div class="grid grid-cols-2 gap-2 pt-2 border-t border-card-border">
             <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <span>💳</span> شارژ کیف پول
+              <img src="/static/img/icons/credit-card.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>شارژ کیف پول</span>
             </button>
             <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <span>🎁</span> ارسال هدیه
+              <img src="/static/img/icons/gift.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> ارسال هدیه
             </button>
           </div>
         </div>
@@ -1194,7 +1194,7 @@
         <div class="card rounded-2xl p-4 space-y-3">
           <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-2">
             <span class="text-xs font-bold t-main flex items-center gap-1.5">
-              <span>📑</span> تاریخچه تراکنش‌ها و سفارشات
+              <img src="/static/img/icons/finance.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تاریخچه تراکنش‌ها و سفارشات</span>
             </span>
             <span class="text-[11px] t-muted font-sans font-bold">سفارشات اخیر</span>
           </div>
@@ -1227,16 +1227,16 @@
           <h3 id="profileFullName" class="text-base font-extrabold t-main">کاربر گرامی</h3>
           <span id="profileUsername" dir="ltr" class="text-xs t-info font-sans font-medium block mt-0.5">@user</span>
           <div class="flex items-center justify-center gap-2 mt-2.5">
-            <span id="profileStatusBadge" class="badge badge-success rounded-full text-[11px] font-bold inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>
-            <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[11px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold inline-flex items-center gap-1"><span>🛡️</span><span>حساب تأییدشده</span></span>
+            <span id="profileStatusBadge" class="badge badge-success rounded-full text-[11px] font-bold inline-flex items-center gap-1"><img src="/static/img/icons/check.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>کاربر فعال</span></span>
+            <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[11px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold inline-flex items-center gap-1"><img src="/static/img/icons/shield.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>حساب تأییدشده</span></span>
           </div>
         </div>
 
         <!-- Phone Verification Reward & Trust Card (Visible if phone not verified) -->
         <div id="profilePhoneRewardCard" class="hidden bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-yellow-500/10 rounded-2xl p-4 border border-amber-500/35 shadow-lg text-right relative overflow-hidden transition-all duration-300">
           <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center text-xl flex-shrink-0 mt-0.5 shadow-sm">
-              🎁
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+              <img src="/static/img/icons/gift.svg" class="ui-icon-img w-6 h-6" width="24" height="24" alt="" />
             </div>
             <div class="flex-1 space-y-1.5">
               <div class="flex items-center justify-between">
@@ -1248,7 +1248,7 @@
               </p>
               <div class="pt-1.5">
                 <button type="button" onclick="window.verifyPhoneNative()" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
-                  <span>📱</span>
+                  <span><img src="/static/img/icons/phone.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
                   <span>تأیید فوری شماره تماس</span>
                 </button>
               </div>
@@ -1272,49 +1272,49 @@
           </div>
           <div id="userBoxIdentity" class="settings-box-body p-4 pt-2 border-t border-card-border space-y-2.5 text-xs hidden">
             <div class="flex justify-between items-center py-1">
-              <span class="t-muted flex items-center gap-1.5"><span>🆔</span> شناسه عددی تلگرام</span>
+              <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/profile.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>شناسه عددی تلگرام</span></span>
               <div class="flex items-center gap-1.5" dir="rtl">
-                <button id="copyProfileIdBtn" class="t-muted hover:text-blue-400 text-xs px-1" title="کپی شناسه">📋</button>
+                <button id="copyProfileIdBtn" class="t-muted hover:text-blue-400 text-xs px-1 inline-flex items-center" title="کپی شناسه"><img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                 <code id="profileTelegramId" class="font-sans t-main font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
               </div>
             </div>
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
-              <span class="t-muted flex items-center gap-1.5"><span>🤝</span> کد معرف شما</span>
+              <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/users.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>کد معرف شما</span></span>
               <div class="flex items-center gap-1.5" dir="rtl">
-                <button id="copyProfileRefBtn" class="t-muted hover:t-warn text-xs px-1" title="کپی کد معرف">📋</button>
+                <button id="copyProfileRefBtn" class="t-muted hover:t-warn text-xs px-1 inline-flex items-center" title="کپی کد معرف"><img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                 <code id="profileRefCode" class="font-sans t-warn font-bold bg-transparent border-0 p-0" dir="ltr">--</code>
               </div>
             </div>
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
-              <span class="t-muted flex items-center gap-1.5"><span>📞</span> شماره همراه</span>
+              <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/phone.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>شماره همراه</span></span>
               <div id="profilePhoneContainer" class="flex items-center gap-1.5">
                 <span id="profilePhone" class="t-muted font-medium font-sans" dir="ltr">وارد نشده</span>
                 <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneNative()" class="hidden px-2 py-0.5 rounded-lg bg-transparent text-amber-600 dark:text-amber-300 border border-amber-500/60 text-xs font-black hover:bg-amber-500/10 transition active:scale-95 flex items-center gap-1">
-                  <span>⚡️</span>
+                  <span><img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
                   <span>تأیید</span>
                 </button>
               </div>
             </div>
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
-              <span class="t-muted flex items-center gap-1.5"><span>📅</span> تاریخ عضویت</span>
+              <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/clock.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تاریخ عضویت</span></span>
               <span id="profileJoinDate" class="t-main font-medium font-sans" dir="ltr">--</span>
             </div>
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
-              <span class="t-muted flex items-center gap-1.5"><span>🎂</span> تاریخ تولد</span>
+              <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/gift.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تاریخ تولد</span></span>
               <div class="flex items-center gap-1.5">
                 <button id="openBirthdayModalBtn" type="button" onclick="window.openBirthdayModal()" class="t-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none" title="ثبت تاریخ تولد">
-                  <span>✏️</span>
+                  <span><img src="/static/img/icons/edit.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
                 </button>
                 <span id="profileBirthDate" class="t-main font-medium font-sans" dir="ltr">ثبت‌نشده</span>
               </div>
             </div>
 
             <div class="flex justify-between items-center py-1.5 border-t border-card-border pt-2">
-              <span class="t-muted flex items-center gap-1.5"><span>⚡️</span> وضعیت سرویس</span>
+              <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>وضعیت سرویس</span></span>
               <span id="profileSubStatus" class="font-semibold t-success">فعال</span>
             </div>
           </div>
@@ -1325,7 +1325,7 @@
           <div role="button" tabindex="0" class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxLoyalty')">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-amber-500/15 t-warn border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-base">
-                <span id="loyaltyTierIcon">🥉</span>
+                <span id="loyaltyTierIcon" class="inline-flex items-center"><img src="/static/img/icons/medal-bronze.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
               </div>
               <div>
                 <div class="flex items-center gap-1.5">
@@ -1361,14 +1361,14 @@
 
             <!-- Benefits description -->
             <div class="text-[11px] t-muted leading-relaxed flex items-center gap-2">
-              <span>✨</span>
+              <span><img src="/static/img/icons/sparkles.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
               <span id="loyaltyBenefitDesc">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.</span>
             </div>
 
             <!-- Call to Action button to open modal -->
             <button type="button" onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="w-full bg-amber-500/10 hover:bg-amber-500/20 t-warn border border-amber-500/30 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-between shadow-sm active:scale-[0.99]">
               <span class="flex items-center gap-1.5">
-                <span>👑</span>
+                <span><img src="/static/img/icons/crown.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
                 <span>مشاهده سطوح 7‌گانه و جزئیات تخفیف</span>
               </span>
               <span class="text-xs">◀</span>
@@ -1385,7 +1385,7 @@
               </span>
               <div class="text-right">
                 <b class="text-xs t-main block">دعوت از دوستان و دریافت پاداش ترافیک</b>
-                <span id="profileReferralRewardBadge" class="text-[11px] t-warn font-bold block mt-0.5">🎁 1 گیگابایت هدیه به ازای هر دعوت</span>
+                <span id="profileReferralRewardBadge" class="text-[11px] t-warn font-bold block mt-0.5 flex items-center"><img src="/static/img/icons/gift.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />1 گیگابایت هدیه به ازای هر دعوت</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -1412,19 +1412,19 @@
             <div class="space-y-1">
               <span class="text-[11px] t-muted font-medium block">لینک اختصاصی دعوت:</span>
               <div class="ref-input-box card-inset flex items-center gap-1 rounded-lg py-1 px-1.5 border border-indigo-500/30">
-                <button id="copyReferralLinkBtn" type="button" class="text-indigo-400 hover:text-indigo-300 text-xs px-1.5 py-0.5 transition active:scale-90 flex-shrink-0 bg-transparent border-0 shadow-none outline-none" title="کپی لینک اختصاصی">
-                  📋
+                <button id="copyReferralLinkBtn" type="button" class="text-indigo-400 hover:text-indigo-300 text-xs px-1.5 py-0.5 transition active:scale-90 flex-shrink-0 bg-transparent border-0 shadow-none outline-none flex items-center justify-center" title="کپی لینک اختصاصی">
+                  <img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
                 </button>
                 <input id="profileReferralLinkInput" type="text" readonly dir="ltr" class="bg-transparent border-0 text-[11px] font-sans text-slate-600 dark:text-slate-300 w-full outline-none px-0.5 select-all" value="در حال بارگذاری..." />
               </div>
             </div>
 
             <button id="shareReferralLinkBtn" type="button" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-[0.98]">
-              <span>✈️</span> ارسال به دوستان در تلگرام
+              <img src="/static/img/icons/chat.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>ارسال به دوستان در تلگرام</span>
             </button>
 
             <p class="text-[11px] t-muted card-inset rounded-xl p-2.5 border border-card-border leading-relaxed">
-              💡 <b>نکته مهم:</b> هدیه ترافیک دعوت زمانی به حساب شما اضافه می‌شود که دوست دعوت‌شده با لینک شما <b>اولین خرید</b> خود را انجام دهد.
+              <img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /><b>نکته مهم:</b> هدیه ترافیک دعوت زمانی به حساب شما اضافه می‌شود که دوست دعوت‌شده با لینک شما <b>اولین خرید</b> خود را انجام دهد.
             </p>
           </div>
         </div>
@@ -1456,7 +1456,7 @@
             <!-- Toggle: Nightly Report -->
             <div class="flex items-center justify-between py-1">
               <div>
-                <span class="t-main font-medium block">🌙 گزارش شبانه (ساعت 23:59)</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/moon.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />گزارش شبانه (ساعت 23:59)</span>
                 <span class="text-[11px] t-muted">ارسال خلاصه مصرف دیشب در تلگرام</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1470,7 +1470,7 @@
             <!-- Toggle: Weekly Report -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block">📊 گزارش هفتگی (جمعه‌شب‌ها)</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/reports.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />گزارش هفتگی (جمعه‌شب‌ها)</span>
                 <span class="text-[11px] t-muted">ارسال آمار مصرف 7 روز گذشته</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1484,7 +1484,7 @@
             <!-- Toggle: Monthly Report -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block">🗓 گزارش ماهانه (پایان ماه)</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/calendar.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />گزارش ماهانه (پایان ماه)</span>
                 <span class="text-[11px] t-muted">ارسال گزارش جامع مصرف ماه شمسی</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1498,7 +1498,7 @@
             <!-- Toggle: Auto Clean Old Reports -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block">🧹 پاکسازی خودکار گزارش‌ها</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/trash.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />پاکسازی خودکار گزارش‌ها</span>
                 <span class="text-[11px] t-muted">حذف گزارش قبلی در تلگرام قبل از ارسال جدید</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1529,7 +1529,7 @@
             <!-- Toggle: Low Traffic Warning -->
             <div class="flex items-center justify-between py-1">
               <div>
-                <span class="t-main font-medium block">⚠️ هشدار کمبود حجم</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/warning.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />هشدار کمبود حجم</span>
                 <span id="settingTrafficSubtext" class="text-[11px] t-muted">هشدار قبل از پایان ترافیک (80%)</span>
               </div>
               <div class="flex items-center gap-2 relative">
@@ -1550,7 +1550,7 @@
             <!-- Toggle: Expiry Warning -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block">⏰ هشدار پایان اعتبار سرویس</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/clock.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />هشدار پایان اعتبار سرویس</span>
                 <span id="settingExpireSubtext" class="text-[11px] t-muted">اطلاع‌رسانی 3 روز مانده به انقضا</span>
               </div>
               <div class="flex items-center gap-2 relative">
@@ -1588,7 +1588,7 @@
             <!-- Toggle: Lucky Wheel Reminder -->
             <div class="flex items-center justify-between py-1">
               <div>
-                <span class="t-main font-medium block">🎡 یادآور گردونه شانس</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/wheel.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />یادآور گردونه شانس</span>
                 <span class="text-[11px] t-muted">پیام یادآوری تلگرام به محض اتمام 24 ساعت</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1602,7 +1602,7 @@
             <!-- Toggle: Auto-Renew -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block">🔄 تمدید خودکار اشتراک</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/sync.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />تمدید خودکار اشتراک</span>
                 <span class="text-[11px] t-muted">تمدید خودکار اشتراک هنگام پایان با استفاده از موجودی کیف پول</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1616,7 +1616,7 @@
             <!-- Language Selector (تغییر زبان) -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block">🌐 زبان برنامه</span>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/globe.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />زبان برنامه</span>
                 <span class="text-[11px] t-muted">زبان پیش‌فرض ربات و داشبورد</span>
               </div>
               <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg">
@@ -1646,7 +1646,7 @@
               اگر لینک اشتراک شما افشا شده است یا کلاینت‌ها پاسخ نمی‌دهند، می‌توانید لینک فعلی را باطل کرده و لینک اختصاصی جدید دریافت کنید.
             </p>
             <button id="openRevokeModalBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-[0.98]">
-              <span>🔄</span> تغییر لینک اشتراک فعلی
+              <img src="/static/img/icons/sync.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تغییر لینک اشتراک فعلی</span>
             </button>
           </div>
         </div>
@@ -1695,8 +1695,8 @@
     <!-- ======================================================== -->
     <div id="revokeModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-5 hidden animate-fadeIn">
       <div class="modal-card border border-rose-500/50 rounded-3xl p-5 w-full text-center space-y-4 shadow-2xl relative">
-        <div class="w-14 h-14 bg-rose-500/20 t-danger rounded-full flex items-center justify-center text-2xl mx-auto border border-rose-500/40">
-          ⚠️
+        <div class="w-14 h-14 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto border border-rose-500/40">
+          <img src="/static/img/icons/warning.svg" class="ui-icon-img w-7 h-7" width="28" height="28" alt="" />
         </div>
         <div>
           <h3 class="text-base font-extrabold t-main">آیا از ابطال لینک اشتراک مطمئنید؟</h3>
@@ -1707,7 +1707,7 @@
         </div>
         <div class="space-y-2 pt-2">
           <button id="confirmRevokeBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-[0.98] shadow shadow-rose-600/30">
-            ✅ بله، لینک جدید صادر کن
+            <span class="flex items-center justify-center gap-1.5"><img src="/static/img/icons/check.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />بله، لینک جدید صادر کن</span>
           </button>
           <button id="cancelRevokeBtn" class="btn btn-secondary w-full py-2.5 text-xs font-medium">
             انصراف
@@ -1724,7 +1724,7 @@
         <button id="closeQrModalBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره کیوآرکد">✕</button>
         <div>
           <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-            📷 اسکن مستقیم
+            <img src="/static/img/icons/qr.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />اسکن مستقیم
           </span>
           <h3 class="text-sm font-bold t-main mt-1">کیوآرکد اتصال به کانفیگ</h3>
           <p class="text-[11px] t-muted mt-0.5">اسکن با دوربین گوشی یا نرم‌افزارهای VPN</p>
@@ -1734,7 +1734,7 @@
         </div>
         <div class="space-y-2 pt-1">
           <button id="copySubFromQrModalBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-2">
-            <span>📋 کپی لینک اشتراک</span>
+            <span class="flex items-center justify-center gap-1"><img src="/static/img/icons/copy.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span>کپی لینک اشتراک</span></span>
           </button>
         </div>
       </div>
@@ -1748,7 +1748,7 @@
         <button id="closeConfigsModalBtn" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره کانفیگ‌ها">✕</button>
         <div class="border-b border-card-border pb-2.5 text-right">
           <div class="flex items-center gap-2">
-            <span class="text-xl">🧩</span>
+            <img src="/static/img/icons/layers.svg" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
             <div>
               <h3 class="text-sm font-bold t-main">کانفیگ‌های درون اشتراک</h3>
               <p class="text-[11px] t-muted mt-0.5">تفکیک پروتکل‌ها جهت اتصال در مودم یا نرم‌افزارهای VPN</p>
@@ -1758,7 +1758,7 @@
 
         <div id="configsModalList" class="flex-1 overflow-y-auto custom-scroll space-y-2 py-1.5 px-2 max-h-[50vh]">
           <div class="text-center py-6 t-muted text-xs space-y-2">
-            <span class="inline-block animate-spin text-base">🔄</span>
+            <span class="inline-flex items-center justify-center animate-spin"><img src="/static/img/icons/sync.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
             <div>در حال دریافت و تفکیک کانفیگ‌ها...</div>
           </div>
         </div>
@@ -1766,7 +1766,7 @@
         <div class="pt-2 border-t border-card-border flex items-center justify-between">
           <span id="configsModalCount" class="text-[11px] t-muted font-sans">0 کانفیگ</span>
           <button id="copyAllConfigsBtn" type="button" class="t-accent hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold py-1.5 px-3 rounded-xl transition flex items-center gap-1 active:scale-95 shadow-sm" title="کپی همه کانفیگ‌ها">
-            <span>📋 کپی همه کانفیگ‌ها</span>
+            <span class="flex items-center justify-center gap-1"><img src="/static/img/icons/copy.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span>کپی همه کانفیگ‌ها</span></span>
           </button>
         </div>
       </div>
@@ -1779,7 +1779,7 @@
       <div class="modal-card border border-blue-500/50 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px]">
         <div class="flex items-center justify-between border-b border-card-border pb-2.5">
           <span class="text-xs font-bold t-main flex items-center gap-1.5">
-            <span>🔄</span> انتخاب اکانت فعال
+            <img src="/static/img/icons/users.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>انتخاب اکانت فعال</span>
           </span>
           <button id="closeSwitchAccountBtn" class="modal-close-btn" title="بستن" aria-label="بستن پنجره تعویض اکانت">✕</button>
         </div>
@@ -1797,7 +1797,7 @@
       <div class="modal-card border border-blue-500/50 rounded-3xl p-5 w-full space-y-3 shadow-2xl relative max-w-[370px] max-h-[85vh] flex flex-col text-xs">
         <div class="flex items-center justify-between border-b border-card-border pb-2.5">
           <div class="flex items-center gap-2">
-            <span class="text-base">📱</span>
+            <img src="/static/img/icons/phone.svg" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
             <div>
               <span class="text-xs font-bold t-main block">نشست‌های فعال و دستگاه‌ها</span>
               <span class="text-[11px] t-muted block">دستگاه‌های فعال روی این اشتراک (HWID)</span>
@@ -1842,10 +1842,10 @@
             <img src="/static/img/icons/diamond.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>TON</span>
           </button>
           <button id="topupMethodTrxBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <span>🔴</span> ترون
+            <img src="/static/img/icons/coins.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />ترون
           </button>
           <button id="topupMethodPolBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <span>🟣</span> پلیگان
+            <img src="/static/img/icons/diamond.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />پلیگان
           </button>
           <button id="topupMethodStarsBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
             <img src="/static/img/icons/star.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>استارز</span>
@@ -1874,15 +1874,15 @@
         <!-- 1. Card-to-Card Section -->
         <div id="topupCardView" class="space-y-3">
           <div id="cardPhoneVerificationWarning" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-center space-y-2">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 mx-auto flex items-center justify-center text-lg">
-              🔒
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 mx-auto flex items-center justify-center">
+              <img src="/static/img/icons/lock-shield.svg" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
             </div>
             <b class="text-xs text-amber-800 dark:text-amber-300 block font-extrabold">احراز هویت شماره تماس الزامی است</b>
             <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-semibold">
               جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره همراه الزامی می‌باشد.
             </p>
             <button type="button" onclick="window.verifyPhoneNative()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <span>📱</span> تأیید شماره همراه
+              <img src="/static/img/icons/phone.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تأیید شماره همراه</span>
             </button>
           </div>
 
@@ -1891,14 +1891,14 @@
             <div id="cardAutoTopupContainer" class="hidden space-y-3">
               <div id="cardAutoInitialBox" class="card-inset rounded-2xl p-3 text-center space-y-2 border border-emerald-500/30">
                 <div class="flex items-center justify-between text-xs font-bold t-success">
-                  <span class="flex items-center gap-1.5">⚡️ کارت‌به‌کارت آنی و خودکار</span>
+                  <span class="flex items-center gap-1.5"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" />کارت‌به‌کارت آنی و خودکار</span>
                   <span class="text-[11px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">تایید هوشمند پیامکی</span>
                 </div>
                 <p class="text-[11px] t-muted leading-relaxed">
                   با ایجاد فاکتور هوشمند، مبلغ دقیق و اختصاصی به شما اختصاص می‌یابد و پس از واریز از همراه بانک، کیف پول شما در کمتر از 10 ثانیه بدون نیاز به ارسال فیش شارژ می‌شود.
                 </p>
                 <button type="button" id="createCardAutoInvoiceBtn" onclick="window.createCardAutoInvoice()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] text-xs flex items-center justify-center gap-1.5">
-                  <span>⚡️</span> ایجاد فاکتور پرداخت آنی کارت‌به‌کارت
+                  <img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>ایجاد فاکتور پرداخت آنی کارت‌به‌کارت</span>
                 </button>
               </div>
 
@@ -1935,7 +1935,7 @@
                       <b id="cardAutoCardNumber" onclick="window.copyCardNumber(document.getElementById('copyCardAutoBtn'))" class="font-bold t-main text-sm sm:text-base font-sans tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
                     </div>
                     <button id="copyCardAutoBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
-                      📋
+                      <img src="/static/img/icons/copy.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                     </button>
                   </div>
 
@@ -1950,7 +1950,7 @@
                       <b id="cardAutoExactRial" class="t-accent text-sm font-sans font-bold">-- ریال</b>
                     </div>
                     <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
-                      📋
+                      <img src="/static/img/icons/copy.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                     </button>
                   </div>
 
@@ -1961,7 +1961,7 @@
                       <b id="cardAutoExactToman" class="t-success text-sm font-sans font-bold">-- تومان</b>
                     </div>
                     <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
-                      📋
+                      <img src="/static/img/icons/copy.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                     </button>
                   </div>
                 </div>
@@ -2011,7 +2011,7 @@
                 <!-- Strict Warning Alert (Placed immediately below card details & amounts) -->
                 <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-right space-y-1">
                   <b class="text-xs t-danger flex items-center gap-1 font-extrabold">
-                    <span>⚠️</span> مبلغ را رند نکنید!
+                    <img src="/static/img/icons/warning.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> مبلغ را رند نکنید!
                   </b>
                   <p class="text-[11px] t-main leading-relaxed font-medium">
                     سیستم هوشمند دقیقاً همین رقم را برای شما رزرو کرده است؛ لطفاً رقم را تغییر ندهید تا شارژ بلافاصله و اتوماتیک انجام گیرد.
@@ -2020,13 +2020,13 @@
 
                   <!-- Transfer Rule Warning -->
                   <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2 text-center text-[11px] text-rose-500 font-bold">
-                    ⛔ انتقال وجه از طریق روش‌های پایا و پل ممنوع است! فقط روش کارت‌به‌کارت مجاز است.
+                    <img src="/static/img/icons/ban.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> انتقال وجه از طریق روش‌های پایا و پل ممنوع است! فقط روش کارت‌به‌کارت مجاز است.
                   </div>
 
                 <!-- 1-Hour Informational Note -->
                 <div class="card-inset rounded-xl p-2.5 text-right text-[11px] leading-relaxed t-muted space-y-1 border border-amber-500/20">
                   <div class="flex items-center gap-1 font-bold t-warn text-[11px]">
-                    <span>💡</span> <b>راهنمای تأیید خودکار:</b>
+                    <img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /><b>راهنمای تأیید خودکار:</b>
                   </div>
                   <p>
                     مهلت واریز و تایید خودکار فاکتور <b>1 ساعت</b> است. در صورتی که پس از پایان این زمان واریزی شما به دلیل تاخیر پیامک بانک تایید نشد، تصویر فیش را از طریق دکمه زیر ارسال فرمایید.
@@ -2036,7 +2036,7 @@
                 <!-- Action Buttons: Positioned below guide -->
                 <div class="grid grid-cols-2 gap-2 pt-1">
                   <button type="button" onclick="window.checkCardAutoStatus(true)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1 shadow">
-                    <span>🔄</span> بررسی وضعیت
+                    <img src="/static/img/icons/sync.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>بررسی وضعیت</span>
                   </button>
                   <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-sm">
                     انصراف
@@ -2047,7 +2047,7 @@
               <!-- Manual Fallback Toggle -->
               <div id="manualReceiptToggleWrapper" class="pt-1">
                 <button id="toggleManualReceiptBtn" type="button" onclick="window.toggleManualReceiptUpload()" class="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-card-border hover:border-cyan-500/50 t-main font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm active:scale-[0.98]">
-                  <span>📤</span> ارسال دستی تصویر فیش واریزی (اختیاری) <span class="text-[11px] t-muted">▾</span>
+                  <img src="/static/img/icons/chat.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>ارسال دستی تصویر فیش واریزی (اختیاری)</span> <span class="text-[11px] t-muted">▾</span>
                 </button>
               </div>
             </div>
@@ -2055,7 +2055,7 @@
             <!-- 1-Hour Lock Banner (shown when manual card receipt upload is locked by auto card invoice) -->
             <div id="manualReceiptLockBanner" class="hidden card-inset rounded-xl p-3 border border-amber-500/35 bg-amber-500/10 text-right space-y-1">
               <div class="flex items-center justify-between gap-2 text-[11px] font-bold t-warn">
-                <span class="flex items-center gap-1">🔒 ارسال دستی فیش موقتاً مسدود است</span>
+                <span class="flex items-center gap-1.5"><img src="/static/img/icons/lock-shield.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />ارسال دستی فیش موقتاً مسدود است</span>
                 <span id="manualReceiptLockCountdown" class="font-sans num-bidi text-[11px] px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30" dir="ltr">01:00:00</span>
               </div>
               <p class="text-[11px] t-muted leading-relaxed">
@@ -2078,7 +2078,7 @@
                   <b id="topupCardNumber" onclick="window.copyCardNumber(document.getElementById('copyTopupCardBtn'))" class="font-bold t-main text-sm sm:text-base font-sans tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
                 </div>
                 <button id="copyTopupCardBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
-                  📋
+                  <img src="/static/img/icons/copy.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                 </button>
               </div>
 
@@ -2092,7 +2092,7 @@
                   <b id="topupCardAmountDisplay" class="t-success font-sans num-bidi text-sm font-bold block">-- تومان</b>
                 </div>
                 <button id="copyTopupCardAmountBtn" type="button" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
-                  📋
+                  <img src="/static/img/icons/copy.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                 </button>
               </div>
 
@@ -2130,7 +2130,7 @@
               </div>
 
               <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2 text-center text-[11px] text-rose-500 font-bold">
-                ⛔ انتقال وجه از طریق روش‌های پایا و پل ممنوع است! فقط روش کارت‌به‌کارت مجاز است.
+                <img src="/static/img/icons/ban.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> انتقال وجه از طریق روش‌های پایا و پل ممنوع است! فقط روش کارت‌به‌کارت مجاز است.
               </div>
 
             <div class="space-y-2">
@@ -2138,13 +2138,13 @@
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
                   <label class="text-[11px] t-muted font-bold flex items-center gap-1.5">
-                    <span>📸</span> تصویر فیش واریزی:
+                    <img src="/static/img/icons/receipt.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />تصویر فیش واریزی:
                   </label>
                   <span class="text-[11px] t-danger font-bold bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">الزامی</span>
                 </div>
                 <input type="file" id="topupCardImageInput" accept="image/*" class="hidden">
                 <button id="uploadCardReceiptImageBtn" type="button" class="w-full card-inset hover:border-cyan-400 t-main text-xs py-2.5 px-3 rounded-xl border border-dashed border-cyan-500/50 transition flex items-center justify-center gap-2 active:scale-95 shadow-sm">
-                  <span class="text-base">📸</span>
+                  <img src="/static/img/icons/receipt.svg" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
                   <span id="uploadReceiptBtnText" class="font-bold">انتخاب و بارگذاری عکس فیش</span>
                 </button>
                 <div id="receiptImagePreviewContainer" class="hidden relative p-2 card-inset rounded-xl border border-emerald-500/40 flex items-center justify-between">
@@ -2166,14 +2166,14 @@
               </div>
 
               <p class="text-[11px] t-muted leading-relaxed card-inset p-2 rounded-xl">
-                💡 <b>راهنما:</b> بارگذاری عکس فیش واریزی الزامی است. درج کد پیگیری اختیاری بوده و به تسریع تایید فیش توسط ادمین کمک می‌کند.
+                <img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /><b>راهنما:</b> بارگذاری عکس فیش واریزی الزامی است. درج کد پیگیری اختیاری بوده و به تسریع تایید فیش توسط ادمین کمک می‌کند.
               </p>
             </div>
 
             <div id="cardReceiptWarningBanner" class="hidden text-[11px] font-bold t-danger bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2 leading-relaxed"></div>
 
             <button id="submitCardTopupBtn" type="button" disabled class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] opacity-40 cursor-not-allowed">
-              📤 ثبت و ارسال رسید پرداخت
+              <span class="flex items-center justify-center gap-1.5"><img src="/static/img/icons/check.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />ثبت و ارسال رسید پرداخت</span>
             </button>
             </div>
           </div>
@@ -2207,19 +2207,19 @@
                 </div>
                 <button id="copyTonAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-sans text-[11px] break-all select-all transition t-accent cursor-pointer active:scale-[0.99] flex items-center justify-between gap-2" dir="ltr" title="برای کپی آدرس کلیک کنید" aria-label="کپی آدرس کیف پول TON">
                   <span id="cryptoPayAddress" class="break-all leading-relaxed font-bold text-sky-700 dark:text-sky-300">--</span>
-                  <span class="text-xs shrink-0 text-sky-400">📋</span>
+                  <img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 text-sky-400" width="14" height="14" alt="" />
                 </button>
-                <p class="text-[11px] t-muted leading-tight">💡 آدرس را کپی کنید و در برنامه کیف پول خود (Tonkeeper) ارسال را انجام دهید.</p>
+                <p class="text-[11px] t-muted leading-tight"><img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />آدرس را کپی کنید و در برنامه کیف پول خود (Tonkeeper) ارسال را انجام دهید.</p>
               </div>
               <div class="s-warn-soft p-2.5 rounded-xl space-y-1.5">
                 <div class="flex justify-between items-center text-[11px]">
                   <span class="t-warn font-extrabold">شناسه انتقال (Memo/Comment):</span>
                   <div class="flex items-center gap-1.5">
                     <code id="cryptoComment" class="t-warn font-sans font-black text-xs bg-transparent border-0 p-0" dir="ltr">--</code>
-                    <button id="copyTonCommentBtn" class="t-warn hover:opacity-75 min-w-[32px] min-h-[32px] inline-flex items-center justify-center p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent transition active:scale-95 text-xs font-bold" title="کپی شناسه انتقال" aria-label="کپی شناسه انتقال (Memo)">📋</button>
+                    <button id="copyTonCommentBtn" class="t-warn hover:opacity-75 min-w-[32px] min-h-[32px] inline-flex items-center justify-center p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent transition active:scale-95 text-xs font-bold" title="کپی شناسه انتقال" aria-label="کپی شناسه انتقال (Memo)"><img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                   </div>
                 </div>
-                <p class="text-[11px] t-warn opacity-95 leading-tight font-medium">⚠️ حتماً این شناسه (Memo) را در پیام انتقال کیف پول وارد کنید تا شارژ به‌صورت آنی ثبت شود.</p>
+                <p class="text-[11px] t-warn opacity-95 leading-tight font-medium flex items-center gap-1"><img src="/static/img/icons/warning.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />حتماً این شناسه (Memo) را در پیام انتقال کیف پول وارد کنید تا شارژ به‌صورت آنی ثبت شود.</p>
               </div>
               <div class="card-inset rounded-xl p-2.5 space-y-1.5 border border-sky-500/20 text-[11px] leading-relaxed text-justify">
                 <div class="flex items-center gap-1.5 font-bold text-sky-400">
@@ -2240,11 +2240,11 @@
                 <span>پرداخت با کیف پول تلگرام</span>
               </button>
               <a id="cryptoTonkeeperLink" href="#" class="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 t-main font-bold py-2 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block border border-slate-300 dark:border-card-border">
-                <span>🚀</span> پرداخت با Tonkeeper
+                <img src="/static/img/icons/rocket.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت با Tonkeeper</span>
               </a>
               <div class="grid grid-cols-2 gap-2">
                 <button id="cryptoCheckStatusBtn" type="button" class="btn btn-secondary py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95">
-                  <span>🔄</span> بررسی پرداخت
+                  <img src="/static/img/icons/sync.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>بررسی پرداخت</span>
                 </button>
                 <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95 transition shadow-sm">
                   <span>✕</span> انصراف و جدید
@@ -2259,7 +2259,7 @@
           <div id="trxInvoiceInitial" class="text-center py-2 space-y-2">
             <p class="text-[11px] t-muted">پرداخت مستقیم ترون (TRX) روی شبکه ترون بدون کارمزد واسطه</p>
             <button id="generateTrxInvoiceBtn" type="button" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
-              <span>🔴</span> ایجاد فاکتور ترون (TRX)
+              <span class="flex items-center justify-center gap-1.5"><img src="/static/img/icons/coins.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />ایجاد فاکتور ترون (TRX)</span>
             </button>
           </div>
 
@@ -2272,7 +2272,7 @@
               <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-card-border">
                 <span class="t-muted">مقدار قابل واریز:</span>
                 <div class="flex items-center gap-1">
-                  <button id="copyTrxAmountBtn" type="button" class="t-danger hover:text-rose-300 text-xs px-1" title="کپی مقدار">📋</button>
+                  <button id="copyTrxAmountBtn" type="button" class="t-danger hover:text-rose-300 text-xs px-1 inline-flex items-center" title="کپی مقدار"><img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                   <b id="trxAmountDisplay" class="t-danger font-sans font-bold" dir="ltr">-- TRX</b>
                 </div>
               </div>
@@ -2280,9 +2280,9 @@
                 <span class="t-muted text-[11px] block">آدرس کیف پول ترون (TRX):</span>
                 <button id="copyTrxAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-sans text-[11px] break-all select-all transition t-danger flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99]" dir="ltr">
                   <span id="trxPayAddress" class="break-all leading-relaxed font-bold text-rose-700 dark:text-rose-300">--</span>
-                  <span class="text-xs shrink-0">📋</span>
+                  <img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
                 </button>
-                <p class="text-[11px] t-muted leading-tight">💡 آدرس را کپی کنید و در کیف پول خود (Trust Wallet یا TronLink) ارسال کنید.</p>
+                <p class="text-[11px] t-muted leading-tight"><img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />آدرس را کپی کنید و در کیف پول خود (Trust Wallet یا TronLink) ارسال کنید.</p>
               </div>
               <div class="space-y-1 pt-1.5 border-t border-card-border">
                 <label class="text-[11px] t-muted font-bold block">شناسه تراکنش (TxID):</label>
@@ -2303,11 +2303,11 @@
 
             <div class="space-y-2 pt-1">
               <a id="openTronLinkBtn" href="#" class="w-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:opacity-95 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block">
-                <span>⚡️</span> پرداخت مستقیم با کیف پول ترون (TronLink)
+                <img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت مستقیم با کیف پول ترون (TronLink)</span>
               </a>
               <div class="grid grid-cols-2 gap-2">
                 <button id="submitTrxTxIdBtn" type="button" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2 px-2 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1 text-xs">
-                  <span>🔄</span> بررسی واریز
+                  <img src="/static/img/icons/sync.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>بررسی واریز</span>
                 </button>
                 <button id="cancelTrxInvoiceBtn" type="button" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 px-2 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition shadow-sm">
                   <span>✕</span> انصراف
@@ -2322,7 +2322,7 @@
           <div id="polInvoiceInitial" class="text-center py-2 space-y-2">
             <p class="text-[11px] t-muted">پرداخت مستقیم پلیگان (POL) روی شبکه Polygon بدون کارمزد واسطه</p>
             <button id="generatePolInvoiceBtn" type="button" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
-              <span>🟣</span> ایجاد فاکتور پلیگان (POL)
+              <span class="flex items-center justify-center gap-1.5"><img src="/static/img/icons/diamond.svg" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />ایجاد فاکتور پلیگان (POL)</span>
             </button>
           </div>
 
@@ -2335,7 +2335,7 @@
               <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-card-border">
                 <span class="t-muted">مقدار قابل واریز:</span>
                 <div class="flex items-center gap-1">
-                  <button id="copyPolAmountBtn" type="button" class="text-purple-400 hover:text-purple-300 text-xs px-1" title="کپی مقدار">📋</button>
+                  <button id="copyPolAmountBtn" type="button" class="text-purple-400 hover:text-purple-300 text-xs px-1 inline-flex items-center" title="کپی مقدار"><img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                   <b id="polAmountDisplay" class="text-purple-400 font-sans num-bidi font-bold" dir="ltr">-- POL</b>
                 </div>
               </div>
@@ -2343,9 +2343,9 @@
                 <span class="t-muted text-[11px] block">آدرس کیف پول پلیگان:</span>
                 <button id="copyPolAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-sans text-[11px] break-all select-all transition text-purple-700 dark:text-purple-300 font-bold flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99] min-w-0" dir="ltr">
                   <span id="polPayAddress" class="break-all leading-relaxed flex-1 min-w-0 font-bold text-purple-700 dark:text-purple-300">--</span>
-                  <span class="text-xs shrink-0 text-purple-400">📋</span>
+                  <img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 text-purple-400" width="14" height="14" alt="" />
                 </button>
-                <p class="text-[11px] t-muted leading-tight">💡 ارز POL را فقط از طریق شبکه Polygon انتقال دهید.</p>
+                <p class="text-[11px] t-muted leading-tight"><img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />ارز POL را فقط از طریق شبکه Polygon انتقال دهید.</p>
               </div>
               <div class="space-y-1 pt-1.5 border-t border-card-border">
                 <label class="text-[11px] t-muted font-bold block">شناسه تراکنش یا هش (TxHash):</label>
@@ -2370,7 +2370,7 @@
               </button>
               <div class="grid grid-cols-2 gap-2">
                 <button id="submitPolTxIdBtn" type="button" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-2 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1 text-xs">
-                  <span>🔄</span> بررسی واریز
+                  <img src="/static/img/icons/sync.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>بررسی واریز</span>
                 </button>
                 <button id="cancelPolInvoiceBtn" type="button" class="bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 font-bold py-2 px-2 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition shadow-sm">
                   <span>✕</span> انصراف
@@ -2384,7 +2384,7 @@
         <div id="topupStarsView" class="space-y-3 hidden">
           <div class="card-inset rounded-2xl p-3 border border-amber-500/40 space-y-2.5">
             <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-slate-200 dark:border-card-border">
-              <span class="t-muted flex items-center gap-1"><span>⭐</span> پرداخت آنی تلگرام:</span>
+              <span class="t-muted flex items-center gap-1"><img src="/static/img/icons/star.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت آنی تلگرام:</span></span>
               <span class="font-bold t-warn bg-transparent px-2 py-0.5 rounded-md border border-amber-500/40">Telegram Stars</span>
             </div>
             <div class="flex justify-between items-center text-[11px]">
@@ -2396,12 +2396,12 @@
               <span id="starsRateDisplay" class="font-sans t-main font-bold num-bidi">-- تومان</span>
             </div>
             <p class="text-[11px] t-muted leading-relaxed bg-transparent p-2 rounded-xl border border-slate-200 dark:border-card-border">
-              💡 با زدن دکمه پرداخت، پنجره امن پرداخت تلگرام باز شده و اعتبار حساب بلافاصله واریز می‌شود.
+              <img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />با زدن دکمه پرداخت، پنجره امن پرداخت تلگرام باز شده و اعتبار حساب بلافاصله واریز می‌شود.
             </p>
           </div>
 
           <button id="submitStarsTopupBtn" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs">
-            <span>⭐</span> پرداخت با استارز تلگرام
+            <img src="/static/img/icons/star.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت با استارز تلگرام</span>
           </button>
         </div>
 
@@ -2473,7 +2473,7 @@
         <!-- Shortage Warning Box (shown only when balance is insufficient) -->
         <div id="checkoutShortageBox" class="hidden s-danger-soft border border-rose-500/30 rounded-xl p-2.5 text-xs text-rose-700 dark:text-rose-300 space-y-1">
           <div class="flex justify-between items-center font-extrabold">
-            <span>⚠️ کسری موجودی کیف پول:</span>
+            <span class="flex items-center gap-1"><img src="/static/img/icons/warning.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" />کسری موجودی کیف پول:</span>
             <span id="checkoutShortageAmount" class="font-sans font-bold num-bidi" dir="ltr">-- تومان</span>
           </div>
           <p class="text-[11px] font-medium text-rose-800 dark:text-rose-200 leading-relaxed">برای خرید این بسته ابتدا باید کیف پول خود را شارژ فرمایید.</p>
@@ -2671,7 +2671,7 @@
           <!-- Top Brand Header -->
           <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 z-10 relative">
             <div class="flex items-center gap-1.5">
-              <span id="storyBrandIcon" class="text-base">⚡️</span>
+              <span id="storyBrandIcon" class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4" width="16" height="16" alt="" /></span>
               <span id="storyBrandTitle" class="font-black text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400">RemnaStore Pro</span>
             </div>
             <span id="storyBrandBadge" class="text-[11px] font-sans font-extrabold text-amber-300 bg-amber-500/15 border border-amber-500/40 px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
@@ -2716,7 +2716,7 @@
             <div class="text-[11px] space-y-0.5 leading-snug">
               <span class="font-extrabold text-white block">اتصال امن و اینترنت آزاد</span>
               <span id="storyCardRewardText" class="t-success block text-[11px] font-bold">
-                🎁 با این کارت <span id="storyCardRewardGb" class="font-sans">5</span> گیگابایت هدیه بگیرید
+                <img src="/static/img/icons/gift.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />با این کارت <span id="storyCardRewardGb" class="font-sans">5</span> گیگابایت هدیه بگیرید
               </span>
             </div>
           </div>
@@ -2724,7 +2724,7 @@
 
         <!-- Gamification Banner (پاداش دعوت در ازای استوری) -->
         <div id="storyGamificationBanner" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-2.5 w-full text-right text-[11px] text-amber-200/95 leading-relaxed shadow-sm">
-          <span class="font-black block text-amber-300 mb-0.5">🎯 پاداش استوری و اشتراک‌گذاری:</span>
+          <span class="font-black block text-amber-300 mb-0.5"><img src="/static/img/icons/award.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />پاداش استوری و اشتراک‌گذاری:</span>
           با انتشار این تصویر در استوری تلگرام، دوستانتان عضو شده و پس از اولین خریدشان، <b id="storyRewardBannerGb" class="text-amber-300 font-sans">5</b> گیگابایت پاداش معرف برای شما واریز می‌شود!
         </div>
 
@@ -2762,7 +2762,7 @@
             <span class="t-muted">بسته خریداری‌شده:</span>
             <div class="flex items-center gap-1.5">
               <b id="psvcName" class="text-white font-bold">--</b>
-              <span id="psvcIcon" class="text-base">📦</span>
+              <span id="psvcIcon" class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" /></span>
             </div>
           </div>
           <div class="flex justify-between items-center"><span class="t-muted">حجم ترافیک:</span><b id="psvcTraffic" class="t-accent font-sans num-bidi" dir="ltr">-- GB</b></div>
@@ -2775,7 +2775,7 @@
         <!-- Squad Switch Alert Box inside Modal -->
         <div id="psvcSquadNoticeBox" class="hidden card-inset rounded-2xl p-3 border border-amber-500/50 bg-amber-500/10 text-right space-y-1.5 animate-fadeIn">
           <div class="flex items-center gap-1.5 t-warn font-bold text-xs">
-            <span>⚡️</span>
+            <span><img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
             <span>نکته مهم به‌روزرسانی اتصال:</span>
           </div>
           <p class="text-[11px] text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
@@ -2791,17 +2791,17 @@
           </div>
           <div class="grid grid-cols-2 gap-1.5 pt-1">
             <button id="psvcCopyBtn" type="button" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow">
-              📋 کپی لینک
+              <img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /> کپی لینک
             </button>
             <button id="psvcOpenBtn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow">
-              🚀 باز کردن لینک
+              <img src="/static/img/icons/rocket.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /> باز کردن لینک
             </button>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 pt-1">
           <button id="psvcInvoiceBtn" type="button" class="btn btn-primary py-2.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow">
-            <span>🧾</span> فاکتور رسمی
+            <img src="/static/img/icons/receipt.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> فاکتور رسمی
           </button>
           <button id="psvcCloseBtn" type="button" class="btn btn-secondary py-2.5 text-xs font-bold">
             مشاهده در داشبورد
@@ -2852,7 +2852,7 @@
 
           <!-- Typing Indicator (hidden by default) -->
           <div id="typingIndicator" class="hidden items-center gap-2 text-[11px] t-muted">
-            <span>🎧 پشتیبان در حال نوشتن پاسخ...</span>
+            <span class="flex items-center gap-1.5"><img src="/static/img/icons/support.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" />پشتیبان در حال نوشتن پاسخ...</span>
             <span class="animate-pulse">✍️</span>
           </div>
         </div>
@@ -2929,8 +2929,8 @@
 
         <!-- Modal Header -->
         <div class="flex items-center gap-2.5 pb-1.5 border-b border-card-border pl-8 flex-shrink-0">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 t-success border border-emerald-500/30 flex items-center justify-center text-sm flex-shrink-0">
-            ⚡️
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+            <img src="/static/img/icons/lightning.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
           </div>
           <div class="flex-1">
             <h3 class="font-bold t-main text-sm">سنجش سرعت اینترنت</h3>
@@ -3007,21 +3007,21 @@
         <!-- 4 Metric Chips: Download, Upload, Ping, Jitter -->
         <div class="grid grid-cols-4 gap-1.5">
           <div class="speed-chip-card card-inset p-2 rounded-2xl border border-card-border text-center flex flex-col items-center">
-            <span class="text-[11px] t-muted font-medium flex items-center gap-0.5"><span>📥</span> دانلود</span>
+            <span class="text-[11px] t-muted font-medium flex items-center gap-0.5"><img src="/static/img/icons/inbox.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>دانلود</span></span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedDownloadVal" class="text-xs font-bold t-success font-sans">--</span>
               <span class="text-[11px] t-muted font-sans">Mbps</span>
             </div>
           </div>
           <div class="speed-chip-card card-inset p-2 rounded-2xl border border-card-border text-center flex flex-col items-center">
-            <span class="text-[11px] t-muted font-medium flex items-center gap-0.5"><span>📤</span> آپلود</span>
+            <span class="text-[11px] t-muted font-medium flex items-center gap-0.5"><img src="/static/img/icons/rocket.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>آپلود</span></span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedUploadVal" class="text-xs font-bold t-accent font-sans">--</span>
               <span class="text-[11px] t-muted font-sans">Mbps</span>
             </div>
           </div>
           <div class="speed-chip-card card-inset p-2 rounded-2xl border border-card-border text-center flex flex-col items-center">
-            <span class="text-[11px] t-muted font-medium flex items-center gap-0.5"><span>📶</span> پینگ</span>
+            <span class="text-[11px] t-muted font-medium flex items-center gap-0.5"><img src="/static/img/icons/nodes.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>پینگ</span></span>
             <div class="flex items-baseline gap-0.5 mt-0.5" dir="ltr">
               <span id="speedPingVal" class="text-xs font-bold text-teal-400 font-sans">--</span>
               <span class="text-[11px] t-muted font-sans">ms</span>
@@ -3044,8 +3044,8 @@
         <!-- Action Button -->
         <div class="pt-0.5 flex-shrink-0">
           <button id="startSpeedTestBtn" type="button" onclick="window.toggleSpeedTest()" class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs py-3 rounded-2xl transition active:scale-95 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
-            <span>⚡️</span>
-            <span id="startSpeedTestBtnText">شروع تست سرعت 🚀</span>
+            <span><img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
+            <span id="startSpeedTestBtnText" class="flex items-center justify-center gap-1.5">شروع تست سرعت <img src="/static/img/icons/rocket.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /></span>
           </button>
         </div>
       </div>
@@ -3092,8 +3092,8 @@
       <div class="modal-card border border-emerald-500/50 rounded-3xl p-5 w-full max-w-[340px] text-center shadow-2xl relative my-auto space-y-3.5">
         <button type="button" onclick="window.closeSpeedResultsModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن نتیجه تست کیفیت شبکه">✕</button>
         
-        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-emerald-500/30 bg-emerald-500/10 mt-1">
-          🚀
+        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-emerald-500/30 bg-emerald-500/10 mt-1">
+          <img src="/static/img/icons/rocket.svg" class="ui-icon-img w-8 h-8" width="32" height="32" alt="" />
         </div>
 
         <div>
@@ -3103,21 +3103,21 @@
 
         <div class="grid grid-cols-2 gap-2 text-center text-xs">
           <div class="card-inset p-2.5 rounded-2xl">
-            <span class="text-[11px] t-muted block mb-0.5">📥 دانلود</span>
+            <span class="text-[11px] t-muted block mb-0.5 flex items-center gap-1 justify-center"><img src="/static/img/icons/download.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />دانلود</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
               <b id="finalDownloadVal" class="text-base font-black t-success font-sans">0.0</b>
               <span class="text-[11px] t-muted">Mbps</span>
             </div>
           </div>
           <div class="card-inset p-2.5 rounded-2xl">
-            <span class="text-[11px] t-muted block mb-0.5">📤 آپلود</span>
+            <span class="text-[11px] t-muted block mb-0.5 flex items-center gap-1 justify-center"><img src="/static/img/icons/rocket.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />آپلود</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
               <b id="finalUploadVal" class="text-base font-black t-accent font-sans">0.0</b>
               <span class="text-[11px] t-muted">Mbps</span>
             </div>
           </div>
           <div class="card-inset p-2.5 rounded-2xl">
-            <span class="text-[11px] t-muted block mb-0.5">📶 پینگ (Ping)</span>
+            <span class="text-[11px] t-muted block mb-0.5 flex items-center gap-1 justify-center"><img src="/static/img/icons/signal.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />پینگ (Ping)</span>
             <div class="flex items-baseline justify-center gap-1" dir="ltr">
               <b id="finalPingVal" class="text-base font-black text-teal-400 font-sans">--</b>
               <span class="text-[11px] t-muted">ms</span>
@@ -3142,7 +3142,7 @@
 
         <div class="flex gap-2 pt-1">
           <button type="button" onclick="window.closeSpeedResultsModal(); window.toggleSpeedTest();" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs py-2 rounded-xl transition active:scale-95 shadow">
-            تست مجدد 🔄
+            تست مجدد <img src="/static/img/icons/sync.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block mr-1 align-middle" width="14" height="14" alt="" />
           </button>
           <button type="button" onclick="window.closeSpeedResultsModal()" class="btn btn-secondary flex-1 py-2 rounded-xl text-xs active:scale-95">
             بستن
@@ -3159,8 +3159,8 @@
 
         <!-- Header -->
         <div class="flex flex-col items-center">
-          <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl shadow-lg border border-pink-500/30 bg-gradient-to-tr from-pink-500/20 via-purple-500/15 to-indigo-500/20 t-pink mb-1.5">
-            🎂
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg border border-pink-500/30 bg-gradient-to-tr from-pink-500/20 via-purple-500/15 to-indigo-500/20 mb-1.5">
+            <img src="/static/img/icons/cake.svg" class="ui-icon-img w-7 h-7" width="28" height="28" alt="" />
           </div>
           <h3 class="text-sm font-extrabold t-main">ثبت تاریخ زادروز</h3>
           <p class="text-[11px] t-muted mt-0.5 leading-relaxed max-w-[280px]">
@@ -3186,13 +3186,13 @@
         <!-- 3 Segmented Tabs: [روز] [ماه] [سال] -->
         <div class="bday-tabs-bar card-inset p-1 rounded-2xl border border-card-border flex items-center gap-1" dir="rtl">
           <button type="button" id="bdayTabDay" onclick="window.switchBdayPickerTab('day')" class="flex-1 py-1.5 rounded-xl font-bold text-xs bg-indigo-600 text-white shadow transition flex items-center justify-center gap-1">
-            <span>📅 روز:</span> <span id="bdayDayPillVal">1</span>
+            <span><img src="/static/img/icons/calendar.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />روز:</span> <span id="bdayDayPillVal">1</span>
           </button>
           <button type="button" id="bdayTabMonth" onclick="window.switchBdayPickerTab('month')" class="flex-1 py-1.5 rounded-xl font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <span>🌙 ماه:</span> <span id="bdayMonthPillVal">فروردین</span>
+            <span><img src="/static/img/icons/moon.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />ماه:</span> <span id="bdayMonthPillVal">فروردین</span>
           </button>
           <button type="button" id="bdayTabYear" onclick="window.switchBdayPickerTab('year')" class="flex-1 py-1.5 rounded-xl font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <span>📆 سال:</span> <span id="bdayYearPillVal">1375</span>
+            <span><img src="/static/img/icons/calendar.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />سال:</span> <span id="bdayYearPillVal">1375</span>
           </button>
         </div>
 
@@ -3214,7 +3214,7 @@
         <!-- Actions -->
         <div class="pt-1">
           <button id="saveBirthdayBtn" type="button" onclick="window.saveBirthday()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5">
-            <span>ثبت تاریخ تولد 🎉</span>
+            <span>ثبت تاریخ تولد</span> <img src="/static/img/icons/cake.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle mr-1" width="16" height="16" alt="" />
           </button>
         </div>
       </div>
@@ -3283,19 +3283,19 @@
         <div class="card-inset rounded-2xl p-3 text-right space-y-2 text-xs">
           <div class="flex items-center justify-between">
             <span class="t-muted text-[11px] flex items-center gap-1">
-              <span>💡</span> میانگین مجاز مصرف روزانه:
+              <img src="/static/img/icons/lightbulb.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> میانگین مجاز مصرف روزانه:
             </span>
             <span id="modalExpiryDailyAllowance" class="font-sans font-bold t-success num-bidi" dir="ltr">-- GB</span>
           </div>
           <div class="flex items-center justify-between border-t border-card-border pt-1.5">
             <span class="t-muted text-[11px] flex items-center gap-1">
-              <span>📅</span> تاریخ دقیق پایان اعتبار:
+              <img src="/static/img/icons/calendar.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> تاریخ دقیق پایان اعتبار:
             </span>
             <span id="modalExpiryExactDate" class="font-sans font-semibold t-main text-[11px] num-bidi" dir="ltr">--</span>
           </div>
           <div class="flex items-center justify-between border-t border-card-border pt-1.5">
             <span class="t-muted text-[11px] flex items-center gap-1">
-              <span>⚡</span> وضعیت سرعت مصرف:
+              <img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> وضعیت سرعت مصرف:
             </span>
             <span id="modalExpiryPaceStatus" class="font-bold text-[11px] t-success">بهینه</span>
           </div>
@@ -3329,8 +3329,8 @@
       <div class="modal-card border border-pink-500/50 rounded-3xl p-5 w-full max-w-[350px] text-center shadow-2xl relative my-auto space-y-4">
         <button type="button" onclick="window.closeBirthdayCountdownModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن شمارش معکوس زادروز">✕</button>
 
-        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-pink-500/30 bg-pink-500/10 mt-1">
-          🎂
+        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-pink-500/30 bg-pink-500/10 mt-1">
+          <img src="/static/img/icons/cake.svg" class="ui-icon-img w-8 h-8" width="32" height="32" alt="" />
         </div>
 
         <div>
@@ -3364,7 +3364,7 @@
         <div id="bdayTraitBox" class="card-inset rounded-2xl p-3 text-right space-y-1.5 text-xs">
           <div class="flex items-center justify-between">
             <span class="t-muted text-[11px] flex items-center gap-1">
-              <span>✨</span> ماه تولد:
+              <span><img src="/static/img/icons/sparkles.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span> ماه تولد:
             </span>
             <span id="bdayTraitMonthName" class="font-bold t-pink text-xs">فروردین</span>
           </div>
@@ -3378,7 +3378,7 @@
         <!-- VIP Birthday Gift Details Box -->
         <div class="card-inset rounded-2xl p-3 border border-pink-500/30 text-right space-y-1 text-xs">
           <span class="text-pink-600 dark:text-pink-300 font-extrabold block text-xs flex items-center gap-1">
-            <span>🎁</span> هدایای روز زادروز شما:
+            <img src="/static/img/icons/gift.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> هدایای روز زادروز شما:
           </span>
           <p class="text-[11px] t-sec leading-relaxed">
             در روز تولد، به پاس همراهی شما بسته ترافیک پرسرعت هدیه و کوپن تخفیف VIP اختصاصی به حساب کاربری‌تان اضافه خواهد شد.
@@ -3408,7 +3408,7 @@
             آیا از قطع دسترسی تمامی دستگاه‌های متصل به این حساب اطمینان دارید؟
           </p>
           <p class="text-[11px] t-muted">
-            ⚠️ پس از تایید، کلیه نشست‌های فعال فوراً متوقف شده، شناسه اتصال قبلی منقضی می‌گردد و لینک اشتراک جدیدی برای شما صادر خواهد شد.
+            <img src="/static/img/icons/warning.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> پس از تایید، کلیه نشست‌های فعال فوراً متوقف شده، شناسه اتصال قبلی منقضی می‌گردد و لینک اشتراک جدیدی برای شما صادر خواهد شد.
           </p>
         </div>
         <div class="pt-1">
@@ -3446,7 +3446,7 @@
             <span id="killDeviceModalIp" class="font-sans t-accent text-xs" dir="ltr">IP: —</span>
           </div>
           <p class="text-[11px] t-muted pt-1">
-            ⚠️ با قطع این دستگاه، اتصال آن فوراً متوقف شده و برای اتصال مجدد باید لینک اشتراک در نرم‌افزار بروزرسانی شود.
+            <img src="/static/img/icons/warning.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> با قطع این دستگاه، اتصال آن فوراً متوقف شده و برای اتصال مجدد باید لینک اشتراک در نرم‌افزار بروزرسانی شود.
           </p>
         </div>
         <div class="pt-1">
@@ -3476,10 +3476,10 @@
         <!-- Gift Modal Tabs (ارسال هدیه / تاریخچه) -->
         <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1 border-0" role="tablist">
           <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" role="tab" aria-selected="true" class="flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border-0">
-            <span>🎁</span> هدیه جدید
+            <img src="/static/img/icons/gift.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> هدیه جدید
           </button>
           <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" role="tab" aria-selected="false" class="flex-1 py-2 px-3 rounded-xl font-medium transition flex items-center justify-center gap-1.5 text-xs t-muted hover:t-main bg-transparent border-0">
-            <span>📜</span> تاریخچه
+            <img src="/static/img/icons/finance.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>تاریخچه</span>
           </button>
         </div>
 
@@ -3490,10 +3490,10 @@
             <span class="text-[11px] t-muted block">نوع هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
               <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
-                <span>💰</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">شارژ کیف پول</span>
+                <img src="/static/img/icons/wallet.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">شارژ کیف پول</span>
               </button>
               <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
-                <span>📦</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">بسته اشتراک</span>
+                <img src="/static/img/icons/package.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">بسته اشتراک</span>
               </button>
             </div>
           </div>
@@ -3515,7 +3515,7 @@
             <span class="text-[11px] t-muted block">بسته اشتراک هدیه:</span>
             <div role="button" tabindex="0" id="giftSelectedServiceCard" onclick="window.openGiftServiceSelectModal && window.openGiftServiceSelectModal()" class="card-inset p-3 rounded-2xl border border-pink-500/30 flex items-center justify-between cursor-pointer hover:border-pink-500 transition">
               <div class="flex items-center gap-2.5 min-w-0">
-                <span class="text-xl shrink-0">📦</span>
+                <span class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" /></span>
                 <div class="min-w-0">
                   <b id="giftSelectedServiceTitle" class="text-xs t-main block truncate">انتخاب بسته اشتراک...</b>
                   <span id="giftSelectedServiceSpecs" class="text-[11px] t-muted block truncate">جهت انتخاب بسته دلخواه برای هدیه کلیک فرمایید</span>
@@ -3531,10 +3531,10 @@
             <span class="text-[11px] t-muted block">نحوه تحویل هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
               <button type="button" onclick="window.setGiftDeliveryType('DIRECT')" id="giftDeliveryBtn-direct" class="py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
-                <span>⚡</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">ارسال مستقیم تلگرام</span>
+                <img src="/static/img/icons/zap.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">ارسال مستقیم تلگرام</span>
               </button>
               <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
-                <span>🔗</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">ساخت لینک هدیه</span>
+                <img src="/static/img/icons/link.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">ساخت لینک هدیه</span>
               </button>
             </div>
           </div>
@@ -3575,13 +3575,13 @@
 
           <!-- Submit Button -->
           <button id="submitCreateGiftBtn" type="button" onclick="window.submitCreateGift()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2 border-0">
-            <span>🎁</span> ایجاد و ارسال هدیه
+            <img src="/static/img/icons/gift.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> ایجاد و ارسال هدیه
           </button>
 
           <!-- Success Link Container (hidden by default) -->
           <div id="giftCreatedSuccessBox" class="card-inset p-3 rounded-2xl border border-emerald-500/40 space-y-2 hidden">
             <div class="flex items-center gap-1.5 text-xs text-emerald-500 font-bold">
-              <span>✅</span> هدیه شما با موفقیت ایجاد شد!
+              <img src="/static/img/icons/check.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> هدیه شما با موفقیت ایجاد شد!
             </div>
             <div id="giftCreatedCodeRow" class="space-y-1">
               <span class="text-[11px] t-muted block">کد هدیه اختصاصی:</span>
@@ -3593,7 +3593,7 @@
             <div id="giftCreatedLinkRow" class="space-y-1">
               <span class="text-[11px] t-muted block">لینک دریافت هدیه برای ارسال به دوستتان:</span>
               <div class="flex items-center gap-1.5">
-                <button type="button" onclick="window.copyGiftShareLink()" class="btn btn-secondary text-xs p-2.5 rounded-xl shrink-0 font-bold active:scale-95" title="کپی لینک">📋 کپی لینک</button>
+                <button type="button" onclick="window.copyGiftShareLink()" class="btn btn-secondary text-xs p-2.5 rounded-xl shrink-0 font-bold active:scale-95" title="کپی لینک"><img src="/static/img/icons/copy.svg" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /> کپی لینک</button>
                 <input type="text" id="giftCreatedLinkInput" readonly class="input-base text-xs font-sans num-bidi p-2.5 rounded-xl flex-1 select-all text-left" dir="ltr" />
               </div>
             </div>
@@ -3621,7 +3621,7 @@
       <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[420px] max-h-[85vh] flex flex-col my-auto">
         <button type="button" onclick="window.closeGiftServiceSelectModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن پنجره انتخاب بسته">✕</button>
         <div class="border-b border-card-border pb-2.5 flex items-center gap-2 shrink-0">
-          <span class="text-xl">🎁</span>
+          <img src="/static/img/icons/gift.svg" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
           <div>
             <h3 class="text-xs font-bold t-main">انتخاب بسته اشتراک هدیه</h3>
             <span class="text-[11px] t-muted block">یکی از بسته‌های زیر را برای هدیه انتخاب فرمایید:</span>
@@ -3720,7 +3720,7 @@
         <!-- Action Buttons -->
         <div class="pt-1 space-y-2">
           <button id="sendInvoiceTelegramBtn" type="button" onclick="window.sendCurrentInvoiceTelegram()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5 active:scale-[0.98]">
-            <span>📨</span>
+            <span><img src="/static/img/icons/chat.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
             <span>ارسال رسید رسمی به تلگرام من</span>
           </button>
           <button type="button" onclick="window.closeInvoiceModal()" class="btn btn-secondary w-full py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1 active:scale-[0.98]">
@@ -3753,7 +3753,7 @@
           <div class="flex items-center justify-between">
             <span class="text-xs t-muted font-medium">سطح کاربری فعلی شما:</span>
             <span id="loyaltyModalCurrentBadge" class="px-2 py-0.5 rounded-lg text-xs font-bold border border-amber-500/40 bg-amber-500/15 text-amber-500 flex items-center gap-1">
-              <span id="loyaltyModalCurrentIcon">🥉</span>
+              <span id="loyaltyModalCurrentIcon" class="inline-flex items-center"><img src="/static/img/icons/medal-bronze.svg" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" /></span>
               <span id="loyaltyModalCurrentName">برنزی</span>
             </span>
           </div>
@@ -3776,8 +3776,8 @@
           <div id="loyaltyModalTiersList" class="space-y-2 max-h-72 overflow-y-auto px-1.5 py-1">
             <!-- Tier 1: Bronze -->
             <div id="loyaltyTierCard_bronze" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-amber-800/15 text-amber-700 dark:text-amber-500 border border-amber-800/30 flex items-center justify-center text-base shrink-0">
-                🥉
+              <div class="w-8 h-8 rounded-xl bg-amber-800/15 border border-amber-800/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/medal-bronze.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3790,8 +3790,8 @@
 
             <!-- Tier 2: Silver -->
             <div id="loyaltyTierCard_silver" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-slate-400/15 text-slate-600 dark:text-slate-300 border border-slate-400/30 flex items-center justify-center text-base shrink-0">
-                🥈
+              <div class="w-8 h-8 rounded-xl bg-slate-400/15 border border-slate-400/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/medal-silver.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3804,8 +3804,8 @@
 
             <!-- Tier 3: Gold -->
             <div id="loyaltyTierCard_gold" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/15 t-warn border border-amber-500/30 flex items-center justify-center text-base shrink-0">
-                🥇
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/medal-gold.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3818,8 +3818,8 @@
 
             <!-- Tier 4: Platinum -->
             <div id="loyaltyTierCard_platinum" class="card-inset p-2.5 rounded-2xl border border-cyan-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-cyan-500/15 t-accent border border-cyan-500/30 flex items-center justify-center text-base shrink-0">
-                💎
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/diamond.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3832,8 +3832,8 @@
 
             <!-- Tier 5: Ruby -->
             <div id="loyaltyTierCard_ruby" class="card-inset p-2.5 rounded-2xl border border-purple-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-purple-500/15 t-purple border border-purple-500/30 flex items-center justify-center text-base shrink-0">
-                🔮
+              <div class="w-8 h-8 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/sparkles.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3846,8 +3846,8 @@
 
             <!-- Tier 6: Emerald -->
             <div id="loyaltyTierCard_emerald" class="card-inset p-2.5 rounded-2xl border border-emerald-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 t-success border border-emerald-500/30 flex items-center justify-center text-base shrink-0">
-                ❇️
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/shield.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3860,8 +3860,8 @@
 
             <!-- Tier 7: Diamond -->
             <div id="loyaltyTierCard_diamond" class="card-inset p-2.5 rounded-2xl border border-amber-500/40 dark:border-amber-400/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 flex items-center justify-center text-base shrink-0">
-                👑
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/crown.svg" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
