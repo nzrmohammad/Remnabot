@@ -47,6 +47,9 @@ REMIX_MAPPINGS = {
     'copy': 'Document/file-copy-2-fill.svg',
     'check': 'System/checkbox-circle-fill.svg',
     'cross': 'System/close-circle-fill.svg',
+    'close': 'System/close-line.svg',
+    'chevron-down': 'Arrows/arrow-down-s-line.svg',
+    'arrow-left': 'Arrows/arrow-left-s-line.svg',
     'warning': 'System/error-warning-fill.svg',
     'ban': 'System/forbid-2-fill.svg',
     'trash': 'System/delete-bin-6-fill.svg',
@@ -89,6 +92,11 @@ REMIX_MAPPINGS = {
     'medal_gold': 'Business/medal-fill.svg',
     'medal_silver': 'Business/medal-2-fill.svg',
     'medal_bronze': 'Business/medal-line.svg',
+    'ios': 'Logos/apple-fill.svg',
+    'android': 'Logos/android-fill.svg',
+    'windows': 'Logos/windows-fill.svg',
+    'macos': 'Device/macbook-fill.svg',
+    'linux': 'Development/terminal-box-fill.svg',
 }
 
 # Thematic gradients tailored for Telegram Mini Apps
@@ -116,6 +124,10 @@ COLOR_THEMES = {
     'flame': ('#fb923c', '#ea580c'),           # Warm Flame
     'check': ('#34d399', '#10b981'),           # Emerald Check
     'cross': ('#f87171', '#ef4444'),           # Crimson Cross
+    'close': ('#94a3b8', '#64748b'),           # Neutral Slate Close
+    'chevron-down': ('#94a3b8', '#64748b'),    # Subtle Slate Chevron
+    'arrow-left': ('#94a3b8', '#64748b'),
+    'copy': ('#38bdf8', '#0284c7'),            # High-Contrast Azure Copy
     'warning': ('#fbbf24', '#f59e0b'),         # Amber Warning
     'ban': ('#f87171', '#ef4444'),             # Red Ban
     'cake': ('#f472b6', '#db2777'),            # Birthday Pink
@@ -142,6 +154,11 @@ COLOR_THEMES = {
     'chat': ('#38bdf8', '#0284c7'),
     'support': ('#38bdf8', '#0284c7'),
     'phone': ('#38bdf8', '#0284c7'),
+    'ios': ('#94a3b8', '#64748b'),
+    'android': ('#3ddc84', '#10b981'),
+    'windows': ('#38bdf8', '#0284c7'),
+    'macos': ('#94a3b8', '#64748b'),
+    'linux': ('#fbbf24', '#f59e0b'),
 }
 
 output_dir = os.path.join('bot', 'web', 'static', 'img', 'icons')

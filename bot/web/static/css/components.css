@@ -18,7 +18,9 @@
   border-radius: var(--radius-lg);
 }
 
-.border-card-border {
+.border-card-border,
+.dark\:border-card-border,
+.dark .dark\:border-card-border {
   border-color: var(--card-border);
 }
 

@@ -180,6 +180,29 @@ function switchShopCategory(cat, shouldRender = true) {
     }
   }
 
+  // Tunnel Stability Banner Visibility & Dynamic Content
+  const tunnelBanner = document.getElementById('shopTunnelStabilityBanner');
+  const bannerTitle = document.getElementById('shopTunnelBannerTitle');
+  const bannerBadge = document.getElementById('shopTunnelBannerBadge');
+  const bannerDesc = document.getElementById('shopTunnelBannerDesc');
+
+  if (tunnelBanner) {
+    if (currentShopCategory === 'full') {
+      tunnelBanner.classList.remove('hidden');
+      if (bannerTitle) bannerTitle.textContent = 'راهنمای کیفیت و پیشنهاد تست تانل';
+      if (bannerBadge) bannerBadge.textContent = 'پیشنهاد تست';
+      if (bannerDesc) bannerDesc.textContent = 'اگر روی اینترنت خود با کندی یا افت کیفیت مواجه هستید، پیشنهاد می‌کنیم بسته‌های تانل اختصاصی را انتخاب و تست فرمایید (مجهز به سرورهای ضد فیلتر و پرسرعت برای تمامی اپراتورها).';
+    } else if (currentShopCategory === 'custom') {
+      tunnelBanner.classList.remove('hidden');
+      if (bannerTitle) bannerTitle.textContent = 'ساخت اشتراک اختصاصی با حجم و زمان دلخواه';
+      if (bannerBadge) bannerBadge.textContent = 'محاسبه هوشمند';
+      if (bannerDesc) bannerDesc.textContent = 'حجم و مدت زمان دلخواه خود را تعیین کنید؛ سیستم هوشمند بهینه‌ترین هزینه را همراه با تخفیف باشگاه مشتریان برای شما محاسبه می‌نماید.';
+    } else {
+      // Hidden for 'traffic' (افزایش حجم) and 'time' (افزایش زمان)
+      tunnelBanner.classList.add('hidden');
+    }
+  }
+
   const customContainer = document.getElementById('customPlanBuilderContainer');
   const shopContainer = document.getElementById('shopPlansContainer');
   const couponSection = document.getElementById('shopCouponSection');

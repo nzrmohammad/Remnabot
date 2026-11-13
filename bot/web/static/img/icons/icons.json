@@ -227,8 +227,8 @@
     "remix_source": "Document/file-copy-2-fill.svg",
     "category": "Document",
     "colors": [
-      "#e2e8f0",
-      "#94a3b8"
+      "#38bdf8",
+      "#0284c7"
     ]
   },
   "check": {
@@ -245,6 +245,30 @@
     "colors": [
       "#f87171",
       "#ef4444"
+    ]
+  },
+  "close": {
+    "remix_source": "System/close-line.svg",
+    "category": "System",
+    "colors": [
+      "#94a3b8",
+      "#64748b"
+    ]
+  },
+  "chevron-down": {
+    "remix_source": "Arrows/arrow-down-s-line.svg",
+    "category": "Arrows",
+    "colors": [
+      "#94a3b8",
+      "#64748b"
+    ]
+  },
+  "arrow-left": {
+    "remix_source": "Arrows/arrow-left-s-line.svg",
+    "category": "Arrows",
+    "colors": [
+      "#94a3b8",
+      "#64748b"
     ]
   },
   "warning": {
@@ -581,6 +605,46 @@
     "colors": [
       "#d97706",
       "#92400e"
+    ]
+  },
+  "ios": {
+    "remix_source": "Logos/apple-fill.svg",
+    "category": "Logos",
+    "colors": [
+      "#94a3b8",
+      "#64748b"
+    ]
+  },
+  "android": {
+    "remix_source": "Logos/android-fill.svg",
+    "category": "Logos",
+    "colors": [
+      "#3ddc84",
+      "#10b981"
+    ]
+  },
+  "windows": {
+    "remix_source": "Logos/windows-fill.svg",
+    "category": "Logos",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "macos": {
+    "remix_source": "Device/macbook-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#94a3b8",
+      "#64748b"
+    ]
+  },
+  "linux": {
+    "remix_source": "Development/terminal-box-fill.svg",
+    "category": "Development",
+    "colors": [
+      "#fbbf24",
+      "#f59e0b"
     ]
   }
 }

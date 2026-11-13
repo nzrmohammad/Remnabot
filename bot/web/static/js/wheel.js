@@ -85,6 +85,57 @@ function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = 
   modal.classList.remove('hidden');
   const hapticFn = window.api?.haptic || window.hapticFeedback || (typeof hapticFeedback === 'function' ? hapticFeedback : null);
   if (hapticFn) hapticFn(isError ? 'error' : 'success');
+  if (!isError) launchCelebrationConfetti();
+}
+
+function launchCelebrationConfetti() {
+  const modal = document.getElementById('wheelResultModal');
+  if (!modal) return;
+  const canvas = document.createElement('canvas');
+  canvas.className = 'absolute inset-0 pointer-events-none z-50 w-full h-full';
+  modal.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  canvas.width = modal.clientWidth || 320;
+  canvas.height = modal.clientHeight || 400;
+
+  const particles = Array.from({ length: 45 }, () => ({
+    x: canvas.width / 2,
+    y: canvas.height * 0.35,
+    vx: (Math.random() - 0.5) * 8.5,
+    vy: (Math.random() - 0.75) * 9.5,
+    size: Math.random() * 5 + 3,
+    color: ['#f59e0b', '#3b82f6', '#10b981', '#ec4899', '#8b5cf6', '#06b6d4', '#fbbf24'][Math.floor(Math.random() * 7)],
+    alpha: 1,
+    rot: Math.random() * 360,
+  }));
+
+  let frame = 0;
+  function step() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.24;
+      p.alpha -= 0.016;
+      p.rot += 6;
+      if (p.alpha > 0) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.4);
+        ctx.restore();
+      }
+    });
+    frame++;
+    if (frame < 65) {
+      requestAnimationFrame(step);
+    } else {
+      canvas.remove();
+    }
+  }
+  requestAnimationFrame(step);
 }
 
 function closeWheelResultModal() {
@@ -363,6 +414,16 @@ function setupLuckyWheel() {
 
     if (wheelContainer) {
       wheelContainer.style.transform = `rotate(${currentWheelRotation}deg)`;
+    }
+
+    // Realistic decelerating tactile haptic clicks while wheel spins
+    const hapticClick = window.api?.haptic || window.hapticFeedback || (typeof hapticFeedback === 'function' ? hapticFeedback : null);
+    if (hapticClick) {
+      [120, 260, 440, 680, 1000, 1420, 1950, 2580, 3250].forEach(delay => {
+        setTimeout(() => {
+          if (isSpinningWheel) hapticClick('selection');
+        }, delay);
+      });
     }
 
     setTimeout(() => {
