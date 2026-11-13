@@ -11,24 +11,24 @@
     "remix_source": "Business/bar-chart-2-fill.svg",
     "category": "Business",
     "colors": [
-      "#a78bfa",
-      "#6366f1"
+      "#38bdf8",
+      "#0284c7"
     ]
   },
   "shop": {
     "remix_source": "Finance/shopping-bag-3-fill.svg",
     "category": "Finance",
     "colors": [
-      "#34d399",
-      "#059669"
+      "#38bdf8",
+      "#0284c7"
     ]
   },
   "wallet": {
     "remix_source": "Finance/wallet-3-fill.svg",
     "category": "Finance",
     "colors": [
-      "#fbbf24",
-      "#d97706"
+      "#38bdf8",
+      "#0284c7"
     ]
   },
   "profile": {
@@ -36,7 +36,7 @@
     "category": "User & Faces",
     "colors": [
       "#38bdf8",
-      "#2563eb"
+      "#0284c7"
     ]
   },
   "settings": {

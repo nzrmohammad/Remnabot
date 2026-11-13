@@ -1867,19 +1867,19 @@ function renderDashboardBirthdayCountdown(user) {
   card.classList.remove('hidden');
 
   if (isToday || daysLeft === 0) {
-    if (titleEl) titleEl.innerText = '🎉 امروز روز زادروز شماست!';
-    if (subEl) subEl.innerText = 'تولدت مبارک! هدیه ویژه شما فعال گردید 🎁';
-    if (badgeEl) badgeEl.innerHTML = '<span>🎂</span> <span>مبارک باد!</span>';
+    if (titleEl) titleEl.innerText = 'امروز روز زادروز شماست!';
+    if (subEl) subEl.innerText = 'تولدت مبارک! هدیه ویژه شما فعال گردید';
+    if (badgeEl) badgeEl.innerHTML = '<span>مبارک باد!</span>';
   } else if (daysLeft !== null && daysLeft !== undefined) {
     if (titleEl) titleEl.innerText = 'شمارش معکوس زادروز شما';
-    if (subEl) subEl.innerText = `تنها ${toEnglishDigits(daysLeft)} روز تا روز تولدتان باقی مانده است`;
-    if (badgeEl) badgeEl.innerHTML = `<span>⏳</span> <span id="birthdayDaysLeftNum">${toEnglishDigits(daysLeft)}</span> <span>روز</span>`;
+    if (subEl) subEl.innerText = 'تا روز تولدتان باقی مانده است';
+    if (badgeEl) badgeEl.innerHTML = `<span id="birthdayDaysLeftNum">${toEnglishDigits(daysLeft)}</span> <span>روز</span>`;
   } else {
     card.classList.remove('hidden');
     card.onclick = () => (typeof window.openBirthdayCountdownModal === 'function' ? window.openBirthdayCountdownModal() : null);
     if (titleEl) titleEl.innerText = 'تاریخ زادروز شما ثبت شده است';
     if (subEl) subEl.innerText = `تاریخ: ${toEnglishDigits(birthDate)}`;
-    if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ثبت‌شده ✅</span>';
+    if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ثبت‌شده</span>';
   }
 }
 

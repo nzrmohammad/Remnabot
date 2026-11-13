@@ -2,7 +2,7 @@
   <defs>
     <linearGradient id="ri_profile" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
       <stop stop-color="#38bdf8"/>
-      <stop offset="1" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#0284c7"/>
     </linearGradient>
   </defs>
   <g fill="none">

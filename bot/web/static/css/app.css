@@ -33,30 +33,20 @@ html.theme-light #profileAvatarInitial {
 }
 
 html.theme-light .speedtest-entry-btn {
-  background: linear-gradient(135deg, rgba(236, 253, 245, 0.98), rgba(240, 253, 250, 0.98));
-  border-color: rgba(52, 211, 153, 0.6);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-html.theme-light .speedtest-entry-btn .w-10 {
-  background-color: var(--c-success-soft);
-  border-color: var(--c-success-border);
-  color: var(--c-success);
+  background-color: transparent;
+  border-color: var(--card-border);
+  box-shadow: none;
 }
 html.theme-light .speedtest-title,
 html.theme-light .speedtest-entry-btn:hover .speedtest-title {
-  color: var(--c-success);
-  font-weight: 900;
+  color: var(--text-main);
+  font-weight: 700;
   font-size: 0.75rem;
 }
 html.theme-light .speedtest-sub,
 html.theme-light .speedtest-entry-btn:hover .speedtest-sub {
   color: var(--text-muted);
   font-weight: 500;
-}
-html.theme-light .speedtest-entry-btn .bg-slate-900\/60 {
-  background-color: var(--card-bg);
-  border-color: var(--frame-border);
-  color: var(--c-success);
 }
 
 html.theme-light #speedTestModal .modal-card {

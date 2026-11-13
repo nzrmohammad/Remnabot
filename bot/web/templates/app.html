@@ -229,65 +229,48 @@
 
         <!-- Quick Interactive Action Cards (گردونه شانس و کارت استوری) -->
         <div class="grid grid-cols-2 gap-2.5">
-          <button id="openLuckyWheelBtn" class="lucky-wheel-entry-btn bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/10 hover:from-amber-500/30 p-2.5 rounded-2xl border border-amber-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
-            <div class="flex flex-col">
-              <span class="text-xs font-black t-warn flex items-center gap-1.5 lucky-wheel-title">
-                <img src="/static/img/icons/wheel.svg?v=ri4" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
-                <span>گردونه شانس</span>
-              </span>
-              <span class="text-[11px] font-bold text-amber-700 dark:text-amber-300 mt-0.5 lucky-wheel-sub">1 شانس روزانه</span>
-            </div>
-            <span class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center group-hover:rotate-12 transition transform shrink-0">
-              <img src="/static/img/icons/gift.svg?v=ri4" class="ui-icon-img w-5 h-5 shrink-0" alt="" aria-hidden="true" loading="eager" width="20" height="20">
+          <button id="openLuckyWheelBtn" class="lucky-wheel-entry-btn bg-transparent hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex flex-col justify-center transition shadow-sm group active:scale-95">
+            <span class="text-xs font-bold t-main flex items-center gap-1.5 lucky-wheel-title">
+              <img src="/static/img/icons/wheel.svg?v=ri4" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
+              <span>گردونه شانس</span>
             </span>
+            <span class="text-[11px] font-medium t-muted mt-1 lucky-wheel-sub">۱ شانس روزانه</span>
           </button>
 
-          <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="tutorial-entry-btn card-inset p-2.5 rounded-2xl border border-cyan-500/30 text-right flex items-center justify-between transition shadow-sm group active:scale-95">
-            <div class="flex flex-col">
-              <span class="text-xs font-black t-accent flex items-center gap-1.5 tutorial-title">
-                <img src="/static/img/icons/phone.svg?v=ri4" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
-                <span>راهنمای اتصال</span>
-              </span>
-              <span class="text-[11px] font-bold text-cyan-700 dark:text-cyan-300 mt-0.5 tutorial-sub">دانلود برنامه‌ها و آموزش</span>
-            </div>
-            <span class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center group-hover:scale-105 transition shrink-0">
-              <img src="/static/img/icons/rocket.svg?v=ri4" class="ui-icon-img w-5 h-5 shrink-0" alt="" aria-hidden="true" loading="eager" width="20" height="20">
+          <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="tutorial-entry-btn bg-transparent hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex flex-col justify-center transition shadow-sm group active:scale-95">
+            <span class="text-xs font-bold t-main flex items-center gap-1.5 tutorial-title">
+              <img src="/static/img/icons/phone.svg?v=ri4" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
+              <span>راهنمای اتصال</span>
             </span>
+            <span class="text-[11px] font-medium t-muted mt-1 tutorial-sub truncate">آموزش و دانلود برنامه</span>
           </button>
         </div>
 
         <!-- Speed & Quality Test Entry Banner Card -->
-        <button id="openSpeedTestModalBtn" type="button" onclick="window.openSpeedTestModal()" class="w-full speedtest-entry-btn bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-cyan-500/10 hover:from-emerald-500/25 p-3 rounded-2xl border border-emerald-500/40 text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 t-success border border-emerald-500/30 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
-              <img src="/static/img/icons/zap.svg?v=ri4" class="ui-icon-img w-5 h-5 shrink-0" alt="" aria-hidden="true" loading="eager" width="20" height="20">
-            </div>
-            <div class="flex flex-col">
-              <span class="text-xs font-black t-success speedtest-title">
-                تست سرعت اینترنت
-              </span>
-              <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 mt-0.5 speedtest-sub">سنجش دقیق پهنای‌باند دانلود، آپلود و پینگ</span>
-            </div>
+        <button id="openSpeedTestModalBtn" type="button" onclick="window.openSpeedTestModal()" class="w-full speedtest-entry-btn bg-transparent hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
+          <div class="flex flex-col">
+            <span class="text-xs font-bold t-main flex items-center gap-1.5 speedtest-title">
+              <img src="/static/img/icons/zap.svg?v=ri4" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
+              <span>تست سرعت اینترنت</span>
+            </span>
+            <span class="text-[11px] font-medium t-muted mt-0.5 speedtest-sub">سنجش پینگ و کیفیت اتصال</span>
           </div>
-          <div class="flex items-center gap-1 t-success font-bold text-xs card-inset px-2.5 py-1.5 rounded-xl border border-emerald-500/20 group-hover:border-emerald-500/50 transition">
+          <div class="flex items-center gap-1 t-muted group-hover:t-main font-medium text-xs card-inset px-2.5 py-1.5 rounded-xl border border-card-border transition">
             <span>شروع</span>
-            <span class="text-sm">←</span>
+            <span class="text-xs">←</span>
           </div>
         </button>
 
         <!-- Birthday Countdown Card (Hidden if birthday not set) -->
-        <div role="button" tabindex="0" id="dashboardBirthdayCard" onclick="window.openBirthdayCountdownModal()" class="hidden bg-gradient-to-r from-pink-500/15 via-rose-500/15 to-purple-500/10 rounded-2xl p-3 border border-pink-500/30 shadow-sm flex items-center justify-between cursor-pointer active:scale-[0.98] transition select-none hover:border-pink-500/60" title="مشاهده شمارش معکوس زادروز">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-pink-500/20 border border-pink-500/30 flex items-center justify-center flex-shrink-0">
-              <img src="/static/img/icons/cake.svg?v=ri4" class="ui-icon-img w-6 h-6" width="24" height="24" alt="" />
-            </div>
-            <div>
-              <span id="birthdayCardTitle" class="text-xs font-black t-pink block">شمارش معکوس زادروز شما</span>
-              <span id="birthdayCardSubtitle" class="text-[11px] font-bold text-pink-700 dark:text-pink-300 mt-0.5 block">-- روز تا روز تولدتان باقی مانده است</span>
-            </div>
+        <div role="button" tabindex="0" id="dashboardBirthdayCard" onclick="window.openBirthdayCountdownModal()" class="hidden bg-transparent hover:bg-slate-500/5 dark:hover:bg-slate-800/25 rounded-2xl p-3 border border-card-border shadow-sm flex items-center justify-between cursor-pointer active:scale-[0.98] transition select-none" title="مشاهده شمارش معکوس زادروز">
+          <div class="flex flex-col">
+            <span id="birthdayCardTitle" class="text-xs font-bold t-main flex items-center gap-1.5">
+              <img src="/static/img/icons/cake.svg?v=ri4" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span>شمارش معکوس زادروز</span>
+            </span>
+            <span id="birthdayCardSubtitle" class="text-[11px] font-medium t-muted mt-0.5">تا روز تولدتان باقی مانده است</span>
           </div>
-          <div id="birthdayCardBadge" class="px-2.5 py-1 rounded-xl s-pink-soft text-[11px] font-bold flex items-center gap-1 font-sans">
-            <img src="/static/img/icons/gift.svg?v=ri4" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
+          <div id="birthdayCardBadge" class="px-2.5 py-1 rounded-xl card-inset border border-card-border text-[11px] font-medium t-muted flex items-center gap-1 font-sans">
             <span id="birthdayDaysLeftNum">--</span>
             <span>روز</span>
           </div>
@@ -2969,7 +2952,7 @@
 
         <!-- Modal Header -->
         <div class="flex items-center gap-2.5 pb-1.5 border-b border-card-border pl-8 flex-shrink-0">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
             <img src="/static/img/icons/lightning.svg?v=ri4" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
           </div>
           <div class="flex-1">

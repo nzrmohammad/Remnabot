@@ -101,11 +101,11 @@ REMIX_MAPPINGS = {
 
 # Thematic gradients tailored for Telegram Mini Apps
 COLOR_THEMES = {
-    'dashboard': ('#38bdf8', '#0284c7'),       # Azure Sky
-    'reports': ('#a78bfa', '#6366f1'),         # Purple / Indigo
-    'shop': ('#34d399', '#059669'),            # Emerald Green
-    'wallet': ('#fbbf24', '#d97706'),          # Amber Gold
-    'profile': ('#38bdf8', '#2563eb'),         # Royal Azure
+    'dashboard': ('#38bdf8', '#0284c7'),       # Azure Sky (Unified Nav Accent)
+    'reports': ('#38bdf8', '#0284c7'),         # Azure Sky (Unified Nav Accent)
+    'shop': ('#38bdf8', '#0284c7'),            # Azure Sky (Unified Nav Accent)
+    'wallet': ('#38bdf8', '#0284c7'),          # Azure Sky (Unified Nav Accent)
+    'profile': ('#38bdf8', '#0284c7'),         # Azure Sky (Unified Nav Accent)
     
     'zap': ('#fbbf24', '#f59e0b'),             # Electric Amber
     'lightning': ('#fbbf24', '#f59e0b'),
