@@ -394,9 +394,7 @@ function uiIcon(name, className = 'w-4 h-4') {
 }
 
 const EMOJI_TO_UI_ICON = {
-  '🥉': 'medal_bronze',
-  '🥈': 'medal_silver',
-  '🥇': 'medal_gold',
+  // Medals kept as native vibrant emojis per user preference
   '💎': 'diamond',
   '👑': 'crown',
   '🏆': 'trophy',

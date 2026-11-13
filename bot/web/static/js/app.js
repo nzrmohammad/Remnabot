@@ -3087,7 +3087,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="text-white font-sans font-bold" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="t-success text-xs inline-flex items-center" title="تأیید شده">✅</span>`;
+        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold shadow-xs select-none" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" /><span>تأییدشده</span></span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -3190,11 +3190,7 @@ function hydrateUserInterface(data) {
     const headerBadge = $('headerLoyaltyBadge');
     if (headerBadge) {
       if (isLoyaltyEnabled) {
-        if (typeof uiEmojiIcon === 'function') {
-          headerBadge.innerHTML = uiEmojiIcon(loyalty.icon || '🥉', 'w-5 h-5');
-        } else {
-          headerBadge.innerText = loyalty.icon || '🥉';
-        }
+        headerBadge.innerText = loyalty.icon || '🥉';
         headerBadge.classList.remove('hidden');
         headerBadge.className = 'w-7 h-7 flex items-center justify-center text-lg bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
       } else {

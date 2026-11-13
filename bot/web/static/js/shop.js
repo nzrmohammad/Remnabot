@@ -180,30 +180,10 @@ function switchShopCategory(cat, shouldRender = true) {
     }
   }
 
-  // Tunnel Stability Banner Visibility & Dynamic Content
+  // Tunnel Stability Banner permanently hidden per UX simplification
   const tunnelBanner = document.getElementById('shopTunnelStabilityBanner');
-  const bannerTitle = document.getElementById('shopTunnelBannerTitle');
-  const bannerBadge = document.getElementById('shopTunnelBannerBadge');
-  const bannerDesc = document.getElementById('shopTunnelBannerDesc');
-
   if (tunnelBanner) {
-    if (currentShopCategory === 'full') {
-      tunnelBanner.classList.remove('hidden');
-      if (bannerTitle) bannerTitle.textContent = 'راهنمای کیفیت بسته‌های تانل';
-      if (bannerBadge) {
-        bannerBadge.textContent = '';
-        bannerBadge.classList.add('hidden');
-      }
-      if (bannerDesc) bannerDesc.textContent = 'اگر روی اینترنت خود با کندی یا افت کیفیت مواجه هستید، پیشنهاد می‌کنیم بسته‌های تانل اختصاصی را انتخاب و تست فرمایید.';
-    } else if (currentShopCategory === 'custom') {
-      tunnelBanner.classList.remove('hidden');
-      if (bannerTitle) bannerTitle.textContent = 'ساخت اشتراک اختصاصی با حجم و زمان دلخواه';
-      if (bannerBadge) bannerBadge.textContent = 'محاسبه هوشمند';
-      if (bannerDesc) bannerDesc.textContent = 'حجم و مدت زمان دلخواه خود را تعیین کنید؛ سیستم هوشمند بهینه‌ترین هزینه را همراه با تخفیف باشگاه مشتریان برای شما محاسبه می‌نماید.';
-    } else {
-      // Hidden for 'traffic' (افزایش حجم) and 'time' (افزایش زمان)
-      tunnelBanner.classList.add('hidden');
-    }
+    tunnelBanner.classList.add('hidden');
   }
 
   const customContainer = document.getElementById('customPlanBuilderContainer');
@@ -517,7 +497,7 @@ function renderShopPlans(data) {
   if (noticeEl) {
     if (!hasActiveSub) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft';
-      noticeEl.innerHTML = '<span>💎</span><span>جهت شروع، یکی از <b>سرویس‌های کامل</b> را انتخاب فرمایید.</span>';
+      noticeEl.innerHTML = '<div class="flex items-start gap-2"><span class="text-base leading-none mt-0.5">💎</span><div class="flex flex-col gap-0.5"><span class="font-bold">جهت شروع، یکی از <b>سرویس‌های کامل</b> را انتخاب فرمایید.</span><span class="text-[10.5px] opacity-80">در صورت کندی یا افت کیفیت اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود.</span></div></div>';
       noticeEl.dataset.shouldShow = 'true';
       if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
       else noticeEl.classList.add('hidden');
