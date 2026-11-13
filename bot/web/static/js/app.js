@@ -1845,7 +1845,9 @@ window.closeBirthdayCountdownModal = closeBirthdayCountdownModal;
 
 function renderDashboardBirthdayCountdown(user) {
   const card = $('dashboardBirthdayCard');
-  if (!card) return;
+  if (card) {
+    card.classList.add('hidden');
+  }
 
   const birthDate = user?.birth_date;
   const daysLeft = user?.days_until_birthday;
@@ -1855,31 +1857,27 @@ function renderDashboardBirthdayCountdown(user) {
   const badgeEl = $('birthdayCardBadge');
 
   if (!birthDate || !birthDate.trim()) {
-    card.classList.remove('hidden');
-    card.onclick = () => window.openBirthdayModal();
     if (titleEl) titleEl.innerText = '🎂 ثبت تاریخ زادروز و دریافت هدیه';
     if (subEl) subEl.innerText = 'با ثبت روز تولدتان، بسته ترافیک پرسرعت هدیه بگیرید';
     if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ثبت کنید ✨</span>';
-    return;
   }
 
-  card.onclick = () => (typeof window.openBirthdayCountdownModal === 'function' ? window.openBirthdayCountdownModal() : window.openBirthdayModal());
-  card.classList.remove('hidden');
+  const profBadge = $('profileBirthdayCountdownBadge');
 
-  if (isToday || daysLeft === 0) {
-    if (titleEl) titleEl.innerText = 'امروز روز زادروز شماست!';
-    if (subEl) subEl.innerText = 'تولدت مبارک! هدیه ویژه شما فعال گردید';
-    if (badgeEl) badgeEl.innerHTML = '<span>مبارک باد!</span>';
-  } else if (daysLeft !== null && daysLeft !== undefined) {
-    if (titleEl) titleEl.innerText = 'شمارش معکوس زادروز شما';
-    if (subEl) subEl.innerText = '';
-    if (badgeEl) badgeEl.innerHTML = `<span id="birthdayDaysLeftNum">${toEnglishDigits(daysLeft)}</span> <span>روز</span>`;
-  } else {
-    card.classList.remove('hidden');
-    card.onclick = () => (typeof window.openBirthdayCountdownModal === 'function' ? window.openBirthdayCountdownModal() : null);
-    if (titleEl) titleEl.innerText = 'تاریخ زادروز شما ثبت شده است';
-    if (subEl) subEl.innerText = '';
-    if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ثبت‌شده</span>';
+  if (profBadge) {
+    if (!birthDate || !String(birthDate).trim()) {
+      profBadge.classList.add('hidden');
+    } else if (isToday || daysLeft === 0) {
+      profBadge.classList.remove('hidden');
+      profBadge.innerHTML = '<span>🎉 امروز (مبارک!)</span>';
+      profBadge.className = 'px-2 py-0.5 rounded-lg bg-pink-500/15 border border-pink-500/30 text-[11px] t-pink font-bold cursor-pointer transition';
+    } else if (daysLeft !== null && daysLeft !== undefined) {
+      profBadge.classList.remove('hidden');
+      profBadge.innerHTML = `<span>⏳ ${toEnglishDigits(daysLeft)} روز</span>`;
+      profBadge.className = 'px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-bold cursor-pointer hover:border-accent transition';
+    } else {
+      profBadge.classList.add('hidden');
+    }
   }
 }
 
@@ -3101,18 +3099,29 @@ function hydrateUserInterface(data) {
     }
     if (profJoin) profJoin.innerText = user.created_at_jalali ? toEnglishDigits(user.created_at_jalali) : '—';
     const hasBirthDate = Boolean(user.birth_date && String(user.birth_date).trim());
-    if (profBirth) profBirth.innerText = hasBirthDate ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
+    if (profBirth) {
+      profBirth.innerText = hasBirthDate ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
+      profBirth.onclick = () => {
+        if (hasBirthDate) {
+          if (typeof window.openBirthdayCountdownModal === 'function') window.openBirthdayCountdownModal();
+        } else {
+          if (typeof window.openBirthdayModal === 'function') window.openBirthdayModal();
+        }
+      };
+    }
 
     const bdayBtn = $('openBirthdayModalBtn');
     if (bdayBtn) {
       if (hasBirthDate) {
         bdayBtn.classList.add('hidden');
       } else {
+        bdayBtn.classList.remove('hidden');
         bdayBtn.className = 't-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
         bdayBtn.innerHTML = '<span>✏️</span>';
         bdayBtn.title = 'ثبت تاریخ تولد';
       }
     }
+    renderDashboardBirthdayCountdown(user);
 
     const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
     if (profStatusBadge) {

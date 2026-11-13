@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <linearGradient id="ri_calendar" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8b5cf6"/>
-      <stop offset="1" stop-color="#6d28d9"/>
+      <stop stop-color="#0284c7"/>
+      <stop offset="1" stop-color="#0369a1"/>
     </linearGradient>
   </defs>
   <g fill="none">

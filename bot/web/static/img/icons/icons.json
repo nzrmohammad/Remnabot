@@ -211,16 +211,16 @@
     "remix_source": "System/time-fill.svg",
     "category": "System",
     "colors": [
-      "#f59e0b",
-      "#b45309"
+      "#ea580c",
+      "#9a3412"
     ]
   },
   "calendar": {
     "remix_source": "Business/calendar-2-fill.svg",
     "category": "Business",
     "colors": [
-      "#8b5cf6",
-      "#6d28d9"
+      "#0284c7",
+      "#0369a1"
     ]
   },
   "copy": {
@@ -491,7 +491,7 @@
     "remix_source": "Business/inbox-archive-fill.svg",
     "category": "Business",
     "colors": [
-      "#10b981",
+      "#059669",
       "#047857"
     ]
   },
@@ -555,8 +555,8 @@
     "remix_source": "Others/lightbulb-flash-fill.svg",
     "category": "Others",
     "colors": [
-      "#94a3b8",
-      "#475569"
+      "#d97706",
+      "#92400e"
     ]
   },
   "medal-gold": {

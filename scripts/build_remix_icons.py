@@ -154,9 +154,10 @@ COLOR_THEMES = {
     'chat': ('#38bdf8', '#0284c7'),
     'support': ('#38bdf8', '#0284c7'),
     'phone': ('#38bdf8', '#0284c7'),
-    'calendar': ('#8b5cf6', '#6d28d9'),        # High-Contrast Violet Calendar
-    'clock': ('#f59e0b', '#b45309'),           # High-Contrast Amber Time
-    'inbox': ('#10b981', '#047857'),           # High-Contrast Emerald Volume
+    'calendar': ('#0284c7', '#0369a1'),        # High-Contrast Azure Calendar
+    'clock': ('#ea580c', '#9a3412'),           # High-Contrast Deep Amber/Orange Time
+    'lightbulb': ('#d97706', '#92400e'),       # High-Contrast Rich Amber-Gold Lightbulb
+    'inbox': ('#059669', '#047857'),           # High-Contrast Emerald Volume
     'settings': ('#0284c7', '#0369a1'),        # High-Contrast Azure Controls
     'globe': ('#0284c7', '#0369a1'),           # Azure Globe
     'sync': ('#0284c7', '#0369a1'),            # Azure Sync

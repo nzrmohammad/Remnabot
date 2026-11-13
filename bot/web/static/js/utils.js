@@ -390,7 +390,7 @@ const UI_ICON_FILES = {
 
 function uiIcon(name, className = 'w-4 h-4') {
   const file = UI_ICON_FILES[name] || name || 'sparkles';
-  return `<img src="/static/img/icons/${file}.svg?v=ri4" class="ui-icon ui-icon-img shrink-0 ${className}" alt="" aria-hidden="true" loading="eager" />`;
+  return `<img src="/static/img/icons/${file}.svg?v=ri7" class="ui-icon ui-icon-img shrink-0 ${className}" alt="" aria-hidden="true" loading="eager" />`;
 }
 
 const EMOJI_TO_UI_ICON = {
