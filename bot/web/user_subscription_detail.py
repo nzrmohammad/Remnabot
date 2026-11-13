@@ -353,8 +353,8 @@ def calc_usage_curves(
         country_labels.append("🌐 سایر")
         country_gb_vals.append(round(other_b / (1024**3), 2))
 
-    has_traffic = (today_used_gb > 0) or (week_used_gb > 0) or (used_bytes > 0)
-    base_curve_gb = today_used_gb if today_used_gb > 0 else (round(week_used_gb / 7.0, 2) if week_used_gb > 0 else 0.0)
+    base_curve_gb = float(today_used_gb or 0.0)
+    has_traffic = base_curve_gb > 0
 
     # 12 2-hour slots (for interval bar chart) + 24 exact 1-hour slots (for smooth curve & exact peak)
     hourly_curve_labels = [f"{h*2:02d}-{h*2+2:02d}" for h in range(12)]

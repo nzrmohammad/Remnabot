@@ -885,7 +885,7 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
   if (tEl) tEl.innerText = title || 'راهنمای انتخاب بسته';
   if (bEl) {
     bEl.innerText = badgeText || '⚡️ پیشنهاد هوشمند';
-    bEl.className = badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border';
+    bEl.className = badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border border-cyan-500/30';
   }
   if (txtEl) txtEl.innerHTML = message || '';
 
@@ -1006,7 +1006,7 @@ function setupBuyButtons() {
         openShopGuidanceModal({
           title: 'اشتراک فعالی یافت نشد',
           badgeText: '❌ نیازمند سرویس فعال',
-          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-danger-soft border',
+          badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-danger-soft border border-rose-500/30',
           message: 'بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند. لطفاً ابتدا از تب «سرویس‌های کامل» یک اشتراک جدید تهیه فرمایید.',
           actionText: '💎 مشاهده سرویس‌های کامل',
           onAction: () => switchShopCategory('full'),

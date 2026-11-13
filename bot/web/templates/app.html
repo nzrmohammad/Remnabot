@@ -1024,10 +1024,10 @@
                 </div>
               </div>
               <div class="flex items-center gap-1.5 flex-wrap justify-end">
-                <span id="customPlanVolumeBadge" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-success-soft border whitespace-nowrap">
+                <span id="customPlanVolumeBadge" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-success-soft border border-emerald-500/30 whitespace-nowrap">
                   <img src="/static/img/icons/flame.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />تخفیف حجم: <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanVolumePct">0</span>%</span>
                 </span>
-                <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-warn-soft border whitespace-nowrap">
+                <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-warn-soft border border-amber-500/30 whitespace-nowrap">
                   تخفیف وفاداری: <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
                 </span>
               </div>
@@ -1099,6 +1099,22 @@
           <button id="submitCustomPlanBtn" type="button" onclick="window.purchaseCustomPlan && window.purchaseCustomPlan()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-2">
             <img src="/static/img/icons/rocket.svg" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>خرید و فعال‌سازی آنی بسته اختصاصی</span>
           </button>
+          </div>
+        </div>
+
+        <!-- Tunnel Stability & Operator Guarantee Banner -->
+        <div id="shopTunnelStabilityBanner" class="card-inset p-3 rounded-2xl border border-cyan-500/30 flex items-center gap-3 shadow-sm bg-gradient-to-r from-cyan-500/10 via-sky-500/5 to-transparent">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
+            <img src="/static/img/icons/shield.svg" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" aria-hidden="true" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <b class="text-xs t-main font-bold">پایداری تضمین‌شده با سرورهای تانل هوشمند</b>
+              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-cyan-500/20 text-cyan-500 dark:text-cyan-400">اتصال پایدار</span>
+            </div>
+            <p class="text-[11px] t-muted mt-0.5 leading-relaxed">
+              کلیه اشتراک‌ها به فناوری تانل اختصاصی مجهز بوده و روی تمامی اینترنت‌ها (همراه اول، ایرانسل، مخابرات و رایتل) اتصال پرسرعت، پایدار و بدون افت کیفیت ارائه می‌دهند.
+            </p>
           </div>
         </div>
 
@@ -1660,31 +1676,31 @@
     <div id="navBottom" class="absolute bottom-0 inset-x-0 backdrop-blur-xl px-2 pt-1.5 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] flex justify-around items-center z-30 transition-colors">
       <button class="nav-btn is-active flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-dashboard" onclick="window.switchTab && window.switchTab('tab-dashboard')" aria-label="تب داشبورد" aria-selected="true">
         <span class="nav-icon-pill">
-          <img src="/static/img/icons/dashboard.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" / width="16" height="16">
+          <img src="/static/img/icons/dashboard.svg" class="ui-icon-img w-6 h-6 shrink-0" alt="" aria-hidden="true" loading="eager" width="24" height="24">
         </span>
         <span class="text-[11px]">داشبورد</span>
       </button>
       <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-reports" onclick="window.switchTab && window.switchTab('tab-reports')" aria-label="تب گزارش‌ها" aria-selected="false">
         <span class="nav-icon-pill">
-          <img src="/static/img/icons/reports.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" / width="16" height="16">
+          <img src="/static/img/icons/reports.svg" class="ui-icon-img w-6 h-6 shrink-0" alt="" aria-hidden="true" loading="eager" width="24" height="24">
         </span>
         <span class="text-[11px]">گزارش‌ها</span>
       </button>
       <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-shop" onclick="window.switchTab && window.switchTab('tab-shop')" aria-label="تب فروشگاه" aria-selected="false">
         <span class="nav-icon-pill">
-          <img src="/static/img/icons/shop.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" / width="16" height="16">
+          <img src="/static/img/icons/shop.svg" class="ui-icon-img w-6 h-6 shrink-0" alt="" aria-hidden="true" loading="eager" width="24" height="24">
         </span>
         <span class="text-[11px]">فروشگاه</span>
       </button>
       <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-wallet" onclick="window.switchTab && window.switchTab('tab-wallet')" aria-label="تب کیف پول" aria-selected="false">
         <span class="nav-icon-pill">
-          <img src="/static/img/icons/wallet.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" / width="16" height="16">
+          <img src="/static/img/icons/wallet.svg" class="ui-icon-img w-6 h-6 shrink-0" alt="" aria-hidden="true" loading="eager" width="24" height="24">
         </span>
         <span class="text-[11px]">کیف پول</span>
       </button>
       <button class="nav-btn flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-1 transition cursor-pointer active:scale-95" data-tab="tab-profile" onclick="window.switchTab && window.switchTab('tab-profile')" aria-label="تب حساب من" aria-selected="false">
         <span class="nav-icon-pill">
-          <img src="/static/img/icons/profile.svg" class="ui-icon-img w-[21px] h-[21px] shrink-0" alt="" aria-hidden="true" loading="eager" / width="16" height="16">
+          <img src="/static/img/icons/profile.svg" class="ui-icon-img w-6 h-6 shrink-0" alt="" aria-hidden="true" loading="eager" width="24" height="24">
         </span>
         <span class="text-[11px]">حساب من</span>
       </button>
