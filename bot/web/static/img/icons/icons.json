@@ -1,0 +1,586 @@
+{
+  "dashboard": {
+    "remix_source": "System/dashboard-fill.svg",
+    "category": "System",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "reports": {
+    "remix_source": "Business/bar-chart-2-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#a78bfa",
+      "#6366f1"
+    ]
+  },
+  "shop": {
+    "remix_source": "Finance/shopping-bag-3-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#34d399",
+      "#059669"
+    ]
+  },
+  "wallet": {
+    "remix_source": "Finance/wallet-3-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#fbbf24",
+      "#d97706"
+    ]
+  },
+  "profile": {
+    "remix_source": "User & Faces/user-3-fill.svg",
+    "category": "User & Faces",
+    "colors": [
+      "#38bdf8",
+      "#2563eb"
+    ]
+  },
+  "settings": {
+    "remix_source": "System/settings-3-fill.svg",
+    "category": "System",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "users": {
+    "remix_source": "User & Faces/team-fill.svg",
+    "category": "User & Faces",
+    "colors": [
+      "#38bdf8",
+      "#2563eb"
+    ]
+  },
+  "nodes": {
+    "remix_source": "Device/server-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "finance": {
+    "remix_source": "Finance/money-dollar-circle-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#34d399",
+      "#059669"
+    ]
+  },
+  "plans": {
+    "remix_source": "Business/archive-stack-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#a78bfa",
+      "#6366f1"
+    ]
+  },
+  "package": {
+    "remix_source": "Business/archive-stack-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#38bdf8",
+      "#2563eb"
+    ]
+  },
+  "zap": {
+    "remix_source": "Weather/flashlight-fill.svg",
+    "category": "Weather",
+    "colors": [
+      "#fbbf24",
+      "#f59e0b"
+    ]
+  },
+  "lightning": {
+    "remix_source": "Weather/flashlight-fill.svg",
+    "category": "Weather",
+    "colors": [
+      "#fbbf24",
+      "#f59e0b"
+    ]
+  },
+  "shield": {
+    "remix_source": "System/shield-check-fill.svg",
+    "category": "System",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "lock-shield": {
+    "remix_source": "System/shield-keyhole-fill.svg",
+    "category": "System",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "lock_shield": {
+    "remix_source": "System/shield-keyhole-fill.svg",
+    "category": "System",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "rocket": {
+    "remix_source": "Map/rocket-2-fill.svg",
+    "category": "Map",
+    "colors": [
+      "#f43f5e",
+      "#be123c"
+    ]
+  },
+  "gift": {
+    "remix_source": "Finance/gift-2-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#ec4899",
+      "#be185d"
+    ]
+  },
+  "cart": {
+    "remix_source": "Finance/shopping-cart-2-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#34d399",
+      "#059669"
+    ]
+  },
+  "trophy": {
+    "remix_source": "Finance/trophy-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#fbbf24",
+      "#d97706"
+    ]
+  },
+  "award": {
+    "remix_source": "Business/award-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#fbbf24",
+      "#d97706"
+    ]
+  },
+  "crown": {
+    "remix_source": "Finance/vip-crown-2-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#fbbf24",
+      "#d97706"
+    ]
+  },
+  "diamond": {
+    "remix_source": "Finance/vip-diamond-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#38bdf8",
+      "#2563eb"
+    ]
+  },
+  "star": {
+    "remix_source": "System/star-fill.svg",
+    "category": "System",
+    "colors": [
+      "#fbbf24",
+      "#f59e0b"
+    ]
+  },
+  "sparkles": {
+    "remix_source": "Weather/sparkling-2-fill.svg",
+    "category": "Weather",
+    "colors": [
+      "#f472b6",
+      "#c084fc"
+    ]
+  },
+  "flame": {
+    "remix_source": "Weather/fire-fill.svg",
+    "category": "Weather",
+    "colors": [
+      "#fb923c",
+      "#ea580c"
+    ]
+  },
+  "clock": {
+    "remix_source": "System/time-fill.svg",
+    "category": "System",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "calendar": {
+    "remix_source": "Business/calendar-2-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "copy": {
+    "remix_source": "Document/file-copy-2-fill.svg",
+    "category": "Document",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "check": {
+    "remix_source": "System/checkbox-circle-fill.svg",
+    "category": "System",
+    "colors": [
+      "#34d399",
+      "#10b981"
+    ]
+  },
+  "cross": {
+    "remix_source": "System/close-circle-fill.svg",
+    "category": "System",
+    "colors": [
+      "#f87171",
+      "#ef4444"
+    ]
+  },
+  "warning": {
+    "remix_source": "System/error-warning-fill.svg",
+    "category": "System",
+    "colors": [
+      "#fbbf24",
+      "#f59e0b"
+    ]
+  },
+  "ban": {
+    "remix_source": "System/forbid-2-fill.svg",
+    "category": "System",
+    "colors": [
+      "#f87171",
+      "#ef4444"
+    ]
+  },
+  "trash": {
+    "remix_source": "System/delete-bin-6-fill.svg",
+    "category": "System",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "edit": {
+    "remix_source": "Design/edit-2-fill.svg",
+    "category": "Design",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "plus": {
+    "remix_source": "System/add-line.svg",
+    "category": "System",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "search": {
+    "remix_source": "System/search-2-line.svg",
+    "category": "System",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "globe": {
+    "remix_source": "Business/global-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "link": {
+    "remix_source": "Editor/link-m.svg",
+    "category": "Editor",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "key": {
+    "remix_source": "Others/key-2-fill.svg",
+    "category": "Others",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "phone": {
+    "remix_source": "Device/smartphone-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "desktop": {
+    "remix_source": "Device/computer-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "antenna": {
+    "remix_source": "Media/broadcast-fill.svg",
+    "category": "Media",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "signal": {
+    "remix_source": "Device/signal-cellular-3-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "wifi": {
+    "remix_source": "Device/wifi-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "chat": {
+    "remix_source": "Communication/chat-3-fill.svg",
+    "category": "Communication",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "support": {
+    "remix_source": "Business/customer-service-2-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "ticket": {
+    "remix_source": "Finance/coupon-3-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#fbbf24",
+      "#d97706"
+    ]
+  },
+  "cake": {
+    "remix_source": "Food/cake-3-fill.svg",
+    "category": "Food",
+    "colors": [
+      "#f472b6",
+      "#db2777"
+    ]
+  },
+  "receipt": {
+    "remix_source": "Document/bill-fill.svg",
+    "category": "Document",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "coins": {
+    "remix_source": "Finance/coin-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#fbbf24",
+      "#d97706"
+    ]
+  },
+  "credit-card": {
+    "remix_source": "Finance/bank-card-2-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "credit_card": {
+    "remix_source": "Finance/bank-card-2-fill.svg",
+    "category": "Finance",
+    "colors": [
+      "#38bdf8",
+      "#0284c7"
+    ]
+  },
+  "sun": {
+    "remix_source": "Weather/sun-fill.svg",
+    "category": "Weather",
+    "colors": [
+      "#fbbf24",
+      "#f59e0b"
+    ]
+  },
+  "moon": {
+    "remix_source": "Weather/moon-clear-fill.svg",
+    "category": "Weather",
+    "colors": [
+      "#818cf8",
+      "#6366f1"
+    ]
+  },
+  "sunrise": {
+    "remix_source": "Weather/sun-cloudy-fill.svg",
+    "category": "Weather",
+    "colors": [
+      "#fb923c",
+      "#ea580c"
+    ]
+  },
+  "sunset": {
+    "remix_source": "Weather/sun-cloudy-fill.svg",
+    "category": "Weather",
+    "colors": [
+      "#f43f5e",
+      "#be123c"
+    ]
+  },
+  "sync": {
+    "remix_source": "System/refresh-line.svg",
+    "category": "System",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "inbox": {
+    "remix_source": "Business/inbox-archive-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "download": {
+    "remix_source": "System/download-2-fill.svg",
+    "category": "System",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "database": {
+    "remix_source": "Device/database-2-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "wheel": {
+    "remix_source": "Device/gamepad-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#ec4899",
+      "#8b5cf6"
+    ]
+  },
+  "qr": {
+    "remix_source": "Device/qr-code-fill.svg",
+    "category": "Device",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "layers": {
+    "remix_source": "Business/stack-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "route": {
+    "remix_source": "Map/route-fill.svg",
+    "category": "Map",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "recycle": {
+    "remix_source": "Others/recycle-fill.svg",
+    "category": "Others",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "lightbulb": {
+    "remix_source": "Others/lightbulb-flash-fill.svg",
+    "category": "Others",
+    "colors": [
+      "#e2e8f0",
+      "#94a3b8"
+    ]
+  },
+  "medal-gold": {
+    "remix_source": "Business/medal-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#fbbf24",
+      "#d97706"
+    ]
+  },
+  "medal-silver": {
+    "remix_source": "Business/medal-2-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#94a3b8",
+      "#64748b"
+    ]
+  },
+  "medal-bronze": {
+    "remix_source": "Business/medal-line.svg",
+    "category": "Business",
+    "colors": [
+      "#d97706",
+      "#92400e"
+    ]
+  },
+  "medal_gold": {
+    "remix_source": "Business/medal-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#fbbf24",
+      "#d97706"
+    ]
+  },
+  "medal_silver": {
+    "remix_source": "Business/medal-2-fill.svg",
+    "category": "Business",
+    "colors": [
+      "#94a3b8",
+      "#64748b"
+    ]
+  },
+  "medal_bronze": {
+    "remix_source": "Business/medal-line.svg",
+    "category": "Business",
+    "colors": [
+      "#d97706",
+      "#92400e"
+    ]
+  }
+}

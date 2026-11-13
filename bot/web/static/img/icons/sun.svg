@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><g fill="none"><path fill="url(#SVG3KCdGb3f)" d="M17.125 14a5.5 5.5 0 1 0-10.25 0z"/><path fill="url(#SVGz4TD8b3L)" d="M2 14a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1"/><path fill="url(#SVGz4TD8b3L)" d="M6 17a1 1 0 0 1 1-1h10a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1"/><path fill="url(#SVGz4TD8b3L)" d="M10 20a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1"/><path fill="url(#SVGoyTojeMF)" d="M12 2a1 1 0 0 1 1 1v1.25a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1"/><path fill="url(#SVGoyTojeMF)" d="M4.793 4.793a1 1 0 0 1 1.414 0l1 1a1 1 0 0 1-1.414 1.414l-1-1a1 1 0 0 1 0-1.414"/><path fill="url(#SVGoyTojeMF)" d="M19.207 4.793a1 1 0 0 1 0 1.414l-1 1a1 1 0 1 1-1.414-1.414l1-1a1 1 0 0 1 1.414 0"/><defs><linearGradient id="SVG3KCdGb3f" x1="10.31" x2="14.51" y1="6.089" y2="14.585" gradientUnits="userSpaceOnUse"><stop stop-color="#ffe580"/><stop offset=".273" stop-color="#ffbf70"/><stop offset=".57" stop-color="#ffa342"/><stop offset=".96" stop-color="#fa6673"/></linearGradient><linearGradient id="SVGz4TD8b3L" x1=".531" x2="22" y1="13" y2="13" gradientUnits="userSpaceOnUse"><stop offset=".061" stop-color="#0fafff"/><stop offset="1" stop-color="#0094f0"/></linearGradient><linearGradient id="SVGoyTojeMF" x1="9.696" x2="12.931" y1="1.699" y2="13.084" gradientUnits="userSpaceOnUse"><stop stop-color="#ffe580"/><stop offset=".273" stop-color="#ffbf70"/><stop offset=".57" stop-color="#ffa342"/><stop offset=".815" stop-color="#fa6673"/></linearGradient></defs></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <defs>
+    <linearGradient id="ri_sun" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <g fill="none">
+    <path fill="url(#ri_sun)" d="M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z"/>
+  </g>
+</svg>

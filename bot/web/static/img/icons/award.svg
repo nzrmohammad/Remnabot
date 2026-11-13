@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><g fill="none"><path fill="url(#SVGwt6YSG6H)" d="M17.002 13.244v8.001a.75.75 0 0 1-1.183.613l-3.818-2.687l-3.816 2.687a.75.75 0 0 1-1.182-.613l-.002-8a7.97 7.97 0 0 0 5 1.755a7.97 7.97 0 0 0 5-1.756"/><path fill="url(#SVGaQ1yDcNu)" d="M12 2a7 7 0 1 1 0 14a7 7 0 0 1 0-14"/><path fill="url(#SVGPxO7qbhT)" d="m12.229 5.642l.912 1.853l2.044.295c.21.03.293.288.142.435l-1.479 1.44l.35 2.036a.255.255 0 0 1-.371.269L12 11.008l-1.827.962a.255.255 0 0 1-.37-.269l.35-2.035l-1.48-1.44a.255.255 0 0 1 .142-.436l2.043-.295l.913-1.853a.255.255 0 0 1 .458 0"/><defs><radialGradient id="SVGwt6YSG6H" cx="0" cy="0" r="1" gradientTransform="matrix(0 13.7943 -22.0759 0 12.001 11.88)" gradientUnits="userSpaceOnUse"><stop stop-color="#163697"/><stop offset="1" stop-color="#29c3ff"/></radialGradient><radialGradient id="SVGaQ1yDcNu" cx="0" cy="0" r="1" gradientTransform="rotate(56.615 31.006 -46.94)scale(78.1445 66.9271)" gradientUnits="userSpaceOnUse"><stop offset=".772" stop-color="#ffcd0f"/><stop offset=".991" stop-color="#e67505"/></radialGradient><radialGradient id="SVGPxO7qbhT" cx="0" cy="0" r="1" gradientTransform="rotate(253.34 11.318 .899)scale(11.8734 17.1301)" gradientUnits="userSpaceOnUse"><stop stop-color="#b03111"/><stop offset="1" stop-color="#e67505"/></radialGradient></defs></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <defs>
+    <linearGradient id="ri_award" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <g fill="none">
+    <path fill="url(#ri_award)" d="M17 15.2454V22.1169C17 22.393 16.7761 22.617 16.5 22.617C16.4094 22.617 16.3205 22.5923 16.2428 22.5457L12 20L7.75725 22.5457C7.52046 22.6877 7.21333 22.6109 7.07125 22.3742C7.02463 22.2964 7 22.2075 7 22.1169V15.2454C5.17107 13.7793 4 11.5264 4 9C4 4.58172 7.58172 1 12 1C16.4183 1 20 4.58172 20 9C20 11.5264 18.8289 13.7793 17 15.2454ZM12 15C15.3137 15 18 12.3137 18 9C18 5.68629 15.3137 3 12 3C8.68629 3 6 5.68629 6 9C6 12.3137 8.68629 15 12 15ZM12 13C9.79086 13 8 11.2091 8 9C8 6.79086 9.79086 5 12 5C14.2091 5 16 6.79086 16 9C16 11.2091 14.2091 13 12 13Z"/>
+  </g>
+</svg>
