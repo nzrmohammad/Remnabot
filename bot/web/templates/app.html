@@ -1097,7 +1097,7 @@
         <div id="shopCouponSection" class="space-y-2 hidden">
           <div class="card-inset rounded-xl p-2.5 flex items-center gap-2 border border-card-border">
             <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0"><span class="flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />اعمال</span></button>
-            <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-sans tracking-wide" id="couponInput" />
+            <input type="text" placeholder="کد تخفیف خود را وارد کنید..." class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-sans tracking-wide" id="couponInput" />
           </div>
 
           <!-- Won Lucky Wheel Coupons (User Active Discounts) -->
@@ -2138,10 +2138,10 @@
               <!-- Optional Tracking Code / Notes -->
               <div class="space-y-1 pt-1">
                 <div class="flex items-center justify-between">
-                  <label class="text-[11px] t-muted font-medium">کد پیگیری یا توضیحات (اختیاری):</label>
-                  <span class="text-[11px] t-muted">اختیاری</span>
+                  <label class="text-[11px] t-muted font-medium">کد پیگیری یا توضیحات:</label>
+                  <span class="text-[10px] t-muted px-2 py-0.5 rounded-full border border-card-border bg-card-inner">اختیاری</span>
                 </div>
-                <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا توضیح دلخواه (اختیاری)" class="input-base w-full p-2.5 rounded-xl text-xs outline-none resize-none focus:border-cyan-500 transition"></textarea>
+                <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا توضیح دلخواه" class="input-base w-full p-2.5 rounded-xl text-xs outline-none resize-none focus:border-cyan-500 transition border border-card-border"></textarea>
               </div>
 
               <p class="text-[11px] t-muted leading-relaxed card-inset p-2 rounded-xl">
@@ -2630,9 +2630,6 @@
                   <tspan font-size="11">🔄 </tspan><tspan font-size="9">دوباره</tspan>
                 </text>
               </g>
-
-              <!-- Center Hub Ring Behind Button -->
-              <circle cx="100" cy="100" r="24" class="fill-slate-900 dark:fill-slate-950" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />
             </svg>
           </div>
 
@@ -2932,7 +2929,7 @@
     <!-- ======================================================== -->
     <!-- 9. MODAL: SPEED & PING TEST (تست سرعت اینترنت)          -->
     <!-- ======================================================== -->
-    <div id="speedTestModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeSpeedTestModal()" class="speedtest-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
+    <div id="speedTestModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeSpeedTestModal()" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[92vh] flex flex-col space-y-3">
         <!-- Close Button -->
         <button id="closeSpeedTestModalBtn" type="button" onclick="window.closeSpeedTestModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن تست سرعت"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>

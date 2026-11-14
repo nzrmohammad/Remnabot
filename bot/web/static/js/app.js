@@ -2531,7 +2531,7 @@ function setupAccountSwitcher() {
             ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : 'نامحدود'}
           </span>
         </div>
-        ${acc.is_active ? '<span class="text-xs text-blue-400 font-bold bg-transparent px-2 py-0.5 rounded-full border border-blue-500/40">فعال ✓</span>' : '<span class="text-xs text-slate-400 bg-transparent border border-slate-700/60 px-2 py-0.5 rounded-full">انتخاب</span>'}
+        ${acc.is_active ? '<span class="text-xs text-blue-500 dark:text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/30 inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /><span>فعال</span></span>' : '<span class="text-xs text-slate-400 bg-transparent border border-card-border px-2 py-0.5 rounded-full">انتخاب</span>'}
       </button>
     `).join('');
 
@@ -3189,7 +3189,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center select-none translate-y-0.5" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
+        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center select-none translate-y-1" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -3260,10 +3260,10 @@ function hydrateUserInterface(data) {
 
     if (profSub) {
       if (hasActiveSub) {
-        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none" title="سرویس فعال"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="فعال" /></span>';
+        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none translate-y-1" title="سرویس فعال"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="فعال" /></span>';
         profSub.className = 'inline-block';
       } else {
-        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none" title="سرویس غیرفعال"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="غیرفعال" /></span>';
+        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none translate-y-1" title="سرویس غیرفعال"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="غیرفعال" /></span>';
         profSub.className = 'inline-block';
       }
     }

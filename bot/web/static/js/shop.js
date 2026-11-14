@@ -731,17 +731,21 @@ function renderFilteredShopPlans() {
               ${hasAnyDiscount ? `<span class="line-through t-muted text-[11px] font-semibold leading-none num-bidi" dir="ltr">${formattedOriginal}</span>` : ''}
               <span class="text-base font-black t-success leading-tight num-bidi" dir="ltr">${formattedFinal}</span>
               <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
+              ${hasDiscountBadges ? `
+                <button type="button" class="plan-discount-toggle-btn inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition active:scale-95 cursor-pointer mr-0.5" title="مشاهده جزئیات تخفیف" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
+                  <span>🏷️</span>
+                  <span>تخفیف</span>
+                </button>
+              ` : ''}
             </div>
             <p class="text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1">${safeDesc}</p>
           </div>
           <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
-            <div class="card-inset px-2.5 py-1 rounded-xl border border-card-border shadow-xs max-w-full">
-              <h4 class="font-bold text-xs sm:text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
-            </div>
+            <h4 class="font-bold text-xs sm:text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
           </div>
         </div>
         ${hasDiscountBadges ? `
-          <div class="flex items-center justify-start gap-1.5 flex-wrap mt-2.5 mb-2.5" dir="ltr">
+          <div class="plan-discounts-box hidden flex items-center justify-start gap-1.5 flex-wrap mt-2.5 mb-2.5" dir="ltr">
             ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>Loyality (-${loyaltyPctEnglish}%)</span></span>` : ''}
             ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} (-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
           </div>
