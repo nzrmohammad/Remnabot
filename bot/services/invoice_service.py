@@ -131,7 +131,7 @@ async def get_order_invoice_data(
             "tracking_code": tracking_code,
             "deducted_amount": amount_toman if is_paid else 0,
             "deducted_formatted": f"{amount_toman:,} تومان" if is_paid else "0 تومان",
-            "deduction_note": "کسر شده از موجودی کیف پول" if is_paid else ("مسترد شده به کیف پول" if raw_status in (OrderStatus.REFUNDED.value, "refunded") else "هیچ هزینه‌ای از کیف پول شما کسر نشده است"),
+            "deduction_note": "کسر شده از موجودی کیف پول" if is_paid else ("مسترد شده به کیف پول" if raw_status in (OrderStatus.REFUNDED.value, "refunded") else "هیچ هزینه‌ای کسر نشده است"),
         },
     }
 

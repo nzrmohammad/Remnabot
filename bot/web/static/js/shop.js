@@ -734,8 +734,10 @@ function renderFilteredShopPlans() {
             </div>
             <p class="text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1">${safeDesc}</p>
           </div>
-          <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
-            <h4 class="font-bold text-sm t-main truncate w-full text-left">${formatPlanTitle(p.name)}</h4>
+          <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[50%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
+            <div class="card-inset px-2.5 py-1 rounded-xl border border-card-border shadow-xs max-w-full">
+              <h4 class="font-bold text-xs sm:text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
+            </div>
           </div>
         </div>
         ${hasDiscountBadges ? `
@@ -1039,12 +1041,12 @@ function setupBuyButtons() {
             title: '⚠️ هشدار مهم تغییر دسته سرور',
             badgeText: '🔄 تغییر دسته سرور',
             badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
-            message: `شما در حال تغییر سرویس اشتراک فعلی خود به «<b>${escapeHtml(planObj.name)}</b>» هستید.<br><br>
-📌 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
+            message: `شما در حال تغییر سرویس اشتراک فعلی خود به «<b>${formatPlanTitle(planObj.name, { plainText: true, iconPosition: 'left' })}</b>» هستید.<br><br>
+<b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
 1. با تغییر سرویس، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند).<br>
 2. <b>لینک اتصال اشتراک شما تغییری نمی‌کند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription (بروزرسانی اشتراک)</b> را در برنامه بزنید.<br>
 3. هزینه کامل بسته جدید دریافت خواهد شد.<br><br>
-💡 راهنما: چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، می‌توانید از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا «بسته افزایش حجم» تهیه فرمایید.<br><br>
+راهنما: چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، می‌توانید از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا «بسته افزایش حجم» تهیه فرمایید.<br><br>
 آیا برای مشاهده پیش‌فاکتور و خرید این بسته موافقید؟`,
             actionText: '✅ متوجه شدم، مشاهده پیش‌فاکتور',
             onAction: () => openCheckoutConfirmModal(planObj),

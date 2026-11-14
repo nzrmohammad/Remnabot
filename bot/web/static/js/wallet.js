@@ -383,7 +383,9 @@ function updateTopupDisplays(amt) {
   const starsReqEl = document.getElementById('starsRequiredCount');
   if (starsReqEl) starsReqEl.innerText = `${starsCount} ⭐️`;
   const starsRateEl = document.getElementById('starsRateDisplay');
-  if (starsRateEl) starsRateEl.innerText = `${Number(starsRate).toLocaleString('en-US')} تومان`;
+  if (starsRateEl) {
+    starsRateEl.innerHTML = `<span class="font-sans font-bold" dir="ltr">${Number(starsRate).toLocaleString('en-US')}</span> <span>تومان</span>`;
+  }
   if (typeof window.updateCardTopupSubmitState === 'function') {
     window.updateCardTopupSubmitState();
   }

@@ -602,6 +602,9 @@ function formatPlanTitle(name, options = {}) {
 
   if (options.plainText) {
     const icon = emojiStr || '💎';
+    if (options.iconPosition === 'left' || options.iconLeft) {
+      return cleanText ? `${cleanText} ${icon}` : icon;
+    }
     return cleanText ? `${icon} ${cleanText}` : icon;
   }
 
@@ -610,6 +613,9 @@ function formatPlanTitle(name, options = {}) {
   }
   if (!cleanText) {
     return `<span class="inline-block text-base">${emojiStr}</span>`;
+  }
+  if (options.iconPosition === 'left' || options.iconLeft) {
+    return `<span class="inline-flex items-center gap-1.5"><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi><span class="shrink-0 text-base">${emojiStr}</span></span>`;
   }
   return `<span class="inline-flex items-center gap-1.5"><span class="shrink-0 text-base">${emojiStr}</span><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
 }

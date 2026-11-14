@@ -1843,6 +1843,61 @@ function closeBirthdayCountdownModal() {
 window.openBirthdayCountdownModal = openBirthdayCountdownModal;
 window.closeBirthdayCountdownModal = closeBirthdayCountdownModal;
 
+function openMembershipModal() {
+  const user = window.lastUserData?.user;
+  const sub = window.lastUserData?.subscription;
+  if (!user) return;
+
+  const joinEl = $('membershipDaysCount');
+  const sinceEl = $('membershipSinceDate');
+  const spentEl = $('membershipTotalSpent');
+  const trafEl = $('membershipTotalTraffic');
+  const tierEl = $('membershipLoyaltyTier');
+  const titleEl = $('membershipUserTitle');
+
+  const displayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
+  if (titleEl) titleEl.innerText = `همسفر همیشگی رمنا، ${escapeHtml(displayName)}`;
+
+  let daysPassed = 1;
+  if (user.created_at) {
+    const createdTime = new Date(user.created_at).getTime();
+    if (!isNaN(createdTime) && createdTime > 0) {
+      daysPassed = Math.max(1, Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24)));
+    }
+  }
+  if (joinEl) joinEl.innerText = toEnglishDigits(daysPassed);
+  if (sinceEl) {
+    const jalaliDate = user.created_at_jalali || (user.created_at && window.formatDateToJalali ? window.formatDateToJalali(user.created_at) : '');
+    sinceEl.innerText = jalaliDate ? `از تاریخ ${toEnglishDigits(jalaliDate)}` : `عضویت از روز نخست`;
+  }
+
+  const totalSpentVal = Number(user.total_spent || user.total_payments || user.lifetime_spent || 0);
+  if (spentEl) spentEl.innerText = `${totalSpentVal.toLocaleString('en-US')} تومان`;
+
+  const trafficBytes = Number(user.total_traffic_bytes || user.lifetime_used_bytes || user.used_traffic_bytes || sub?.used_traffic_bytes || 0);
+  if (trafEl) {
+    if (trafficBytes > 0) {
+      trafEl.innerText = fmtTraffic(trafficBytes, { isBytes: true, html: false });
+    } else {
+      const activeGb = Number(sub?.used_traffic_gb || 0);
+      trafEl.innerText = activeGb > 0 ? fmtTraffic(activeGb, { html: false }) : '0 GB';
+    }
+  }
+
+  const tierName = window.lastUserData?.loyalty?.current_tier?.name || user.loyalty_tier_name || 'کاربر همراه';
+  if (tierEl) tierEl.innerText = tierName;
+
+  openModal('membershipModal');
+  hapticFeedback('selection');
+}
+
+function closeMembershipModal() {
+  closeModal('membershipModal');
+}
+
+window.openMembershipModal = openMembershipModal;
+window.closeMembershipModal = closeMembershipModal;
+
 function renderDashboardBirthdayCountdown(user) {
   const card = $('dashboardBirthdayCard');
   if (card) {
@@ -2330,7 +2385,7 @@ const APP_MODAL_IDS = [
   'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal',
   'shopGuidanceModal', 'speedTestModal', 'wheelResultModal',
   'speedResultsModal', 'birthdayModal', 'alertThresholdModal',
-  'expiryCountdownModal', 'birthdayCountdownModal', 'giftModal',
+  'expiryCountdownModal', 'birthdayCountdownModal', 'membershipModal', 'giftModal',
   'giftServiceSelectModal', 'invoiceModal', 'loyaltyModal', 'killAllSessionsModal', 'killSingleDeviceModal',
 ];
 
@@ -3175,11 +3230,11 @@ function hydrateUserInterface(data) {
 
     if (profSub) {
       if (hasActiveSub) {
-        profSub.innerText = 'فعال';
-        profSub.className = 'font-semibold t-success';
+        profSub.innerHTML = '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold shadow-xs select-none"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" /><span>فعال</span></span>';
+        profSub.className = 'inline-block';
       } else {
-        profSub.innerText = 'غیرفعال';
-        profSub.className = 'font-semibold t-danger';
+        profSub.innerHTML = '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-[10px] font-bold shadow-xs select-none"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" /><span>غیرفعال</span></span>';
+        profSub.className = 'inline-block';
       }
     }
 
@@ -4726,16 +4781,16 @@ function renderGiftServiceSelectModalList() {
 
     return `
       <div onclick="window.selectGiftService(${p.id})" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between transition">
-        <div class="space-y-1 min-w-0">
-          <b class="text-xs t-main block truncate">${formatPlanTitle(p.name)}</b>
-          <div class="flex items-center gap-2 text-[11px] t-muted">
-            <span>📊 <b dir="ltr" class="font-sans num-bidi t-main">${trafStr}</b></span>
-            <span>📅 <b class="t-main">${durStr}</b></span>
-          </div>
-        </div>
-        <div class="text-left font-sans num-bidi shrink-0 pl-1">
+        <div class="text-right font-sans num-bidi shrink-0 pr-1">
           <span class="text-xs font-black t-pink block">${priceStr}</span>
           <span class="text-[11px] t-muted font-sans block">تومان</span>
+        </div>
+        <div class="space-y-1 min-w-0 text-left">
+          <b class="text-xs t-main block truncate">${formatPlanTitle(p.name, { iconPosition: 'left' })}</b>
+          <div class="flex items-center justify-end gap-2 text-[11px] t-muted">
+            <span>📅 <b class="t-main">${durStr}</b></span>
+            <span>📊 <b dir="ltr" class="font-sans num-bidi t-main">${trafStr}</b></span>
+          </div>
         </div>
       </div>
     `;
@@ -5018,8 +5073,8 @@ async function loadGiftsHistory() {
           <div class="flex items-center justify-between text-[11px] border-t border-card-border pt-1">
             ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
-              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
               <span class="font-sans num-bidi t-muted text-[11px] select-all">${g.code}</span>
+              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
             </div>
           </div>
         </div>
@@ -5097,25 +5152,25 @@ function renderInvoiceModalFields(inv, orderId) {
   if (statusEl) {
     let statusText = inv.payment?.status || 'پرداخت شده';
     if (statusText === 'پرداخت شده و فعال') statusText = 'پرداخت شده';
-    let icon = '✅';
-    let colorClass = 'text-emerald-500';
+    let iconSvg = '<img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
+    let badgeClass = 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400';
     if (statusText.includes('ناموفق') || statusText.includes('لغو')) {
-      icon = '❌';
-      colorClass = 'text-rose-500';
+      iconSvg = '<img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
+      badgeClass = 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400';
     } else if (statusText.includes('انتظار')) {
-      icon = '⏳';
-      colorClass = 'text-amber-500';
+      iconSvg = '<img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
+      badgeClass = 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400';
     } else if (statusText.includes('مسترد')) {
-      icon = '↩️';
-      colorClass = 't-purple';
+      iconSvg = '<img src="/static/img/icons/sync.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
+      badgeClass = 'bg-purple-500/15 border-purple-500/30 text-purple-600 dark:text-purple-400';
     }
-    statusEl.className = `flex items-center gap-1 font-bold ${colorClass}`;
-    statusEl.innerHTML = `<span>${statusText}</span> <span>${icon}</span>`;
+    statusEl.className = 'inline-block';
+    statusEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${badgeClass} text-[11px] font-bold shadow-xs select-none">${iconSvg}<span>${statusText}</span></span>`;
   }
 
   const dedStatusEl = $('invWalletDeductionStatus');
   if (dedStatusEl) {
-    const note = inv.payment?.deduction_note || (inv.payment?.is_paid ? 'کسر شده از موجودی کیف پول' : 'هیچ هزینه‌ای از کیف پول شما کسر نشده است');
+    const note = inv.payment?.deduction_note || (inv.payment?.is_paid ? 'کسر شده از موجودی کیف پول' : 'هیچ هزینه‌ای کسر نشده است');
     const isPaid = inv.payment?.is_paid;
     dedStatusEl.innerText = note;
     dedStatusEl.className = `text-xs font-semibold ${isPaid ? 'text-emerald-500' : 'text-slate-400'}`;

@@ -72,6 +72,7 @@ test('Persian unit translation with English digits', () => {
 
 test('formatPlanTitle plainText mode for canvas and charts', () => {
   assert.strictEqual(formatPlanTitle('💎 پلن ویژه', { plainText: true }), '💎 پلن ویژه');
+  assert.strictEqual(formatPlanTitle('💎 پلن ویژه', { plainText: true, iconPosition: 'left' }), 'پلن ویژه 💎');
   assert.strictEqual(formatPlanTitle('🚀 توربو 2 ماهه', { plainText: true }), '🚀 توربو 2 ماهه');
   assert.strictEqual(formatPlanTitle('پلن بدون آیکون', { plainText: true }), '💎 پلن بدون آیکون');
   assert.strictEqual(formatPlanTitle('', { plainText: true }), '💎 پلن');

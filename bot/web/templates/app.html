@@ -73,7 +73,7 @@
     <!-- ======================================================== -->
     <!-- 1. TELEGRAM WEBAPP TOP HEADER (UNIFIED & RESPONSIVE)      -->
     <!-- ======================================================== -->
-    <div id="topHeaderBar" class="top-nav-bar px-4 pt-[max(1.125rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+8px))] pb-2.5 flex items-center justify-between z-20 transition-all duration-200">
+    <div id="topHeaderBar" class="top-nav-bar px-4 pt-[max(1.125rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+8px))] pb-1.5 flex items-center justify-between z-20 transition-all duration-200">
       <!-- Right Side (in RTL): Avatar + Active Account + Switch Btn -->
       <div class="flex items-center gap-2 min-w-0">
         <div id="headerUserAvatar" class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow overflow-hidden flex-shrink-0">
@@ -110,12 +110,12 @@
     <!-- ======================================================== -->
     <!-- 2. SCROLLABLE TAB CONTENT AREA                           -->
     <!-- ======================================================== -->
-    <div id="contentArea" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]">
+    <div id="contentArea" class="flex-1 overflow-y-auto custom-scroll px-4 pt-1.5 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]">
 
       <!-- ======================================================== -->
       <!-- 0.1 SYSTEM MAINTENANCE OVERLAY                          -->
       <!-- ======================================================== -->
-      <div id="systemMaintenanceScreen" class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
+      <div id="systemMaintenanceScreen" hidden class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
         <!-- Ambient Glow Behind Card -->
         <div class="absolute w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
         <div class="absolute w-56 h-56 bg-orange-600/10 rounded-full blur-2xl pointer-events-none -bottom-4"></div>
@@ -155,7 +155,7 @@
       <!-- ======================================================== -->
       <!-- 0.2 SYSTEM INVITE-ONLY OVERLAY                           -->
       <!-- ======================================================== -->
-      <div id="systemInviteOnlyScreen" class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
+      <div id="systemInviteOnlyScreen" hidden class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
         <!-- Ambient Glow Behind Card -->
         <div class="absolute w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
 
@@ -194,7 +194,7 @@
       <!-- ======================================================== -->
       <!-- 0.3 SYSTEM BANNED OVERLAY                                -->
       <!-- ======================================================== -->
-      <div id="systemBannedScreen" class="hidden select-none w-full py-2 flex flex-col items-center justify-center relative">
+      <div id="systemBannedScreen" hidden class="hidden select-none w-full py-2 flex flex-col items-center justify-center relative">
         <div class="absolute w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
 
         <div class="system-status-card relative z-10 w-full max-w-sm mx-auto card rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
@@ -1096,8 +1096,8 @@
         <!-- Coupon Box (Hidden until plans are rendered) -->
         <div id="shopCouponSection" class="space-y-2 hidden">
           <div class="card-inset rounded-xl p-2.5 flex items-center gap-2 border border-card-border">
-            <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-sans tracking-wide" id="couponInput" />
             <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0"><span class="flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />اعمال</span></button>
+            <input type="text" placeholder="کد تخفیف (مثال: OFF20)" class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-sans tracking-wide" id="couponInput" />
           </div>
 
           <!-- Won Lucky Wheel Coupons (User Active Discounts) -->
@@ -1147,8 +1147,8 @@
             </span>
           </div>
           <div class="flex gap-2">
-            <button id="redeemVoucherBtn" type="button" class="btn-primary text-xs font-bold px-4 py-2 rounded-xl transition active:scale-95 shadow shrink-0">
-              اعمال
+            <button id="redeemVoucherBtn" type="button" class="btn btn-primary text-xs font-bold px-4 py-2 rounded-xl transition active:scale-95 shadow shrink-0 flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>اعمال</span>
             </button>
             <input type="text" id="voucherCodeInput" placeholder="GIFT-XXXX" dir="ltr" class="input-base flex-1 rounded-xl px-3 py-2 text-xs font-sans t-accent placeholder-slate-400 outline-none uppercase text-left" />
           </div>
@@ -1285,7 +1285,7 @@
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
               <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تاریخ عضویت</span></span>
-              <span id="profileJoinDate" class="t-main font-medium font-sans" dir="ltr">--</span>
+              <span id="profileJoinDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openMembershipModal && window.openMembershipModal()" title="مشاهده کارنامه همراهی">--</span>
             </div>
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
@@ -1408,7 +1408,7 @@
             </button>
 
             <p class="text-[11px] t-muted card-inset rounded-xl p-2.5 border border-card-border leading-relaxed">
-              <img src="/static/img/icons/lightbulb.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /><b>نکته مهم:</b> هدیه ترافیک دعوت زمانی به حساب شما اضافه می‌شود که دوست دعوت‌شده با لینک شما <b>اولین خرید</b> خود را انجام دهد.
+              <b>نکته مهم:</b> هدیه ترافیک دعوت زمانی به حساب شما اضافه می‌شود که دوست دعوت‌شده با لینک شما <b>اولین خرید</b> خود را انجام دهد.
             </p>
           </div>
         </div>
@@ -1813,13 +1813,13 @@
             <img src="/static/img/icons/credit-card.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" aria-hidden="true" /><span>کارت</span>
           </button>
           <button id="topupMethodCryptoBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <img src="/static/img/icons/diamond.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>TON</span>
+            <img src="/static/img/icons/ton.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>TON</span>
           </button>
           <button id="topupMethodTrxBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <img src="/static/img/icons/coins.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />ترون
+            <img src="/static/img/icons/tron.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /> <span>ترون</span>
           </button>
           <button id="topupMethodPolBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
-            <img src="/static/img/icons/diamond.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />پلیگان
+            <img src="/static/img/icons/polygon.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /> <span>پلیگان</span>
           </button>
           <button id="topupMethodStarsBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
             <img src="/static/img/icons/star.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>استارز</span>
@@ -1893,24 +1893,24 @@
                 </div>
 
                 <!-- Bank Card & Payment Details (Unified Clean Inset Style) -->
-                <div class="space-y-2">
+                <div class="space-y-2.5">
                   <!-- Row 1: Account Holder -->
-                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
+                  <div class="card-inset rounded-2xl p-3 flex items-center justify-between border border-[var(--card-border)]">
                     <div>
                       <span class="text-[11px] t-muted block">صاحب حساب:</span>
-                      <b id="cardAutoCardHolder" class="font-bold t-main text-sm block">در حال دریافت...</b>
+                      <b id="cardAutoCardHolder" class="font-bold t-main text-sm block mt-0.5">در حال دریافت...</b>
                     </div>
                   </div>
 
                   <!-- Row 2: Card Number with Copy Button -->
-                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                    <div>
-                      <span class="text-[11px] t-muted block">شماره کارت مقصد:</span>
-                      <b id="cardAutoCardNumber" onclick="window.copyCardNumber(document.getElementById('copyCardAutoBtn'))" class="font-bold t-main text-sm sm:text-base font-sans tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
+                  <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-1.5">
+                    <span class="text-[11px] t-muted block text-right">شماره کارت مقصد:</span>
+                    <div class="flex items-center justify-between">
+                      <button id="copyCardAutoBtn" type="button" onclick="window.copyCardNumber(this)" class="p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-accent transition active:scale-95 flex items-center justify-center shrink-0" title="کپی شماره کارت" aria-label="کپی شماره کارت">
+                        <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                      </button>
+                      <b id="cardAutoCardNumber" onclick="window.copyCardNumber(document.getElementById('copyCardAutoBtn'))" class="font-bold t-main text-base sm:text-lg font-sans tracking-widest select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
                     </div>
-                    <button id="copyCardAutoBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
-                      <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-                    </button>
                   </div>
 
                   <!-- Hidden stubs for legacy sync -->
@@ -1918,25 +1918,25 @@
                   <span id="cardAutoClassicNumber" class="hidden"></span>
 
                   <!-- Row 3: Rial Amount -->
-                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                    <div>
-                      <span class="text-[11px] t-muted block">مبلغ قابل پرداخت به ریال (همراه‌بانک):</span>
-                      <b id="cardAutoExactRial" class="t-accent text-sm font-sans font-bold">-- ریال</b>
+                  <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-1.5">
+                    <span class="text-[11px] t-muted block text-right">مبلغ قابل پرداخت به ریال (همراه‌بانک):</span>
+                    <div class="flex items-center justify-between">
+                      <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-accent transition active:scale-95 flex items-center justify-center shrink-0" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
+                        <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                      </button>
+                      <b id="cardAutoExactRial" class="t-accent text-sm sm:text-base font-sans font-bold" dir="ltr">-- ریال</b>
                     </div>
-                    <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
-                      <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-                    </button>
                   </div>
 
                   <!-- Row 4: Toman Amount -->
-                  <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                    <div>
-                      <span class="text-[11px] t-muted block">مبلغ قابل پرداخت به تومان:</span>
-                      <b id="cardAutoExactToman" class="t-success text-sm font-sans font-bold">-- تومان</b>
+                  <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-1.5">
+                    <span class="text-[11px] t-muted block text-right">مبلغ قابل پرداخت به تومان:</span>
+                    <div class="flex items-center justify-between">
+                      <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-success transition active:scale-95 flex items-center justify-center shrink-0" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
+                        <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                      </button>
+                      <b id="cardAutoExactToman" class="t-success text-sm sm:text-base font-sans font-bold" dir="ltr">-- تومان</b>
                     </div>
-                    <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
-                      <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-                    </button>
                   </div>
                 </div>
 
@@ -2009,11 +2009,13 @@
 
                 <!-- Action Buttons: Positioned below guide -->
                 <div class="grid grid-cols-2 gap-2 pt-1">
-                  <button type="button" onclick="window.checkCardAutoStatus(true)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1 shadow">
-                    <img src="/static/img/icons/sync.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>بررسی وضعیت</span>
+                  <button type="button" onclick="window.checkCardAutoStatus(true)" class="btn btn-primary w-full py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                    <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>بررسی وضعیت</span>
                   </button>
-                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-sm">
-                    انصراف
+                  <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1.5 shadow-xs">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <span>انصراف</span>
                   </button>
                 </div>
               </div>
@@ -2038,36 +2040,36 @@
             </div>
 
             <!-- Clean Manual Card Topup Details Box -->
-            <div id="manualCardTopupSection" class="space-y-2">
-              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
+            <div id="manualCardTopupSection" class="space-y-2.5">
+              <div class="card-inset rounded-2xl p-3 flex items-center justify-between border border-[var(--card-border)]">
                 <div>
                   <span class="text-[11px] t-muted block">صاحب حساب:</span>
-                  <b id="topupCardHolder" class="font-bold t-main text-sm block">در حال دریافت...</b>
+                  <b id="topupCardHolder" class="font-bold t-main text-sm block mt-0.5">در حال دریافت...</b>
                 </div>
               </div>
 
-              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                <div>
-                  <span class="text-[11px] t-muted block">شماره کارت مقصد:</span>
-                  <b id="topupCardNumber" onclick="window.copyCardNumber(document.getElementById('copyTopupCardBtn'))" class="font-bold t-main text-sm sm:text-base font-sans tracking-wider select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
+              <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-1.5">
+                <span class="text-[11px] t-muted block text-right">شماره کارت مقصد:</span>
+                <div class="flex items-center justify-between">
+                  <button id="copyTopupCardBtn" type="button" onclick="window.copyCardNumber(this)" class="p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-accent transition active:scale-95 flex items-center justify-center shrink-0" title="کپی شماره کارت" aria-label="کپی شماره کارت">
+                    <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                  </button>
+                  <b id="topupCardNumber" onclick="window.copyCardNumber(document.getElementById('copyTopupCardBtn'))" class="font-bold t-main text-base sm:text-lg font-sans tracking-widest select-all num-bidi cursor-pointer block" dir="ltr" title="کلیک برای کپی شماره کارت">---- ---- ---- ----</b>
                 </div>
-                <button id="copyTopupCardBtn" type="button" onclick="window.copyCardNumber(this)" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-accent text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی شماره کارت" aria-label="کپی شماره کارت">
-                  <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-                </button>
               </div>
 
               <!-- Hidden stubs for legacy sync -->
               <span id="manualClassicHolder" class="hidden"></span>
               <span id="manualClassicNumber" class="hidden"></span>
 
-              <div class="card-inset rounded-xl p-2.5 flex items-center justify-between border border-[var(--card-border)]">
-                <div>
-                  <span class="text-[11px] t-muted block">مبلغ واریزی:</span>
-                  <b id="topupCardAmountDisplay" class="t-success font-sans num-bidi text-sm font-bold block">-- تومان</b>
+              <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-1.5">
+                <span class="text-[11px] t-muted block text-right">مبلغ واریزی:</span>
+                <div class="flex items-center justify-between">
+                  <button id="copyTopupCardAmountBtn" type="button" class="p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-success transition active:scale-95 flex items-center justify-center shrink-0" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
+                    <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                  </button>
+                  <b id="topupCardAmountDisplay" class="t-success font-sans num-bidi text-sm sm:text-base font-bold block" dir="ltr">-- تومان</b>
                 </div>
-                <button id="copyTopupCardAmountBtn" type="button" class="p-2 rounded-xl border border-slate-300 dark:border-card-border bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 t-success text-sm transition active:scale-95 flex items-center justify-center shadow-sm" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
-                  <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-                </button>
               </div>
 
               <!-- Graphical Bank Card (3D Realistic Flip View for Manual Mode) -->
@@ -2158,7 +2160,7 @@
           <div id="cryptoInvoiceInitial" class="text-center py-2 space-y-2">
             <p class="text-[11px] t-muted">پرداخت خودکار و آنی از طریق شبکه ارز دیجیتال تون (TON)</p>
             <button id="generateTonInvoiceBtn" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98]">
-              <img src="/static/img/icons/diamond.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>ایجاد فاکتور پرداخت TON</span>
+              <img src="/static/img/icons/ton.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>ایجاد فاکتور پرداخت TON</span>
             </button>
           </div>
 
@@ -2209,19 +2211,21 @@
             </div>
 
             <div class="space-y-2 pt-1">
-              <button id="tonConnectPayBtn" type="button" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-black py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-2 text-xs">
-                <span>💎</span>
-                <span>پرداخت با کیف پول تلگرام</span>
+              <button id="tonConnectPayBtn" type="button" class="btn btn-primary w-full py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-2 text-xs font-bold">
+                <img src="/static/img/icons/ton.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                <span>پرداخت مستقیم با ولت تلگرام</span>
               </button>
-              <a id="cryptoTonkeeperLink" href="#" class="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 t-main font-bold py-2 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block border border-slate-300 dark:border-card-border">
-                <img src="/static/img/icons/rocket.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت با Tonkeeper</span>
+              <a id="cryptoTonkeeperLink" href="#" class="btn btn-secondary w-full py-2.5 rounded-xl transition active:scale-[0.98] flex items-center justify-center gap-2 text-xs font-bold text-center block">
+                <img src="/static/img/icons/ton.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span>پرداخت با برنامه تون‌کیپر (Tonkeeper)</span>
               </a>
               <div class="grid grid-cols-2 gap-2">
-                <button id="cryptoCheckStatusBtn" type="button" class="btn btn-secondary py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95">
-                  <img src="/static/img/icons/sync.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>بررسی پرداخت</span>
+                <button id="cryptoCheckStatusBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                  <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span>بررسی پرداخت</span>
                 </button>
-                <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 text-xs active:scale-95 transition shadow-sm">
-                  <span>✕</span> انصراف و جدید
+                <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  <span>انصراف و جدید</span>
                 </button>
               </div>
             </div>
@@ -2233,7 +2237,7 @@
           <div id="trxInvoiceInitial" class="text-center py-2 space-y-2">
             <p class="text-[11px] t-muted">پرداخت مستقیم ترون (TRX) روی شبکه ترون بدون کارمزد واسطه</p>
             <button id="generateTrxInvoiceBtn" type="button" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
-              <span class="flex items-center justify-center gap-1.5"><img src="/static/img/icons/coins.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />ایجاد فاکتور ترون (TRX)</span>
+              <span class="flex items-center justify-center gap-1.5"><img src="/static/img/icons/tron.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span>ایجاد فاکتور ترون (TRX)</span></span>
             </button>
           </div>
 
@@ -2246,13 +2250,13 @@
               <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-card-border">
                 <span class="t-muted">مقدار قابل واریز:</span>
                 <div class="flex items-center gap-1">
-                  <button id="copyTrxAmountBtn" type="button" class="t-danger hover:text-rose-300 text-xs px-1 inline-flex items-center" title="کپی مقدار"><img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+                  <button id="copyTrxAmountBtn" type="button" class="min-w-[32px] min-h-[32px] inline-flex items-center justify-center p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-danger transition active:scale-95" title="کپی مقدار" aria-label="کپی مقدار TRX"><img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                   <b id="trxAmountDisplay" class="t-danger font-sans font-bold" dir="ltr">-- TRX</b>
                 </div>
               </div>
               <div class="space-y-1">
                 <span class="t-muted text-[11px] block">آدرس کیف پول ترون (TRX):</span>
-                <button id="copyTrxAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-sans text-[11px] break-all select-all transition t-danger flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99]" dir="ltr">
+                <button id="copyTrxAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-sans text-[11px] break-all select-all transition t-danger flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99]" dir="ltr" title="برای کپی آدرس کلیک کنید" aria-label="کپی آدرس کیف پول TRX">
                   <span id="trxPayAddress" class="break-all leading-relaxed font-bold text-rose-700 dark:text-rose-300">--</span>
                   <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
                 </button>
@@ -2276,15 +2280,17 @@
             </div>
 
             <div class="space-y-2 pt-1">
-              <a id="openTronLinkBtn" href="#" class="w-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:opacity-95 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center block">
-                <img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت مستقیم با کیف پول ترون (TronLink)</span>
+              <a id="openTronLinkBtn" href="#" class="btn btn-secondary w-full py-2.5 rounded-xl transition active:scale-[0.98] flex items-center justify-center gap-2 text-xs font-bold text-center block">
+                <img src="/static/img/icons/tron.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت مستقیم با TronLink</span>
               </a>
               <div class="grid grid-cols-2 gap-2">
-                <button id="submitTrxTxIdBtn" type="button" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2 px-2 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1 text-xs">
-                  <img src="/static/img/icons/sync.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>بررسی واریز</span>
+                <button id="submitTrxTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                  <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span>بررسی واریز</span>
                 </button>
-                <button id="cancelTrxInvoiceBtn" type="button" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 t-danger hover:bg-rose-100 dark:hover:bg-rose-900/60 font-bold py-2 px-2 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition shadow-sm">
-                  <span>✕</span> انصراف
+                <button id="cancelTrxInvoiceBtn" type="button" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  <span>انصراف</span>
                 </button>
               </div>
             </div>
@@ -2296,7 +2302,7 @@
           <div id="polInvoiceInitial" class="text-center py-2 space-y-2">
             <p class="text-[11px] t-muted">پرداخت مستقیم پلیگان (POL) روی شبکه Polygon بدون کارمزد واسطه</p>
             <button id="generatePolInvoiceBtn" type="button" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5">
-              <span class="flex items-center justify-center gap-1.5"><img src="/static/img/icons/diamond.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />ایجاد فاکتور پلیگان (POL)</span>
+              <span class="flex items-center justify-center gap-1.5"><img src="/static/img/icons/polygon.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span>ایجاد فاکتور پلیگان (POL)</span></span>
             </button>
           </div>
 
@@ -2309,13 +2315,13 @@
               <div class="flex justify-between items-center text-[11px] pb-1.5 border-b border-card-border">
                 <span class="t-muted">مقدار قابل واریز:</span>
                 <div class="flex items-center gap-1">
-                  <button id="copyPolAmountBtn" type="button" class="text-purple-400 hover:text-purple-300 text-xs px-1 inline-flex items-center" title="کپی مقدار"><img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+                  <button id="copyPolAmountBtn" type="button" class="min-w-[32px] min-h-[32px] inline-flex items-center justify-center p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent text-purple-400 transition active:scale-95" title="کپی مقدار" aria-label="کپی مقدار POL"><img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                   <b id="polAmountDisplay" class="text-purple-400 font-sans num-bidi font-bold" dir="ltr">-- POL</b>
                 </div>
               </div>
               <div class="space-y-1">
                 <span class="t-muted text-[11px] block">آدرس کیف پول پلیگان:</span>
-                <button id="copyPolAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-sans text-[11px] break-all select-all transition text-purple-700 dark:text-purple-300 font-bold flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99] min-w-0" dir="ltr">
+                <button id="copyPolAddressBtn" type="button" class="w-full text-left card-inset p-2.5 rounded-xl font-sans text-[11px] break-all select-all transition text-purple-700 dark:text-purple-300 font-bold flex items-center justify-between gap-2 cursor-pointer active:scale-[0.99] min-w-0" dir="ltr" title="برای کپی آدرس کلیک کنید" aria-label="کپی آدرس کیف پول Polygon">
                   <span id="polPayAddress" class="break-all leading-relaxed flex-1 min-w-0 font-bold text-purple-700 dark:text-purple-300">--</span>
                   <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 text-purple-400" width="14" height="14" alt="" />
                 </button>
@@ -2339,15 +2345,17 @@
             </div>
 
             <div class="space-y-2 pt-1">
-              <button id="openMetaMaskBtn" type="button" class="btn-metamask w-full py-2.5 rounded-xl transition shadow-md active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs text-center drop-shadow-sm">
-                <span>🦊</span> پرداخت مستقیم با متامسک (MetaMask)
+              <button id="openMetaMaskBtn" type="button" class="btn btn-secondary w-full py-2.5 rounded-xl transition active:scale-[0.98] flex items-center justify-center gap-2 text-xs font-bold text-center block">
+                <img src="/static/img/icons/polygon.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت مستقیم با متامسک (MetaMask)</span>
               </button>
               <div class="grid grid-cols-2 gap-2">
-                <button id="submitPolTxIdBtn" type="button" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-2 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1 text-xs">
-                  <img src="/static/img/icons/sync.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>بررسی واریز</span>
+                <button id="submitPolTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                  <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span>بررسی واریز</span>
                 </button>
-                <button id="cancelPolInvoiceBtn" type="button" class="bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 font-bold py-2 px-2 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition shadow-sm">
-                  <span>✕</span> انصراف
+                <button id="cancelPolInvoiceBtn" type="button" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  <span>انصراف</span>
                 </button>
               </div>
             </div>
@@ -2367,7 +2375,7 @@
             </div>
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span>نرخ تبدیل تقریبی:</span>
-              <span id="starsRateDisplay" class="font-sans t-main font-bold num-bidi">-- تومان</span>
+              <span id="starsRateDisplay" class="font-sans t-main font-bold flex items-center gap-1" dir="rtl"><span class="num-bidi font-sans" dir="ltr">--</span> <span>تومان</span></span>
             </div>
             <p class="text-[11px] t-muted leading-relaxed bg-transparent p-2 rounded-xl border border-card-border">
               <img src="/static/img/icons/lightbulb.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />با زدن دکمه پرداخت، پنجره امن پرداخت تلگرام باز شده و اعتبار حساب بلافاصله واریز می‌شود.
@@ -3386,6 +3394,63 @@
         </div>
       </div>
     </div>
+
+    <!-- 14.1 MODAL: MEMBERSHIP MILESTONE & STATS (روزهای همراهی و کارنامه کاربری) -->
+    <div id="membershipModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeMembershipModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
+      <div class="modal-card border border-sky-500/50 rounded-3xl p-5 w-full max-w-[350px] text-center shadow-2xl relative my-auto space-y-4">
+        <button type="button" onclick="window.closeMembershipModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن مودال عضویت"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+
+        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-sky-500/30 bg-sky-500/10 mt-1">
+          <img src="/static/img/icons/medal-gold.svg?v=ri7" class="ui-icon-img w-8 h-8" width="32" height="32" alt="" />
+        </div>
+
+        <div>
+          <span class="text-[11px] font-extrabold text-sky-600 dark:text-sky-300 uppercase tracking-wide inline-block">
+            کارنامه همراهی با ما
+          </span>
+          <h3 id="membershipUserTitle" class="text-sm font-extrabold t-main mt-1.5">همسفر همیشگی رمنا</h3>
+        </div>
+
+        <!-- Hero Days Counter Box -->
+        <div class="card-inset border-2 border-sky-500/40 dark:border-sky-500/50 rounded-2xl p-3.5 shadow-sm text-center">
+          <span id="membershipDaysCount" class="text-3xl font-black font-sans num-bidi t-accent block leading-tight">--</span>
+          <span class="text-xs t-main font-bold block mt-1">روز همراهی افتخارآمیز</span>
+          <span id="membershipSinceDate" class="text-[11px] t-muted font-sans block mt-0.5">از تاریخ --</span>
+        </div>
+
+        <!-- 2 Key Metric Cards: Total Spent & Total Traffic Used -->
+        <div class="grid grid-cols-2 gap-2 text-right">
+          <div class="card-inset rounded-2xl p-2.5 space-y-1">
+            <span class="text-[11px] t-muted block flex items-center gap-1">
+              <img src="/static/img/icons/wallet.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+              <span>مجموع پرداختی</span>
+            </span>
+            <b id="membershipTotalSpent" class="text-xs font-sans font-bold t-success block num-bidi" dir="ltr">-- تومان</b>
+          </div>
+
+          <div class="card-inset rounded-2xl p-2.5 space-y-1">
+            <span class="text-[11px] t-muted block flex items-center gap-1">
+              <img src="/static/img/icons/pie-chart.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+              <span>مصرف کل ترافیک</span>
+            </span>
+            <b id="membershipTotalTraffic" class="text-xs font-sans font-bold t-main block num-bidi" dir="ltr">-- GB</b>
+          </div>
+        </div>
+
+        <!-- Loyalty Tier & Status Badge Box -->
+        <div class="card-inset rounded-2xl p-2.5 flex items-center justify-between text-xs">
+          <span class="t-muted text-[11px] flex items-center gap-1.5">
+            <img src="/static/img/icons/sparkles.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+            <span>سطح وفاداری فعلی:</span>
+          </span>
+          <span id="membershipLoyaltyTier" class="font-bold t-accent text-xs">--</span>
+        </div>
+
+        <p class="text-[11px] t-muted leading-relaxed">
+          از اینکه رمنا را برای اتصال پایدار و آزاد خود برگزیده‌اید صمیمانه سپاسگزاریم! 💙
+        </p>
+      </div>
+    </div>
 <!-- ======================================================== -->
     <!-- 8.1 MODAL: KILL ALL SESSIONS CONFIRMATION (قطع همه نشست‌ها) -->
     <!-- ======================================================== -->
@@ -3476,10 +3541,10 @@
         <!-- Gift Modal Tabs (ارسال هدیه / تاریخچه) -->
         <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1 border-0" role="tablist">
           <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" role="tab" aria-selected="true" class="flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border-0">
-            <img src="/static/img/icons/gift.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> هدیه جدید
+            <span>🎁</span> <span>هدیه جدید</span>
           </button>
           <button type="button" onclick="window.switchGiftModalTab('history')" id="giftTabBtn-history" role="tab" aria-selected="false" class="flex-1 py-2 px-3 rounded-xl font-medium transition flex items-center justify-center gap-1.5 text-xs t-muted hover:t-main bg-transparent border-0">
-            <img src="/static/img/icons/finance.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>تاریخچه</span>
+            <span>📜</span> <span>تاریخچه</span>
           </button>
         </div>
 
@@ -3490,10 +3555,10 @@
             <span class="text-[11px] t-muted block">نوع هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
               <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
-                <img src="/static/img/icons/wallet.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">شارژ کیف پول</span>
+                <span>💰</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">شارژ کیف پول</span>
               </button>
               <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
-                <img src="/static/img/icons/package.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">بسته اشتراک</span>
+                <span>📦</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">بسته اشتراک</span>
               </button>
             </div>
           </div>
@@ -3515,7 +3580,7 @@
             <span class="text-[11px] t-muted block">بسته اشتراک هدیه:</span>
             <div role="button" tabindex="0" id="giftSelectedServiceCard" onclick="window.openGiftServiceSelectModal && window.openGiftServiceSelectModal()" class="card-inset p-3 rounded-2xl border border-pink-500/30 flex items-center justify-between cursor-pointer hover:border-pink-500 transition">
               <div class="flex items-center gap-2.5 min-w-0">
-                <span class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg?v=ri7" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" /></span>
+                <span class="shrink-0 flex items-center justify-center text-lg">📦</span>
                 <div class="min-w-0">
                   <b id="giftSelectedServiceTitle" class="text-xs t-main block truncate">انتخاب بسته اشتراک...</b>
                   <span id="giftSelectedServiceSpecs" class="text-[11px] t-muted block truncate">جهت انتخاب بسته دلخواه برای هدیه کلیک فرمایید</span>
@@ -3531,10 +3596,10 @@
             <span class="text-[11px] t-muted block">نحوه تحویل هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
               <button type="button" onclick="window.setGiftDeliveryType('DIRECT')" id="giftDeliveryBtn-direct" class="py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
-                <img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">ارسال مستقیم تلگرام</span>
+                <span>⚡️</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">ارسال مستقیم تلگرام</span>
               </button>
               <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
-                <img src="/static/img/icons/link.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">ساخت لینک هدیه</span>
+                <span>🔗</span> <span class="whitespace-nowrap text-[11px] sm:text-xs">ساخت لینک هدیه</span>
               </button>
             </div>
           </div>
@@ -3575,7 +3640,7 @@
 
           <!-- Submit Button -->
           <button id="submitCreateGiftBtn" type="button" onclick="window.submitCreateGift()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2 border-0">
-            <img src="/static/img/icons/gift.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> ایجاد و ارسال هدیه
+            <span>🎁</span> <span>ایجاد و ارسال هدیه</span>
           </button>
 
           <!-- Success Link Container (hidden by default) -->
