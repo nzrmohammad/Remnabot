@@ -1060,3 +1060,20 @@ html.theme-light #customPlanDiscountDisplay {
 #planBadgePickerList {
   scrollbar-gutter: stable;
 }
+
+/* Lucky Wheel Center Spin Button (Guaranteed Circular Hub) */
+.wheel-center-btn {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+  max-width: 56px;
+  max-height: 56px;
+  border-radius: 9999px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
