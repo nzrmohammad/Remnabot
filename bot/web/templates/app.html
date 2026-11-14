@@ -653,15 +653,15 @@
           </div>
 
           <!-- Month Navigation Switcher (جا‌به‌جایی بین ماه‌های سال با فلش) -->
-          <div class="flex items-center justify-between card-inset rounded-xl px-2.5 py-1.5 border border-card-border">
-            <button id="repMonthPrevBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card shadow-xs border border-card-border hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
+          <div class="flex items-center justify-between card rounded-2xl px-2.5 py-1.5 border border-card-border shadow-xs">
+            <button id="repMonthPrevBtn" type="button" class="px-2.5 py-1 rounded-xl text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
               <span>▶</span>
               <span id="repMonthPrevLabel">ماه قبل</span>
             </button>
             <div class="text-center px-1">
               <span id="repMonthlyCurrentLabel" class="text-xs font-black t-main block">—</span>
             </div>
-            <button id="repMonthNextBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card shadow-xs border border-card-border hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
+            <button id="repMonthNextBtn" type="button" class="px-2.5 py-1 rounded-xl text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
               <span id="repMonthNextLabel">ماه بعد</span>
               <span>◀</span>
             </button>
@@ -800,15 +800,15 @@
             </div>
 
             <!-- Month Navigator (هنگام مرور ماهانه) -->
-            <div id="userLbMonthBar" class="hidden flex items-center justify-between card-inset rounded-xl px-2.5 py-1.5 border border-card-border text-xs">
-              <button id="userLbMonthPrevBtn" type="button" onclick="window.navigateUserLbMonth(-1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card shadow-xs border border-card-border hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
+            <div id="userLbMonthBar" class="hidden flex items-center justify-between card rounded-2xl px-2.5 py-1.5 border border-card-border text-xs shadow-xs">
+              <button id="userLbMonthPrevBtn" type="button" onclick="window.navigateUserLbMonth(-1)" class="px-2.5 py-1 rounded-xl text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
                 <span>▶</span>
                 <span id="userLbMonthPrevLabel">ماه قبل</span>
               </button>
               <div class="text-center px-1">
                 <span id="userLbMonthCurrentLabel" class="text-xs font-black t-accent block font-sans">--</span>
               </div>
-              <button id="userLbMonthNextBtn" type="button" onclick="window.navigateUserLbMonth(1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card shadow-xs border border-card-border hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
+              <button id="userLbMonthNextBtn" type="button" onclick="window.navigateUserLbMonth(1)" class="px-2.5 py-1 rounded-xl text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
                 <span id="userLbMonthNextLabel">ماه بعد</span>
                 <span>◀</span>
               </button>
@@ -1286,10 +1286,7 @@
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
               <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تاریخ عضویت</span></span>
               <div class="flex items-center gap-1.5">
-                <button id="openMembershipModalBtn" type="button" onclick="window.openMembershipModal && window.openMembershipModal()" class="text-sky-500 hover:text-sky-400 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none" title="مشاهده کارنامه همراهی">
-                  <span><img src="/static/img/icons/medal-gold.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
-                </button>
-                <span id="profileJoinDaysBadge" onclick="window.openMembershipModal && window.openMembershipModal()" class="hidden px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-sans font-bold cursor-pointer hover:border-accent transition" title="مشاهده کارنامه همراهی">-- روز</span>
+                <span id="profileJoinDaysBadge" onclick="window.openMembershipModal && window.openMembershipModal()" class="hidden px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-sans font-bold cursor-pointer hover:border-accent transition" title="مشاهده کارنامه همراهی"></span>
                 <span id="profileJoinDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openMembershipModal && window.openMembershipModal()" title="مشاهده کارنامه همراهی">--</span>
               </div>
             </div>
@@ -2513,22 +2510,26 @@
     <!-- 5. MODAL: LUCKY WHEEL (گردونه شانس روزانه)                 -->
     <!-- ======================================================== -->
     <div id="luckyWheelModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-amber-500/40 rounded-3xl p-4.5 w-full text-center space-y-3 shadow-2xl relative max-w-[340px] my-auto">
-        <button id="closeLuckyWheelBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن گردونه شانس"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full text-center space-y-3.5 shadow-2xl relative max-w-[340px] my-auto">
+        <button id="closeLuckyWheelBtn" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن گردونه شانس"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         
-        <div>
-          <span class="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wide inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
-            <img src="/static/img/icons/wheel.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-            <span>گردونه شانس روزانه</span>
-          </span>
-          <h3 class="text-sm font-black t-main mt-1.5">شانس دریافت ترافیک و جوایز ویژه</h3>
-          <p id="wheelSubText" class="text-[11px] font-medium t-muted mt-0.5">ویژه کاربران دارای اشتراک فعال</p>
-
-          <!-- Badges: Daily Streak & Referral Tickets -->
-          <div class="flex items-center justify-center gap-2 mt-2">
-            <span id="wheelStreakBadge" class="badge-streak inline-flex items-center gap-1">
-              <img src="/static/img/icons/flame.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /> <span id="wheelStreakText">زنجیره روزانه: 1 روز (شانس 1.0×)</span>
+        <!-- Header -->
+        <div class="space-y-2">
+          <div>
+            <span class="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wide inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <img src="/static/img/icons/wheel.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span>گردونه شانس روزانه</span>
             </span>
+            <h3 class="text-sm font-black t-main mt-1.5">شانس دریافت ترافیک و جوایز ویژه</h3>
+            <p id="wheelSubText" class="text-[11px] font-medium t-muted mt-0.5">ویژه کاربران دارای اشتراک فعال</p>
+          </div>
+
+          <!-- Badges: Daily Streak & Referral Tickets in unified bar -->
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full card-inset border border-card-border text-[11px] font-bold">
+            <span id="wheelStreakBadge" class="badge-streak inline-flex items-center gap-1">
+              <img src="/static/img/icons/flame.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /> <span id="wheelStreakText">زنجیره: 1 روز</span>
+            </span>
+            <span class="text-slate-300 dark:text-slate-600">|</span>
             <span id="wheelTicketsBadge" class="badge-ticket inline-flex items-center gap-1">
               <img src="/static/img/icons/ticket.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /> <span id="wheelTicketsText">0 تیکت</span>
             </span>
@@ -2537,145 +2538,128 @@
 
         <!-- SVG Lucky Wheel Visual -->
         <div class="relative w-56 h-56 mx-auto flex items-center justify-center my-1 select-none">
-          <!-- Top Indicator Needle (Golden Arrow pointing down at 12 o'clock) -->
-          <div class="absolute -top-3.5 z-30 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)] pointer-events-none">
-            <svg width="26" height="30" viewBox="0 0 26 30" fill="none">
-              <defs>
-                <linearGradient id="needleGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#fde047"/>
-                  <stop offset="50%" stop-color="#f59e0b"/>
-                  <stop offset="100%" stop-color="#d97706"/>
-                </linearGradient>
-              </defs>
-              <path d="M13 28 L2.5 5 C2 3.8 2.8 2.5 4.1 2.5 L21.9 2.5 C23.2 2.5 24 3.8 23.5 5 Z" fill="url(#needleGrad)" stroke="#b45309" stroke-width="1.2" stroke-linejoin="round"/>
-              <circle cx="13" cy="8.5" r="3.5" fill="#ffffff" fill-opacity="0.9" stroke="#f59e0b" stroke-width="1.2"/>
+          <!-- Top Indicator Needle (Sleek Modern Pointer at 12 o'clock) -->
+          <div class="absolute -top-3 z-30 filter drop-shadow-md pointer-events-none">
+            <svg width="22" height="24" viewBox="0 0 22 24" fill="none">
+              <path d="M11 22 L3 4 C2.4 3 3.1 2 4.2 2 L17.8 2 C18.9 2 19.6 3 19 4 Z" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+              <circle cx="11" cy="6" r="2.5" fill="#ffffff"/>
             </svg>
           </div>
 
           <!-- Rotating Wheel SVG Container -->
           <div id="wheelContainer" class="w-full h-full relative flex items-center justify-center transition-all duration-[3600ms] cubic-bezier(0.15, 0.9, 0.2, 1)">
-            <svg id="wheelSvg" class="w-full h-full drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)] dark:drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]" viewBox="0 0 200 200">
+            <svg id="wheelSvg" class="w-full h-full drop-shadow-lg" viewBox="0 0 200 200">
               <defs>
                 <filter id="sliceShadow" x="-10%" y="-10%" width="120%" height="120%">
                   <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.8"/>
                 </filter>
-                <linearGradient id="wheelGoldBorder" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#fef08a"/>
-                  <stop offset="50%" stop-color="#f59e0b"/>
-                  <stop offset="100%" stop-color="#d97706"/>
-                </linearGradient>
                 <linearGradient id="wheelGrad0" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#3b82f6"/>
+                  <stop offset="0%" stop-color="#2563eb"/>
                   <stop offset="100%" stop-color="#1d4ed8"/>
                 </linearGradient>
                 <linearGradient id="wheelGrad1" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#475569"/>
-                  <stop offset="100%" stop-color="#334155"/>
+                  <stop offset="0%" stop-color="#334155"/>
+                  <stop offset="100%" stop-color="#1e293b"/>
                 </linearGradient>
                 <linearGradient id="wheelGrad2" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#ec4899"/>
-                  <stop offset="100%" stop-color="#be185d"/>
+                  <stop offset="0%" stop-color="#d97706"/>
+                  <stop offset="100%" stop-color="#b45309"/>
                 </linearGradient>
                 <linearGradient id="wheelGrad3" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#06b6d4"/>
-                  <stop offset="100%" stop-color="#0284c7"/>
+                  <stop offset="0%" stop-color="#0284c7"/>
+                  <stop offset="100%" stop-color="#0369a1"/>
                 </linearGradient>
                 <linearGradient id="wheelGrad4" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#8b5cf6"/>
+                  <stop offset="0%" stop-color="#7c3aed"/>
                   <stop offset="100%" stop-color="#6d28d9"/>
                 </linearGradient>
                 <linearGradient id="wheelGrad5" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#10b981"/>
-                  <stop offset="100%" stop-color="#059669"/>
+                  <stop offset="0%" stop-color="#059669"/>
+                  <stop offset="100%" stop-color="#047857"/>
                 </linearGradient>
               </defs>
 
-              <!-- Outer Golden Ring with Sleek Borders -->
-              <circle cx="100" cy="100" r="98" class="fill-slate-100 dark:fill-slate-900" stroke="url(#wheelGoldBorder)" stroke-width="3.5" />
-              <circle cx="100" cy="100" r="95" fill="none" stroke="#fbbf24" stroke-width="0.75" stroke-dasharray="2, 5" stroke-opacity="0.8" />
+              <!-- Single Sleek Outer Ring -->
+              <circle cx="100" cy="100" r="96" class="fill-slate-900 dark:fill-slate-950" stroke="rgba(255,255,255,0.18)" stroke-width="2" />
 
               <!-- Slices (60 deg each, slice 0 centered at 12 o'clock / 0 deg) -->
               <!-- Slice 0: 🎁 1 GB (0 deg) -->
               <g transform="rotate(0, 100, 100)">
-                <path d="M 100 100 L 52.5 17.73 A 95 95 0 0 1 147.5 17.73 Z" fill="url(#wheelGrad0)" stroke="#fbbf24" stroke-width="1.5" />
+                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad0)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
                 <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan fill="#fef08a" font-size="11">🎁 </tspan><tspan font-family="Vazirmatn" font-size="10">1 </tspan><tspan font-size="8.5">GB</tspan>
+                  <tspan font-size="11">🎁 </tspan><tspan font-family="Vazirmatn" font-size="10">1 </tspan><tspan font-size="8.5">GB</tspan>
                 </text>
               </g>
 
               <!-- Slice 1: ❌ پوچ (60 deg) -->
               <g transform="rotate(60, 100, 100)">
-                <path d="M 100 100 L 52.5 17.73 A 95 95 0 0 1 147.5 17.73 Z" fill="url(#wheelGrad1)" stroke="#fbbf24" stroke-width="1.5" />
+                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad1)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
                 <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan fill="#f87171" font-size="11">❌ </tspan><tspan font-size="9">پوچ</tspan>
+                  <tspan font-size="11">❌ </tspan><tspan font-size="9">پوچ</tspan>
                 </text>
               </g>
 
               <!-- Slice 2: 🎟 10% (120 deg) -->
               <g transform="rotate(120, 100, 100)">
-                <path d="M 100 100 L 52.5 17.73 A 95 95 0 0 1 147.5 17.73 Z" fill="url(#wheelGrad2)" stroke="#fbbf24" stroke-width="1.5" />
+                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad2)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
                 <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan fill="#fef08a" font-size="11">🎟 </tspan><tspan font-family="Vazirmatn" font-size="10">10%</tspan>
+                  <tspan font-size="11">🎟 </tspan><tspan font-family="Vazirmatn" font-size="10">10%</tspan>
                 </text>
               </g>
 
               <!-- Slice 3: ⚡️ 500 MB (180 deg) -->
               <g transform="rotate(180, 100, 100)">
-                <path d="M 100 100 L 52.5 17.73 A 95 95 0 0 1 147.5 17.73 Z" fill="url(#wheelGrad3)" stroke="#fbbf24" stroke-width="1.5" />
+                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad3)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
                 <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan fill="#fef08a" font-size="11">⚡️ </tspan><tspan font-family="Vazirmatn" font-size="10">500 </tspan><tspan font-size="8.5">MB</tspan>
+                  <tspan font-size="11">⚡️ </tspan><tspan font-family="Vazirmatn" font-size="10">500 </tspan><tspan font-size="8.5">MB</tspan>
                 </text>
               </g>
 
               <!-- Slice 4: 👑 2 GB (240 deg) -->
               <g transform="rotate(240, 100, 100)">
-                <path d="M 100 100 L 52.5 17.73 A 95 95 0 0 1 147.5 17.73 Z" fill="url(#wheelGrad4)" stroke="#fbbf24" stroke-width="1.5" />
+                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad4)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
                 <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan fill="#fef08a" font-size="11">👑 </tspan><tspan font-family="Vazirmatn" font-size="10">2 </tspan><tspan font-size="8.5">GB</tspan>
+                  <tspan font-size="11">👑 </tspan><tspan font-family="Vazirmatn" font-size="10">2 </tspan><tspan font-size="8.5">GB</tspan>
                 </text>
               </g>
 
               <!-- Slice 5: 🔄 دوباره (300 deg) -->
               <g transform="rotate(300, 100, 100)">
-                <path d="M 100 100 L 52.5 17.73 A 95 95 0 0 1 147.5 17.73 Z" fill="url(#wheelGrad5)" stroke="#fbbf24" stroke-width="1.5" />
+                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad5)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
                 <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan fill="#fef08a" font-size="11">🔄 </tspan><tspan font-size="9">دوباره</tspan>
+                  <tspan font-size="11">🔄 </tspan><tspan font-size="9">دوباره</tspan>
                 </text>
               </g>
 
-              <!-- Golden Pins at Outer Rim -->
-              <circle cx="100" cy="8" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
-              <circle cx="180" cy="54" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
-              <circle cx="180" cy="146" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
-              <circle cx="100" cy="192" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
-              <circle cx="20" cy="146" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
-              <circle cx="20" cy="54" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
-
               <!-- Center Hub Ring Behind Button -->
-              <circle cx="100" cy="100" r="28" class="fill-slate-100 dark:fill-slate-900" stroke="url(#wheelGoldBorder)" stroke-width="2.5" />
+              <circle cx="100" cy="100" r="24" class="fill-slate-900 dark:fill-slate-950" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />
             </svg>
           </div>
 
           <!-- Fixed Center Spin Button (Center Hub) -->
-          <button id="spinWheelBtn" class="absolute z-20 w-13 h-13 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black text-xs flex flex-col items-center justify-center shadow-[0_4px_16px_rgba(245,158,11,0.5)] border-2 border-white dark:border-amber-200 active:scale-90 transition hover:scale-105 cursor-pointer">
+          <button id="spinWheelBtn" class="absolute z-20 w-13 h-13 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black text-xs flex flex-col items-center justify-center shadow-lg border-2 border-white dark:border-slate-800 active:scale-90 transition hover:scale-105 cursor-pointer">
             <span class="text-[11px] font-black tracking-tight leading-none">بچرخون!</span>
           </button>
         </div>
 
-        <!-- Status / Result Message -->
-        <div id="wheelResultBox" class="card-inset p-3 rounded-2xl text-[11px] border border-card-border">
-          <span id="wheelResultText" class="t-muted font-medium">دکمه وسط گردونه را لمس کنید تا شانس خود را امتحان نمایید!</span>
-        </div>
+        <!-- Single Unified Status Box Area -->
+        <div class="space-y-2">
+          <!-- Status / Result Message -->
+          <div id="wheelResultBox" class="card-inset p-3 rounded-2xl text-xs border border-card-border min-h-[46px] flex items-center justify-center">
+            <span id="wheelResultText" class="t-muted font-medium text-center leading-relaxed">دکمه وسط گردونه را لمس کنید تا شانس خود را امتحان نمایید!</span>
+          </div>
 
-        <!-- 24-Hour Countdown Timer Container -->
-        <div id="wheelTimerContainer" class="hidden card-inset border border-amber-500/30 rounded-2xl p-3 text-center text-xs space-y-1">
-          <span class="t-muted text-[11px] font-medium inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" aria-hidden="true" /> <span>زمان باقیمانده تا شانس بعدی شما:</span></span>
-          <b id="wheelCountdownText" class="t-warn font-sans font-bold text-base tracking-wider block" dir="ltr">00:00:00</b>
-        </div>
+          <!-- 24-Hour Countdown Timer Container -->
+          <div id="wheelTimerContainer" class="hidden card-inset border border-amber-500/30 rounded-2xl p-3 text-center text-xs space-y-1">
+            <span class="t-muted text-[11px] font-medium inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" aria-hidden="true" /> <span>زمان باقیمانده تا شانس بعدی شما:</span></span>
+            <b id="wheelCountdownText" class="t-warn font-sans font-bold text-base tracking-wider block" dir="ltr">00:00:00</b>
+          </div>
 
-        <div id="wheelSubWarning" class="hidden text-xs font-bold t-warn card-inset p-3 rounded-2xl border border-amber-500/30 text-center leading-relaxed">
-          <img src="/static/img/icons/warning.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />
-          برای استفاده از گردونه شانس، داشتن یک اشتراک فعال در پنل الزامی است.
+          <!-- Sub Warning Box -->
+          <div id="wheelSubWarning" class="hidden text-xs font-bold t-warn card-inset p-3 rounded-2xl border border-amber-500/30 text-center leading-relaxed">
+            <img src="/static/img/icons/warning.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />
+            برای استفاده از گردونه شانس، داشتن یک اشتراک فعال در پنل الزامی است.
+          </div>
         </div>
       </div>
     </div>
@@ -3427,7 +3411,7 @@
             کارنامه همراهی با ما
           </span>
           <h3 id="membershipUserName" class="text-base font-extrabold t-main mt-1">--</h3>
-          <p id="membershipUserTitle" class="text-xs t-muted font-medium mt-0.5">همسفر همیشگی رمنا</p>
+          <p id="membershipUserTitle" class="text-sm font-bold t-main mt-0.5">همسفر همیشگی رمنا</p>
         </div>
 
         <!-- Hero Days Counter Box -->

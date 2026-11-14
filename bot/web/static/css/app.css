@@ -33,9 +33,21 @@ html.theme-light #profileAvatarInitial {
 }
 
 html.theme-light .speedtest-entry-btn {
-  background-color: transparent;
+  background-color: var(--card-bg);
   border-color: var(--card-border);
-  box-shadow: none;
+}
+
+/* Active blue button icons appear pure crisp white */
+#shopCategoryBtn-full.bg-blue-600 img,
+#shopCategoryBtn-traffic.bg-blue-600 img,
+#shopCategoryBtn-time.bg-blue-600 img,
+#shopCategoryBtn-custom.bg-blue-600 img,
+#repSubDaily.bg-blue-600 img,
+#repSubNightly.bg-blue-600 img,
+#repSubWeekly.bg-blue-600 img,
+#repSubMonthly.bg-blue-600 img,
+#repSubAnalytics.bg-blue-600 img {
+  filter: brightness(0) invert(1);
 }
 html.theme-light .speedtest-title,
 html.theme-light .speedtest-entry-btn:hover .speedtest-title {

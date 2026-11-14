@@ -237,12 +237,14 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
   }
 
   if (!spinBtn) return;
+  const resultBox = document.getElementById('wheelResultBox');
 
   if (!hasActiveSub) {
     spinBtn.disabled = true;
     spinBtn.innerHTML = '<span class="text-[11px] font-bold">🔒 نیاز به اشتراک</span>';
     if (warningBox) warningBox.classList.remove('hidden');
     if (timerBox) timerBox.classList.add('hidden');
+    if (resultBox) resultBox.classList.add('hidden');
     return;
   }
   if (warningBox) warningBox.classList.add('hidden');
@@ -252,13 +254,18 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
     if (hasTicket) {
       spinBtn.disabled = false;
       spinBtn.innerHTML = '<span class="text-[11px] font-extrabold tracking-tight leading-tight">بچرخون!<br/><span class="text-[8px] opacity-90">(1🎫)</span></span>';
+      if (timerBox) timerBox.classList.remove('hidden');
+      if (resultBox) resultBox.classList.add('hidden');
     } else {
       spinBtn.disabled = true;
       spinBtn.innerHTML = '<span class="text-[11px] font-bold">🔒 24 ساعت</span>';
+      if (timerBox) timerBox.classList.remove('hidden');
+      if (resultBox) resultBox.classList.add('hidden');
     }
   } else {
     if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
     if (timerBox) timerBox.classList.add('hidden');
+    if (resultBox) resultBox.classList.remove('hidden');
     spinBtn.disabled = false;
     spinBtn.innerHTML = '<span class="text-[11px] font-extrabold tracking-tight">بچرخون!</span>';
   }

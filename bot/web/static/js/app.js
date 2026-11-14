@@ -3189,7 +3189,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center select-none" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
+        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center select-none translate-y-0.5" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -3209,7 +3209,7 @@ function hydrateUserInterface(data) {
           daysPassed = Math.max(1, Math.floor((Date.now() - ct) / (1000 * 60 * 60 * 24)));
         }
       }
-      profJoinBadge.innerText = `${toEnglishDigits(daysPassed)} روز`;
+      profJoinBadge.innerHTML = `<span>⏳ ${toEnglishDigits(daysPassed)} روز</span>`;
       profJoinBadge.classList.remove('hidden');
     }
     const hasBirthDate = Boolean(user.birth_date && String(user.birth_date).trim());
@@ -4806,8 +4806,20 @@ function renderGiftServiceSelectModalList() {
     const isSelected = _giftSelectedService && _giftSelectedService.id === p.id;
     const baseGiftPrice = Number(p.original_price ?? p.price ?? 0);
     const priceStr = baseGiftPrice.toLocaleString('en-US');
-    const durStr = p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود';
-    const trafStr = p.traffic_gb > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود';
+    const isTimeOnly = p.plan_type === 'time' || (p.duration_days > 0 && (!p.traffic_gb || p.traffic_gb <= 0));
+    const isTrafficOnly = p.plan_type === 'traffic' || (p.traffic_gb > 0 && (!p.duration_days || p.duration_days <= 0));
+
+    let specsHtml = '';
+    if (isTimeOnly) {
+      specsHtml = `<span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${p.duration_days} روز</b></span>`;
+    } else if (isTrafficOnly) {
+      specsHtml = `<span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${fmtTraffic(p.traffic_gb, { html: false })}</b></span>`;
+    } else {
+      specsHtml = `
+        <span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود'}</b></span>
+        <span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${p.traffic_gb > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود'}</b></span>
+      `;
+    }
 
     return `
       <div onclick="window.selectGiftService(${p.id})" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between transition">
@@ -4817,9 +4829,8 @@ function renderGiftServiceSelectModalList() {
         </div>
         <div class="space-y-1 min-w-0 text-left">
           <b class="text-xs t-main block truncate">${formatPlanTitle(p.name, { iconPosition: 'left' })}</b>
-          <div class="flex items-center justify-end gap-2 text-[11px] t-muted">
-            <span>📅 <b class="t-main">${durStr}</b></span>
-            <span>📊 <b dir="ltr" class="font-sans num-bidi t-main">${trafStr}</b></span>
+          <div class="flex items-center justify-start gap-2 text-[11px] t-muted" dir="ltr">
+            ${specsHtml}
           </div>
         </div>
       </div>
@@ -4839,10 +4850,20 @@ function selectGiftService(serviceId) {
 
   if (titleEl) titleEl.innerHTML = formatPlanTitle(chosen.name);
   if (specsEl) {
-    const durStr = chosen.duration_days > 0 ? `${chosen.duration_days} روز` : 'نامحدود';
-    const trafStr = chosen.traffic_gb > 0 ? fmtTraffic(chosen.traffic_gb, { html: false }) : 'نامحدود';
+    const isTimeOnly = chosen.plan_type === 'time' || (chosen.duration_days > 0 && (!chosen.traffic_gb || chosen.traffic_gb <= 0));
+    const isTrafficOnly = chosen.plan_type === 'traffic' || (chosen.traffic_gb > 0 && (!chosen.duration_days || chosen.duration_days <= 0));
     const giftPrice = Number(chosen.original_price ?? chosen.price ?? 0);
-    specsEl.innerText = `${trafStr} | ${durStr} (${giftPrice.toLocaleString('en-US')} تومان)`;
+    let specText = '';
+    if (isTimeOnly) {
+      specText = `${chosen.duration_days} روز`;
+    } else if (isTrafficOnly) {
+      specText = fmtTraffic(chosen.traffic_gb, { html: false });
+    } else {
+      const durStr = chosen.duration_days > 0 ? `${chosen.duration_days} روز` : 'نامحدود';
+      const trafStr = chosen.traffic_gb > 0 ? fmtTraffic(chosen.traffic_gb, { html: false }) : 'نامحدود';
+      specText = `${trafStr} | ${durStr}`;
+    }
+    specsEl.innerText = `${specText} (${giftPrice.toLocaleString('en-US')} تومان)`;
   }
   if (hiddenInp) hiddenInp.value = chosen.id;
 
@@ -5080,8 +5101,8 @@ async function loadGiftsHistory() {
     container.innerHTML = sent.map(g => {
       const isClaimed = g.is_claimed;
       const statusBadge = isClaimed
-        ? '<span class="text-emerald-500 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-full">✅ دریافت شده</span>'
-        : '<span class="text-amber-500 font-bold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-full">⏳ در انتظار دریافت</span>';
+        ? '<span class="text-emerald-500 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />دریافت شده</span>'
+        : '<span class="text-amber-500 font-bold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />در انتظار دریافت</span>';
       const desc = g.gift_type === 'BALANCE'
         ? `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`
         : `اشتراک ${g.service_name || 'سرویس'}`;
@@ -5101,10 +5122,10 @@ async function loadGiftsHistory() {
             <span dir="ltr" class="font-sans num-bidi">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[11px] border-t border-card-border pt-1">
-            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('📋 لینک کپی شد!');" class="text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><span>🔗</span> کپی لینک</button>` : '<span></span>'}
+            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('لینک کپی شد!');" class="text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" alt="" /> کپی لینک</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
               <span class="font-sans num-bidi t-muted text-[11px] select-all">${g.code}</span>
-              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('📋 کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد">📋</button>
+              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد"><img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="کپی" /></button>
             </div>
           </div>
         </div>
