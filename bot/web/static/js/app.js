@@ -2579,10 +2579,23 @@ function resetActiveSubAnalytics() {
   const emptyStateEl = $('repPeakHoursEmptyState');
   const peakBadge = $('repPeakHourBadge');
   const barContainer = $('repPeakHoursBarContainer');
-  if (canvasEl) canvasEl.classList.add('hidden');
+  if (canvasEl) {
+    canvasEl.classList.add('hidden');
+    canvasEl.style.display = 'none';
+  }
   if (barContainer) barContainer.classList.add('hidden');
   if (emptyStateEl) emptyStateEl.classList.remove('hidden');
   if (peakBadge) peakBadge.innerText = 'بدون داده';
+  if (window.chartInstances) {
+    if (window.chartInstances['repPeakHoursChartCanvas']) {
+      try { window.chartInstances['repPeakHoursChartCanvas'].destroy(); } catch (e) {}
+      delete window.chartInstances['repPeakHoursChartCanvas'];
+    }
+    if (window.chartInstances['repPeakHoursBarCanvas']) {
+      try { window.chartInstances['repPeakHoursBarCanvas'].destroy(); } catch (e) {}
+      delete window.chartInstances['repPeakHoursBarCanvas'];
+    }
+  }
 
   const repSessionsBadge = $('reportsSessionsBadge');
   if (repSessionsBadge) repSessionsBadge.innerText = '0 دستگاه';
@@ -2798,12 +2811,28 @@ function updateUserPeakHoursView(sub) {
 
   const hasModeTraffic = Array.isArray(plotData) && plotData.some(v => Number(v) > 0);
   if (!hasModeTraffic) {
-    if (canvasEl) canvasEl.classList.add('hidden');
+    if (canvasEl) {
+      canvasEl.classList.add('hidden');
+      canvasEl.style.display = 'none';
+    }
     if (barContainer) barContainer.classList.add('hidden');
     if (emptyStateEl) emptyStateEl.classList.remove('hidden');
     if (peakBadge) peakBadge.innerText = 'بدون داده';
+    if (window.chartInstances) {
+      if (window.chartInstances['repPeakHoursChartCanvas']) {
+        try { window.chartInstances['repPeakHoursChartCanvas'].destroy(); } catch (e) {}
+        delete window.chartInstances['repPeakHoursChartCanvas'];
+      }
+      if (window.chartInstances['repPeakHoursBarCanvas']) {
+        try { window.chartInstances['repPeakHoursBarCanvas'].destroy(); } catch (e) {}
+        delete window.chartInstances['repPeakHoursBarCanvas'];
+      }
+    }
   } else {
-    if (canvasEl) canvasEl.classList.remove('hidden');
+    if (canvasEl) {
+      canvasEl.classList.remove('hidden');
+      canvasEl.style.display = '';
+    }
     if (barContainer) barContainer.classList.remove('hidden');
     if (emptyStateEl) emptyStateEl.classList.add('hidden');
     if (typeof renderLineCurveChart === 'function') {
@@ -3190,9 +3219,11 @@ function hydrateUserInterface(data) {
     const headerBadge = $('headerLoyaltyBadge');
     if (headerBadge) {
       if (isLoyaltyEnabled) {
-        headerBadge.innerText = loyalty.icon || '🥉';
+        headerBadge.innerHTML = typeof uiEmojiIcon === 'function'
+          ? uiEmojiIcon(loyalty.icon || '🥈', 'w-5 h-5')
+          : `<img src="/static/img/icons/medal-silver.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />`;
         headerBadge.classList.remove('hidden');
-        headerBadge.className = 'w-7 h-7 flex items-center justify-center text-lg bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
+        headerBadge.className = 'w-7 h-7 flex items-center justify-center bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
       } else {
         headerBadge.classList.add('hidden');
       }
@@ -3206,8 +3237,8 @@ function hydrateUserInterface(data) {
         loyaltyCard.classList.remove('hidden');
         if ($('loyaltyTierIcon')) {
           $('loyaltyTierIcon').innerHTML = typeof uiEmojiIcon === 'function'
-            ? uiEmojiIcon(loyalty.icon || '🥉', 'w-6 h-6')
-            : escapeHtml(loyalty.icon || '🥉');
+            ? uiEmojiIcon(loyalty.icon || '🥈', 'w-6 h-6')
+            : escapeHtml(loyalty.icon || '🥈');
         }
         if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
         const discBadge = $('loyaltyDiscountBadge');
@@ -4140,35 +4171,34 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
     const myTrafficHtml = fmtTraffic(myUsedGb, { html: true, persianDigits: false });
 
     if (isPeriodEmpty) {
-      if (noticeIconEl) noticeIconEl.innerText = '⏳';
-      noticeTextEl.innerHTML = `در این بازه هنوز داده‌ای از مصرف کاربران ثبت نشده است.`;
-      if (noticeEl) {
-        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
-      }
-    } else if (inTop20 && myRank && myUsedGb > 0) {
-      if (noticeIconEl) noticeIconEl.innerText = '🎖️';
-      noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> از <b class="font-sans">20</b> کاربر برتر قرار دارید.`;
-      if (noticeEl) {
-        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
-      }
-    } else if (myRank && myRank > 20 && myUsedGb > 0) {
-      if (noticeIconEl) noticeIconEl.innerText = '📊';
-      const diffTrafficHtml = fmtTraffic(diffGb, { html: true, persianDigits: false });
-      noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> قرار دارید. برای ورود به <b class="font-sans">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
-      if (noticeEl) {
-        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
-      }
-    } else if (myUsedGb > 0) {
-      if (noticeIconEl) noticeIconEl.innerText = '📈';
-      noticeTextEl.innerHTML = `مصرف شما برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-sans">20</b> کاربر برتر بپیوندید!`;
-      if (noticeEl) {
-        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
-      }
+      if (noticeEl) noticeEl.classList.add('hidden');
     } else {
-      if (noticeIconEl) noticeIconEl.innerText = 'ℹ️';
-      noticeTextEl.innerHTML = `در این بازه هنوز مصرفی برای شما ثبت نشده است.`;
-      if (noticeEl) {
-        noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
+      if (noticeEl) noticeEl.classList.remove('hidden');
+      if (inTop20 && myRank && myUsedGb > 0) {
+        if (noticeIconEl) noticeIconEl.innerText = '🎖️';
+        noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> از <b class="font-sans">20</b> کاربر برتر قرار دارید.`;
+        if (noticeEl) {
+          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
+        }
+      } else if (myRank && myRank > 20 && myUsedGb > 0) {
+        if (noticeIconEl) noticeIconEl.innerText = '📊';
+        const diffTrafficHtml = fmtTraffic(diffGb, { html: true, persianDigits: false });
+        noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> قرار دارید. برای ورود به <b class="font-sans">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
+        if (noticeEl) {
+          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
+        }
+      } else if (myUsedGb > 0) {
+        if (noticeIconEl) noticeIconEl.innerText = '📈';
+        noticeTextEl.innerHTML = `مصرف شما برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-sans">20</b> کاربر برتر بپیوندید!`;
+        if (noticeEl) {
+          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
+        }
+      } else {
+        if (noticeIconEl) noticeIconEl.innerText = 'ℹ️';
+        noticeTextEl.innerHTML = `در این بازه هنوز مصرفی برای شما ثبت نشده است.`;
+        if (noticeEl) {
+          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
+        }
       }
     }
   }
@@ -4183,11 +4213,13 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
       userLeaderboardChartInstance = null;
     }
     canvas.classList.add('hidden');
+    canvas.style.display = 'none';
     if (emptyState) emptyState.classList.remove('hidden');
     return;
   }
 
   canvas.classList.remove('hidden');
+  canvas.style.display = '';
   if (emptyState) emptyState.classList.add('hidden');
 
   const ctx = canvas.getContext('2d');
@@ -5298,7 +5330,11 @@ function openLoyaltyModal() {
   if (!modal) return;
   const loyalty = window.lastUserData?.loyalty;
   if (loyalty) {
-    if ($('loyaltyModalCurrentIcon')) $('loyaltyModalCurrentIcon').innerText = loyalty.icon || '🥉';
+    if ($('loyaltyModalCurrentIcon')) {
+      $('loyaltyModalCurrentIcon').innerHTML = typeof uiEmojiIcon === 'function'
+        ? uiEmojiIcon(loyalty.icon || '🥈', 'w-4 h-4')
+        : `<img src="/static/img/icons/medal-silver.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />`;
+    }
     if ($('loyaltyModalCurrentName')) $('loyaltyModalCurrentName').innerText = loyalty.name || 'برنزی';
     if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
     if ($('loyaltyModalCurrentDiscount')) {

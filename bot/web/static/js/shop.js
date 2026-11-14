@@ -497,7 +497,7 @@ function renderShopPlans(data) {
   if (noticeEl) {
     if (!hasActiveSub) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft';
-      noticeEl.innerHTML = '<div class="flex items-start gap-2"><span class="text-base leading-none mt-0.5">💎</span><div class="flex flex-col gap-0.5"><span class="font-bold">جهت شروع، یکی از <b>سرویس‌های کامل</b> را انتخاب فرمایید.</span><span class="text-[10.5px] opacity-80">در صورت کندی یا افت کیفیت اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود.</span></div></div>';
+      noticeEl.innerHTML = '<div class="flex items-start gap-2"><div class="flex flex-col gap-0.5"><span class="font-bold">جهت شروع، یکی از <b>سرویس‌های کامل</b> را انتخاب فرمایید.</span><span class="text-[10.5px] opacity-80">در صورت کندی یا افت کیفیت اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود.</span></div></div>';
       noticeEl.dataset.shouldShow = 'true';
       if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
       else noticeEl.classList.add('hidden');
@@ -564,7 +564,7 @@ function renderFilteredShopPlans() {
         <b class="text-xs t-main block">بسته‌ای در بخش «${curLabel}» یافت نشد</b>
         <p class="text-[11px] t-muted">می‌توانید سایر سرویس‌های فعال را بررسی نمایید.</p>
         <button type="button" onclick="window.switchShopCategory('full')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition shadow active:scale-95 mx-auto">
-          <span>💎</span> مشاهده سرویس‌های کامل
+          مشاهده سرویس‌های کامل
         </button>
       </div>
     `;
@@ -1014,7 +1014,7 @@ function setupBuyButtons() {
           badgeText: '❌ نیازمند سرویس فعال',
           badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-danger-soft border border-rose-500/30',
           message: 'بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند. لطفاً ابتدا از تب «سرویس‌های کامل» یک اشتراک جدید تهیه فرمایید.',
-          actionText: '💎 مشاهده سرویس‌های کامل',
+          actionText: 'مشاهده سرویس‌های کامل',
           onAction: () => switchShopCategory('full'),
         });
         return;

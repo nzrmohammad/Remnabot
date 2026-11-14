@@ -479,6 +479,11 @@ const EMOJI_TO_UI_ICON = {
   '❌': 'cross',
   '✕': 'cross',
   '🛒': 'cart',
+  '🥇': 'medal-gold',
+  '🥈': 'medal-silver',
+  '🥉': 'medal-bronze',
+  '👑': 'crown',
+  '💎': 'diamond',
 };
 
 function uiEmojiIcon(emojiOrKey, className = 'w-4 h-4') {

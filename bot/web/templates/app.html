@@ -82,8 +82,8 @@
         </div>
         <div class="flex items-center gap-1.5 min-w-0">
           <span id="headerUsername" class="font-bold t-accent text-xs max-w-[100px] truncate font-sans">کاربر</span>
-          <span id="headerLoyaltyBadge" role="button" tabindex="0" onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="hidden w-7 h-7 flex items-center justify-center text-lg bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none" title="سطح وفاداری شما" aria-label="سطح وفاداری شما">
-            🥈
+          <span id="headerLoyaltyBadge" role="button" tabindex="0" onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="hidden w-7 h-7 flex items-center justify-center bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none" title="سطح وفاداری شما" aria-label="سطح وفاداری شما">
+            <img src="/static/img/icons/medal-silver.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" alt="" aria-hidden="true" loading="eager" width="20" height="20">
           </span>
           <button id="switchAccountBtn" class="hidden inline-flex items-center justify-center w-4 h-4 t-muted hover:t-main active:scale-95 text-[11px] cursor-pointer transition flex-shrink-0" title="تعویض اکانت" aria-label="تعویض اکانت">
             <span class="text-[11px]">▼</span>
@@ -832,10 +832,10 @@
             <!-- Chart Canvas -->
             <div class="h-52 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center overflow-hidden">
               <canvas id="userLeaderboardChartCanvas" dir="ltr" class="w-full h-full"></canvas>
-              <div id="userLeaderboardEmptyState" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-3 t-muted space-y-1">
+              <div id="userLeaderboardEmptyState" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-3 t-muted space-y-1 card-inset rounded-xl">
                 <img src="/static/img/icons/trophy.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
                 <span class="text-[11px] font-medium t-muted">داده‌ای برای رده‌بندی ثبت نشده است</span>
-                <span class="text-[11px] text-slate-500">پس از مصرف ترافیک در این بازه، نمودار رسم خواهد شد.</span>
+                <span class="text-[11px] t-muted">پس از مصرف ترافیک در این بازه، نمودار رسم خواهد شد.</span>
               </div>
             </div>
           </div>
@@ -855,10 +855,10 @@
             </div>
             <div class="h-36 w-full p-1 bg-transparent rounded-xl relative flex items-center justify-center">
               <canvas id="repPeakHoursChartCanvas" dir="ltr" class="w-full h-full"></canvas>
-              <div id="repPeakHoursEmptyState" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-3 text-slate-400 space-y-1 bg-slate-900/90 rounded-xl">
+              <div id="repPeakHoursEmptyState" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-3 t-muted space-y-1 card-inset rounded-xl">
                 <img src="/static/img/icons/reports.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
                 <span class="text-[11px] font-medium t-muted">داده‌ای برای ساعات اوج مصرف ثبت نشده است</span>
-                <span class="text-[11px] text-slate-500">پس از مصرف ترافیک در طول شبانه‌روز، منحنی اوج مصرف رسم می‌شود.</span>
+                <span class="text-[11px] t-muted">پس از مصرف ترافیک در طول شبانه‌روز، منحنی اوج مصرف رسم می‌شود.</span>
               </div>
             </div>
 
@@ -1176,12 +1176,11 @@
 
         <!-- Transaction History -->
         <div class="card rounded-2xl p-4 space-y-3">
-          <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-2">
+          <div class="flex items-center justify-between border-b border-card-border pb-2">
             <span class="text-xs font-bold t-main flex items-center gap-1.5">
-              <span>📑</span> <span>تاریخچه تراکنش‌ها و سفارشات</span>
+              <img src="/static/img/icons/receipt.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />
+              <span>تاریخچه تراکنش‌ها و سفارشات</span>
             </span>
-            <span class="text-[11px] t-muted font-sans font-bold">سفارشات اخیر</span>
-          </div>
             <span class="text-[11px] t-muted font-sans font-bold">سفارشات اخیر</span>
           </div>
 
@@ -3305,7 +3304,7 @@
         <!-- Live Auto-Renew Quick Switch inside Expiry Modal -->
         <div class="card-inset rounded-xl p-2.5 flex items-center justify-between text-right text-xs">
           <div>
-            <span class="t-main font-bold block text-[11px]"><img src="/static/img/icons/recycle.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block ml-1" width="14" height="14" alt="" aria-hidden="true" /><span>تمدید خودکار</span>
+            <span class="t-main font-bold block text-[11px]"><img src="/static/img/icons/recycle.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block ml-1" width="14" height="14" alt="" aria-hidden="true" /><span>تمدید خودکار</span></span>
             <span class="text-[11px] t-muted block">تمدید خودکار هنگام پایان با موجودی کیف پول</span>
           </div>
           <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -3740,8 +3739,8 @@
 
         <!-- Header -->
         <div class="border-b border-card-border pb-3 flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-yellow-500/10 border border-amber-500/30 flex items-center justify-center text-xl shrink-0">
-            👑
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-yellow-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
+            <img src="/static/img/icons/crown.svg?v=ri7" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
           </div>
           <div>
             <h3 class="text-sm font-bold t-main">باشگاه مشتریان و سطوح وفاداری</h3>
@@ -3754,7 +3753,7 @@
           <div class="flex items-center justify-between">
             <span class="text-xs t-muted font-medium">سطح کاربری فعلی شما:</span>
             <span id="loyaltyModalCurrentBadge" class="px-2 py-0.5 rounded-lg text-xs font-bold border border-amber-500/40 bg-amber-500/15 text-amber-500 flex items-center gap-1">
-              <span id="loyaltyModalCurrentIcon" class="text-base inline-flex items-center">🥈</span>
+              <span id="loyaltyModalCurrentIcon" class="inline-flex items-center"><img src="/static/img/icons/medal-silver.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
               <span id="loyaltyModalCurrentName">نقره‌ای</span>
             </span>
           </div>
@@ -3777,8 +3776,8 @@
           <div id="loyaltyModalTiersList" class="space-y-2 max-h-72 overflow-y-auto px-1.5 py-1">
             <!-- Tier 1: Bronze -->
             <div id="loyaltyTierCard_bronze" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-amber-800/15 text-amber-700 dark:text-amber-500 border border-amber-800/30 flex items-center justify-center text-base shrink-0">
-                🥉
+              <div class="w-8 h-8 rounded-xl bg-amber-800/15 border border-amber-800/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/medal-bronze.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3791,8 +3790,8 @@
 
             <!-- Tier 2: Silver -->
             <div id="loyaltyTierCard_silver" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-slate-400/15 text-slate-600 dark:text-slate-300 border border-slate-400/30 flex items-center justify-center text-base shrink-0">
-                🥈
+              <div class="w-8 h-8 rounded-xl bg-slate-400/15 border border-slate-400/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/medal-silver.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3805,8 +3804,8 @@
 
             <!-- Tier 3: Gold -->
             <div id="loyaltyTierCard_gold" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/15 t-warn border border-amber-500/30 flex items-center justify-center text-base shrink-0">
-                🥇
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/medal-gold.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3819,8 +3818,8 @@
 
             <!-- Tier 4: Platinum -->
             <div id="loyaltyTierCard_platinum" class="card-inset p-2.5 rounded-2xl border border-cyan-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-cyan-500/15 t-accent border border-cyan-500/30 flex items-center justify-center text-base shrink-0">
-                💎
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/diamond.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3833,8 +3832,8 @@
 
             <!-- Tier 5: Ruby -->
             <div id="loyaltyTierCard_ruby" class="card-inset p-2.5 rounded-2xl border border-purple-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-purple-500/15 t-purple border border-purple-500/30 flex items-center justify-center text-base shrink-0">
-                🔮
+              <div class="w-8 h-8 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/sparkles.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3847,8 +3846,8 @@
 
             <!-- Tier 6: Emerald -->
             <div id="loyaltyTierCard_emerald" class="card-inset p-2.5 rounded-2xl border border-emerald-500/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 t-success border border-emerald-500/30 flex items-center justify-center text-base shrink-0">
-                ❇️
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/shield.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -3861,17 +3860,9 @@
 
             <!-- Tier 7: Diamond -->
             <div id="loyaltyTierCard_diamond" class="card-inset p-2.5 rounded-2xl border border-amber-500/40 dark:border-amber-400/30 flex items-start gap-2.5 transition">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 flex items-center justify-center text-base shrink-0">
-                👑
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/crown.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
               </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between">
-                  <b class="text-xs text-amber-600 dark:text-amber-300 font-bold">سطح الماس</b>
-                  <span id="loyaltyTierCard_diamond_spent" class="text-[11px] font-bold text-amber-600 dark:text-amber-300 font-sans num-bidi">20,000,000 تومان</span>
-                </div>
-                <p class="text-[11px] t-muted mt-0.5 leading-snug"><span id="loyaltyTierCard_diamond_pct" class="text-emerald-500 font-bold font-sans num-bidi" dir="ltr">15%</span> <b class="text-emerald-500 font-bold">تخفیف</b> + پشتیبانی اختصاصی</p>
-              </div>
-            </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs text-amber-600 dark:text-amber-300 font-bold">سطح الماس</b>
