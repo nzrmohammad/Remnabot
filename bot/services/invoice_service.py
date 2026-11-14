@@ -39,7 +39,97 @@ async def get_order_invoice_data(
     res = await session.execute(stmt)
     row = res.first()
     if not row:
-        return None
+        from bot.db.models import Topup
+        t_stmt = (
+            select(Topup, User)
+            .outerjoin(User, Topup.telegram_id == User.telegram_id)
+            .where(Topup.id == order_id, Topup.telegram_id == telegram_id)
+        )
+        t_res = await session.execute(t_stmt)
+        t_row = t_res.first()
+        if not t_row:
+            return None
+        topup: Topup = t_row[0]
+        user: User | None = t_row[1]
+
+        tz = ZoneInfo(tz_name)
+        t_dt = topup.created_at
+        if t_dt and t_dt.tzinfo:
+            t_dt_local = t_dt.astimezone(tz)
+        elif t_dt:
+            t_dt_local = t_dt.replace(tzinfo=ZoneInfo("UTC")).astimezone(tz)
+        else:
+            t_dt_local = None
+
+        if t_dt_local:
+            j_dt = jdatetime.datetime.fromgregorian(datetime=t_dt_local)
+            date_jalali = f"{j_dt.year}/{j_dt.month:02d}/{j_dt.day:02d}"
+            time_jalali = f"{j_dt.hour:02d}:{j_dt.minute:02d}:{j_dt.second:02d}"
+            invoice_number = f"TOP-{j_dt.year % 100:02d}{j_dt.month:02d}-{topup.id:05d}"
+        else:
+            date_jalali = "—"
+            time_jalali = "—"
+            invoice_number = f"TOP-0000-{topup.id:05d}"
+
+        buyer_name = (
+            user.full_name or (f"@{user.username}" if user.username else f"کاربر {topup.telegram_id}")
+        ) if user else f"کاربر {topup.telegram_id}"
+        phone = (user.phone_number or "—") if user else "—"
+
+        raw_st = (topup.status or "pending").lower()
+        is_paid = raw_st == "approved"
+        if is_paid:
+            status_label = "تایید و شارژ شده"
+        elif raw_st == "rejected":
+            status_label = "رد شده"
+        else:
+            status_label = "در انتظار بررسی"
+
+        amount_toman = int(topup.amount or 0)
+        amount_rial = amount_toman * 10
+        tracking_code = f"TRX-{(topup.id * 7919) % 100000000:08d}"
+
+        return {
+            "order_id": topup.id,
+            "invoice_number": invoice_number,
+            "date_jalali": date_jalali,
+            "time_jalali": time_jalali,
+            "created_at_iso": t_dt.isoformat() if t_dt else "",
+            "seller": {
+                "name": store_name,
+                "logo_url": store_logo_url,
+                "type": "خدمات رایانش و شبکه ابری",
+                "support": support_contact or "پشتیبانی ربات تلگرام",
+                "verified": True,
+            },
+            "buyer": {
+                "name": buyer_name,
+                "telegram_id": topup.telegram_id,
+                "username": (f"@{user.username}" if user.username else "") if user else "",
+                "phone": phone,
+            },
+            "item": {
+                "service_id": 0,
+                "title": "افزایش اعتبار کیف پول (کارت به کارت)",
+                "traffic_gb": 0,
+                "traffic_text": "شارژ ریالی موجودی",
+                "duration_days": 0,
+                "duration_text": "بدون محدودیت زمانی",
+                "is_renewal": False,
+            },
+            "payment": {
+                "amount_toman": amount_toman,
+                "amount_toman_formatted": f"{amount_toman:,} تومان",
+                "amount_rial_formatted": f"{amount_rial:,} ریال",
+                "method": "کارت‌به‌کارت بانکی",
+                "status": status_label,
+                "is_paid": is_paid,
+                "tracking_code": tracking_code,
+                "deducted_amount": amount_toman if is_paid else 0,
+                "deducted_formatted": f"{amount_toman:,} تومان" if is_paid else "0 تومان",
+                "deduction_note": "افزایش یافته به موجودی کیف پول" if is_paid else "هیچ مبلغی شارژ نشده است",
+            },
+        }
 
     order: Order = row[0]
     user: User | None = row[1]

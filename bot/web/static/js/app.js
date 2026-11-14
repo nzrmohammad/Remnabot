@@ -1565,8 +1565,8 @@ function openAlertPickerModal(type) {
           <b class="text-xs block">${opt.label}</b>
           <span class="text-[11px] t-muted block mt-0.5">${opt.desc}</span>
         </div>
-        <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 's-accent-soft flex items-center justify-center font-bold text-xs' : 'border-card-border'}">
-          ${opt.val === currentVal ? '✓' : ''}
+        <div class="w-6 h-6 rounded-full flex items-center justify-center border transition-all ${opt.val === currentVal ? 'bg-cyan-500 border-cyan-500 text-white shadow-xs' : 'border-card-border bg-slate-500/5'}">
+          ${opt.val === currentVal ? '<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
         </div>
       </div>
     `).join('');
@@ -1591,8 +1591,8 @@ function openAlertPickerModal(type) {
           <b class="text-xs block">${opt.label}</b>
           <span class="text-[11px] t-muted block mt-0.5">${opt.desc}</span>
         </div>
-        <div class="w-5 h-5 rounded-full border ${opt.val === currentVal ? 's-warn-soft flex items-center justify-center font-bold text-xs' : 'border-card-border'}">
-          ${opt.val === currentVal ? '✓' : ''}
+        <div class="w-6 h-6 rounded-full flex items-center justify-center border transition-all ${opt.val === currentVal ? 'bg-amber-500 border-amber-500 text-white shadow-xs' : 'border-card-border bg-slate-500/5'}">
+          ${opt.val === currentVal ? '<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
         </div>
       </div>
     `).join('');
@@ -1845,7 +1845,7 @@ window.closeBirthdayCountdownModal = closeBirthdayCountdownModal;
 
 function openMembershipModal() {
   const user = window.lastUserData?.user;
-  const sub = window.lastUserData?.subscription;
+  const sub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription || window.lastUserData?.subscription || {};
   if (!user) return;
 
   const joinEl = $('membershipDaysCount');
@@ -1853,10 +1853,12 @@ function openMembershipModal() {
   const spentEl = $('membershipTotalSpent');
   const trafEl = $('membershipTotalTraffic');
   const tierEl = $('membershipLoyaltyTier');
+  const nameEl = $('membershipUserName');
   const titleEl = $('membershipUserTitle');
 
   const displayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
-  if (titleEl) titleEl.innerText = `همسفر همیشگی رمنا، ${escapeHtml(displayName)}`;
+  if (nameEl) nameEl.innerText = displayName;
+  if (titleEl) titleEl.innerText = 'همسفر همیشگی رمنا';
 
   let daysPassed = 1;
   if (user.created_at) {
@@ -1871,20 +1873,30 @@ function openMembershipModal() {
     sinceEl.innerText = jalaliDate ? `از تاریخ ${toEnglishDigits(jalaliDate)}` : `عضویت از روز نخست`;
   }
 
-  const totalSpentVal = Number(user.total_spent || user.total_payments || user.lifetime_spent || 0);
+  let totalSpentVal = Number(window.lastUserData?.loyalty?.total_spent ?? 0);
+  if (totalSpentVal <= 0) {
+    totalSpentVal = Number(user.total_spent || user.total_payments || user.lifetime_spent || 0);
+  }
+  if (totalSpentVal <= 0 && Array.isArray(window.lastUserData?.transactions)) {
+    totalSpentVal = window.lastUserData.transactions
+      .filter(tx => tx.type === 'order' || (tx.status && (tx.status === 'موفق' || tx.status === 'تایید شده')))
+      .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+  }
   if (spentEl) spentEl.innerText = `${totalSpentVal.toLocaleString('en-US')} تومان`;
 
-  const trafficBytes = Number(user.total_traffic_bytes || user.lifetime_used_bytes || user.used_traffic_bytes || sub?.used_traffic_bytes || 0);
+  let usedGb = Number(sub?.traffic_used_gb ?? sub?.used_traffic_gb ?? 0);
+  if (usedGb <= 0 && sub?.traffic_total_gb && sub?.traffic_remaining_gb) {
+    usedGb = Math.max(0, Number(sub.traffic_total_gb) - Number(sub.traffic_remaining_gb));
+  }
+  if (usedGb <= 0) {
+    const rawBytes = Number(user.total_traffic_bytes || user.lifetime_used_bytes || user.used_traffic_bytes || sub?.used_traffic_bytes || 0);
+    if (rawBytes > 0) usedGb = rawBytes / (1024 * 1024 * 1024);
+  }
   if (trafEl) {
-    if (trafficBytes > 0) {
-      trafEl.innerText = fmtTraffic(trafficBytes, { isBytes: true, html: false });
-    } else {
-      const activeGb = Number(sub?.used_traffic_gb || 0);
-      trafEl.innerText = activeGb > 0 ? fmtTraffic(activeGb, { html: false }) : '0 GB';
-    }
+    trafEl.innerText = `${usedGb.toFixed(2)} GB`;
   }
 
-  const tierName = window.lastUserData?.loyalty?.current_tier?.name || user.loyalty_tier_name || 'کاربر همراه';
+  const tierName = window.lastUserData?.loyalty?.name || window.lastUserData?.loyalty?.current_tier?.name || user.loyalty_tier_name || 'کاربر همراه';
   if (tierEl) tierEl.innerText = tierName;
 
   openModal('membershipModal');
@@ -3171,7 +3183,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold shadow-xs select-none" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" /><span>تأییدشده</span></span>`;
+        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center p-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-xs select-none" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="تأییدشده" /></span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -3181,7 +3193,19 @@ function hydrateUserInterface(data) {
         profPhone.innerText = 'وارد نشده';
       }
     }
+    const profJoinBadge = $('profileJoinDaysBadge');
     if (profJoin) profJoin.innerText = user.created_at_jalali ? toEnglishDigits(user.created_at_jalali) : '—';
+    if (profJoinBadge) {
+      let daysPassed = 1;
+      if (user.created_at) {
+        const ct = new Date(user.created_at).getTime();
+        if (!isNaN(ct) && ct > 0) {
+          daysPassed = Math.max(1, Math.floor((Date.now() - ct) / (1000 * 60 * 60 * 24)));
+        }
+      }
+      profJoinBadge.innerText = `${toEnglishDigits(daysPassed)} روز`;
+      profJoinBadge.classList.remove('hidden');
+    }
     const hasBirthDate = Boolean(user.birth_date && String(user.birth_date).trim());
     if (profBirth) {
       profBirth.innerText = hasBirthDate ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
@@ -3230,10 +3254,10 @@ function hydrateUserInterface(data) {
 
     if (profSub) {
       if (hasActiveSub) {
-        profSub.innerHTML = '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold shadow-xs select-none"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" /><span>فعال</span></span>';
+        profSub.innerHTML = '<span class="inline-flex items-center justify-center p-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-xs select-none" title="سرویس فعال"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="فعال" /></span>';
         profSub.className = 'inline-block';
       } else {
-        profSub.innerHTML = '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-[10px] font-bold shadow-xs select-none"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" /><span>غیرفعال</span></span>';
+        profSub.innerHTML = '<span class="inline-flex items-center justify-center p-1 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 shadow-xs select-none" title="سرویس غیرفعال"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="غیرفعال" /></span>';
         profSub.className = 'inline-block';
       }
     }
@@ -5187,6 +5211,46 @@ async function openInvoiceModal(orderId) {
     renderInvoiceModalFields(invoiceClientCache.get(orderId), orderId);
     modal.classList.remove('hidden');
     // Silently revalidate in background
+    window.api.getInvoice(orderId).then(res => {
+      if (res && res.ok && res.data) {
+        invoiceClientCache.set(orderId, res.data);
+        renderInvoiceModalFields(res.data, orderId);
+      }
+    }).catch(() => {});
+    return;
+  }
+
+  // SWR 2: Immediate synthesize from transaction history in memory for 0ms perceived latency
+  const tx = (window.lastUserData?.transactions || []).find(t => String(t.id) === String(orderId));
+  if (tx) {
+    const fallbackInv = {
+      order_id: tx.id,
+      invoice_number: `INV-${String(tx.id).padStart(5, '0')}`,
+      date_jalali: tx.date_jalali ? String(tx.date_jalali).split(' ')[0] : '—',
+      time_jalali: tx.date_jalali && String(tx.date_jalali).includes('-') ? String(tx.date_jalali).split('-')[1]?.trim() : '—',
+      seller: { name: 'سرویس ابری رمنا', support: 'پشتیبانی ربات تلگرام' },
+      buyer: {
+        name: window.lastUserData?.user?.first_name || window.lastUserData?.user?.username || 'کاربر گرامی',
+        telegram_id: window.lastUserData?.user?.id,
+        phone: window.lastUserData?.user?.phone_number || '—'
+      },
+      item: {
+        title: tx.title || (tx.type === 'order' ? `سفارش اشتراک #${tx.id}` : 'تراکنش کیف پول'),
+        specs: tx.traffic_gb ? `${tx.traffic_gb} GB — ${tx.duration_days || 30} روز` : 'خدمات شبکه ابری',
+        amount_toman: tx.amount || 0,
+        amount_rial: (tx.amount || 0) * 10
+      },
+      payment: {
+        is_paid: tx.status === 'موفق' || tx.status === 'تایید شده',
+        status_label: tx.status || 'موفق',
+        tracking_code: `TRX-${String(((Number(tx.id) || 1) * 7919) % 100000000).padStart(8, '0')}`,
+        deduction_note: tx.type === 'topup' ? 'واریز به موجودی کیف پول' : 'کسر شده از موجودی کیف پول'
+      }
+    };
+    invoiceClientCache.set(orderId, fallbackInv);
+    renderInvoiceModalFields(fallbackInv, orderId);
+    modal.classList.remove('hidden');
+
     window.api.getInvoice(orderId).then(res => {
       if (res && res.ok && res.data) {
         invoiceClientCache.set(orderId, res.data);

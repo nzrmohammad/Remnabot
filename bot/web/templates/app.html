@@ -229,7 +229,7 @@
 
         <!-- Quick Interactive Action Cards (گردونه شانس و کارت استوری) -->
         <div class="grid grid-cols-2 gap-2.5">
-          <button id="openLuckyWheelBtn" class="lucky-wheel-entry-btn bg-transparent hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
+          <button id="openLuckyWheelBtn" class="card lucky-wheel-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <span class="text-xs font-bold t-main flex items-center gap-1.5 lucky-wheel-title">
               <img src="/static/img/icons/wheel.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
               <span>گردونه شانس</span>
@@ -238,7 +238,7 @@
             <span class="text-xs t-muted group-hover:t-main transition">←</span>
           </button>
 
-          <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="tutorial-entry-btn bg-transparent hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
+          <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="card tutorial-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <span class="text-xs font-bold t-main flex items-center gap-1.5 tutorial-title">
               <img src="/static/img/icons/phone.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
               <span>راهنمای اتصال</span>
@@ -249,7 +249,7 @@
         </div>
 
         <!-- Birthday Countdown Card (Hidden if birthday not set) -->
-        <div role="button" tabindex="0" id="dashboardBirthdayCard" onclick="window.openBirthdayCountdownModal()" class="hidden bg-transparent hover:bg-slate-500/5 dark:hover:bg-slate-800/25 rounded-2xl p-3 border border-card-border shadow-sm flex items-center justify-between cursor-pointer active:scale-[0.98] transition select-none" title="مشاهده شمارش معکوس زادروز">
+        <div role="button" tabindex="0" id="dashboardBirthdayCard" onclick="window.openBirthdayCountdownModal()" class="card hidden hover:bg-slate-500/5 dark:hover:bg-slate-800/25 rounded-2xl p-3 border border-card-border shadow-sm flex items-center justify-between cursor-pointer active:scale-[0.98] transition select-none" title="مشاهده شمارش معکوس زادروز">
           <span id="birthdayCardTitle" class="text-xs font-bold t-main flex items-center gap-1.5">
             <img src="/static/img/icons/cake.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <span>شمارش معکوس زادروز</span>
@@ -423,13 +423,13 @@
               <span class="text-[11px] t-muted font-medium">ابزارها و اقدامات:</span>
               <div class="flex items-center gap-1.5">
                 <button id="copySubBtn" class="sub-action-btn w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl transition active:scale-95 shadow-sm" title="کپی لینک اشتراک" aria-label="کپی لینک اشتراک">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                 </button>
                 <button id="qrToggleBtn" class="sub-action-btn w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl transition active:scale-95 shadow-sm" title="کیوآرکد" aria-label="نمایش کیوآرکد اشتراک">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                  <img src="/static/img/icons/qr.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                 </button>
                 <button id="revokeSubBtnTop" class="sub-action-btn w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl transition active:scale-95 shadow-sm" title="تعویض لینک اشتراک" aria-label="تعویض لینک اشتراک">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <img src="/static/img/icons/sync.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                 </button>
               </div>
             </div>
@@ -521,7 +521,7 @@
         </div>
 
         <!-- Speed & Quality Test Entry Banner Card -->
-        <button id="openSpeedTestModalBtn" type="button" onclick="window.openSpeedTestModal()" class="w-full speedtest-entry-btn bg-transparent hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
+        <button id="openSpeedTestModalBtn" type="button" onclick="window.openSpeedTestModal()" class="card w-full speedtest-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
           <span class="text-xs font-bold t-main flex items-center gap-1.5 speedtest-title">
             <img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
             <span>تست سرعت اینترنت و سنجش پینگ</span>
@@ -954,7 +954,7 @@
       <!-- TAB 3: SHOP (فروشگاه و تمدید)                          -->
       <!-- ===================================================== -->
       <div id="tab-shop" class="tab-pane space-y-4 hidden">
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center pt-2 pb-0.5">
           <h3 class="text-sm font-bold t-main"><img src="/static/img/icons/cart.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" aria-hidden="true" /><span>خرید بسته یا تمدید</span></h3>
           <div class="flex items-center gap-1.5 text-xs">
             <span class="t-muted font-sans">موجودی:</span>
@@ -1285,7 +1285,10 @@
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
               <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تاریخ عضویت</span></span>
-              <span id="profileJoinDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openMembershipModal && window.openMembershipModal()" title="مشاهده کارنامه همراهی">--</span>
+              <div class="flex items-center gap-1.5">
+                <span id="profileJoinDaysBadge" onclick="window.openMembershipModal && window.openMembershipModal()" class="hidden px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-sans font-bold cursor-pointer hover:border-accent transition" title="مشاهده کارنامه همراهی">-- روز</span>
+                <span id="profileJoinDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openMembershipModal && window.openMembershipModal()" title="مشاهده کارنامه همراهی">--</span>
+              </div>
             </div>
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
@@ -2009,9 +2012,9 @@
 
                 <!-- Action Buttons: Positioned below guide -->
                 <div class="grid grid-cols-2 gap-2 pt-1">
-                  <button type="button" onclick="window.checkCardAutoStatus(true)" class="btn btn-primary w-full py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                  <button type="button" id="checkCardAutoStatus" onclick="window.checkCardAutoStatus(true)" class="btn btn-primary w-full py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm text-white">
                     <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>بررسی وضعیت</span>
+                    <span class="text-white font-bold">بررسی وضعیت</span>
                   </button>
                   <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1.5 shadow-xs">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2219,9 +2222,9 @@
                 <img src="/static/img/icons/ton.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span>پرداخت با برنامه تون‌کیپر (Tonkeeper)</span>
               </a>
               <div class="grid grid-cols-2 gap-2">
-                <button id="cryptoCheckStatusBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                <button id="cryptoCheckStatusBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm text-white">
                   <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span>بررسی پرداخت</span>
+                  <span class="text-white font-bold">بررسی پرداخت</span>
                 </button>
                 <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
                   <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2284,9 +2287,9 @@
                 <img src="/static/img/icons/tron.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت مستقیم با TronLink</span>
               </a>
               <div class="grid grid-cols-2 gap-2">
-                <button id="submitTrxTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                <button id="submitTrxTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm text-white">
                   <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span>بررسی واریز</span>
+                  <span class="text-white font-bold">بررسی واریز</span>
                 </button>
                 <button id="cancelTrxInvoiceBtn" type="button" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
                   <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2349,9 +2352,9 @@
                 <img src="/static/img/icons/polygon.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت مستقیم با متامسک (MetaMask)</span>
               </button>
               <div class="grid grid-cols-2 gap-2">
-                <button id="submitPolTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                <button id="submitPolTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm text-white">
                   <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span>بررسی واریز</span>
+                  <span class="text-white font-bold">بررسی واریز</span>
                 </button>
                 <button id="cancelPolInvoiceBtn" type="button" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
                   <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2507,19 +2510,19 @@
     <!-- 5. MODAL: LUCKY WHEEL (گردونه شانس روزانه)                 -->
     <!-- ======================================================== -->
     <div id="luckyWheelModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-amber-500/50 rounded-3xl p-4 w-full text-center space-y-2.5 shadow-2xl relative max-w-[330px] my-auto">
+      <div class="modal-card border border-amber-500/40 rounded-3xl p-4.5 w-full text-center space-y-3 shadow-2xl relative max-w-[340px] my-auto">
         <button id="closeLuckyWheelBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن گردونه شانس"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         
         <div>
-          <span class="text-[11px] font-extrabold text-amber-600 dark:text-amber-300 uppercase tracking-wide inline-flex items-center gap-1">
+          <span class="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wide inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
             <img src="/static/img/icons/wheel.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
             <span>گردونه شانس روزانه</span>
           </span>
-          <h3 class="text-sm font-extrabold t-main mt-0.5">شانس دریافت ترافیک و جوایز ویژه!</h3>
-          <p id="wheelSubText" class="text-[11px] font-bold text-slate-700 dark:text-slate-200 mt-0.5">ویژه کاربران دارای اشتراک فعال</p>
+          <h3 class="text-sm font-black t-main mt-1.5">شانس دریافت ترافیک و جوایز ویژه</h3>
+          <p id="wheelSubText" class="text-[11px] font-medium t-muted mt-0.5">ویژه کاربران دارای اشتراک فعال</p>
 
           <!-- Badges: Daily Streak & Referral Tickets -->
-          <div class="flex items-center justify-center gap-1.5 mt-2">
+          <div class="flex items-center justify-center gap-2 mt-2">
             <span id="wheelStreakBadge" class="badge-streak inline-flex items-center gap-1">
               <img src="/static/img/icons/flame.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /> <span id="wheelStreakText">زنجیره روزانه: 1 روز (شانس 1.0×)</span>
             </span>
@@ -2639,14 +2642,14 @@
           </div>
 
           <!-- Fixed Center Spin Button (Center Hub) -->
-          <button id="spinWheelBtn" class="absolute z-20 w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 text-slate-950 font-black text-xs flex flex-col items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.5)] border-2 border-white active:scale-95 transition">
-            <span class="text-[11px] font-extrabold tracking-tight">بچرخون!</span>
+          <button id="spinWheelBtn" class="absolute z-20 w-13 h-13 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black text-xs flex flex-col items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.6)] border-2 border-white dark:border-amber-100 active:scale-95 transition hover:scale-105 cursor-pointer">
+            <span class="text-[11px] font-black tracking-tight leading-none">بچرخون!</span>
           </button>
         </div>
 
         <!-- Status / Result Message -->
-        <div id="wheelResultBox" class="card-inset p-2 rounded-xl text-[11px]">
-          <span id="wheelResultText" class="t-muted">دکمه وسط گردونه را لمس کنید تا شانس خود را امتحان نمایید!</span>
+        <div id="wheelResultBox" class="card-inset p-2.5 rounded-2xl text-[11px] border border-card-border">
+          <span id="wheelResultText" class="t-muted font-medium">دکمه وسط گردونه را لمس کنید تا شانس خود را امتحان نمایید!</span>
         </div>
 
         <!-- 24-Hour Countdown Timer Container -->
@@ -3408,7 +3411,8 @@
           <span class="text-[11px] font-extrabold text-sky-600 dark:text-sky-300 uppercase tracking-wide inline-block">
             کارنامه همراهی با ما
           </span>
-          <h3 id="membershipUserTitle" class="text-sm font-extrabold t-main mt-1.5">همسفر همیشگی رمنا</h3>
+          <h3 id="membershipUserName" class="text-base font-extrabold t-main mt-1">--</h3>
+          <p id="membershipUserTitle" class="text-xs t-muted font-medium mt-0.5">همسفر همیشگی رمنا</p>
         </div>
 
         <!-- Hero Days Counter Box -->
@@ -3438,7 +3442,7 @@
         </div>
 
         <!-- Loyalty Tier & Status Badge Box -->
-        <div class="card-inset rounded-2xl p-2.5 flex items-center justify-between text-xs">
+        <div class="bg-transparent border border-card-border rounded-2xl p-2.5 flex items-center justify-between text-xs">
           <span class="t-muted text-[11px] flex items-center gap-1.5">
             <img src="/static/img/icons/sparkles.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <span>سطح وفاداری فعلی:</span>

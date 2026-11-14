@@ -128,13 +128,13 @@ function renderWonCoupons(data) {
       ? 'won-coupon-apply-btn bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition active:scale-95 shrink-0 shadow-sm'
       : 'won-coupon-apply-btn btn btn-primary text-xs font-semibold px-3 py-1.5 rounded-lg shadow shrink-0';
     return `
-      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2.5 rounded-xl card-inset border border-slate-200 dark:border-slate-800 transition shadow-none">
-        <div class="text-right">
-          <div class="flex items-center gap-1">
+      <div class="won-coupon-card flex-1 min-w-[140px] flex items-center justify-between gap-2 p-2.5 rounded-xl card-inset border border-slate-200 dark:border-slate-800 transition shadow-none" dir="ltr">
+        <div class="text-left">
+          <div class="flex items-center gap-1.5">
             <span class="text-xs">🎟</span>
-            <span class="font-bold font-sans num-bidi t-main text-xs">${escapeHtml(c.code)}</span>
+            <span class="font-bold font-mono tracking-wider t-main text-xs select-all">${escapeHtml(c.code)}</span>
           </div>
-          <span class="text-[11px] t-success font-sans block mt-0.5"><span dir="ltr" class="font-sans num-bidi font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
+          <span class="text-[11px] t-success font-sans block mt-0.5"><span class="font-sans font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
         </div>
         <button type="button" class="${btnClass}" data-code="${escapeHtml(c.code)}">
           ${btnText}
@@ -497,7 +497,7 @@ function renderShopPlans(data) {
   if (noticeEl) {
     if (!hasActiveSub) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft';
-      noticeEl.innerHTML = '<div class="flex items-start gap-2"><div class="flex flex-col gap-0.5"><span class="font-bold">جهت شروع، یکی از <b>سرویس‌های کامل</b> را انتخاب فرمایید.</span><span class="text-[10.5px] opacity-80">در صورت کندی یا افت کیفیت اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود.</span></div></div>';
+      noticeEl.innerHTML = '<div class="flex items-start gap-2"><div class="flex flex-col gap-0.5"><span class="font-bold">جهت شروع، یکی از <b>سرویس‌های کامل</b> را انتخاب فرمایید.</span><span class="text-[10px] sm:text-[10.5px] opacity-85 whitespace-nowrap overflow-hidden text-ellipsis block">در صورت کندی اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود.</span></div></div>';
       noticeEl.dataset.shouldShow = 'true';
       if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
       else noticeEl.classList.add('hidden');
