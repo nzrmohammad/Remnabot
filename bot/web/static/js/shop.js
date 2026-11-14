@@ -132,7 +132,7 @@ function renderWonCoupons(data) {
         <div class="text-left">
           <div class="flex items-center gap-1.5">
             <span class="text-xs">🎟</span>
-            <span class="font-bold font-mono tracking-wider t-main text-xs select-all">${escapeHtml(c.code)}</span>
+            <span class="font-bold font-sans tracking-wider t-main text-xs select-all">${escapeHtml(c.code)}</span>
           </div>
           <span class="text-[11px] t-success font-sans block mt-0.5"><span class="font-sans font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
         </div>
@@ -734,7 +734,7 @@ function renderFilteredShopPlans() {
             </div>
             <p class="text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1">${safeDesc}</p>
           </div>
-          <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[50%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
+          <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
             <div class="card-inset px-2.5 py-1 rounded-xl border border-card-border shadow-xs max-w-full">
               <h4 class="font-bold text-xs sm:text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
             </div>

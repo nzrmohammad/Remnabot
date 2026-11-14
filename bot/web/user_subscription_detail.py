@@ -515,9 +515,15 @@ async def build_active_subscription(
     limit_bytes = int(primary.get("trafficLimitBytes") or 0)
     traffic = primary.get("userTraffic") or {}
     used_bytes = int(traffic.get("usedTrafficBytes") or primary.get("usedTrafficBytes") or 0)
+    lifetime_used_bytes = int(
+        traffic.get("lifetimeUsedTrafficBytes")
+        or primary.get("lifetimeUsedTrafficBytes")
+        or 0
+    )
 
     traffic_total_gb = round(limit_bytes / (1024**3), 2)
     traffic_used_gb = round(used_bytes / (1024**3), 2)
+    lifetime_used_gb = round(lifetime_used_bytes / (1024**3), 2) if lifetime_used_bytes > 0 else traffic_used_gb
     if limit_bytes > 0:
         traffic_remaining_gb = max(0.0, round(traffic_total_gb - traffic_used_gb, 2))
         percent_remaining = round(max(0.0, min(100.0, (traffic_remaining_gb / traffic_total_gb) * 100)), 1)
@@ -656,6 +662,8 @@ async def build_active_subscription(
         "traffic_total_gb": traffic_total_gb,
         "traffic_used_gb": traffic_used_gb,
         "traffic_remaining_gb": traffic_remaining_gb,
+        "lifetime_used_traffic_gb": lifetime_used_gb,
+        "lifetime_used_bytes": lifetime_used_bytes if lifetime_used_bytes > 0 else used_bytes,
         "percent_remaining": percent_remaining,
         "days_left": days_left,
         "expire_timestamp": expire_timestamp,

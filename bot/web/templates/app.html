@@ -513,7 +513,7 @@
 
             <!-- Dynamic Devices Container -->
             <div id="activeDevicesContainer" class="space-y-2">
-              <div class="p-4 rounded-xl bg-transparent border border-card-border text-center text-xs t-muted">
+              <div class="p-4 rounded-2xl card-inset border border-card-border text-center text-xs t-muted">
                 در حال بارگذاری دستگاه‌ها...
               </div>
             </div>
@@ -534,12 +534,12 @@
         </button>
 
         <!-- Periodic Reports Sub-Tabs (5 items: Daily & Nightly on the right) -->
-        <div class="flex bg-transparent p-1 rounded-xl border border-card-border text-xs">
-          <button id="repSubDaily" class="flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm transition"><img src="/static/img/icons/sun.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />روزانه</button>
-          <button id="repSubNightly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"><img src="/static/img/icons/moon.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />شبانه</button>
-          <button id="repSubWeekly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"><img src="/static/img/icons/reports.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />هفتگی</button>
-          <button id="repSubMonthly" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"><img src="/static/img/icons/calendar.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />ماهانه</button>
-          <button id="repSubAnalytics" class="flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />تحلیل</button>
+        <div class="card p-1 rounded-2xl border border-card-border shadow-sm flex items-center text-xs gap-1">
+          <button id="repSubDaily" class="flex-1 py-1.5 rounded-xl font-bold bg-blue-600 text-white shadow-sm transition text-center"><img src="/static/img/icons/sun.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />روزانه</button>
+          <button id="repSubNightly" class="flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center"><img src="/static/img/icons/moon.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />شبانه</button>
+          <button id="repSubWeekly" class="flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center"><img src="/static/img/icons/reports.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />هفتگی</button>
+          <button id="repSubMonthly" class="flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center"><img src="/static/img/icons/calendar.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />ماهانه</button>
+          <button id="repSubAnalytics" class="flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />تحلیل</button>
         </div>
 
         <!-- 0. Daily Report Card -->
@@ -654,14 +654,14 @@
 
           <!-- Month Navigation Switcher (جا‌به‌جایی بین ماه‌های سال با فلش) -->
           <div class="flex items-center justify-between card-inset rounded-xl px-2.5 py-1.5 border border-card-border">
-            <button id="repMonthPrevBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
+            <button id="repMonthPrevBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card shadow-xs border border-card-border hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
               <span>▶</span>
               <span id="repMonthPrevLabel">ماه قبل</span>
             </button>
             <div class="text-center px-1">
               <span id="repMonthlyCurrentLabel" class="text-xs font-black t-main block">—</span>
             </div>
-            <button id="repMonthNextBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
+            <button id="repMonthNextBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card shadow-xs border border-card-border hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
               <span id="repMonthNextLabel">ماه بعد</span>
               <span>◀</span>
             </button>
@@ -801,14 +801,14 @@
 
             <!-- Month Navigator (هنگام مرور ماهانه) -->
             <div id="userLbMonthBar" class="hidden flex items-center justify-between card-inset rounded-xl px-2.5 py-1.5 border border-card-border text-xs">
-              <button id="userLbMonthPrevBtn" type="button" onclick="window.navigateUserLbMonth(-1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
+              <button id="userLbMonthPrevBtn" type="button" onclick="window.navigateUserLbMonth(-1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card shadow-xs border border-card-border hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95" title="ماه قبل">
                 <span>▶</span>
                 <span id="userLbMonthPrevLabel">ماه قبل</span>
               </button>
               <div class="text-center px-1">
                 <span id="userLbMonthCurrentLabel" class="text-xs font-black t-accent block font-sans">--</span>
               </div>
-              <button id="userLbMonthNextBtn" type="button" onclick="window.navigateUserLbMonth(1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card-inset hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
+              <button id="userLbMonthNextBtn" type="button" onclick="window.navigateUserLbMonth(1)" class="px-2.5 py-1 rounded-lg text-xs font-bold t-main card shadow-xs border border-card-border hover:border-cyan-500/50 transition flex items-center gap-1 active:scale-95 opacity-40 cursor-not-allowed" disabled title="ماه بعد">
                 <span id="userLbMonthNextLabel">ماه بعد</span>
                 <span>◀</span>
               </button>
@@ -1286,6 +1286,9 @@
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
               <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تاریخ عضویت</span></span>
               <div class="flex items-center gap-1.5">
+                <button id="openMembershipModalBtn" type="button" onclick="window.openMembershipModal && window.openMembershipModal()" class="text-sky-500 hover:text-sky-400 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none" title="مشاهده کارنامه همراهی">
+                  <span><img src="/static/img/icons/medal-gold.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
+                </button>
                 <span id="profileJoinDaysBadge" onclick="window.openMembershipModal && window.openMembershipModal()" class="hidden px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-sans font-bold cursor-pointer hover:border-accent transition" title="مشاهده کارنامه همراهی">-- روز</span>
                 <span id="profileJoinDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openMembershipModal && window.openMembershipModal()" title="مشاهده کارنامه همراهی">--</span>
               </div>
@@ -2535,20 +2538,32 @@
         <!-- SVG Lucky Wheel Visual -->
         <div class="relative w-56 h-56 mx-auto flex items-center justify-center my-1 select-none">
           <!-- Top Indicator Needle (Golden Arrow pointing down at 12 o'clock) -->
-          <div class="absolute -top-3 z-30 filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.85)] pointer-events-none">
-            <svg width="24" height="28" viewBox="0 0 24 28">
-              <polygon points="12,26 2,4 22,4" fill="#fbbf24" stroke="#78350f" stroke-width="2" stroke-linejoin="round" />
-              <circle cx="12" cy="8" r="3.5" fill="#fef08a" stroke="#d97706" stroke-width="1.5" />
+          <div class="absolute -top-3.5 z-30 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)] pointer-events-none">
+            <svg width="26" height="30" viewBox="0 0 26 30" fill="none">
+              <defs>
+                <linearGradient id="needleGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#fde047"/>
+                  <stop offset="50%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+              </defs>
+              <path d="M13 28 L2.5 5 C2 3.8 2.8 2.5 4.1 2.5 L21.9 2.5 C23.2 2.5 24 3.8 23.5 5 Z" fill="url(#needleGrad)" stroke="#b45309" stroke-width="1.2" stroke-linejoin="round"/>
+              <circle cx="13" cy="8.5" r="3.5" fill="#ffffff" fill-opacity="0.9" stroke="#f59e0b" stroke-width="1.2"/>
             </svg>
           </div>
 
           <!-- Rotating Wheel SVG Container -->
           <div id="wheelContainer" class="w-full h-full relative flex items-center justify-center transition-all duration-[3600ms] cubic-bezier(0.15, 0.9, 0.2, 1)">
-            <svg id="wheelSvg" class="w-full h-full drop-shadow-[0_8px_24px_rgba(0,0,0,0.9)]" viewBox="0 0 200 200">
+            <svg id="wheelSvg" class="w-full h-full drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)] dark:drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]" viewBox="0 0 200 200">
               <defs>
                 <filter id="sliceShadow" x="-10%" y="-10%" width="120%" height="120%">
                   <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.8"/>
                 </filter>
+                <linearGradient id="wheelGoldBorder" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#fef08a"/>
+                  <stop offset="50%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
                 <linearGradient id="wheelGrad0" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stop-color="#3b82f6"/>
                   <stop offset="100%" stop-color="#1d4ed8"/>
@@ -2576,8 +2591,8 @@
               </defs>
 
               <!-- Outer Golden Ring with Sleek Borders -->
-              <circle cx="100" cy="100" r="98" fill="#0f172a" stroke="#f59e0b" stroke-width="3.5" />
-              <circle cx="100" cy="100" r="95" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="2, 6" />
+              <circle cx="100" cy="100" r="98" class="fill-slate-100 dark:fill-slate-900" stroke="url(#wheelGoldBorder)" stroke-width="3.5" />
+              <circle cx="100" cy="100" r="95" fill="none" stroke="#fbbf24" stroke-width="0.75" stroke-dasharray="2, 5" stroke-opacity="0.8" />
 
               <!-- Slices (60 deg each, slice 0 centered at 12 o'clock / 0 deg) -->
               <!-- Slice 0: 🎁 1 GB (0 deg) -->
@@ -2629,36 +2644,36 @@
               </g>
 
               <!-- Golden Pins at Outer Rim -->
-              <circle cx="100" cy="8" r="2.2" fill="#fef08a" stroke="#78350f" stroke-width="0.8" />
-              <circle cx="180" cy="54" r="2.2" fill="#fef08a" stroke="#78350f" stroke-width="0.8" />
-              <circle cx="180" cy="146" r="2.2" fill="#fef08a" stroke="#78350f" stroke-width="0.8" />
-              <circle cx="100" cy="192" r="2.2" fill="#fef08a" stroke="#78350f" stroke-width="0.8" />
-              <circle cx="20" cy="146" r="2.2" fill="#fef08a" stroke="#78350f" stroke-width="0.8" />
-              <circle cx="20" cy="54" r="2.2" fill="#fef08a" stroke="#78350f" stroke-width="0.8" />
+              <circle cx="100" cy="8" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
+              <circle cx="180" cy="54" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
+              <circle cx="180" cy="146" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
+              <circle cx="100" cy="192" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
+              <circle cx="20" cy="146" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
+              <circle cx="20" cy="54" r="2.2" fill="#fef08a" stroke="#d97706" stroke-width="0.8" />
 
               <!-- Center Hub Ring Behind Button -->
-              <circle cx="100" cy="100" r="28" fill="#0f172a" stroke="#f59e0b" stroke-width="3" />
+              <circle cx="100" cy="100" r="28" class="fill-slate-100 dark:fill-slate-900" stroke="url(#wheelGoldBorder)" stroke-width="2.5" />
             </svg>
           </div>
 
           <!-- Fixed Center Spin Button (Center Hub) -->
-          <button id="spinWheelBtn" class="absolute z-20 w-13 h-13 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black text-xs flex flex-col items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.6)] border-2 border-white dark:border-amber-100 active:scale-95 transition hover:scale-105 cursor-pointer">
+          <button id="spinWheelBtn" class="absolute z-20 w-13 h-13 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black text-xs flex flex-col items-center justify-center shadow-[0_4px_16px_rgba(245,158,11,0.5)] border-2 border-white dark:border-amber-200 active:scale-90 transition hover:scale-105 cursor-pointer">
             <span class="text-[11px] font-black tracking-tight leading-none">بچرخون!</span>
           </button>
         </div>
 
         <!-- Status / Result Message -->
-        <div id="wheelResultBox" class="card-inset p-2.5 rounded-2xl text-[11px] border border-card-border">
+        <div id="wheelResultBox" class="card-inset p-3 rounded-2xl text-[11px] border border-card-border">
           <span id="wheelResultText" class="t-muted font-medium">دکمه وسط گردونه را لمس کنید تا شانس خود را امتحان نمایید!</span>
         </div>
 
         <!-- 24-Hour Countdown Timer Container -->
-        <div id="wheelTimerContainer" class="hidden card-inset border border-amber-500/40 rounded-xl p-2.5 text-center text-xs space-y-1">
+        <div id="wheelTimerContainer" class="hidden card-inset border border-amber-500/30 rounded-2xl p-3 text-center text-xs space-y-1">
           <span class="t-muted text-[11px] font-medium inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" aria-hidden="true" /> <span>زمان باقیمانده تا شانس بعدی شما:</span></span>
           <b id="wheelCountdownText" class="t-warn font-sans font-bold text-base tracking-wider block" dir="ltr">00:00:00</b>
         </div>
 
-        <div id="wheelSubWarning" class="hidden text-xs font-bold t-warn bg-transparent p-2.5 rounded-xl border border-amber-500/40 text-center leading-relaxed">
+        <div id="wheelSubWarning" class="hidden text-xs font-bold t-warn card-inset p-3 rounded-2xl border border-amber-500/30 text-center leading-relaxed">
           <img src="/static/img/icons/warning.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />
           برای استفاده از گردونه شانس، داشتن یک اشتراک فعال در پنل الزامی است.
         </div>

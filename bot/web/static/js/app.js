@@ -275,9 +275,9 @@ function setupReportsSubtabs() {
 
   function setRepSub(activeBtn, activeView) {
     [repSubDaily, repSubNightly, repSubWeekly, repSubMonthly, repSubAnalytics].forEach(b => {
-      if (b) b.className = 'flex-1 py-1.5 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition';
+      if (b) b.className = 'flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center';
     });
-    if (activeBtn) activeBtn.className = 'flex-1 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm transition';
+    if (activeBtn) activeBtn.className = 'flex-1 py-1.5 rounded-xl font-bold bg-blue-600 text-white shadow-sm transition text-center';
 
     [viewRepDaily, viewRepNightly, viewRepWeekly, viewRepMonthly, viewRepAnalytics].forEach(v => v?.classList.add('hidden'));
     activeView?.classList.remove('hidden');
@@ -409,16 +409,22 @@ function setupConfigsModal() {
       const flag = c.flag || '🌐';
 
       return `
-        <div class="config-row-item card-inset p-2.5 flex items-center justify-between gap-2 transition hover:border-slate-600">
+        <div class="config-row-item card-inset p-2.5 rounded-2xl flex items-center justify-between gap-2.5 transition hover:border-slate-500 border border-card-border">
           <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-            <span class="text-xs font-bold t-main truncate config-name-label" title="${safeName}">${safeName}</span>
+            <span class="w-7 h-7 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
+              <img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+            </span>
+            <div class="min-w-0 flex-1">
+              <span class="text-xs font-bold t-main truncate block config-name-label" title="${safeName}">${safeName}</span>
+              <span class="text-[10px] t-muted font-sans font-semibold">${protoBadge}</span>
+            </div>
           </div>
-          <div class="flex items-center gap-1 shrink-0">
-            <button type="button" class="copy-single-cfg-btn btn-icon t-muted hover:t-accent text-sm" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
-              📋
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" class="copy-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
+              <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />
             </button>
-            <button type="button" class="qr-single-cfg-btn btn-icon t-muted hover:t-accent text-sm" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
-              📷
+            <button type="button" class="qr-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
+              <img src="/static/img/icons/qr.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کیوآرکد" />
             </button>
           </div>
         </div>
@@ -430,11 +436,11 @@ function setupConfigsModal() {
       btn.addEventListener('click', () => {
         const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
         if (uri) {
-          copyToClipboard(uri, '📋 کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.');
+          copyToClipboard(uri, 'کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.');
           hapticFeedback('success');
-          btn.innerText = '✅';
+          btn.innerHTML = '<img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی شد" />';
           setTimeout(() => {
-            btn.innerText = '📋';
+            btn.innerHTML = '<img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />';
           }, 1800);
         }
       });
@@ -1884,7 +1890,7 @@ function openMembershipModal() {
   }
   if (spentEl) spentEl.innerText = `${totalSpentVal.toLocaleString('en-US')} تومان`;
 
-  let usedGb = Number(sub?.traffic_used_gb ?? sub?.used_traffic_gb ?? 0);
+  let usedGb = Number(sub?.lifetime_used_traffic_gb ?? sub?.traffic_used_gb ?? sub?.used_traffic_gb ?? 0);
   if (usedGb <= 0 && sub?.traffic_total_gb && sub?.traffic_remaining_gb) {
     usedGb = Math.max(0, Number(sub.traffic_total_gb) - Number(sub.traffic_remaining_gb));
   }
@@ -1893,7 +1899,7 @@ function openMembershipModal() {
     if (rawBytes > 0) usedGb = rawBytes / (1024 * 1024 * 1024);
   }
   if (trafEl) {
-    trafEl.innerText = `${usedGb.toFixed(2)} GB`;
+    trafEl.innerHTML = fmtTraffic(usedGb.toFixed(2), { html: false });
   }
 
   const tierName = window.lastUserData?.loyalty?.name || window.lastUserData?.loyalty?.current_tier?.name || user.loyalty_tier_name || 'کاربر همراه';
@@ -2670,7 +2676,7 @@ function resetActiveSubAnalytics() {
   const devContainer = $('activeDevicesContainer');
   if (devContainer) {
     devContainer.innerHTML = `
-      <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
+      <div class="card-inset p-4 rounded-2xl border border-card-border text-center text-xs t-muted">
         <span>📱 در حال حاضر هیچ اشتراک یا دستگاه فعالی روی حساب شما وجود ندارد.</span>
       </div>
     `;
@@ -2680,7 +2686,7 @@ function resetActiveSubAnalytics() {
   ['repNightlyNodesContainer', 'repWeeklyNodesContainer', 'repMonthlyNodesContainer'].forEach(id => {
     const el = $(id);
     if (el) {
-      el.innerHTML = '<div class="col-span-2 text-center py-3 text-slate-400 text-xs">اشتراک فعالی برای نمایش آمار وجود ندارد.</div>';
+      el.innerHTML = '<div class="col-span-2 text-center py-3 t-muted text-xs">اشتراک فعالی برای نمایش آمار وجود ندارد.</div>';
     }
   });
 
@@ -3183,7 +3189,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center p-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-xs select-none" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="تأییدشده" /></span>`;
+        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center select-none" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -3254,10 +3260,10 @@ function hydrateUserInterface(data) {
 
     if (profSub) {
       if (hasActiveSub) {
-        profSub.innerHTML = '<span class="inline-flex items-center justify-center p-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-xs select-none" title="سرویس فعال"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="فعال" /></span>';
+        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none" title="سرویس فعال"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="فعال" /></span>';
         profSub.className = 'inline-block';
       } else {
-        profSub.innerHTML = '<span class="inline-flex items-center justify-center p-1 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 shadow-xs select-none" title="سرویس غیرفعال"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="غیرفعال" /></span>';
+        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none" title="سرویس غیرفعال"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="غیرفعال" /></span>';
         profSub.className = 'inline-block';
       }
     }
@@ -3665,7 +3671,7 @@ function hydrateUserInterface(data) {
       if (!container) return;
       if (devices.length === 0) {
         container.innerHTML = `
-          <div class="p-4 rounded-xl bg-transparent border border-slate-700/50 text-center text-xs t-muted">
+          <div class="card-inset p-4 rounded-2xl border border-card-border text-center text-xs t-muted">
             <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک شما ثبت نشده است.</span>
           </div>
         `;
@@ -5188,8 +5194,9 @@ function renderInvoiceModalFields(inv, orderId) {
       iconSvg = '<img src="/static/img/icons/sync.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
       badgeClass = 'bg-purple-500/15 border-purple-500/30 text-purple-600 dark:text-purple-400';
     }
+    let icon = iconSvg;
     statusEl.className = 'inline-block';
-    statusEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${badgeClass} text-[11px] font-bold shadow-xs select-none">${iconSvg}<span>${statusText}</span></span>`;
+    statusEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${badgeClass} text-[11px] font-bold shadow-xs select-none"><span>${statusText}</span> <span>${icon}</span></span>`;
   }
 
   const dedStatusEl = $('invWalletDeductionStatus');
@@ -5236,7 +5243,7 @@ async function openInvoiceModal(orderId) {
       },
       item: {
         title: tx.title || (tx.type === 'order' ? `سفارش اشتراک #${tx.id}` : 'تراکنش کیف پول'),
-        specs: tx.traffic_gb ? `${tx.traffic_gb} GB — ${tx.duration_days || 30} روز` : 'خدمات شبکه ابری',
+        specs: tx.traffic_gb ? `${fmtTraffic(tx.traffic_gb, { html: false })} — ${tx.duration_days || 30} روز` : 'خدمات شبکه ابری',
         amount_toman: tx.amount || 0,
         amount_rial: (tx.amount || 0) * 10
       },

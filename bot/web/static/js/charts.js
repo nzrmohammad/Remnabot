@@ -256,7 +256,7 @@ function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت 
 
   if (!nodes || nodes.length === 0) {
     container.innerHTML = `
-      <div class="col-span-2 text-center py-2 text-slate-400 text-[10px]">
+      <div class="col-span-2 text-center py-2 t-muted text-[10px]">
         ${emptyText}
       </div>
     `;
