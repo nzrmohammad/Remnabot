@@ -722,20 +722,25 @@ function renderFilteredShopPlans() {
     }
 
     const hasDiscountBadges = Boolean(discountVal > 0 || hasLoyaltyDiscount);
+    const buttonPriceText = hasAnyDiscount ? ` (${formattedFinal} تومان)` : '';
     return `
       <div class="shop-plan-card card p-3 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0 flex-1 text-right">
             <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl">
-              ${hasAnyDiscount ? `<span class="line-through t-muted text-[11px] font-semibold leading-none num-bidi" dir="ltr">${formattedOriginal}</span>` : ''}
-              <span class="text-base font-black t-success leading-tight num-bidi" dir="ltr">${formattedFinal}</span>
-              <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
-              ${hasDiscountBadges ? `
-                <button type="button" class="plan-discount-toggle-btn w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition active:scale-90 cursor-pointer mr-0.5 shrink-0" title="مشاهده جزئیات تخفیف" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
-                  <span>🏷️</span>
-                </button>
-              ` : ''}
+              ${hasAnyDiscount ? `
+                <span class="line-through t-muted text-xs font-semibold leading-none num-bidi" dir="ltr">${formattedOriginal}</span>
+                <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
+                ${hasDiscountBadges ? `
+                  <button type="button" class="plan-discount-toggle-btn inline-flex items-center justify-center text-xs transition active:scale-90 cursor-pointer p-0.5 mr-0.5 shrink-0 bg-transparent border-0" title="مشاهده جزئیات تخفیف" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
+                    <span>🏷️</span>
+                  </button>
+                ` : ''}
+              ` : `
+                <span class="text-base font-black t-main leading-tight num-bidi" dir="ltr">${formattedFinal}</span>
+                <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
+              `}
             </div>
             <p class="text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1">${safeDesc}</p>
           </div>
@@ -749,9 +754,11 @@ function renderFilteredShopPlans() {
             ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} (-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
           </div>
         ` : ''}
-        <div class="flex items-center justify-between my-2 text-[11px] card-inset px-2.5 py-1.5 whitespace-nowrap overflow-hidden">
+        <div class="shop-plan-specs flex items-center justify-between my-2 text-[11px] px-2.5 py-1.5 whitespace-nowrap overflow-hidden">
           <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-sans t-main num-bidi">${trafficText}</b></span>
+          <span class="w-px h-3 bg-slate-300/30 dark:bg-slate-700/40"></span>
           ${durationText}
+          <span class="w-px h-3 bg-slate-300/30 dark:bg-slate-700/40"></span>
           <span class="flex items-center gap-1">📱 <b class="t-main">${devLimitText}</b></span>
         </div>
         <div class="flex items-center justify-between mb-2 px-1 text-[11px] t-muted">
@@ -762,7 +769,7 @@ function renderFilteredShopPlans() {
           <span class="inline-flex items-center gap-1 text-xs tracking-wider" dir="ltr">${flagsList}</span>
         </div>
         <button class="buy-plan-btn w-full ${btnClass} text-xs py-2 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${p.badge || ''}" data-squad="${p.squad_uuid || ''}">
-          🛒 ${buttonLabel} (${formattedFinal} تومان)
+          🛒 ${buttonLabel}${buttonPriceText}
         </button>
       </div>
     `;

@@ -792,7 +792,7 @@ def test_admin_plan_card_and_picker_ltr_and_shop_compact_price():
     assert ">فعال<" not in coupons_block
     assert ">مصرف\u200cشده<" in coupons_block
 
-    # 2. Shop plan card: compact inline price (original strikethrough -> final -> تومان) & description on Right, single-row badges ('Loyality (-X%)') + Iran pre-warning + no foreign fallback on dedicated squads
+    # 2. Shop plan card: conditional price (strikethrough at top when discount, final price inside button; or regular price at top when no discount)
     assert 'class="shop-plan-card card p-3' in shop_js
     right_col_idx = shop_js.find('<div class="min-w-0 flex-1 text-right">')
     assert right_col_idx != -1
@@ -801,7 +801,7 @@ def test_admin_plan_card_and_picker_ltr_and_shop_compact_price():
     final_pos = right_col.find("${formattedFinal}")
     toman_pos = right_col.find("تومان")
     assert orig_pos != -1 and final_pos != -1 and toman_pos != -1
-    assert orig_pos < final_pos < toman_pos
+    assert "buttonPriceText" in shop_js and "${buttonPriceText}" in shop_js
     assert "${safeDesc}" in right_col
     assert 'mt-2.5 mb-2.5" dir="ltr"' in shop_js
     assert "Loyality (-${loyaltyPctEnglish}%)" in shop_js

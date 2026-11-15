@@ -721,6 +721,34 @@ html.theme-light #adminTopConsumersWeekBar button.admin-week-btn.is-active {
 }
 
 /* --- 16. Shop Plan Badges --- */
+.shop-plan-card p.text-\[10\.5px\] {
+  margin-top: 0.375rem;
+}
+
+.shop-plan-card .plan-discount-toggle-btn {
+  background: transparent;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.shop-plan-card .plan-discounts-box .badge {
+  background: transparent;
+  background-color: transparent;
+  border: 1px solid var(--c-border);
+}
+
+.shop-plan-card .shop-plan-specs {
+  background: rgba(148, 163, 184, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 0.75rem;
+}
+
+html.theme-light .shop-plan-card .shop-plan-specs {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+
 .shop-plan-badge,
 .shop-plan-card .shop-plan-badge,
 html.theme-light .shop-plan-card .shop-plan-badge,
