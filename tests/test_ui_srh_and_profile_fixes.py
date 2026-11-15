@@ -714,9 +714,9 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
 
     # 1. Shop card: corner badge top-left, Price & Title header, safeDesc & single-row discount badges with spacing
     assert "rounded-br-xl" in shop_js
-    assert 'max-w-[50%]" dir="ltr"' in shop_js
+    assert 'max-w-[46%] ${planBadge ? \'mt-4\' : \'\'}" dir="ltr"' in shop_js
     assert 'flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl"' in shop_js
-    assert 'p class="text-[10.5px] leading-relaxed t-muted text-right line-clamp-2 tracking-tight mt-1.5"' in shop_js
+    assert 'shop-plan-desc text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1.5' in shop_js
     assert "border-bottom: 1.5px solid" in components_css[components_css.find("/* --- 16. Shop Plan Badges --- */"):]
 
     # 2. Invoice modal Buyer content full-width left-aligned in both HTML and JS (no inline-block .num-bidi override)

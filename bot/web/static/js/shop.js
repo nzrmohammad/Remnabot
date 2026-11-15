@@ -726,8 +726,8 @@ function renderFilteredShopPlans() {
     return `
       <div class="shop-plan-card card p-3 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
-        <div class="flex items-center justify-between gap-2 ${planBadge ? 'pt-4' : ''}">
-          <div class="min-w-0 shrink-0 text-right">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0 flex-1 text-right">
             <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl">
               ${hasAnyDiscount ? `
                 <span class="line-through t-muted text-xs font-semibold leading-none num-bidi" dir="ltr">${formattedOriginal}</span>
@@ -742,14 +742,14 @@ function renderFilteredShopPlans() {
                 <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
               `}
             </div>
+            <p class="shop-plan-desc text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1.5">${safeDesc}</p>
           </div>
-          <div class="flex flex-col items-start min-w-0 max-w-[50%]" dir="ltr">
+          <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
             <h4 class="font-bold text-xs sm:text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
           </div>
         </div>
-        <p class="text-[10.5px] leading-relaxed t-muted text-right line-clamp-2 tracking-tight mt-1.5">${safeDesc}</p>
         ${hasDiscountBadges ? `
-          <div class="plan-discounts-box hidden flex items-center justify-start gap-1.5 flex-wrap mt-2 mb-1 -ml-2" dir="ltr">
+          <div class="plan-discounts-box hidden flex items-center justify-start gap-1.5 flex-wrap my-2 -ml-2" dir="ltr">
             ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>Loyalty (-${loyaltyPctEnglish}%)</span></span>` : ''}
             ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} (-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
           </div>
