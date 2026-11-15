@@ -410,15 +410,6 @@ function setupConfigsModal() {
 
       return `
         <div class="config-row-item card-inset p-2.5 rounded-2xl flex items-center justify-between gap-2.5 transition hover:border-slate-500 border border-card-border">
-          <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-            <span class="w-7 h-7 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
-              <img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
-            </span>
-            <div class="min-w-0 flex-1">
-              <span class="text-xs font-bold t-main truncate block config-name-label" title="${safeName}">${safeName}</span>
-              <span class="text-[10px] t-muted font-sans font-semibold">${protoBadge}</span>
-            </div>
-          </div>
           <div class="flex items-center gap-1.5 shrink-0">
             <button type="button" class="copy-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
               <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />
@@ -426,6 +417,15 @@ function setupConfigsModal() {
             <button type="button" class="qr-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
               <img src="/static/img/icons/qr.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کیوآرکد" />
             </button>
+          </div>
+          <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0" dir="ltr">
+            <span class="w-7 h-7 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
+              <img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+            </span>
+            <div class="min-w-0 flex-1 text-left">
+              <span class="text-xs font-bold t-main truncate block config-name-label" title="${safeName}">${safeName}</span>
+              <span class="text-[10px] t-muted font-sans font-semibold">${protoBadge}</span>
+            </div>
           </div>
         </div>
       `;
@@ -3325,10 +3325,30 @@ function hydrateUserInterface(data) {
             ? uiEmojiIcon(loyalty.icon || '🥈', 'w-6 h-6')
             : escapeHtml(loyalty.icon || '🥈');
         }
-        if ($('loyaltyTierName')) $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
+        const tierId = String(loyalty.id || 'bronze').toLowerCase();
+        const tierColorMap = {
+          bronze: 'text-amber-600 dark:text-amber-500',
+          silver: 'text-slate-400 dark:text-slate-200',
+          gold: 'text-amber-500 dark:text-amber-400',
+          platinum: 'text-cyan-500 dark:text-cyan-400',
+          ruby: 'text-purple-500 dark:text-purple-400',
+          emerald: 'text-emerald-500 dark:text-emerald-400',
+          diamond: 'text-amber-400 dark:text-amber-300'
+        };
+        const tierColorClass = tierColorMap[tierId] || 'text-amber-500';
+        if ($('loyaltyTierName')) {
+          $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
+          $('loyaltyTierName').className = `text-xs font-black ${tierColorClass}`;
+        }
         const discBadge = $('loyaltyDiscountBadge');
         if (discBadge) {
-          discBadge.innerHTML = loyalty.discount_percent > 0 ? `<span class="font-sans font-bold num-bidi" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف` : 'بدون تخفیف';
+          if (loyalty.discount_percent > 0) {
+            discBadge.className = 'px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+            discBadge.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف`;
+          } else {
+            discBadge.className = 'px-2 py-0.5 rounded-lg text-[11px] font-medium bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-card-border';
+            discBadge.innerText = 'بدون تخفیف';
+          }
         }
         const nextText = $('loyaltyNextTierText');
         const progPct = $('loyaltyProgressPct');

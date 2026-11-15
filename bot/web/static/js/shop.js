@@ -123,7 +123,7 @@ function renderWonCoupons(data) {
   const activeCode = (window.activeCoupon?.code || '').toUpperCase();
   list.innerHTML = coupons.map(c => {
     const isApplied = Boolean(activeCode && c.code && activeCode === String(c.code).toUpperCase());
-    const btnText = isApplied ? '✓ اعمال شد' : '⚡️ اعمال';
+    const btnText = isApplied ? '✓ فعال شد' : '⚡️ استفاده';
     const btnClass = isApplied
       ? 'won-coupon-apply-btn bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition active:scale-95 shrink-0 shadow-sm'
       : 'won-coupon-apply-btn btn btn-primary text-xs font-semibold px-3 py-1.5 rounded-lg shadow shrink-0';
