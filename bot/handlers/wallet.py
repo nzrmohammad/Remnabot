@@ -56,6 +56,29 @@ _fmt = fmt
 _render_wallet = render_wallet
 
 
+def _format_service_title_with_badge(name: str) -> str:
+    clean = escape(name.strip())
+    # Strip existing medal/trophy emojis to prevent duplicates
+    for m in ("🥇", "🥈", "🥉", "💎", "👑"):
+        clean = clean.replace(m, "").strip()
+    lower = clean.lower()
+    medal = ""
+    if "طلا" in clean or "gold" in lower:
+        medal = "🥇"
+    elif "نقره" in clean or "silver" in lower:
+        medal = "🥈"
+    elif "برنز" in clean or "bronze" in lower:
+        medal = "🥉"
+    elif "الماس" in clean or "diamond" in lower:
+        medal = "💎"
+    elif "ویژه" in clean or "vip" in lower:
+        medal = "👑"
+
+    if medal:
+        return f"\u200e{medal} {clean}\u200e"
+    return clean
+
+
 @router.callback_query(F.data == "wallet:history")
 async def topup_history(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
@@ -138,27 +161,28 @@ async def topup_history(
                     icon = "🔴"
 
                 lines.append(
-                    f"{icon} <b>{badge}</b> | <b>{sign}{amt_str} {currency}</b>\n"
-                    f"   روش: <b>{method_name}</b>\n"
+                    f"{icon} <b>{badge}</b> ({method_name})\n"
+                    f"   💰 مبلغ: <b>\u200e{sign}{amt_str}\u200e {currency}</b>\n"
                     f"   🕒 زمان: <code>{when}</code>\n"
-                    f"   🔖 شناسه: <code>#{tx['id']}</code>"
+                    f"   🔖 شناسه: <code>\u200e#{tx['id']}\u200e</code>"
                 )
                 lines.append("──────────────────")
             elif tx["kind"] == "order":
-                svc_title = escape(tx.get("service_name") or t(lang, "services_title"))
+                raw_name = tx.get("service_name") or t(lang, "services_title")
+                svc_title = _format_service_title_with_badge(raw_name)
                 if tx["status"] == "refunded":
                     lines.append(
-                        f"🔵 <b>↩️ بازگشت وجه</b> | <b>+{amt_str} {currency}</b>\n"
-                        f"   سرویس: <b>{svc_title}</b>\n"
+                        f"🔵 <b>↩️ بازگشت وجه {svc_title}</b>\n"
+                        f"   💰 مبلغ: <b>\u200e+{amt_str}\u200e {currency}</b>\n"
                         f"   🕒 زمان: <code>{when}</code>\n"
-                        f"   🔖 سفارش: <code>#{tx['id']}</code>"
+                        f"   🔖 سفارش: <code>\u200e#{tx['id']}\u200e</code>"
                     )
                 else:
                     lines.append(
-                        f"🟣 <b>🛒 خرید سرویس</b> | <b>-{amt_str} {currency}</b>\n"
-                        f"   سرویس: <b>{svc_title}</b>\n"
+                        f"🟣 <b>🛒 خرید سرویس {svc_title}</b>\n"
+                        f"   💰 مبلغ: <b>\u200e-{amt_str}\u200e {currency}</b>\n"
                         f"   🕒 زمان: <code>{when}</code>\n"
-                        f"   🔖 سفارش: <code>#{tx['id']}</code>"
+                        f"   🔖 سفارش: <code>\u200e#{tx['id']}\u200e</code>"
                     )
                 lines.append("──────────────────")
 

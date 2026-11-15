@@ -225,3 +225,53 @@ async def test_account_configs_header_and_verify():
     # Invalid
     acc_none = await _verify_account(remnawave, 777, "invalid-acc")
     assert acc_none is None
+
+
+def test_service_title_badge_and_config_flag_formatting():
+    """Verify badges and flags are formatted to the left in RTL with proper unicode markers."""
+    from bot.handlers.wallet import _format_service_title_with_badge
+    from bot.handlers.configs import _format_config_title
+
+    # Medals / Badges
+    assert _format_service_title_with_badge("🥇 سرویس طلایی") == "\u200e🥇 سرویس طلایی\u200e"
+    assert _format_service_title_with_badge("سرویس برنزی 🥉") == "\u200e🥉 سرویس برنزی\u200e"
+    assert _format_service_title_with_badge("بسته دلخواه") == "بسته دلخواه"
+
+    # Config Flags
+    cfg_title = _format_config_title("🇩🇪 Germany Fast", "fa")
+    assert "\u200e🇩🇪 Germany Fast\u200e" in cfg_title
+    assert "<b>کانفیگ:</b>" in cfg_title
+
+
+def test_service_extra_traffic_and_time_displays():
+    """Verify extra traffic packages do not show 'نامحدود' for days, and extra time packages do not show 'نامحدود' for traffic."""
+    # Extra traffic only (0 days)
+    mock_traf = MagicMock(
+        id=1,
+        name="افزایش حجم 20GB",
+        price=30000,
+        traffic_gb=20,
+        duration_days=0,
+        traffic_strategy="NO_RESET",
+        hwid_limit=1,
+        description=None,
+    )
+    rendered_traf = service_block(mock_traf, "fa")
+    assert "بدون تغییر در زمان اعتبار" in rendered_traf
+    assert "نامحدود" not in rendered_traf
+
+    # Extra time only (0 GB)
+    mock_time = MagicMock(
+        id=2,
+        name="افزایش زمان 30 روز",
+        price=40000,
+        traffic_gb=0,
+        duration_days=30,
+        traffic_strategy="NO_RESET",
+        hwid_limit=1,
+        description=None,
+    )
+    rendered_time = service_block(mock_time, "fa")
+    assert "بدون تغییر در میزان ترافیک" in rendered_time
+    assert "نامحدود" not in rendered_time
+

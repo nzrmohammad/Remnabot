@@ -12,7 +12,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.locales.texts import t
 from bot.services.menu import render_menu
-from bot.services.service_display import fmt_price, fmt_traffic, service_block
+from bot.services.service_display import fmt_duration, fmt_price, fmt_traffic, service_block
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +92,13 @@ async def render_services(
             if renew_account_id
             else f"svc:view:{service.id}"
         )
-        traffic_str = fmt_traffic(service.traffic_gb, lang)
+        if service.traffic_gb == 0 and service.duration_days > 0:
+            spec_str = fmt_duration(service.duration_days, lang)
+        else:
+            spec_str = fmt_traffic(service.traffic_gb, lang)
         price_str = f"{fmt_price(service.price)} {t(lang, 'svc_currency')}"
         kb.button(
-            text=f"{service.name} — {traffic_str} — {price_str} - {indicator}",
+            text=f"{service.name} — {spec_str} — {price_str} - {indicator}",
             callback_data=cb,
         )
 

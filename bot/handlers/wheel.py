@@ -280,7 +280,8 @@ async def wheel_my_coupons(
             pct = c.get("discount_percent", 10)
             lines.append(
                 f"{i}) 🎟 <b>کد تخفیف:</b> <code>{code}</code>\n"
-                f"   🏷 میزان تخفیف: <b>{pct}%</b> · ⏳ مهلت: 7 روزه"
+                f"   🏷 میزان تخفیف: <b>\u200e{pct}%\u200e</b>\n"
+                f"   ⏳ مهلت استفاده: <b>7 روزه</b>"
             )
             if i < len(coupons[:5]):
                 lines.append("")

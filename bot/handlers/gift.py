@@ -606,13 +606,19 @@ async def gift_my_sent(
             status_emoji = "✅ باز شده" if is_claimed else "⏳ منتظر فعال‌سازی"
             code = g.get("code")
             desc = g.get("gift_desc")
-            receiver = g.get("receiver_username") or "عمومی"
+            rx_raw = g.get("receiver_username")
+            if rx_raw:
+                clean_rx = escape(str(rx_raw).lstrip("@").strip())
+                receiver_str = f"<code>\u200e@{clean_rx}\u200e</code>"
+            else:
+                receiver_str = "<b>عمومی (قابل دریافت توسط همه)</b>" if not is_claimed else "<b>کاربر عمومی</b>"
             when = format_datetime(g.get("created_at"), lang)
 
             lines.append(
                 f"{i}) {status_emoji} · <b>{escape(str(desc))}</b>\n"
                 f"   🔑 کد: \u2066<code>{escape(str(code))}</code>\u2069\n"
-                f"   👤 گیرنده: \u200e@{escape(str(receiver).lstrip('@'))}\u200e · 🕒 {when}"
+                f"   👤 گیرنده: {receiver_str}\n"
+                f"   🕒 زمان: <code>{when}</code>"
             )
             if i < len(gifts[:10]):
                 lines.append("")

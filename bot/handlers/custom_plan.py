@@ -242,13 +242,13 @@ async def _prompt_devices(
         f"✅ حجم: <b>{gb} گیگابایت</b> | مدت: <b>{days} روز</b>",
         SEPARATOR,
         "📱 <b>طراحی بسته دلخواه (مرحله 3 از 3) — تعداد کاربر</b>",
-        f"تعداد کاربر / دستگاه همزمان مجاز برای اتصال به این اشتراک را انتخاب نمایید (به‌ازای هر کاربر اضافه، {extra_rate}٪ به تعرفه اضافه می‌شود):",
+        f"تعداد کاربر / دستگاه همزمان مجاز برای اتصال به این اشتراک را انتخاب نمایید (به‌ازای هر کاربر اضافه، \u200e+{extra_rate}%\u200e به تعرفه اضافه می‌شود):",
     ]
     kb = InlineKeyboardBuilder()
     kb.button(text="📱 ۱ کاربره (پایه)", callback_data=f"cplan:hwid:{gb}:{days}:1")
-    kb.button(text=f"📱 ۲ کاربره (+{extra_rate}٪)", callback_data=f"cplan:hwid:{gb}:{days}:2")
-    kb.button(text=f"📱 ۳ کاربره (+{extra_rate * 2}٪)", callback_data=f"cplan:hwid:{gb}:{days}:3")
-    kb.button(text=f"📱 ۴ کاربره (+{extra_rate * 3}٪)", callback_data=f"cplan:hwid:{gb}:{days}:4")
+    kb.button(text=f"📱 ۲ کاربره \u200e(+{extra_rate}%)\u200e", callback_data=f"cplan:hwid:{gb}:{days}:2")
+    kb.button(text=f"📱 ۳ کاربره \u200e(+{extra_rate * 2}%)\u200e", callback_data=f"cplan:hwid:{gb}:{days}:3")
+    kb.button(text=f"📱 ۴ کاربره \u200e(+{extra_rate * 3}%)\u200e", callback_data=f"cplan:hwid:{gb}:{days}:4")
     kb.button(text="🔙 تغییر مدت زمان", callback_data=f"cplan:gb:{gb}")
     kb.adjust(2, 2, 1)
 
@@ -435,9 +435,9 @@ async def _build_custom_plan_summary(
     ])
 
     if volume_pct > 0:
-        lines.append(f"🔥 تخفیف پلکانی حجم : <b>{volume_pct}٪</b> ({fmt(volume_discount_amount)} تومان)")
+        lines.append(f"🔥 تخفیف پلکانی حجم : <b>\u200e{volume_pct}%\u200e</b> ({fmt(volume_discount_amount)} تومان)")
     if loyalty_pct > 0:
-        lines.append(f"💎 تخفیف سطح وفاداری : <b>{loyalty_pct}٪</b> ({fmt(loyalty_disc_amt)} تومان)")
+        lines.append(f"💎 تخفیف سطح وفاداری : <b>\u200e{loyalty_pct}%\u200e</b> ({fmt(loyalty_disc_amt)} تومان)")
 
     lines.extend([
         SEPARATOR,

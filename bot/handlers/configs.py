@@ -6,6 +6,7 @@ Selecting a config opens a dedicated detail screen showing the updated config
 with a tap-to-copy code box and a back button to return to the configs list.
 """
 import logging
+import re
 from html import escape
 
 from aiogram import Bot, F, Router
@@ -22,6 +23,16 @@ from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
 router = Router(name="configs")
+
+
+def _format_config_title(raw_name: str, lang: str = "fa") -> str:
+    flag_match = re.search(r"[\U0001F1E6-\U0001F1FF]{2}", raw_name)
+    prefix = "🔌 <b>کانفیگ:</b>" if lang == "fa" else "🔌 <b>Config:</b>"
+    if flag_match:
+        flag = flag_match.group(0)
+        clean = raw_name.replace(flag, "").strip()
+        return f"{prefix} \u200e{flag} {escape(clean)}\u200e"
+    return f"{prefix} <code>{escape(raw_name)}</code>"
 
 
 def _fmt_cfg_name(name: str) -> str:
@@ -248,8 +259,9 @@ async def single_config_detail(
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
     kb.adjust(1, 2)
 
+    title_header = _format_config_title(cfg["name"], lang)
     text = (
-        f"{t(lang, 'configs_view_title', name=config_name)}\n{SEPARATOR}\n"
+        f"{title_header}\n{SEPARATOR}\n"
         f"{t(lang, 'stats_account')} : <code>{username}</code>\n"
         f"🌐 {t(lang, 'cfg_protocol')} : <b>{proto}</b>\n\n"
         f"<code>{config_uri}</code>\n\n"

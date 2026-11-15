@@ -300,6 +300,33 @@ async def crypto_tx_hash_message(
         await message.reply("❌ فاکتور مورد نظر یافت نشد.")
         return
 
+    # If invoice was already cancelled or expired (e.g. from Mini App website)
+    if inv.status in ("cancelled", "expired"):
+        await state.clear()
+        kb_canc = InlineKeyboardBuilder()
+        kb_canc.button(text="💳 کیف پول من", callback_data="menu:wallet")
+        kb_canc.adjust(1)
+        await render_menu(
+            bot, user, user_repo,
+            "⚠️ <b>این فاکتور پرداخت قبلاً لغو یا منقضی شده است.</b>\n\nامکان ارسال شناسه برای این فاکتور وجود ندارد.",
+            kb_canc.as_markup(),
+        )
+        return
+
+    # If invoice was already paid
+    if inv.status == "paid":
+        await state.clear()
+        kb_paid = InlineKeyboardBuilder()
+        kb_paid.button(text="🛍 خرید سرویس", callback_data="menu:services")
+        kb_paid.button(text="💳 کیف پول من", callback_data="menu:wallet")
+        kb_paid.adjust(2)
+        await render_menu(
+            bot, user, user_repo,
+            "🎉 <b>این فاکتور قبلاً با موفقیت پرداخت و کیف پول شما شارژ شده است.</b>",
+            kb_paid.as_markup(),
+        )
+        return
+
     if curr == "TRX":
         ok, new_bal, msg = await verify_and_credit_trx_invoice(session, inv, tx_hash, bot=bot)
     else:
@@ -332,13 +359,20 @@ async def crypto_tx_hash_message(
 
 @router.callback_query(F.data.startswith("wallet:trx:cancel:"))
 async def trx_invoice_cancel(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext | None = None,
 ):
     try:
         inv_id = int(call.data.split(":", 3)[3])
     except (ValueError, IndexError):
         await call.answer()
         return
+
+    if state:
+        await state.clear()
 
     crypto_repo = CryptoRepository(session)
     inv = await crypto_repo.get_by_id(inv_id)
@@ -358,13 +392,20 @@ async def trx_invoice_cancel(
 
 @router.callback_query(F.data.startswith("wallet:pol:cancel:"))
 async def pol_invoice_cancel(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext | None = None,
 ):
     try:
         inv_id = int(call.data.split(":", 3)[3])
     except (ValueError, IndexError):
         await call.answer()
         return
+
+    if state:
+        await state.clear()
 
     crypto_repo = CryptoRepository(session)
     inv = await crypto_repo.get_by_id(inv_id)

@@ -49,14 +49,27 @@ def service_block(service, lang: str, show_state: bool = False) -> str:
     if show_state:
         title += f" — {fmt_state(service.is_active, lang)}"
 
+    is_extra_traffic = (service.duration_days == 0 and service.traffic_gb > 0)
+    is_extra_time = (service.traffic_gb == 0 and service.duration_days > 0)
+
+    if is_extra_traffic:
+        dur_str = "بدون تغییر در زمان اعتبار" if lang == "fa" else "No change in expiry"
+    else:
+        dur_str = fmt_duration(service.duration_days, lang)
+
+    if is_extra_time:
+        traf_str = "بدون تغییر در میزان ترافیک" if lang == "fa" else "No change in traffic"
+    else:
+        traf_str = fmt_traffic(service.traffic_gb, lang)
+
     lines = [
         title,
         f"   💰 {t(lang, 'svc_field_price')} : "
         f"<b>{fmt_price(service.price)}</b> {t(lang, 'svc_currency')}",
         f"   📅 {t(lang, 'svc_field_duration')} : "
-        f"<b>{fmt_duration(service.duration_days, lang)}</b>",
+        f"<b>{dur_str}</b>",
         f"   📊 {t(lang, 'svc_field_traffic')} : "
-        f"<b>{fmt_traffic(service.traffic_gb, lang)}</b>",
+        f"<b>{traf_str}</b>",
         f"   🔁 {t(lang, 'svc_field_strategy')} : "
         f"<b>{fmt_strategy(getattr(service, 'traffic_strategy', None), lang)}</b>",
         f"   📱 {t(lang, 'svc_field_hwid')} : "
