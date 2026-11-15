@@ -732,6 +732,10 @@ html.theme-light #adminTopConsumersWeekBar button.admin-week-btn.is-active {
   box-shadow: none;
 }
 
+.shop-plan-card .plan-discounts-box {
+  margin-left: -0.5rem;
+}
+
 .shop-plan-card .plan-discounts-box .badge {
   background: transparent;
   background-color: transparent;

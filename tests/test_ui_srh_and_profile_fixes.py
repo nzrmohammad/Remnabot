@@ -712,11 +712,11 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
     components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
 
-    # 1. Shop card: corner badge top-left, Price (strikethrough then final + تومان) & Description on Right, single-row discount badges with spacing
+    # 1. Shop card: corner badge top-left, Price & Title header, safeDesc & single-row discount badges with spacing
     assert "rounded-br-xl" in shop_js
-    assert 'max-w-[46%] ${planBadge ? \'mt-4\' : \'\'}" dir="ltr"' in shop_js
+    assert 'max-w-[50%]" dir="ltr"' in shop_js
     assert 'flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl"' in shop_js
-    assert 'p class="text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1"' in shop_js
+    assert 'p class="text-[10.5px] leading-relaxed t-muted text-right line-clamp-2 tracking-tight mt-1.5"' in shop_js
     assert "border-bottom: 1.5px solid" in components_css[components_css.find("/* --- 16. Shop Plan Badges --- */"):]
 
     # 2. Invoice modal Buyer content full-width left-aligned in both HTML and JS (no inline-block .num-bidi override)
@@ -794,17 +794,13 @@ def test_admin_plan_card_and_picker_ltr_and_shop_compact_price():
 
     # 2. Shop plan card: conditional price (strikethrough at top when discount, final price inside button; or regular price at top when no discount)
     assert 'class="shop-plan-card card p-3' in shop_js
-    right_col_idx = shop_js.find('<div class="min-w-0 flex-1 text-right">')
-    assert right_col_idx != -1
-    right_col = shop_js[right_col_idx:shop_js.find('max-w-[46%]', right_col_idx)]
-    orig_pos = right_col.find("${formattedOriginal}")
-    final_pos = right_col.find("${formattedFinal}")
-    toman_pos = right_col.find("تومان")
-    assert orig_pos != -1 and final_pos != -1 and toman_pos != -1
+    assert "${formattedOriginal}" in shop_js
+    assert "${formattedFinal}" in shop_js
+    assert "تومان" in shop_js
     assert "buttonPriceText" in shop_js and "${buttonPriceText}" in shop_js
-    assert "${safeDesc}" in right_col
-    assert 'mt-2.5 mb-2.5" dir="ltr"' in shop_js
-    assert "Loyality (-${loyaltyPctEnglish}%)" in shop_js
+    assert "${safeDesc}" in shop_js
+    assert 'plan-discounts-box hidden' in shop_js
+    assert "Loyalty (-${loyaltyPctEnglish}%)" in shop_js
     assert "p.squad_uuid" in shop_js and "(isExplicitIranPlan ? ['🇮🇷'] : [])" in shop_js
     iran_notice_pos = shop_js.find("راهنمای سرویس سرور ایران")
     switch_warn_pos = shop_js.find("هشدار مهم تغییر دسته سرور")

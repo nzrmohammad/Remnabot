@@ -2100,7 +2100,7 @@ function setupWalletListeners() {
         return;
       }
       redeemBtn.disabled = true;
-      redeemBtn.innerText = 'در حال بررسی...';
+      redeemBtn.innerHTML = '<span>در حال بررسی...</span>';
       try {
         const res = await window.api.redeemVoucher(code);
         if (res.ok) {
@@ -2116,7 +2116,7 @@ function setupWalletListeners() {
         showToast('خطا در برقراری ارتباط با سرور.', 'error');
       } finally {
         redeemBtn.disabled = false;
-        redeemBtn.innerText = 'اعمال';
+        redeemBtn.innerHTML = '<span class="inline-flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>اعمال</span></span>';
       }
     });
   }
