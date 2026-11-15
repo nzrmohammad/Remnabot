@@ -732,9 +732,8 @@ function renderFilteredShopPlans() {
               <span class="text-base font-black t-success leading-tight num-bidi" dir="ltr">${formattedFinal}</span>
               <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
               ${hasDiscountBadges ? `
-                <button type="button" class="plan-discount-toggle-btn inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition active:scale-95 cursor-pointer mr-0.5" title="مشاهده جزئیات تخفیف" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
+                <button type="button" class="plan-discount-toggle-btn w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition active:scale-90 cursor-pointer mr-0.5 shrink-0" title="مشاهده جزئیات تخفیف" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
                   <span>🏷️</span>
-                  <span>تخفیف</span>
                 </button>
               ` : ''}
             </div>
@@ -750,12 +749,12 @@ function renderFilteredShopPlans() {
             ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} (-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
           </div>
         ` : ''}
-        <div class="flex items-center justify-between my-1.5 text-[11px] card-inset px-2.5 py-1.5 whitespace-nowrap overflow-hidden">
+        <div class="flex items-center justify-between my-2 text-[11px] card-inset px-2.5 py-1.5 whitespace-nowrap overflow-hidden">
           <span class="flex items-center gap-1">📊 <b dir="ltr" class="font-sans t-main num-bidi">${trafficText}</b></span>
           ${durationText}
           <span class="flex items-center gap-1">📱 <b class="t-main">${devLimitText}</b></span>
         </div>
-        <div class="flex items-center justify-between mb-1.5 px-1 text-[11px] t-muted">
+        <div class="flex items-center justify-between mb-2 px-1 text-[11px] t-muted">
           <span class="flex items-center gap-1">
             <span>🌍</span>
             <span>کشورها:</span>

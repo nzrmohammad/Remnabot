@@ -721,13 +721,6 @@ html.theme-light #adminTopConsumersWeekBar button.admin-week-btn.is-active {
 }
 
 /* --- 16. Shop Plan Badges --- */
-.shop-plan-card .min-w-0 > .flex.items-baseline {
-  margin-top: 0.375rem;
-}
-.shop-plan-card p.text-\[10\.5px\] {
-  margin-top: 0.5rem;
-}
-
 .shop-plan-badge,
 .shop-plan-card .shop-plan-badge,
 html.theme-light .shop-plan-card .shop-plan-badge,
