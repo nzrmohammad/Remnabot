@@ -3241,20 +3241,20 @@ function hydrateUserInterface(data) {
     if (profStatusBadge) {
       if (hasActiveSub) {
         profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm"></span><span>کاربر فعال</span></span>';
-        profStatusBadge.className = 'text-[11px] font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5';
+        profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5';
       } else {
         profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block shadow-sm"></span><span>بدون سرویس فعال</span></span>';
-        profStatusBadge.className = 'text-[11px] font-bold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1.5';
+        profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-amber-600 dark:text-amber-400 border border-amber-500/40 inline-flex items-center gap-1.5';
       }
     }
 
     if (profAuthBadge) {
       if (hasPhone) {
         profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/shield.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>حساب تأییدشده</span></span>';
-        profAuthBadge.className = 'text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5 transition';
+        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5 transition';
       } else {
         profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/warning.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>نیازمند احراز شماره</span></span>';
-        profAuthBadge.className = 'text-[10.5px] font-bold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1.5 transition';
+        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-transparent text-amber-600 dark:text-amber-400 border border-amber-500/40 inline-flex items-center gap-1.5 transition';
       }
     }
 
