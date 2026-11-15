@@ -28,7 +28,9 @@ from bot.handlers.wallet_card import (
     router as card_router,
 )
 from bot.handlers.wallet_crypto import (
+    _render_pol_invoice,
     _render_ton_invoice,
+    _render_trx_invoice,
     ton_invoice_cancel,
     ton_invoice_check,
 )
@@ -73,6 +75,7 @@ async def topup_history(
             "amount": tp.amount,
             "status": tp.status,
             "created_at": tp.created_at,
+            "receipt_hash": getattr(tp, "receipt_hash", None),
         })
 
     for od in orders:
@@ -91,7 +94,10 @@ async def topup_history(
     transactions.sort(key=lambda x: x["created_at"] or epoch, reverse=True)
     transactions = transactions[:15]
 
-    lines = [t(lang, "topups_history_title"), SEPARATOR]
+    lines = [
+        "📜 <b>تاریخچه تراکنش‌های کیف پول</b>" if lang == "fa" else t(lang, "topups_history_title"),
+        SEPARATOR,
+    ]
     if not transactions:
         lines.append(t(lang, "topups_history_empty"))
     else:
@@ -100,33 +106,61 @@ async def topup_history(
             amt_str = _fmt(tx["amount"])
             if tx["kind"] == "topup":
                 status = tx["status"]
-                if status == "approved":
-                    lines.append(
-                        f"➕ <b>+{amt_str}</b> {currency} · {t(lang, 'tx_topup')}\n"
-                        f"   ✅ {t(lang, 'topup_status_approved')} · 🕒 {when}"
-                    )
-                elif status == "pending":
-                    lines.append(
-                        f"⏳ <b>{amt_str}</b> {currency} · {t(lang, 'tx_topup_pending')}\n"
-                        f"   🕒 {when}"
-                    )
+                receipt = str(tx.get("receipt_hash") or "")
+                if receipt.startswith("stars:"):
+                    method_name = "⭐️ تلگرام استارز"
+                elif receipt.startswith("ton:"):
+                    method_name = "💎 تون (TON)"
+                elif receipt.startswith("trx:"):
+                    method_name = "🔴 ترون (TRX)"
+                elif receipt.startswith("pol:"):
+                    method_name = "🟣 پلیگان (POL)"
+                elif receipt.startswith("voucher:"):
+                    method_name = "🎟 کارت شارژ"
+                elif receipt.startswith("admin:"):
+                    method_name = "👤 شارژ دستی"
+                elif receipt.startswith("c2c:") or receipt.startswith("auto_c2c:"):
+                    method_name = "⚡️ کارت‌به‌کارت آنی"
                 else:
-                    lines.append(
-                        f"❌ <b>{amt_str}</b> {currency} · {t(lang, 'tx_topup_rejected')}\n"
-                        f"   🕒 {when}"
-                    )
+                    method_name = "💳 کارت به کارت"
+
+                if status == "approved":
+                    badge = "✅ تایید شده"
+                    sign = "+"
+                    icon = "🟢"
+                elif status == "pending":
+                    badge = "⏳ در انتظار بررسی"
+                    sign = ""
+                    icon = "🟡"
+                else:
+                    badge = "❌ رد شده"
+                    sign = ""
+                    icon = "🔴"
+
+                lines.append(
+                    f"{icon} <b>{badge}</b> | <b>{sign}{amt_str} {currency}</b>\n"
+                    f"   روش: <b>{method_name}</b>\n"
+                    f"   🕒 زمان: <code>{when}</code>\n"
+                    f"   🔖 شناسه: <code>#{tx['id']}</code>"
+                )
+                lines.append("──────────────────")
             elif tx["kind"] == "order":
                 svc_title = escape(tx.get("service_name") or t(lang, "services_title"))
                 if tx["status"] == "refunded":
                     lines.append(
-                        f"🔄 <b>+{amt_str}</b> {currency} · {svc_title}\n"
-                        f"   ↩️ {t(lang, 'tx_order_refunded')} · 🕒 {when}"
+                        f"🔵 <b>↩️ بازگشت وجه</b> | <b>+{amt_str} {currency}</b>\n"
+                        f"   سرویس: <b>{svc_title}</b>\n"
+                        f"   🕒 زمان: <code>{when}</code>\n"
+                        f"   🔖 سفارش: <code>#{tx['id']}</code>"
                     )
                 else:
                     lines.append(
-                        f"➖ <b>-{amt_str}</b> {currency} · {svc_title}\n"
-                        f"   🛒 {t(lang, 'tx_order_paid')} · 🕒 {when}"
+                        f"🟣 <b>🛒 خرید سرویس</b> | <b>-{amt_str} {currency}</b>\n"
+                        f"   سرویس: <b>{svc_title}</b>\n"
+                        f"   🕒 زمان: <code>{when}</code>\n"
+                        f"   🔖 سفارش: <code>#{tx['id']}</code>"
                     )
+                lines.append("──────────────────")
 
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_back"), callback_data="menu:wallet")
@@ -155,7 +189,7 @@ async def topup_start(
     state: FSMContext,
 ):
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language
+    lang = user.language or "fa"
     store = await get_store_settings(session)
 
     if await is_maintenance(session):
@@ -163,31 +197,30 @@ async def topup_start(
         return
 
     has_card = bool(store.card_enabled and store.card_number and store.card_number.strip())
-    has_crypto = bool(store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0)
+    has_stars = bool(getattr(store, "stars_enabled", False) and getattr(store, "stars_rate_toman", 0) > 0)
+    has_ton = bool(store.crypto_enabled and store.ton_wallet_address and store.ton_wallet_address.strip() and store.ton_rate_toman > 0)
+    has_trx = bool(getattr(store, "trx_enabled", False) and getattr(store, "trx_wallet_address", "") and store.trx_wallet_address.strip())
+    has_pol = bool(getattr(store, "pol_enabled", False) and getattr(store, "pol_wallet_address", "") and store.pol_wallet_address.strip())
 
-    if not has_card and not has_crypto:
+    if not has_card and not has_stars and not has_ton and not has_trx and not has_pol:
         await call.answer(t(lang, "topup_no_card"), show_alert=True)
         return
 
     kb = InlineKeyboardBuilder()
-    if has_card and has_crypto:
-        if lang == "fa":
-            kb.button(text=t(lang, "btn_topup_ton"), callback_data="wallet:method:ton")
-            kb.button(text=t(lang, "btn_topup_card"), callback_data="wallet:method:card")
-        else:
-            kb.button(text=t(lang, "btn_topup_card"), callback_data="wallet:method:card")
-            kb.button(text=t(lang, "btn_topup_ton"), callback_data="wallet:method:ton")
-    elif has_card:
-        kb.button(text=t(lang, "btn_topup_card"), callback_data="wallet:method:card")
-    elif has_crypto:
-        kb.button(text=t(lang, "btn_topup_ton"), callback_data="wallet:method:ton")
+    if has_card:
+        kb.button(text="💳 کارت به کارت", callback_data="wallet:method:card")
+    if has_stars:
+        kb.button(text="⭐️ تلگرام استارز (Stars)", callback_data="wallet:method:stars")
+    if has_ton:
+        kb.button(text="💎 شبکه تون (TON)", callback_data="wallet:method:ton")
+    if has_trx:
+        kb.button(text="🔴 شبکه ترون (TRX)", callback_data="wallet:method:trx")
+    if has_pol:
+        kb.button(text="🟣 شبکه پلیگان (POL)", callback_data="wallet:method:pol")
 
     kb.button(text="🎟 کارت شارژ / گیفت‌کارت", callback_data="wallet:voucher")
     kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
-    if has_card and has_crypto:
-        kb.adjust(2, 1, 1)
-    else:
-        kb.adjust(1)
+    kb.adjust(2, 2, 2, 1)
 
     await render_menu(bot, user, user_repo, t(lang, "topup_select_method"), kb.as_markup())
     await call.answer()
@@ -334,9 +367,136 @@ async def _render_topup_amount_prompt(
             if lang == "fa"
             else f"\n\n💎 <b>Conversion rate:</b> 1 TON = <b>{store.ton_rate_toman:,}</b> Toman"
         )
+    elif method == "stars":
+        s_rate = getattr(store, "stars_rate_toman", 0) or 1500
+        hint_crypto = f"\n\n⭐️ <b>نرخ محاسبه:</b> هر استارز = <b>{s_rate:,}</b> تومان"
+    elif method == "trx":
+        hint_crypto = "\n\n🔴 <b>شبکه ترون:</b> محاسبه نرخ لحظه‌ای معادل ریال / تتر"
+    elif method == "pol":
+        hint_crypto = "\n\n🟣 <b>شبکه پلیگان:</b> محاسبه نرخ لحظه‌ای معادل ریال / تتر"
 
     prompt_text = t(lang, "topup_amount_prompt", min=_fmt(store.topup_min_amount)) + hint_crypto
     await render_menu(bot, user, user_repo, prompt_text, kb.as_markup())
+
+
+async def _create_and_render_stars_invoice(
+    bot: Bot,
+    user: Any,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext,
+    store: Any,
+    amount: int,
+) -> None:
+    lang = user.language or "fa"
+    stars_rate = getattr(store, "stars_rate_toman", 0) or 1500
+    stars_count = max(1, math.ceil(amount / stars_rate))
+    payload = f"stars_topup:{user.telegram_id}:{amount}:{stars_count}"
+
+    link = None
+    try:
+        from aiogram.types import LabeledPrice
+        link = await bot.create_invoice_link(
+            title=f"شارژ کیف پول ({amount:,} تومان)",
+            description=f"افزایش موجودی کیف پول به مبلغ {amount:,} تومان از طریق تلگرام استارز",
+            payload=payload,
+            provider_token="",
+            currency="XTR",
+            prices=[LabeledPrice(label="شارژ کیف پول", amount=stars_count)],
+        )
+    except Exception as exc:
+        logger.error("Failed creating Stars invoice link: %s", exc)
+
+    await state.clear()
+    kb = InlineKeyboardBuilder()
+    if link:
+        kb.button(text=f"⭐️ پرداخت {stars_count} استارز", url=link)
+    kb.button(text=t(lang, "btn_cancel"), callback_data="menu:wallet")
+    kb.adjust(1)
+
+    text = (
+        f"⭐️ <b>فاکتور پرداخت با تلگرام استارز (Stars)</b>\n"
+        f"{SEPARATOR}\n"
+        f"💰 مبلغ شارژ : <b>{amount:,} تومان</b>\n"
+        f"⭐️ تعداد استارز : <b>{stars_count} XTR</b>\n"
+        f"💎 نرخ محاسبه : <b>{stars_rate:,} تومان</b> به‌ازای هر استارز\n\n"
+        f"⚡️ پس از کلیک روی دکمه پرداخت زیر و تکمیل فرآیند، کیف پول شما به‌طور آنی شارژ خواهد شد."
+    )
+    await render_menu(bot, user, user_repo, text, kb.as_markup())
+
+
+async def _create_and_render_trx_invoice(
+    bot: Bot,
+    user: Any,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext,
+    store: Any,
+    amount: int,
+) -> None:
+    from bot.db.repositories.crypto_repo import CryptoRepository
+    from bot.services.crypto.trx import fetch_trx_rate
+    crypto_repo = CryptoRepository(session)
+
+    trx_rate = getattr(store, "trx_rate_toman", 0)
+    if trx_rate <= 0:
+        trx_rate = await fetch_trx_rate(0)
+    if trx_rate <= 0:
+        trx_rate = 15000
+
+    base_sun = max(1_000_000, math.ceil((amount / trx_rate) * 100) * 10_000)
+    sun = await crypto_repo.allocate_unique_crypto_units(base_sun, 10_000, "TRX", max_steps=99)
+    trx_amount_str = f"{sun / 1e6:.2f}"
+
+    invoice = await crypto_repo.create_invoice(
+        telegram_id=user.telegram_id,
+        amount_toman=amount,
+        amount_ton=trx_amount_str,
+        nanotons=sun,
+        pay_address=store.trx_wallet_address.strip(),
+        expires_minutes=60,
+        currency="TRX",
+    )
+    await session.commit()
+    await state.clear()
+    await _render_trx_invoice(bot, user, user_repo, session, invoice)
+
+
+async def _create_and_render_pol_invoice(
+    bot: Bot,
+    user: Any,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext,
+    store: Any,
+    amount: int,
+) -> None:
+    from bot.db.repositories.crypto_repo import CryptoRepository
+    from bot.services.crypto.pol import fetch_pol_rate
+    crypto_repo = CryptoRepository(session)
+
+    pol_rate = getattr(store, "pol_rate_toman", 0)
+    if pol_rate <= 0:
+        pol_rate = await fetch_pol_rate(0)
+    if pol_rate <= 0:
+        pol_rate = 25000
+
+    base_wei = max(10_000_000_000_000_000, math.ceil((amount / pol_rate) * 1000) * 1_000_000_000_000_000)
+    wei = await crypto_repo.allocate_unique_crypto_units(base_wei, 100_000_000_000_000, "POL", max_steps=99)
+    pol_amount_str = f"{wei / 1e18:.4f}"
+
+    invoice = await crypto_repo.create_invoice(
+        telegram_id=user.telegram_id,
+        amount_toman=amount,
+        amount_ton=pol_amount_str,
+        nanotons=wei,
+        pay_address=store.pol_wallet_address.strip(),
+        expires_minutes=60,
+        currency="POL",
+    )
+    await session.commit()
+    await state.clear()
+    await _render_pol_invoice(bot, user, user_repo, session, invoice)
 
 
 async def _create_and_render_ton_invoice(
@@ -453,12 +613,38 @@ async def topup_preset_amount(
         await call.answer()
         return
 
+    if method == "stars":
+        if not (getattr(store, "stars_enabled", False) and getattr(store, "stars_rate_toman", 0) > 0):
+            await call.answer("❌ پرداخت استارز موقتاً غیرفعال است.", show_alert=True)
+            return
+        await _create_and_render_stars_invoice(bot, user, user_repo, session, state, store, amount)
+        await call.answer()
+        return
+
     if method == "ton":
         if not (store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0):
             await call.answer("❌ پرداخت کریپتو موقتاً غیرفعال است.", show_alert=True)
             return
 
         await _create_and_render_ton_invoice(bot, user, user_repo, session, state, store, amount)
+        await call.answer()
+        return
+
+    if method == "trx":
+        if not (getattr(store, "trx_enabled", False) and getattr(store, "trx_wallet_address", "") and store.trx_wallet_address.strip()):
+            await call.answer("❌ پرداخت با ترون موقتاً غیرفعال است.", show_alert=True)
+            return
+
+        await _create_and_render_trx_invoice(bot, user, user_repo, session, state, store, amount)
+        await call.answer()
+        return
+
+    if method == "pol":
+        if not (getattr(store, "pol_enabled", False) and getattr(store, "pol_wallet_address", "") and store.pol_wallet_address.strip()):
+            await call.answer("❌ پرداخت با پلیگان موقتاً غیرفعال است.", show_alert=True)
+            return
+
+        await _create_and_render_pol_invoice(bot, user, user_repo, session, state, store, amount)
         await call.answer()
         return
 
@@ -548,12 +734,35 @@ async def topup_amount(
         await render_menu(bot, user, user_repo, notice_text, kb_phone.as_markup())
         return
 
+    if method == "stars":
+        if not (getattr(store, "stars_enabled", False) and getattr(store, "stars_rate_toman", 0) > 0):
+            await render_menu(bot, user, user_repo, "❌ پرداخت استارز موقتاً غیرفعال است.", kb.as_markup())
+            return
+        await _create_and_render_stars_invoice(bot, user, user_repo, session, state, store, amount)
+        return
+
     if method == "ton":
         if not (store.crypto_enabled and store.ton_wallet_address and store.ton_rate_toman > 0):
             await render_menu(bot, user, user_repo, "❌ پرداخت کریپتو موقتاً غیرفعال است.", kb.as_markup())
             return
 
         await _create_and_render_ton_invoice(bot, user, user_repo, session, state, store, amount)
+        return
+
+    if method == "trx":
+        if not (getattr(store, "trx_enabled", False) and getattr(store, "trx_wallet_address", "") and store.trx_wallet_address.strip()):
+            await render_menu(bot, user, user_repo, "❌ پرداخت با ترون موقتاً غیرفعال است.", kb.as_markup())
+            return
+
+        await _create_and_render_trx_invoice(bot, user, user_repo, session, state, store, amount)
+        return
+
+    if method == "pol":
+        if not (getattr(store, "pol_enabled", False) and getattr(store, "pol_wallet_address", "") and store.pol_wallet_address.strip()):
+            await render_menu(bot, user, user_repo, "❌ پرداخت با پلیگان موقتاً غیرفعال است.", kb.as_markup())
+            return
+
+        await _create_and_render_pol_invoice(bot, user, user_repo, session, state, store, amount)
         return
 
     if getattr(store, "card_auto_enabled", False):

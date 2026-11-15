@@ -162,8 +162,24 @@ def start_of_today(tz_name: str) -> datetime:
     return now.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def format_datetime(dt: datetime, lang: str, tz_name: str = "Asia/Tehran") -> str:
+def format_datetime(dt: datetime | str | int | float | None, lang: str, tz_name: str = "Asia/Tehran") -> str:
     """`1404/12/05 - 23:57` for fa, `2026-02-24 - 23:57` for others, localized to tz_name."""
+    if not dt:
+        return "—"
+    if isinstance(dt, str):
+        parsed = parse_iso(dt)
+        if not parsed:
+            try:
+                parsed = datetime.fromisoformat(dt.replace("Z", "+00:00"))
+            except Exception:
+                return dt
+        dt = parsed
+    elif isinstance(dt, (int, float)):
+        try:
+            dt = datetime.fromtimestamp(dt, tz=timezone.utc)
+        except Exception:
+            return "—"
+
     if tz_name:
         try:
             tz = ZoneInfo(tz_name)
@@ -174,12 +190,31 @@ def format_datetime(dt: datetime, lang: str, tz_name: str = "Asia/Tehran") -> st
         except Exception:
             pass
     if lang == "fa":
-        j = jdatetime.datetime.fromgregorian(datetime=dt)
-        return j.strftime("%Y/%m/%d - %H:%M")
+        try:
+            j = jdatetime.datetime.fromgregorian(datetime=dt)
+            return j.strftime("%Y/%m/%d - %H:%M")
+        except Exception:
+            return dt.strftime("%Y/%m/%d - %H:%M")
     return dt.strftime("%Y-%m-%d - %H:%M")
 
 
-def format_date(dt: datetime, lang: str, tz_name: str = "Asia/Tehran") -> str:
+def format_date(dt: datetime | str | int | float | None, lang: str, tz_name: str = "Asia/Tehran") -> str:
+    if not dt:
+        return "—"
+    if isinstance(dt, str):
+        parsed = parse_iso(dt)
+        if not parsed:
+            try:
+                parsed = datetime.fromisoformat(dt.replace("Z", "+00:00"))
+            except Exception:
+                return dt
+        dt = parsed
+    elif isinstance(dt, (int, float)):
+        try:
+            dt = datetime.fromtimestamp(dt, tz=timezone.utc)
+        except Exception:
+            return "—"
+
     if tz_name:
         try:
             tz = ZoneInfo(tz_name)
@@ -190,7 +225,10 @@ def format_date(dt: datetime, lang: str, tz_name: str = "Asia/Tehran") -> str:
         except Exception:
             pass
     if lang == "fa":
-        return jdatetime.datetime.fromgregorian(datetime=dt).strftime("%Y/%m/%d")
+        try:
+            return jdatetime.datetime.fromgregorian(datetime=dt).strftime("%Y/%m/%d")
+        except Exception:
+            return dt.strftime("%Y/%m/%d")
     return dt.strftime("%Y-%m-%d")
 
 

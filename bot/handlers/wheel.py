@@ -273,12 +273,17 @@ async def wheel_my_coupons(
 
     if not coupons:
         lines.append("شما در حال حاضر کد تخفیف فعالی از گردونه ندارید.")
-        lines.append("با چرخاندن روزانه گردونه شانس می‌توانید کدهای 10٪ برنده شوید!")
+        lines.append("با چرخاندن روزانه گردونه شانس می‌توانید کدهای 10% برنده شوید!")
     else:
-        for c in coupons[:5]:
+        for i, c in enumerate(coupons[:5], start=1):
             code = escape(str(c.get("code", "")))
             pct = c.get("discount_percent", 10)
-            lines.append(f"• کد: <code>{code}</code> — <b>{pct}٪ تخفیف</b>")
+            lines.append(
+                f"{i}) 🎟 <b>کد تخفیف:</b> <code>{code}</code>\n"
+                f"   🏷 میزان تخفیف: <b>{pct}%</b> · ⏳ مهلت: 7 روزه"
+            )
+            if i < len(coupons[:5]):
+                lines.append("")
 
     kb = InlineKeyboardBuilder()
     kb.button(text="🔙 بازگشت به گردونه", callback_data="menu:wheel")

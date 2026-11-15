@@ -62,9 +62,6 @@ def service_block(service, lang: str, show_state: bool = False) -> str:
         f"   📱 {t(lang, 'svc_field_hwid')} : "
         f"<b>{fmt_hwid(getattr(service, 'hwid_limit', None), lang)}</b>",
     ]
-    squad = getattr(service, "squad_uuid", None)
-    if squad:
-        lines.append(f"   🧩 <code>{escape(str(squad)[:18])}…</code>")
     if service.description:
         lines.append(f"   📝 {escape(service.description)}")
     return "\n".join(lines)

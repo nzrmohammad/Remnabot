@@ -2044,9 +2044,9 @@ async def test_recent_ui_and_reports_fixes():
         markup = mock_render.call_args[0][4]
         svc_btn_text = markup.inline_keyboard[0][0].text
 
-        # First: name, Second: traffic, Third: price
+        # First: name, Second: traffic, Third: price, Fourth: indicator at right
         assert "بسته حرفه‌ای — 50 GB — 150,000 تومان" in svc_btn_text
-        assert svc_btn_text.startswith("✅ بسته حرفه‌ای")
+        assert svc_btn_text.endswith("- ✅")
 
 
 @pytest.mark.anyio

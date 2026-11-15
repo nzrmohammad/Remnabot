@@ -95,7 +95,7 @@ async def render_services(
         traffic_str = fmt_traffic(service.traffic_gb, lang)
         price_str = f"{fmt_price(service.price)} {t(lang, 'svc_currency')}"
         kb.button(
-            text=f"{indicator} {service.name} — {traffic_str} — {price_str}",
+            text=f"{service.name} — {traffic_str} — {price_str} - {indicator}",
             callback_data=cb,
         )
 

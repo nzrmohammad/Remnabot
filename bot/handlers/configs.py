@@ -51,8 +51,13 @@ async def _verify_account(
     accounts = await _get_accounts(remnawave, telegram_id)
     if not accounts:
         return None
+    aid_str = str(account_id).strip()
     for acc in accounts:
-        if str(acc.get("id")) == str(account_id):
+        if str(acc.get("id")).strip() == aid_str:
+            return acc
+        if str(acc.get("uuid", "")).strip() == aid_str:
+            return acc
+        if str(acc.get("shortUuid", "")).strip() == aid_str:
             return acc
     return None
 
@@ -149,10 +154,11 @@ async def _render_account_configs(
 
     kb.adjust(*sizes)
 
+    count_label = "تعداد کل کانفیگ‌ها" if lang == "fa" else "Total Configs"
     text = (
         f"{t(lang, 'configs_title')}\n{SEPARATOR}\n"
         f"{t(lang, 'stats_account')} : <code>{username}</code>\n"
-        f"📊 {t(lang, 'stats_total')} : <b>{len(configs)}</b>\n\n"
+        f"🔌 {count_label} : <b>{len(configs)}</b>\n\n"
         f"{t(lang, 'configs_desc')}"
     )
     await render_menu(bot, user, user_repo, text, kb.as_markup())
@@ -232,7 +238,12 @@ async def single_config_detail(
     proto = str(cfg.get("protocol") or "—").upper()
 
     kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_copy_config"), copy_text=CopyTextButton(text=cfg["uri"]))
+    raw_uri = str(cfg.get("uri") or "")
+    if raw_uri and len(raw_uri) <= 1024:
+        try:
+            kb.button(text=t(lang, "btn_copy_config"), copy_text=CopyTextButton(text=raw_uri))
+        except Exception:
+            pass
     kb.button(text=t(lang, "btn_back_to_configs"), callback_data=f"cfg:acc:{account_id}")
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
     kb.adjust(1, 2)
@@ -245,7 +256,15 @@ async def single_config_detail(
         f"{t(lang, 'configs_copy_hint')}"
     )
 
-    await render_menu(bot, user, user_repo, text, kb.as_markup())
+    try:
+        await render_menu(bot, user, user_repo, text, kb.as_markup())
+    except Exception:
+        # Fallback without CopyTextButton in case telegram client / API rejects it
+        kb_fallback = InlineKeyboardBuilder()
+        kb_fallback.button(text=t(lang, "btn_back_to_configs"), callback_data=f"cfg:acc:{account_id}")
+        kb_fallback.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
+        kb_fallback.adjust(2)
+        await render_menu(bot, user, user_repo, text, kb_fallback.as_markup())
     await call.answer()
 
 

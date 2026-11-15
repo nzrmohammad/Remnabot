@@ -67,7 +67,7 @@ async def custom_plan_entry(
     state: FSMContext | None = None,
     remnawave: RemnawaveClient | None = None,
 ):
-    """Step 1: Choose Squad (or auto-select) and then Traffic (GB)."""
+    """Step 1: Auto-select squad matching active sub (no squad picker) and prompt Traffic (GB)."""
     if state:
         await state.clear()
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
@@ -81,37 +81,30 @@ async def custom_plan_entry(
         )
         return
 
-    squads = []
+    target_squad = None
     if remnawave:
         try:
-            raw_sqs = await remnawave.get_internal_squads() or []
-            for s in raw_sqs:
-                if isinstance(s, dict):
-                    uid = s.get("uuid") or s.get("id")
-                    name = s.get("name") or uid
-                    if uid:
-                        squads.append({"uuid": str(uid), "name": str(name)})
+            accounts = await remnawave.get_users_by_telegram_id(call.from_user.id) or []
+            active_accs = [a for a in accounts if str(a.get("status", "")).upper() not in ("DELETED",)]
+            if active_accs:
+                chosen = active_accs[0]
+                raw_sqs = chosen.get("activeInternalSquads") or chosen.get("internalSquads") or chosen.get("squads") or []
+                for sq in raw_sqs:
+                    if isinstance(sq, dict):
+                        target_squad = sq.get("uuid") or sq.get("id")
+                    elif isinstance(sq, str):
+                        target_squad = sq
+                    if target_squad:
+                        break
         except Exception as exc:
-            logger.debug("Failed fetching squads for custom plan: %s", exc)
+            logger.debug("Failed resolving user squad for custom plan: %s", exc)
 
-    if len(squads) > 1:
-        lines = [
-            "🛠 <b>طراحی بسته دلخواه (مرحله 1 از 3)</b>" if lang == "fa" else "🛠 <b>Custom Plan Builder (Step 1 of 3)</b>",
-            SEPARATOR,
-            "لطفاً ابتدا دسته سرور (نوع سرویس) مورد نظر خود را انتخاب فرمایید:" if lang == "fa" else "Please select the server squad first:",
-        ]
-        kb = InlineKeyboardBuilder()
-        for sq in squads:
-            kb.button(text=f"🌐 {sq['name']}", callback_data=f"cplan:sq:{sq['uuid']}")
-        kb.button(text="🏠 منوی اصلی" if lang == "fa" else "🏠 Main Menu", callback_data="nav:main_menu")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
-        await call.answer()
-        return
+    if not target_squad:
+        target_squad = store_settings.default_squad_uuid or None
 
-    default_sq = squads[0]["uuid"] if squads else store_settings.default_squad_uuid
     if state:
-        await state.update_data(squad_uuid=default_sq)
+        await state.update_data(squad_uuid=str(target_squad) if target_squad else None)
+
     await _prompt_traffic_gb(call, bot, user, user_repo, store_settings, lang)
     await call.answer()
 
@@ -200,7 +193,7 @@ async def custom_plan_custom_gb_input(
     lines = [
         f"✅ حجم انتخاب شده: <b>{gb} گیگابایت</b>",
         SEPARATOR,
-        "🛠 <b>طراحی بسته دلخواه (مرحله 2 از 2)</b>",
+        "🛠 <b>طراحی بسته دلخواه (مرحله 2 از 3)</b>",
         f"مدت زمان اعتبار بسته را انتخاب کنید (بین {store_settings.custom_plan_min_days} تا {store_settings.custom_plan_max_days} روز):",
     ]
     kb = InlineKeyboardBuilder()
@@ -218,7 +211,7 @@ async def _prompt_duration_days(call: CallbackQuery, bot: Bot, user, user_repo, 
     lines = [
         f"✅ حجم انتخاب شده: <b>{gb} گیگابایت</b>",
         SEPARATOR,
-        "🛠 <b>طراحی بسته دلخواه (مرحله 2 از 2)</b>",
+        "🛠 <b>طراحی بسته دلخواه (مرحله 2 از 3)</b>",
         f"مدت زمان اعتبار بسته را انتخاب کنید (بین {store_settings.custom_plan_min_days} تا {store_settings.custom_plan_max_days} روز):",
     ]
 
@@ -234,6 +227,38 @@ async def _prompt_duration_days(call: CallbackQuery, bot: Bot, user, user_repo, 
     await call.answer()
 
 
+async def _prompt_devices(
+    target: CallbackQuery | Message,
+    bot: Bot,
+    user,
+    user_repo,
+    store_settings,
+    gb: int,
+    days: int,
+    lang: str,
+):
+    extra_rate = getattr(store_settings, "custom_plan_extra_device_percent", 15) or 15
+    lines = [
+        f"✅ حجم: <b>{gb} گیگابایت</b> | مدت: <b>{days} روز</b>",
+        SEPARATOR,
+        "📱 <b>طراحی بسته دلخواه (مرحله 3 از 3) — تعداد کاربر</b>",
+        f"تعداد کاربر / دستگاه همزمان مجاز برای اتصال به این اشتراک را انتخاب نمایید (به‌ازای هر کاربر اضافه، {extra_rate}٪ به تعرفه اضافه می‌شود):",
+    ]
+    kb = InlineKeyboardBuilder()
+    kb.button(text="📱 ۱ کاربره (پایه)", callback_data=f"cplan:hwid:{gb}:{days}:1")
+    kb.button(text=f"📱 ۲ کاربره (+{extra_rate}٪)", callback_data=f"cplan:hwid:{gb}:{days}:2")
+    kb.button(text=f"📱 ۳ کاربره (+{extra_rate * 2}٪)", callback_data=f"cplan:hwid:{gb}:{days}:3")
+    kb.button(text=f"📱 ۴ کاربره (+{extra_rate * 3}٪)", callback_data=f"cplan:hwid:{gb}:{days}:4")
+    kb.button(text="🔙 تغییر مدت زمان", callback_data=f"cplan:gb:{gb}")
+    kb.adjust(2, 2, 1)
+
+    if isinstance(target, CallbackQuery):
+        await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
+        await target.answer()
+    else:
+        await target.reply("\n".join(lines), reply_markup=kb.as_markup(), parse_mode="HTML")
+
+
 @router.callback_query(F.data.startswith("cplan:days:"))
 async def custom_plan_days_selected(
     call: CallbackQuery,
@@ -244,7 +269,7 @@ async def custom_plan_days_selected(
     remnawave: RemnawaveClient | None = None,
     cache: FastCache | None = None,
 ):
-    """Handle duration selection and show full live preview and breakdown."""
+    """Handle duration selection and prompt Step 3: Choose Device Count."""
     parts = call.data.split(":")
     gb = parse_int(parts[2])
     val = parts[3] if len(parts) > 3 else ""
@@ -260,7 +285,7 @@ async def custom_plan_days_selected(
         return
 
     if val == "custom":
-        await state.set_state(CustomPlanStates.waiting_for_custom_gb if False else CustomPlanStates.waiting_for_custom_days)
+        await state.set_state(CustomPlanStates.waiting_for_custom_days)
         await state.update_data(traffic_gb=gb)
         lines = [
             "✏️ <b>ورود مدت زمان دلخواه</b>",
@@ -281,12 +306,43 @@ async def custom_plan_days_selected(
     if days is None or days < min_days or days > max_days:
         await call.answer(f"مدت زمان باید بین {min_days} تا {max_days} روز باشد.", show_alert=True)
         return
+
+    if state:
+        await state.update_data(traffic_gb=gb, duration_days=days)
+
+    await _prompt_devices(call, bot, user, user_repo, store_settings, gb, days, lang)
+
+
+@router.callback_query(F.data.startswith("cplan:hwid:"))
+async def custom_plan_hwid_selected(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    state: FSMContext,
+    remnawave: RemnawaveClient | None = None,
+    cache: FastCache | None = None,
+):
+    """Handle device count selection and show full live preview and breakdown."""
+    parts = call.data.split(":")
+    gb = parse_int(parts[2])
+    days = parse_int(parts[3])
+    hwid = parse_int(parts[4]) or 1
+
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language or "fa"
+    store_settings = await get_store_settings(session)
+
+    if state:
+        await state.update_data(traffic_gb=gb, duration_days=days, hwid_limit=hwid)
+
     st_data = await state.get_data() if state else {}
     squad_uuid = st_data.get("squad_uuid")
     squad_name = None
     if squad_uuid and remnawave:
         squad_name = await resolve_squad_name(remnawave, squad_uuid)
-    await _render_custom_plan_preview(call, bot, user, user_repo, session, store_settings, gb, days, cache, lang, squad_name)
+
+    await _render_custom_plan_preview(call, bot, user, user_repo, session, store_settings, gb, days, hwid, cache, lang, squad_name)
 
 
 @router.message(CustomPlanStates.waiting_for_custom_days)
@@ -327,13 +383,24 @@ async def custom_plan_custom_days_input(
 
     await state.clear()
     if squad_uuid:
-        await state.update_data(squad_uuid=squad_uuid)
-    lines, kb = await _build_custom_plan_summary(user, session, store_settings, gb, days, cache, lang, squad_name)
-    await message.reply("\n".join(lines), reply_markup=kb.as_markup(), parse_mode="HTML")
+        await state.update_data(squad_uuid=squad_uuid, traffic_gb=gb, duration_days=days)
+    await _prompt_devices(message, bot, user, user_repo, store_settings, gb, days, lang)
 
 
-async def _build_custom_plan_summary(user, session, store_settings, gb: int, days: int, cache, lang: str, squad_name: str | None = None):
-    raw_base, volume_pct, base_price = compute_custom_plan_price(gb, days, store_settings)
+async def _build_custom_plan_summary(
+    user,
+    session,
+    store_settings,
+    gb: int,
+    days: int,
+    hwid: int,
+    cache,
+    lang: str,
+    squad_name: str | None = None,
+):
+    raw_base, volume_pct, base_price = compute_custom_plan_price(
+        gb, days, store_settings, hwid_limit=hwid
+    )
     volume_discount_amount = max(0, raw_base - base_price)
 
     loyalty = await get_user_loyalty(session, user.telegram_id, cache=cache)
@@ -349,10 +416,20 @@ async def _build_custom_plan_summary(user, session, store_settings, gb: int, day
     ]
     if squad_name:
         lines.append(f"🌐 دسته سرور : <b>{escape(squad_name)}</b>")
+        sq_lower = squad_name.lower()
+        if "ایران" in squad_name or "iran" in sq_lower:
+            lines.append(
+                "⚠️ <b>توجه مهم:</b> این بسته متصل به سرور ایران (🇮🇷) است و منحصراً برای دسترسی به سایت‌های بانکی و دولتی ایران از خارج کشور کاربرد دارد."
+            )
+        elif "تانل" in squad_name or "tunnel" in sq_lower:
+            lines.append(
+                "🚀 <b>سرویس تانل اختصاصی:</b> مجهز به تانل اختصاصی جهت پایداری بالا در تمامی اپراتورها."
+            )
+
     lines.extend([
         f"📦 حجم ترافیک : <b>{gb} گیگابایت</b>",
         f"⏳ مدت زمان اعتبار : <b>{days} روز</b>",
-        "👥 کاربر همزمان مجاز : <b>2 دستگاه</b>",
+        f"👥 کاربر همزمان مجاز : <b>{hwid} دستگاه</b>",
         SEPARATOR,
         f"💰 تعرفه بدون تخفیف : {fmt(raw_base)} تومان",
     ])
@@ -372,7 +449,7 @@ async def _build_custom_plan_summary(user, session, store_settings, gb: int, day
     if balance >= final_price:
         kb.button(
             text="✅ خرید و فعال‌سازی از کیف پول",
-            callback_data=f"cplan:buy:{gb}:{days}",
+            callback_data=f"cplan:buy:{gb}:{days}:{hwid}",
         )
     else:
         shortage = final_price - balance
@@ -386,8 +463,23 @@ async def _build_custom_plan_summary(user, session, store_settings, gb: int, day
     return lines, kb
 
 
-async def _render_custom_plan_preview(call: CallbackQuery, bot: Bot, user, user_repo, session, store_settings, gb: int, days: int, cache, lang: str, squad_name: str | None = None):
-    lines, kb = await _build_custom_plan_summary(user, session, store_settings, gb, days, cache, lang, squad_name)
+async def _render_custom_plan_preview(
+    call: CallbackQuery,
+    bot: Bot,
+    user,
+    user_repo,
+    session,
+    store_settings,
+    gb: int,
+    days: int,
+    hwid: int,
+    cache,
+    lang: str,
+    squad_name: str | None = None,
+):
+    lines, kb = await _build_custom_plan_summary(
+        user, session, store_settings, gb, days, hwid, cache, lang, squad_name
+    )
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
     await call.answer()
 
@@ -406,7 +498,15 @@ async def custom_plan_execute_purchase(
     parts = call.data.split(":")
     gb = parse_int(parts[2]) if len(parts) > 2 else None
     days = parse_int(parts[3]) if len(parts) > 3 else None
-    target_acc_spec = parts[4] if len(parts) > 4 else None
+    hwid = 1
+    target_acc_spec = None
+    if len(parts) > 4:
+        if parts[4].isdigit():
+            hwid = parse_int(parts[4]) or 1
+            if len(parts) > 5:
+                target_acc_spec = parts[5]
+        else:
+            target_acc_spec = parts[4]
 
     if call.from_user.id in _PURCHASE_LOCKS:
         await call.answer()
@@ -440,7 +540,9 @@ async def custom_plan_execute_purchase(
             await call.answer("تعرفه بسته دلخواه هنوز توسط مدیریت تنظیم نشده است.", show_alert=True)
             return
 
-        raw_base, volume_pct, base_price = compute_custom_plan_price(gb, days, store_settings)
+        raw_base, volume_pct, base_price = compute_custom_plan_price(
+            gb, days, store_settings, hwid_limit=hwid
+        )
         if base_price <= 0:
             await call.answer("تعرفه محاسبه شده نامعتبر است.", show_alert=True)
             return
@@ -468,7 +570,7 @@ async def custom_plan_execute_purchase(
             price=base_price,
             duration_days=days,
             traffic_gb=gb,
-            hwid_limit=2,
+            hwid_limit=hwid,
             squad_uuid=target_squad,
             badge="custom",
             traffic_strategy="NO_RESET",
@@ -495,11 +597,11 @@ async def custom_plan_execute_purchase(
                 uname = escape(str(acc.get("username", "—")))
                 kb_pick.button(
                     text=f"👤 {uname}",
-                    callback_data=f"cplan:buy:{gb}:{days}:{acc.get('id')}",
+                    callback_data=f"cplan:buy:{gb}:{days}:{hwid}:{acc.get('id')}",
                 )
             kb_pick.button(
                 text="➕ ساخت اکانت جدید",
-                callback_data=f"cplan:buy:{gb}:{days}:new",
+                callback_data=f"cplan:buy:{gb}:{days}:{hwid}:new",
             )
             kb_pick.button(text="🔙 بازگشت", callback_data="menu:custom_plan")
             kb_pick.adjust(1)

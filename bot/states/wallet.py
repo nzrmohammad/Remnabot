@@ -6,3 +6,4 @@ class TopupStates(StatesGroup):
     waiting_amount = State()
     waiting_receipt = State()
     waiting_voucher = State()
+    waiting_tx_hash = State()

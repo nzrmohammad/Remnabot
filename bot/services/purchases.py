@@ -473,15 +473,26 @@ async def _execute_purchase_impl(
             should_reset_traffic = True
         elif strategy == "NO_RESET":
             base = now
-            if current_expire is not None and current_expire > now:
-                # Still active -> extend from existing expiration date, stack traffic
-                base = current_expire
+            store_set = await get_store_settings(session)
+            grace_raw = getattr(store_set, "expiry_grace_days", 1)
+            try:
+                grace_days = int(grace_raw)
+            except (TypeError, ValueError):
+                grace_days = 1
+            grace_seconds = max(1, grace_days) * 86400
+            is_within_grace = (
+                current_expire is not None
+                and (current_expire > now or (now - current_expire).total_seconds() <= grace_seconds)
+            )
+            if is_within_grace:
+                # Still active or within grace period -> extend expiration & rollover/stack traffic
+                base = current_expire if current_expire > now else now
                 expire_iso = _iso(_expire_from(service.duration_days, base))
                 traffic = _traffic_bytes(
                     service.traffic_gb, int(account.get("trafficLimitBytes") or 0), strategy
                 )
             else:
-                # Already expired -> start fresh from today, defer reset used traffic to Step 3
+                # Already expired past grace period -> start fresh from today, defer reset used traffic to Step 3
                 expire_iso = _iso(_expire_from(service.duration_days, base))
                 traffic = _traffic_bytes(service.traffic_gb, 0, strategy)
                 should_reset_traffic = True
