@@ -126,7 +126,7 @@ def test_soft_tint_badges_retain_color():
     """Ensure badges with soft tints (e.g. bg-emerald-500/20 text-emerald-400) exist and are untainted."""
     app_html = APP_HTML_PATH.read_text(encoding="utf-8")
     assert 'bg-emerald-500/20 text-emerald-400' in app_html, "Missing expected status badge in app.html"
-    assert 'bg-blue-500/15' in app_html, "Missing expected icon container in app.html"
+    assert 'bg-amber-500/15' in app_html, "Missing expected icon container in app.html"
     admin_html = ADMIN_HTML_PATH.read_text(encoding="utf-8")
     assert 'bg-blue-600/20 text-blue-400' in admin_html, "Missing expected filter badge in admin.html"
 

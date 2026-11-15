@@ -3240,21 +3240,21 @@ function hydrateUserInterface(data) {
     const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
     if (profStatusBadge) {
       if (hasActiveSub) {
-        profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🟢</span><span>کاربر فعال</span></span>';
-        profStatusBadge.className = 'badge badge-success rounded-full text-[11px] font-bold inline-flex items-center gap-1';
+        profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm"></span><span>کاربر فعال</span></span>';
+        profStatusBadge.className = 'text-[11px] font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5';
       } else {
-        profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚪️</span><span>بدون سرویس فعال</span></span>';
-        profStatusBadge.className = 'badge badge-warn rounded-full text-[11px] font-bold inline-flex items-center gap-1';
+        profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block shadow-sm"></span><span>بدون سرویس فعال</span></span>';
+        profStatusBadge.className = 'text-[11px] font-bold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1.5';
       }
     }
 
     if (profAuthBadge) {
       if (hasPhone) {
-        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>🛡️</span><span>حساب تأییدشده</span></span>';
-        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1 transition';
+        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/shield.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>حساب تأییدشده</span></span>';
+        profAuthBadge.className = 'text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5 transition';
       } else {
-        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1"><span>⚠️</span><span>نیازمند احراز شماره</span></span>';
-        profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 inline-flex items-center gap-1 transition';
+        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/warning.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>نیازمند احراز شماره</span></span>';
+        profAuthBadge.className = 'text-[10.5px] font-bold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1.5 transition';
       }
     }
 
@@ -3328,7 +3328,7 @@ function hydrateUserInterface(data) {
         const tierId = String(loyalty.id || 'bronze').toLowerCase();
         const tierColorMap = {
           bronze: 'text-amber-600 dark:text-amber-500',
-          silver: 'text-slate-400 dark:text-slate-200',
+          silver: 'text-slate-600 dark:text-slate-100 font-black tracking-tight',
           gold: 'text-amber-500 dark:text-amber-400',
           platinum: 'text-cyan-500 dark:text-cyan-400',
           ruby: 'text-purple-500 dark:text-purple-400',
@@ -3343,10 +3343,10 @@ function hydrateUserInterface(data) {
         const discBadge = $('loyaltyDiscountBadge');
         if (discBadge) {
           if (loyalty.discount_percent > 0) {
-            discBadge.className = 'px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+            discBadge.className = 'px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
             discBadge.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف`;
           } else {
-            discBadge.className = 'px-2 py-0.5 rounded-lg text-[11px] font-medium bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-card-border';
+            discBadge.className = 'px-2 py-0.5 rounded-lg text-[11px] font-medium bg-slate-500/10 text-slate-500 dark:text-slate-400';
             discBadge.innerText = 'بدون تخفیف';
           }
         }
