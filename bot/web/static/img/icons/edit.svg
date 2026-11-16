@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <defs>
-    <linearGradient id="ri_edit" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#94a3b8"/>
-      <stop offset="1" stop-color="#475569"/>
-    </linearGradient>
-  </defs>
-  <g fill="none">
-    <path fill="url(#ri_edit)" d="M9.24264 18.9967H21V20.9967H3V16.754L12.8995 6.85453L17.1421 11.0972L9.24264 18.9967ZM14.3137 5.44032L16.435 3.319C16.8256 2.92848 17.4587 2.92848 17.8492 3.319L20.6777 6.14743C21.0682 6.53795 21.0682 7.17112 20.6777 7.56164L18.5563 9.68296L14.3137 5.44032Z"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><g fill="none"><path fill="#ff822d" d="m16.635 7.585l4.51 2.535l2.561 4.537L9.37 28.993l-4.862-2.57l-2.21-4.5z"/><path fill="#ffce7c" d="m1.39 28.065l.582 1.312l1.255.525l6.13-.925l-7.042-7.042z"/><path fill="#402a32" d="m1.063 30.229l.326-2.164l1.838 1.837z"/><path fill="#f92f60" d="M22.276 1.944a2 2 0 0 1 2.829 0l4.242 4.243a2 2 0 0 1 0 2.828l-3.535 3.536l-4.527-2.264L18.74 5.48z"/><path fill="#d3d3d3" d="m18.74 5.48l7.072 7.071l-2.122 2.121l-7.07-7.07z"/></g></svg>

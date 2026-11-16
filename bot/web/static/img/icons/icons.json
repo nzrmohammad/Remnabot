@@ -1,650 +1,462 @@
 {
   "dashboard": {
-    "remix_source": "System/dashboard-fill.svg",
-    "category": "System",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:bar-chart",
+    "category": "Navigation",
+    "style": "fluent-3d-flat"
   },
   "reports": {
-    "remix_source": "Business/bar-chart-2-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:page-with-curl",
+    "category": "Navigation",
+    "style": "fluent-3d-flat"
   },
   "shop": {
-    "remix_source": "Finance/shopping-bag-3-fill.svg",
-    "category": "Finance",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:shopping-cart",
+    "category": "Navigation",
+    "style": "fluent-3d-flat"
   },
   "wallet": {
-    "remix_source": "Finance/wallet-3-fill.svg",
-    "category": "Finance",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:purse",
+    "category": "Navigation",
+    "style": "fluent-3d-flat"
   },
   "profile": {
-    "remix_source": "User & Faces/user-3-fill.svg",
-    "category": "User & Faces",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:bust-in-silhouette",
+    "category": "Navigation",
+    "style": "fluent-3d-flat"
   },
   "settings": {
-    "remix_source": "System/settings-3-fill.svg",
+    "source": "fluent-emoji-flat:gear",
     "category": "System",
-    "colors": [
-      "#0284c7",
-      "#0369a1"
-    ]
+    "style": "fluent-3d-flat"
   },
   "users": {
-    "remix_source": "User & Faces/team-fill.svg",
-    "category": "User & Faces",
-    "colors": [
-      "#38bdf8",
-      "#2563eb"
-    ]
+    "source": "fluent-emoji-flat:busts-in-silhouette",
+    "category": "System",
+    "style": "fluent-3d-flat"
   },
   "nodes": {
-    "remix_source": "Device/server-fill.svg",
-    "category": "Device",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:control-knobs",
+    "category": "System",
+    "style": "fluent-3d-flat"
   },
   "finance": {
-    "remix_source": "Finance/money-dollar-circle-fill.svg",
+    "source": "fluent-emoji-flat:money-bag",
     "category": "Finance",
-    "colors": [
-      "#34d399",
-      "#059669"
-    ]
+    "style": "fluent-3d-flat"
   },
   "plans": {
-    "remix_source": "Business/archive-stack-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#a78bfa",
-      "#6366f1"
-    ]
+    "source": "fluent-emoji-flat:package",
+    "category": "Commerce",
+    "style": "fluent-3d-flat"
   },
   "package": {
-    "remix_source": "Business/archive-stack-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#38bdf8",
-      "#2563eb"
-    ]
+    "source": "fluent-emoji-flat:package",
+    "category": "Commerce",
+    "style": "fluent-3d-flat"
   },
   "zap": {
-    "remix_source": "Weather/flashlight-fill.svg",
-    "category": "Weather",
-    "colors": [
-      "#f59e0b",
-      "#d97706"
-    ]
+    "source": "fluent-emoji-flat:high-voltage",
+    "category": "Status",
+    "style": "fluent-3d-flat"
   },
   "lightning": {
-    "remix_source": "Weather/flashlight-fill.svg",
-    "category": "Weather",
-    "colors": [
-      "#f59e0b",
-      "#d97706"
-    ]
+    "source": "fluent-emoji-flat:high-voltage",
+    "category": "Status",
+    "style": "fluent-3d-flat"
   },
   "shield": {
-    "remix_source": "System/shield-check-fill.svg",
-    "category": "System",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:shield",
+    "category": "Security",
+    "style": "fluent-3d-flat"
   },
   "lock-shield": {
-    "remix_source": "System/shield-keyhole-fill.svg",
-    "category": "System",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:locked",
+    "category": "Security",
+    "style": "fluent-3d-flat"
   },
   "lock_shield": {
-    "remix_source": "System/shield-keyhole-fill.svg",
-    "category": "System",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:locked",
+    "category": "Security",
+    "style": "fluent-3d-flat"
   },
   "rocket": {
-    "remix_source": "Map/rocket-2-fill.svg",
-    "category": "Map",
-    "colors": [
-      "#f43f5e",
-      "#be123c"
-    ]
+    "source": "fluent-emoji-flat:rocket",
+    "category": "Actions",
+    "style": "fluent-3d-flat"
   },
   "gift": {
-    "remix_source": "Finance/gift-2-fill.svg",
-    "category": "Finance",
-    "colors": [
-      "#ec4899",
-      "#be185d"
-    ]
+    "source": "fluent-emoji-flat:wrapped-gift",
+    "category": "Marketing",
+    "style": "fluent-3d-flat"
   },
   "cart": {
-    "remix_source": "Finance/shopping-cart-2-fill.svg",
-    "category": "Finance",
-    "colors": [
-      "#34d399",
-      "#059669"
-    ]
+    "source": "fluent-emoji-flat:shopping-cart",
+    "category": "Commerce",
+    "style": "fluent-3d-flat"
   },
   "trophy": {
-    "remix_source": "Finance/trophy-fill.svg",
-    "category": "Finance",
-    "colors": [
-      "#fbbf24",
-      "#d97706"
-    ]
+    "source": "fluent-emoji-flat:trophy",
+    "category": "Gamification",
+    "style": "fluent-3d-flat"
   },
   "award": {
-    "remix_source": "Business/award-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#fbbf24",
-      "#d97706"
-    ]
+    "source": "fluent-emoji-flat:military-medal",
+    "category": "Gamification",
+    "style": "fluent-3d-flat"
   },
   "crown": {
-    "remix_source": "Finance/vip-crown-2-fill.svg",
-    "category": "Finance",
-    "colors": [
-      "#fbbf24",
-      "#d97706"
-    ]
+    "source": "fluent-emoji-flat:crown",
+    "category": "Gamification",
+    "style": "fluent-3d-flat"
   },
   "diamond": {
-    "remix_source": "Finance/vip-diamond-fill.svg",
-    "category": "Finance",
-    "colors": [
-      "#0284c7",
-      "#1d4ed8"
-    ]
+    "source": "fluent-emoji-flat:gem-stone",
+    "category": "Gamification",
+    "style": "fluent-3d-flat"
   },
   "star": {
-    "remix_source": "System/star-fill.svg",
-    "category": "System",
-    "colors": [
-      "#fbbf24",
-      "#f59e0b"
-    ]
+    "source": "fluent-emoji-flat:star",
+    "category": "Gamification",
+    "style": "fluent-3d-flat"
   },
   "sparkles": {
-    "remix_source": "Weather/sparkling-2-fill.svg",
-    "category": "Weather",
-    "colors": [
-      "#f472b6",
-      "#c084fc"
-    ]
+    "source": "fluent-emoji-flat:sparkle",
+    "category": "Gamification",
+    "style": "fluent-3d-flat"
   },
   "flame": {
-    "remix_source": "Weather/fire-fill.svg",
-    "category": "Weather",
-    "colors": [
-      "#fb923c",
-      "#ea580c"
-    ]
+    "source": "fluent-emoji-flat:fire",
+    "category": "Status",
+    "style": "fluent-3d-flat"
   },
   "clock": {
-    "remix_source": "System/time-fill.svg",
-    "category": "System",
-    "colors": [
-      "#ea580c",
-      "#9a3412"
-    ]
+    "source": "fluent-emoji-flat:alarm-clock",
+    "category": "Time",
+    "style": "fluent-3d-flat"
   },
   "calendar": {
-    "remix_source": "Business/calendar-2-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#0284c7",
-      "#0369a1"
-    ]
-  },
-  "copy": {
-    "remix_source": "Document/file-copy-2-fill.svg",
-    "category": "Document",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:tear-off-calendar",
+    "category": "Time",
+    "style": "fluent-3d-flat"
   },
   "check": {
-    "remix_source": "System/checkbox-circle-fill.svg",
-    "category": "System",
-    "colors": [
-      "#34d399",
-      "#10b981"
-    ]
+    "source": "fluent-emoji-flat:check-mark-button",
+    "category": "Status",
+    "style": "fluent-3d-flat"
   },
   "cross": {
-    "remix_source": "System/close-circle-fill.svg",
-    "category": "System",
-    "colors": [
-      "#f87171",
-      "#ef4444"
-    ]
-  },
-  "close": {
-    "remix_source": "System/close-line.svg",
-    "category": "System",
-    "colors": [
-      "#94a3b8",
-      "#64748b"
-    ]
-  },
-  "chevron-down": {
-    "remix_source": "Arrows/arrow-down-s-line.svg",
-    "category": "Arrows",
-    "colors": [
-      "#94a3b8",
-      "#64748b"
-    ]
-  },
-  "arrow-left": {
-    "remix_source": "Arrows/arrow-left-s-line.svg",
-    "category": "Arrows",
-    "colors": [
-      "#94a3b8",
-      "#64748b"
-    ]
+    "source": "fluent-emoji-flat:cross-mark",
+    "category": "Status",
+    "style": "fluent-3d-flat"
   },
   "warning": {
-    "remix_source": "System/error-warning-fill.svg",
-    "category": "System",
-    "colors": [
-      "#fbbf24",
-      "#f59e0b"
-    ]
+    "source": "fluent-emoji-flat:warning",
+    "category": "Status",
+    "style": "fluent-3d-flat"
   },
   "ban": {
-    "remix_source": "System/forbid-2-fill.svg",
-    "category": "System",
-    "colors": [
-      "#f87171",
-      "#ef4444"
-    ]
+    "source": "fluent-emoji-flat:prohibited",
+    "category": "Status",
+    "style": "fluent-3d-flat"
   },
   "trash": {
-    "remix_source": "System/delete-bin-6-fill.svg",
-    "category": "System",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:wastebasket",
+    "category": "Actions",
+    "style": "fluent-3d-flat"
   },
   "edit": {
-    "remix_source": "Design/edit-2-fill.svg",
-    "category": "Design",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
-  },
-  "plus": {
-    "remix_source": "System/add-line.svg",
-    "category": "System",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
-  },
-  "search": {
-    "remix_source": "System/search-2-line.svg",
-    "category": "System",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:pencil",
+    "category": "Actions",
+    "style": "fluent-3d-flat"
   },
   "globe": {
-    "remix_source": "Business/global-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#0284c7",
-      "#0369a1"
-    ]
+    "source": "fluent-emoji-flat:globe-with-meridians",
+    "category": "Network",
+    "style": "fluent-3d-flat"
   },
   "link": {
-    "remix_source": "Editor/link-m.svg",
-    "category": "Editor",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:link",
+    "category": "Network",
+    "style": "fluent-3d-flat"
   },
   "key": {
-    "remix_source": "Others/key-2-fill.svg",
-    "category": "Others",
-    "colors": [
-      "#f59e0b",
-      "#b45309"
-    ]
+    "source": "fluent-emoji-flat:key",
+    "category": "Security",
+    "style": "fluent-3d-flat"
   },
   "phone": {
-    "remix_source": "Device/smartphone-fill.svg",
+    "source": "fluent-emoji-flat:mobile-phone",
     "category": "Device",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "style": "fluent-3d-flat"
   },
   "desktop": {
-    "remix_source": "Device/computer-fill.svg",
+    "source": "fluent-emoji-flat:desktop-computer",
     "category": "Device",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "style": "fluent-3d-flat"
   },
   "antenna": {
-    "remix_source": "Media/broadcast-fill.svg",
-    "category": "Media",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:satellite-antenna",
+    "category": "Network",
+    "style": "fluent-3d-flat"
   },
   "signal": {
-    "remix_source": "Device/signal-cellular-3-fill.svg",
-    "category": "Device",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
-  },
-  "wifi": {
-    "remix_source": "Device/wifi-fill.svg",
-    "category": "Device",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:antenna-bars",
+    "category": "Network",
+    "style": "fluent-3d-flat"
   },
   "chat": {
-    "remix_source": "Communication/chat-3-fill.svg",
+    "source": "fluent-emoji-flat:speech-balloon",
     "category": "Communication",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "style": "fluent-3d-flat"
   },
   "support": {
-    "remix_source": "Business/customer-service-2-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "source": "fluent-emoji-flat:headphone",
+    "category": "Communication",
+    "style": "fluent-3d-flat"
   },
   "ticket": {
-    "remix_source": "Finance/coupon-3-fill.svg",
-    "category": "Finance",
-    "colors": [
-      "#fbbf24",
-      "#d97706"
-    ]
+    "source": "fluent-emoji-flat:ticket",
+    "category": "Marketing",
+    "style": "fluent-3d-flat"
   },
   "cake": {
-    "remix_source": "Food/cake-3-fill.svg",
-    "category": "Food",
-    "colors": [
-      "#f472b6",
-      "#db2777"
-    ]
+    "source": "fluent-emoji-flat:birthday-cake",
+    "category": "Marketing",
+    "style": "fluent-3d-flat"
   },
   "receipt": {
-    "remix_source": "Document/bill-fill.svg",
-    "category": "Document",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:receipt",
+    "category": "Finance",
+    "style": "fluent-3d-flat"
   },
   "coins": {
-    "remix_source": "Finance/coin-fill.svg",
+    "source": "fluent-emoji-flat:coin",
     "category": "Finance",
-    "colors": [
-      "#fbbf24",
-      "#d97706"
-    ]
+    "style": "fluent-3d-flat"
   },
   "credit-card": {
-    "remix_source": "Finance/bank-card-2-fill.svg",
+    "source": "fluent-emoji-flat:credit-card",
     "category": "Finance",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "style": "fluent-3d-flat"
   },
   "credit_card": {
-    "remix_source": "Finance/bank-card-2-fill.svg",
+    "source": "fluent-emoji-flat:credit-card",
     "category": "Finance",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "style": "fluent-3d-flat"
   },
   "sun": {
-    "remix_source": "Weather/sun-fill.svg",
-    "category": "Weather",
-    "colors": [
-      "#fbbf24",
-      "#f59e0b"
-    ]
+    "source": "fluent-emoji-flat:sun",
+    "category": "Theme",
+    "style": "fluent-3d-flat"
   },
   "moon": {
-    "remix_source": "Weather/moon-clear-fill.svg",
-    "category": "Weather",
-    "colors": [
-      "#818cf8",
-      "#6366f1"
-    ]
+    "source": "fluent-emoji-flat:crescent-moon",
+    "category": "Theme",
+    "style": "fluent-3d-flat"
   },
   "sunrise": {
-    "remix_source": "Weather/sun-cloudy-fill.svg",
-    "category": "Weather",
-    "colors": [
-      "#fb923c",
-      "#ea580c"
-    ]
+    "source": "fluent-emoji-flat:sunrise",
+    "category": "Theme",
+    "style": "fluent-3d-flat"
   },
   "sunset": {
-    "remix_source": "Weather/sun-cloudy-fill.svg",
-    "category": "Weather",
-    "colors": [
-      "#f43f5e",
-      "#be123c"
-    ]
+    "source": "fluent-emoji-flat:sunset",
+    "category": "Theme",
+    "style": "fluent-3d-flat"
   },
   "sync": {
-    "remix_source": "System/refresh-line.svg",
-    "category": "System",
-    "colors": [
-      "#0284c7",
-      "#0369a1"
-    ]
+    "source": "fluent-emoji-flat:counterclockwise-arrows-button",
+    "category": "Actions",
+    "style": "fluent-3d-flat"
   },
   "inbox": {
-    "remix_source": "Business/inbox-archive-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#059669",
-      "#047857"
-    ]
-  },
-  "download": {
-    "remix_source": "System/download-2-fill.svg",
+    "source": "fluent-emoji-flat:inbox-tray",
     "category": "System",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "style": "fluent-3d-flat"
   },
   "database": {
-    "remix_source": "Device/database-2-fill.svg",
-    "category": "Device",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:card-file-box",
+    "category": "System",
+    "style": "fluent-3d-flat"
   },
   "wheel": {
-    "remix_source": "Device/gamepad-fill.svg",
-    "category": "Device",
-    "colors": [
-      "#ec4899",
-      "#8b5cf6"
-    ]
+    "source": "fluent-emoji-flat:slot-machine",
+    "category": "Gamification",
+    "style": "fluent-3d-flat"
   },
-  "qr": {
-    "remix_source": "Device/qr-code-fill.svg",
-    "category": "Device",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+  "gamepad": {
+    "source": "fluent-emoji-flat:video-game",
+    "category": "Gamification",
+    "style": "fluent-3d-flat"
   },
   "layers": {
-    "remix_source": "Business/stack-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:card-index-dividers",
+    "category": "System",
+    "style": "fluent-3d-flat"
   },
   "route": {
-    "remix_source": "Map/route-fill.svg",
-    "category": "Map",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:compass",
+    "category": "Navigation",
+    "style": "fluent-3d-flat"
   },
   "recycle": {
-    "remix_source": "Others/recycle-fill.svg",
-    "category": "Others",
-    "colors": [
-      "#94a3b8",
-      "#475569"
-    ]
+    "source": "fluent-emoji-flat:recycling-symbol",
+    "category": "System",
+    "style": "fluent-3d-flat"
   },
   "lightbulb": {
-    "remix_source": "Others/lightbulb-flash-fill.svg",
-    "category": "Others",
-    "colors": [
-      "#d97706",
-      "#92400e"
-    ]
+    "source": "fluent-emoji-flat:light-bulb",
+    "category": "Tips",
+    "style": "fluent-3d-flat"
+  },
+  "pie-chart": {
+    "source": "fluent-emoji-flat:chart-increasing",
+    "category": "Reports",
+    "style": "fluent-3d-flat"
+  },
+  "bell": {
+    "source": "fluent-emoji-flat:bell",
+    "category": "Notifications",
+    "style": "fluent-3d-flat"
+  },
+  "tutorial": {
+    "source": "fluent-emoji-flat:open-book",
+    "category": "Help",
+    "style": "fluent-3d-flat"
+  },
+  "faq": {
+    "source": "fluent-emoji-flat:red-question-mark",
+    "category": "Help",
+    "style": "fluent-3d-flat"
   },
   "medal-gold": {
-    "remix_source": "Business/medal-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#fbbf24",
-      "#d97706"
-    ]
-  },
-  "medal-silver": {
-    "remix_source": "Business/medal-2-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#94a3b8",
-      "#64748b"
-    ]
-  },
-  "medal-bronze": {
-    "remix_source": "Business/medal-line.svg",
-    "category": "Business",
-    "colors": [
-      "#d97706",
-      "#92400e"
-    ]
+    "source": "fluent-emoji-flat:1st-place-medal",
+    "category": "Loyalty",
+    "style": "fluent-3d-flat"
   },
   "medal_gold": {
-    "remix_source": "Business/medal-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#fbbf24",
-      "#d97706"
-    ]
+    "source": "fluent-emoji-flat:1st-place-medal",
+    "category": "Loyalty",
+    "style": "fluent-3d-flat"
+  },
+  "medal-silver": {
+    "source": "fluent-emoji-flat:2nd-place-medal",
+    "category": "Loyalty",
+    "style": "fluent-3d-flat"
   },
   "medal_silver": {
-    "remix_source": "Business/medal-2-fill.svg",
-    "category": "Business",
-    "colors": [
-      "#94a3b8",
-      "#64748b"
-    ]
+    "source": "fluent-emoji-flat:2nd-place-medal",
+    "category": "Loyalty",
+    "style": "fluent-3d-flat"
+  },
+  "medal-bronze": {
+    "source": "fluent-emoji-flat:3rd-place-medal",
+    "category": "Loyalty",
+    "style": "fluent-3d-flat"
   },
   "medal_bronze": {
-    "remix_source": "Business/medal-line.svg",
-    "category": "Business",
-    "colors": [
-      "#d97706",
-      "#92400e"
-    ]
+    "source": "fluent-emoji-flat:3rd-place-medal",
+    "category": "Loyalty",
+    "style": "fluent-3d-flat"
   },
-  "ios": {
-    "remix_source": "Logos/apple-fill.svg",
-    "category": "Logos",
-    "colors": [
-      "#94a3b8",
-      "#64748b"
-    ]
+  "chevron-down": {
+    "source": "fluent:chevron-down",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "arrow-left": {
+    "source": "fluent:arrow-left",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "copy": {
+    "source": "fluent:copy",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "plus": {
+    "source": "fluent:plus",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "search": {
+    "source": "fluent:search",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "download": {
+    "source": "fluent:download",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "pause": {
+    "source": "fluent:pause",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "play": {
+    "source": "fluent:play",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "play-btn": {
+    "source": "fluent:play-btn",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "qr": {
+    "source": "fluent:qr",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "wifi": {
+    "source": "fluent:wifi",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
+  },
+  "close": {
+    "source": "fluent:close",
+    "category": "Controls",
+    "style": "fluent-ui-filled"
   },
   "android": {
-    "remix_source": "Logos/android-fill.svg",
+    "source": "official-brand:android",
     "category": "Logos",
-    "colors": [
-      "#3ddc84",
-      "#10b981"
-    ]
+    "style": "official-vector"
   },
   "windows": {
-    "remix_source": "Logos/windows-fill.svg",
+    "source": "official-brand:windows",
     "category": "Logos",
-    "colors": [
-      "#38bdf8",
-      "#0284c7"
-    ]
+    "style": "official-vector"
+  },
+  "polygon": {
+    "source": "official-brand:polygon",
+    "category": "Logos",
+    "style": "official-vector"
+  },
+  "ios": {
+    "source": "official-brand:ios",
+    "category": "Logos",
+    "style": "official-vector"
   },
   "macos": {
-    "remix_source": "Device/macbook-fill.svg",
-    "category": "Device",
-    "colors": [
-      "#94a3b8",
-      "#64748b"
-    ]
+    "source": "official-brand:macos",
+    "category": "Logos",
+    "style": "official-vector"
   },
   "linux": {
-    "remix_source": "Development/terminal-box-fill.svg",
-    "category": "Development",
-    "colors": [
-      "#fbbf24",
-      "#f59e0b"
-    ]
+    "source": "official-brand:linux",
+    "category": "Logos",
+    "style": "official-vector"
+  },
+  "ton": {
+    "source": "official-brand:ton",
+    "category": "Logos",
+    "style": "official-vector"
+  },
+  "tron": {
+    "source": "official-brand:tron",
+    "category": "Logos",
+    "style": "official-vector"
   }
 }

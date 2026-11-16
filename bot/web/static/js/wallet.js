@@ -2116,7 +2116,7 @@ function setupWalletListeners() {
         showToast('خطا در برقراری ارتباط با سرور.', 'error');
       } finally {
         redeemBtn.disabled = false;
-        redeemBtn.innerHTML = '<span class="inline-flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>اعمال</span></span>';
+        redeemBtn.innerHTML = '<span class="inline-flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>اعمال</span></span>';
       }
     });
   }

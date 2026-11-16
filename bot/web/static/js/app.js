@@ -412,15 +412,15 @@ function setupConfigsModal() {
         <div class="config-row-item card-inset p-2.5 rounded-2xl flex items-center justify-between gap-2.5 transition hover:border-slate-500 border border-card-border">
           <div class="flex items-center gap-1.5 shrink-0">
             <button type="button" class="copy-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
-              <img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />
+              <img src="/static/img/icons/copy.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />
             </button>
             <button type="button" class="qr-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
-              <img src="/static/img/icons/qr.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کیوآرکد" />
+              <img src="/static/img/icons/qr.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کیوآرکد" />
             </button>
           </div>
           <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0" dir="ltr">
             <span class="w-7 h-7 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
-              <img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+              <img src="/static/img/icons/zap.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
             </span>
             <div class="min-w-0 flex-1 text-left">
               <span class="text-xs font-bold t-main truncate block config-name-label" title="${safeName}">${safeName}</span>
@@ -438,9 +438,9 @@ function setupConfigsModal() {
         if (uri) {
           copyToClipboard(uri, 'کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.');
           hapticFeedback('success');
-          btn.innerHTML = '<img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی شد" />';
+          btn.innerHTML = '<img src="/static/img/icons/check.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی شد" />';
           setTimeout(() => {
-            btn.innerHTML = '<img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />';
+            btn.innerHTML = '<img src="/static/img/icons/copy.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />';
           }, 1800);
         }
       });
@@ -2531,7 +2531,7 @@ function setupAccountSwitcher() {
             ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : 'نامحدود'}
           </span>
         </div>
-        ${acc.is_active ? '<span class="text-xs text-blue-500 dark:text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/30 inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /><span>فعال</span></span>' : '<span class="text-xs text-slate-400 bg-transparent border border-card-border px-2 py-0.5 rounded-full">انتخاب</span>'}
+        ${acc.is_active ? '<span class="text-xs text-blue-500 dark:text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/30 inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /><span>فعال</span></span>' : '<span class="text-xs text-slate-400 bg-transparent border border-card-border px-2 py-0.5 rounded-full">انتخاب</span>'}
       </button>
     `).join('');
 
@@ -3189,7 +3189,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center select-none translate-y-1" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
+        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center select-none translate-y-1" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=fl1" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -3250,20 +3250,20 @@ function hydrateUserInterface(data) {
 
     if (profAuthBadge) {
       if (hasPhone) {
-        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/shield.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>حساب تأییدشده</span></span>';
+        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/shield.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>حساب تأییدشده</span></span>';
         profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5 transition';
       } else {
-        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/warning.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>نیازمند احراز شماره</span></span>';
+        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/warning.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>نیازمند احراز شماره</span></span>';
         profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-transparent text-amber-600 dark:text-amber-400 border border-amber-500/40 inline-flex items-center gap-1.5 transition';
       }
     }
 
     if (profSub) {
       if (hasActiveSub) {
-        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none translate-y-1" title="سرویس فعال"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="فعال" /></span>';
+        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none translate-y-1" title="سرویس فعال"><img src="/static/img/icons/check.svg?v=fl1" class="ui-icon-img w-4 h-4 inline-block" alt="فعال" /></span>';
         profSub.className = 'inline-block';
       } else {
-        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none translate-y-1" title="سرویس غیرفعال"><img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-4 h-4 inline-block" alt="غیرفعال" /></span>';
+        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none translate-y-1" title="سرویس غیرفعال"><img src="/static/img/icons/close.svg?v=fl1" class="ui-icon-img w-4 h-4 inline-block" alt="غیرفعال" /></span>';
         profSub.className = 'inline-block';
       }
     }
@@ -3306,7 +3306,7 @@ function hydrateUserInterface(data) {
       if (isLoyaltyEnabled) {
         headerBadge.innerHTML = typeof uiEmojiIcon === 'function'
           ? uiEmojiIcon(loyalty.icon || '🥈', 'w-5 h-5')
-          : `<img src="/static/img/icons/medal-silver.svg?v=ri7" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />`;
+          : `<img src="/static/img/icons/medal-silver.svg?v=fl1" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />`;
         headerBadge.classList.remove('hidden');
         headerBadge.className = 'w-7 h-7 flex items-center justify-center bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
       } else {
@@ -4831,13 +4831,13 @@ function renderGiftServiceSelectModalList() {
 
     let specsHtml = '';
     if (isTimeOnly) {
-      specsHtml = `<span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${p.duration_days} روز</b></span>`;
+      specsHtml = `<span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${p.duration_days} روز</b></span>`;
     } else if (isTrafficOnly) {
-      specsHtml = `<span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${fmtTraffic(p.traffic_gb, { html: false })}</b></span>`;
+      specsHtml = `<span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${fmtTraffic(p.traffic_gb, { html: false })}</b></span>`;
     } else {
       specsHtml = `
-        <span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود'}</b></span>
-        <span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${p.traffic_gb > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود'}</b></span>
+        <span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود'}</b></span>
+        <span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${p.traffic_gb > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود'}</b></span>
       `;
     }
 
@@ -5121,8 +5121,8 @@ async function loadGiftsHistory() {
     container.innerHTML = sent.map(g => {
       const isClaimed = g.is_claimed;
       const statusBadge = isClaimed
-        ? '<span class="text-emerald-500 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />دریافت شده</span>'
-        : '<span class="text-amber-500 font-bold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />در انتظار دریافت</span>';
+        ? '<span class="text-emerald-500 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=fl1" class="ui-icon-img w-3 h-3 inline-block" alt="" />دریافت شده</span>'
+        : '<span class="text-amber-500 font-bold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=fl1" class="ui-icon-img w-3 h-3 inline-block" alt="" />در انتظار دریافت</span>';
       const desc = g.gift_type === 'BALANCE'
         ? `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`
         : `اشتراک ${g.service_name || 'سرویس'}`;
@@ -5142,10 +5142,10 @@ async function loadGiftsHistory() {
             <span dir="ltr" class="font-sans num-bidi">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[11px] border-t border-card-border pt-1">
-            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('لینک کپی شد!');" class="text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" alt="" /> کپی لینک</button>` : '<span></span>'}
+            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('لینک کپی شد!');" class="text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><img src="/static/img/icons/copy.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" alt="" /> کپی لینک</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
               <span class="font-sans num-bidi t-muted text-[11px] select-all">${g.code}</span>
-              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد"><img src="/static/img/icons/copy.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="کپی" /></button>
+              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد"><img src="/static/img/icons/copy.svg?v=fl1" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="کپی" /></button>
             </div>
           </div>
         </div>
@@ -5223,16 +5223,16 @@ function renderInvoiceModalFields(inv, orderId) {
   if (statusEl) {
     let statusText = inv.payment?.status || 'پرداخت شده';
     if (statusText === 'پرداخت شده و فعال') statusText = 'پرداخت شده';
-    let iconSvg = '<img src="/static/img/icons/check.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
+    let iconSvg = '<img src="/static/img/icons/check.svg?v=fl1" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
     let badgeClass = 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400';
     if (statusText.includes('ناموفق') || statusText.includes('لغو')) {
-      iconSvg = '<img src="/static/img/icons/close.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
+      iconSvg = '<img src="/static/img/icons/close.svg?v=fl1" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
       badgeClass = 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400';
     } else if (statusText.includes('انتظار')) {
-      iconSvg = '<img src="/static/img/icons/clock.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
+      iconSvg = '<img src="/static/img/icons/clock.svg?v=fl1" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
       badgeClass = 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400';
     } else if (statusText.includes('مسترد')) {
-      iconSvg = '<img src="/static/img/icons/sync.svg?v=ri7" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
+      iconSvg = '<img src="/static/img/icons/sync.svg?v=fl1" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
       badgeClass = 'bg-purple-500/15 border-purple-500/30 text-purple-600 dark:text-purple-400';
     }
     let icon = iconSvg;
@@ -5500,7 +5500,7 @@ function openLoyaltyModal() {
     if ($('loyaltyModalCurrentIcon')) {
       $('loyaltyModalCurrentIcon').innerHTML = typeof uiEmojiIcon === 'function'
         ? uiEmojiIcon(loyalty.icon || '🥈', 'w-4 h-4')
-        : `<img src="/static/img/icons/medal-silver.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />`;
+        : `<img src="/static/img/icons/medal-silver.svg?v=fl1" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />`;
     }
     if ($('loyaltyModalCurrentName')) $('loyaltyModalCurrentName').innerText = loyalty.name || 'برنزی';
     if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
