@@ -225,8 +225,18 @@
     "style": "fluent-3d-flat"
   },
   "receipt": {
-    "source": "fluent-emoji-flat:receipt",
-    "category": "Finance",
+    "source": "fluent-custom:receipt",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
+  },
+  "photo": {
+    "source": "fluent-emoji-flat:framed-picture",
+    "category": "Media",
+    "style": "fluent-3d-flat"
+  },
+  "image": {
+    "source": "fluent-emoji-flat:framed-picture",
+    "category": "Media",
     "style": "fluent-3d-flat"
   },
   "coins": {
@@ -419,8 +429,8 @@
     "category": "Controls",
     "style": "fluent-gradient-vector"
   },
-  "tron": {
-    "source": "official-brand:tron",
+  "ios": {
+    "source": "official-brand:ios",
     "category": "Logos",
     "style": "official-vector"
   },
@@ -429,8 +439,18 @@
     "category": "Logos",
     "style": "official-vector"
   },
-  "ios": {
-    "source": "official-brand:ios",
+  "windows": {
+    "source": "official-brand:windows",
+    "category": "Logos",
+    "style": "official-vector"
+  },
+  "linux": {
+    "source": "official-brand:linux",
+    "category": "Logos",
+    "style": "official-vector"
+  },
+  "tron": {
+    "source": "official-brand:tron",
     "category": "Logos",
     "style": "official-vector"
   },
@@ -439,23 +459,13 @@
     "category": "Logos",
     "style": "official-vector"
   },
-  "windows": {
-    "source": "official-brand:windows",
-    "category": "Logos",
-    "style": "official-vector"
-  },
-  "macos": {
-    "source": "official-brand:macos",
-    "category": "Logos",
-    "style": "official-vector"
-  },
   "ton": {
     "source": "official-brand:ton",
     "category": "Logos",
     "style": "official-vector"
   },
-  "linux": {
-    "source": "official-brand:linux",
+  "macos": {
+    "source": "official-brand:macos",
     "category": "Logos",
     "style": "official-vector"
   }

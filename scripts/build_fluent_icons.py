@@ -68,6 +68,8 @@ FLUENT_3D_EMOJI_MAP = {
     'ticket': ('ticket', 'Marketing'),
     'cake': ('birthday-cake', 'Marketing'),
     'receipt': ('receipt', 'Finance'),
+    'photo': ('framed-picture', 'Media'),
+    'image': ('framed-picture', 'Media'),
     'coins': ('coin', 'Finance'),
     'credit-card': ('credit-card', 'Finance'),
     'credit_card': ('credit-card', 'Finance'),
@@ -216,6 +218,29 @@ CUSTOM_FLUENT_ICONS = {
     </linearGradient>
   </defs>
   <path fill="url(#fl_pause)" d="M6 5a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2zm9 0a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2z"/>
+</svg>''',
+
+    # High-Contrast Official Receipt / Invoice Vector
+    'receipt': '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="fl_receipt_header" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="fl_receipt_seal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+  <path d="M6 3 L26 3 C27.1 3 28 3.9 28 5 L28 27 L25.5 25 L23 27 L20.5 25 L18 27 L15.5 25 L13 27 L10.5 25 L8 27 L5.5 25 L4 27 L4 5 C4 3.9 4.9 3 6 3 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+  <path d="M6 3 L26 3 C27.1 3 28 3.9 28 5 L28 9 L4 9 L4 5 C4 3.9 4.9 3 6 3 Z" fill="url(#fl_receipt_header)"/>
+  <circle cx="8" cy="6" r="1.5" fill="#ffffff" opacity="0.9"/>
+  <rect x="7" y="12" width="12" height="2" rx="1" fill="#0284c7"/>
+  <rect x="7" y="16" width="18" height="1.8" rx="0.9" fill="#94a3b8"/>
+  <rect x="7" y="19.5" width="14" height="1.8" rx="0.9" fill="#94a3b8"/>
+  <line x1="7" y1="23" x2="25" y2="23" stroke="#cbd5e1" stroke-width="0.8" stroke-dasharray="1.5,1.5"/>
+  <circle cx="22" cy="19" r="3.5" fill="url(#fl_receipt_seal)" opacity="0.95"/>
+  <path d="M20.5 19 L21.5 20 L23.5 18" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>''',
 }
 

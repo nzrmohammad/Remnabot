@@ -404,7 +404,7 @@ input.node-date-input::-webkit-calendar-picker-indicator:hover {
 .admin-nav-btn.is-active .nav-icon-pill,
 .admin-nav-btn[aria-selected="true"] .nav-icon-pill {
   background: var(--c-accent-soft);
-  box-shadow: inset 0 0 0 1px var(--c-accent-border), 0 4px 12px rgba(14, 165, 233, 0.18);
+  box-shadow: none;
   transform: translateY(-1px);
 }
 
@@ -422,6 +422,14 @@ input.node-date-input::-webkit-calendar-picker-indicator:hover {
   user-select: none;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));
   transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+.flex.items-center > .ui-icon-img,
+.inline-flex.items-center > .ui-icon-img,
+.btn > .ui-icon-img {
+  display: block;
+  align-self: center;
+  margin-top: -1px;
 }
 
 .ui-icon-img.icon-white,

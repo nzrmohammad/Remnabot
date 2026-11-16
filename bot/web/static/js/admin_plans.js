@@ -260,14 +260,14 @@
             <div class="space-y-1.5">
               <!-- Top Row: Price and تومان on Right, Icons + Name + statusBadge flush Left (LTR) -->
               <div class="flex items-center justify-between gap-2">
-                <div class="flex flex-col items-center justify-center flex-shrink-0 text-center leading-tight min-w-[45px]">
-                  <span class="text-sm font-black t-success font-sans num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
-                  <span class="text-[11px] font-sans font-medium text-slate-400 -mt-0.5">تومان</span>
-                </div>
-                <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1" dir="ltr">
+                <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1">
                   ${pkgIconHtml}
-                  <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
+                  <b class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                   ${statusBadge ? `<div class="flex-shrink-0">${statusBadge}</div>` : ''}
+                </div>
+                <div class="flex items-baseline gap-1 shrink-0 text-left" dir="rtl">
+                  <span class="text-sm font-black t-success font-sans num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
+                  <span class="text-[11px] font-sans font-medium text-slate-400">تومان</span>
                 </div>
               </div>
 
@@ -292,24 +292,24 @@
             ${descHtml}
             ${specsHtml}
 
-            <!-- 3 Action Buttons + Duplicate with Colorful Fluent Icons & Labels -->
-            <div class="flex gap-1.5 pt-1">
-              <button onclick="window.adminActions.openPlanModal(${p.id})" class="flex-1 card-inset hover:border-cyan-500/40 t-main border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="ویرایش بسته" aria-label="ویرایش بسته">
-                ${uiIcon('edit', 'w-4 h-4 t-accent')}
-                <span class="text-[11px] font-semibold">ویرایش</span>
+            <!-- 3 Action Buttons + Duplicate with Compact Elegant Spacing -->
+            <div class="grid grid-cols-4 gap-1 pt-1">
+              <button onclick="window.adminActions.openPlanModal(${p.id})" class="card-inset hover:border-cyan-500/40 t-main border border-slate-700/60 py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="ویرایش بسته" aria-label="ویرایش بسته">
+                ${uiIcon('edit', 'w-3.5 h-3.5 t-accent shrink-0')}
+                <span class="text-[11px] font-semibold leading-none truncate">ویرایش</span>
               </button>
-              <button type="button" onclick="window.adminActions.duplicatePlan(${p.id})" class="flex-1 card-inset hover:border-purple-500/40 t-main border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="تکثیر / کپی بسته" aria-label="تکثیر بسته">
-                ${uiIcon('copy', 'w-4 h-4 t-purple')}
-                <span class="text-[11px] font-semibold">تکثیر</span>
+              <button type="button" onclick="window.adminActions.duplicatePlan(${p.id})" class="card-inset hover:border-purple-500/40 t-main border border-slate-700/60 py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="تکثیر / کپی بسته" aria-label="تکثیر بسته">
+                ${uiIcon('copy', 'w-3.5 h-3.5 t-purple shrink-0')}
+                <span class="text-[11px] font-semibold leading-none truncate">تکثیر</span>
               </button>
-              <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="flex-1 card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
+              <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
                 ${p.is_active
-                  ? `${uiIcon('pause', 'w-4 h-4 t-warn')}<span class="text-[11px] font-semibold">غیرفعال</span>`
-                  : `${uiIcon('play_btn', 'w-4 h-4 t-success')}<span class="text-[11px] font-semibold">فعال‌سازی</span>`}
+                  ? `${uiIcon('pause', 'w-3.5 h-3.5 t-warn shrink-0')}<span class="text-[11px] font-semibold leading-none truncate">غیرفعال</span>`
+                  : `${uiIcon('play_btn', 'w-3.5 h-3.5 t-success shrink-0')}<span class="text-[11px] font-semibold leading-none truncate">فعال‌سازی</span>`}
               </button>
-              <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan flex-1 card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" title="حذف بسته" aria-label="حذف بسته">
-                ${uiIcon('trash', 'w-4 h-4 t-danger')}
-                <span class="text-[11px] font-semibold">حذف</span>
+              <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="حذف بسته" aria-label="حذف بسته">
+                ${uiIcon('trash', 'w-3.5 h-3.5 t-danger shrink-0')}
+                <span class="text-[11px] font-semibold leading-none truncate">حذف</span>
               </button>
             </div>
           </div>
@@ -499,9 +499,11 @@
         ? (baseName.endsWith('(کپی)') ? `${baseName} ۲` : `${baseName} (کپی)`)
         : '';
 
-      $('planModalTitle').innerText = (plan && isDuplicate)
+      const titleStr = (plan && isDuplicate)
         ? `تکثیر تعرفه: ${plan.name}`
         : (plan ? `ویرایش تعرفه: ${plan.name}` : 'ایجاد تعرفه جدید');
+      const titleEl = $('planModalTitleText') || $('planModalTitle');
+      if (titleEl) titleEl.innerText = titleStr;
       $('planModalId').value = (plan && !isDuplicate) ? plan.id : '';
       $('planModalName').value = (plan && isDuplicate) ? duplicateName : (plan ? plan.name : '');
       $('planModalPrice').value = plan ? plan.price : '';

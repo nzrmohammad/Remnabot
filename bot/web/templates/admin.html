@@ -3083,18 +3083,25 @@
     <!-- MODAL: Create / Edit Plan -->
     <div id="planModal" role="dialog" aria-modal="true" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 w-full max-w-[360px] shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden">
-        <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
-          <h4 id="planModalTitle" class="text-xs font-bold t-main flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-            <span>سرویس تعرفه</span>
-          </h4>
+        <div class="flex justify-between items-center border-b border-card-border pb-3 shrink-0">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center shrink-0">
+              <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4.5 h-4.5 shrink-0" width="18" height="18" alt="" />
+            </div>
+            <div>
+              <h4 id="planModalTitle" class="text-xs font-bold t-main truncate max-w-[210px]">
+                <span id="planModalTitleText">تنظیمات تعرفه سرویس</span>
+              </h4>
+              <span class="text-[11px] t-muted block mt-0.5">مشخصات، قیمت و محدودیت‌های بسته</span>
+            </div>
+          </div>
           <button onclick="window.adminActions.closePlanModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
         <input type="hidden" id="planModalId" value="" />
-        <div class="space-y-2.5 text-xs overflow-y-auto custom-scroll flex-1 py-2 px-2.5">
+        <div class="space-y-3 text-xs overflow-y-auto custom-scroll flex-1 py-2 px-2.5">
           <div>
             <label class="text-[11px] t-main block mb-1 font-semibold">نوع بسته:</label>
-            <div class="grid grid-cols-3 gap-1.5 p-1 card-inset rounded-xl text-[11px]">
+            <div class="grid grid-cols-3 gap-1.5 p-1 card-inset rounded-xl text-[11px] border border-card-border">
               <button type="button" id="planTypeBtn-full" onclick="window.adminActions.setPlanType('full')" class="py-1.5 px-1 rounded-lg font-bold bg-blue-600 text-white transition flex items-center justify-center gap-1 shadow">
                 <span class="inline-flex items-center gap-1"><img src="/static/img/icons/diamond.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />دوره کامل</span>
               </button>
@@ -3109,46 +3116,58 @@
           </div>
           <div>
             <label class="text-[11px] t-muted block mb-1">نام سرویس:</label>
-            <input type="text" id="planModalName" dir="rtl" placeholder="مثلاً: سرویس طلایی 50 گیگ 30 روزه" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs text-right text-white outline-none focus:border-blue-500" />
+            <input type="text" id="planModalName" dir="rtl" placeholder="مثلاً: سرویس طلایی 50 گیگ 30 روزه" class="input-base w-full px-3 py-2 text-xs text-right font-bold t-main outline-none focus:border-blue-500" />
           </div>
           <div class="grid grid-cols-2 gap-2" id="planModalPriceMetricRow">
             <div>
-              <label class="text-[11px] t-muted block mb-1">قیمت (تومان):</label>
-              <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalPrice" placeholder="95000" min="0" step="1000" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-emerald-300 outline-none" />
+              <label class="text-[11px] t-muted block mb-1">قیمت فروش:</label>
+              <div class="relative flex items-center">
+                <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalPrice" placeholder="95000" min="0" step="1000" class="input-base w-full pl-12 pr-3 py-2 text-xs font-sans font-bold text-emerald-400 outline-none" />
+                <span class="absolute left-2.5 text-[11px] t-muted font-medium select-none pointer-events-none">تومان</span>
+              </div>
             </div>
             <div id="planModalTrafficContainer">
-              <label id="planModalTrafficLabel" class="text-[11px] t-muted block mb-1">حجم ترافیک (GB):</label>
-              <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalTraffic" placeholder="50" min="0" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none" />
+              <label id="planModalTrafficLabel" class="text-[11px] t-muted block mb-1">حجم ترافیک:</label>
+              <div class="relative flex items-center">
+                <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalTraffic" placeholder="50" min="0" class="input-base w-full pl-8 pr-3 py-2 text-xs font-sans font-bold text-cyan-400 outline-none" />
+                <span class="absolute left-2.5 text-[11px] t-muted font-sans font-medium select-none pointer-events-none">GB</span>
+              </div>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2" id="planModalDurationHwidRow">
             <div id="planModalDurationContainer">
-              <label id="planModalDurationLabel" class="text-[11px] t-muted block mb-1">مدت زمان (روز):</label>
-              <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalDuration" placeholder="30" min="0" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none" />
+              <label id="planModalDurationLabel" class="text-[11px] t-muted block mb-1">مدت زمان:</label>
+              <div class="relative flex items-center">
+                <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalDuration" placeholder="30" min="0" class="input-base w-full pl-8 pr-3 py-2 text-xs font-sans font-bold text-amber-400 outline-none" />
+                <span class="absolute left-2.5 text-[11px] t-muted font-medium select-none pointer-events-none">روز</span>
+              </div>
             </div>
             <div id="planModalHwidContainer">
               <label class="text-[11px] t-muted block mb-1">محدودیت کاربر (HWID):</label>
-              <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalHwid" placeholder="0 = پیش‌فرض" min="0" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-purple-300 outline-none" />
+              <div class="relative flex items-center">
+                <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalHwid" placeholder="0" min="0" class="input-base w-full pl-10 pr-3 py-2 text-xs font-sans font-bold text-purple-400 outline-none" />
+                <span class="absolute left-2.5 text-[11px] t-muted font-medium select-none pointer-events-none">کاربر</span>
+              </div>
             </div>
           </div>
           <div id="planModalDescContainer">
             <div class="flex items-center justify-between mb-1">
               <label class="text-[11px] t-muted block">توضیحات کوتاه:</label>
-              <span class="text-[11px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
             </div>
-            <input type="text" id="planModalDesc" dir="rtl" placeholder="مناسب بازی، بدون قطعی" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs text-right text-slate-200 outline-none focus:border-blue-500" />
+            <input type="text" id="planModalDesc" dir="rtl" placeholder="مناسب بازی و دانلود، بدون قطعی" class="input-base w-full px-3 py-2 text-xs text-right t-main outline-none focus:border-blue-500" />
           </div>
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="text-[11px] t-muted block">سقف تعداد فروش (خالی = نامحدود):</label>
-              <span class="text-[11px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
+              <label class="text-[11px] t-muted block">سقف تعداد فروش (موجودی):</label>
+              <span class="text-[10px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
             </div>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalMaxPurchases" placeholder="مثلاً: 5 (پس از 5 خرید خودکار غیرفعال می‌شود)" min="0" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-blue-500 mb-2" />
+            <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalMaxPurchases" placeholder="خالی = نامحدود" min="0" class="input-base w-full px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label class="text-[11px] t-main block mb-1">نشان و بج بازاریابی:</label>
+            <label class="text-[11px] t-main block mb-1 font-semibold">نشان و بج بازاریابی:</label>
             <input type="hidden" id="planModalBadge" value="" />
-            <div role="button" tabindex="0" onclick="window.adminActions.openPlanBadgePickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
+            <div role="button" tabindex="0" onclick="window.adminActions.openPlanBadgePickerModal()" class="w-full card-inset border border-card-border rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group hover:border-blue-500/40">
               <span id="planModalBadgeLabel" class="text-xs t-main font-medium truncate">انتخاب کنید</span>
               <span class="t-muted text-xs group-hover:t-main transition">▼</span>
             </div>
@@ -3156,7 +3175,7 @@
           <div>
             <label class="text-[11px] t-main block mb-1 font-semibold">اسکواد متصل:</label>
             <input type="hidden" id="planModalSquadUuid" value="" />
-            <div role="button" tabindex="0" onclick="window.adminActions.openPlanSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group border border-[var(--card-border)]">
+            <div role="button" tabindex="0" onclick="window.adminActions.openPlanSquadPickerModal()" class="w-full card-inset border border-card-border rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group hover:border-blue-500/40">
               <span id="planModalSquadLabel" class="text-xs t-main font-medium truncate">انتخاب کنید</span>
               <span class="t-muted text-xs group-hover:t-main transition">▼</span>
             </div>
@@ -3166,11 +3185,12 @@
             <input type="checkbox" id="planModalActive" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 ml-1.5" />
           </div>
         </div>
-        <div class="flex gap-2 pt-2.5 border-t border-[var(--card-border)] shrink-0">
-          <button id="planModalSaveBtn" onclick="window.adminActions.savePlan()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition shadow active:scale-95">
-            ذخیره سرویس
+        <div class="flex gap-2 pt-3 border-t border-card-border shrink-0">
+          <button id="planModalSaveBtn" onclick="window.adminActions.savePlan()" class="flex-1 btn btn-primary text-xs py-2.5 rounded-xl font-bold transition shadow active:scale-95 flex items-center justify-center gap-1.5 leading-none">
+            <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+            <span>ذخیره تعرفه</span>
           </button>
-          <button type="button" onclick="window.adminActions.closePlanModal()" class="flex-1 btn btn-secondary text-xs py-2 rounded-xl transition">انصراف</button>
+          <button type="button" onclick="window.adminActions.closePlanModal()" class="flex-1 btn btn-secondary text-xs py-2.5 rounded-xl font-medium transition active:scale-95">انصراف</button>
         </div>
       </div>
     </div>
@@ -3773,7 +3793,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 w-full max-w-[420px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2 flex-shrink-0">
           <h4 class="text-xs font-bold t-main flex items-center gap-1.5">
-            <svg class="w-4 h-4 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <img src="/static/img/icons/photo.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <span id="receiptModalTitle">اطلاعات فیش واریزی</span>
           </h4>
           <button onclick="window.adminActions.closeReceiptPhotoModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -3802,19 +3822,21 @@
 
     <!-- MODAL: Node Billing & Cost Settings Modal -->
     <div id="nodeBillingModal" role="dialog" aria-modal="true" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 w-full max-w-[370px] space-y-4 shadow-2xl relative">
-        <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5">
-          <div class="flex items-center gap-2">
-            <span class="text-xl" id="nodeBillingModalFlag">🖥️</span>
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[370px] space-y-3.5 shadow-2xl relative max-h-[92vh] flex flex-col overflow-hidden">
+        <div class="flex justify-between items-center border-b border-card-border pb-3 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
+              <span class="text-xl leading-none" id="nodeBillingModalFlag">🖥️</span>
+            </div>
             <div>
-              <h4 id="nodeBillingModalTitle" class="text-xs font-bold t-main truncate max-w-[200px]">هزینه و تمدید سرور</h4>
-              <span class="text-[11px] t-muted block mt-0.5">ثبت هزینه ماهانه و تاریخ سررسید</span>
+              <h4 id="nodeBillingModalTitle" class="text-xs font-bold t-main truncate max-w-[210px]">هزینه و تمدید سرور</h4>
+              <span class="text-[11px] t-muted block mt-0.5">مدیریت هزینه ماهانه و تاریخ سررسید</span>
             </div>
           </div>
           <button type="button" onclick="window.adminActions.closeNodeBillingModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
 
-        <form id="nodeBillingForm" onsubmit="event.preventDefault(); window.adminActions.saveNodeBilling();" class="space-y-3 text-xs">
+        <form id="nodeBillingForm" onsubmit="event.preventDefault(); window.adminActions.saveNodeBilling();" class="space-y-3 text-xs overflow-y-auto custom-scroll flex-1 py-1 px-1">
           <input type="hidden" id="nodeBillingUuid" value="" />
           <input type="hidden" id="nodeBillingId" value="" />
           <input type="hidden" id="nodeBillingName" value="" />
@@ -3822,24 +3844,28 @@
           <!-- Provider -->
           <div>
             <label for="nodeBillingProvider" class="text-[11px] t-muted block mb-1">شرکت ارائه‌دهنده (Hosting Provider):</label>
-            <input type="text" id="nodeBillingProvider" placeholder="مثلاً: Hetzner, OVH, Contabo..." class="input-base font-sans text-xs px-3 py-2 rounded-xl" />
+            <input type="text" id="nodeBillingProvider" placeholder="مثلاً: Hetzner, OVH, Contabo..." class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full" />
           </div>
 
           <!-- Monthly Cost 3-Column Grid (Toman, Foreign Amount, Currency Unit) -->
-          <div class="space-y-1.5">
+          <div class="card-inset border border-card-border rounded-2xl p-2.5 space-y-2">
+            <div class="flex items-center gap-1.5 pb-0.5">
+              <img src="/static/img/icons/coins.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span class="text-[11px] font-bold t-main">هزینه دوره ماهانه سرور</span>
+            </div>
             <div class="grid grid-cols-12 gap-2 items-end">
               <!-- Right: Toman Cost (5 cols) -->
               <div class="col-span-5">
                 <label for="nodeBillingCostToman" class="text-[11px] t-muted block mb-1 truncate">هزینه (تومان):</label>
-                <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="مثلاً: 2500000" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans font-bold text-cyan-300" />
+                <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="مثلاً: 2500000" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans font-bold text-cyan-300 w-full" />
               </div>
 
               <!-- Middle: Foreign Cost (3 cols) -->
               <div class="col-span-3">
                 <label for="nodeBillingCostEur" class="text-[11px] t-muted block mb-1 truncate">قیمت ارزی:</label>
                 <div class="relative">
-                  <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="35.00" class="input-base h-9 px-2 pl-5 rounded-xl text-xs font-sans font-bold text-indigo-300" />
-                  <span id="nodeBillingCurrencySymbol" class="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs font-bold t-muted font-sans">€</span>
+                  <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="35.00" class="input-base h-9 px-2 pl-5 rounded-xl text-xs font-sans font-bold text-indigo-300 w-full" />
+                  <span id="nodeBillingCurrencySymbol" class="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs font-bold t-muted font-sans select-none">€</span>
                 </div>
               </div>
 
@@ -3858,7 +3884,7 @@
               </div>
             </div>
 
-            <!-- Auto-conversion calculation banner (pure calculation, strictly LTR) -->
+            <!-- Auto-conversion calculation banner -->
             <div id="nodeBillingEurConvertHint" dir="ltr" class="text-[11px] font-sans font-bold p-2 rounded-xl hidden flex items-center justify-start gap-2 border bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-left">
               <svg class="w-3.5 h-3.5 t-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span id="nodeBillingEurConvertText"></span>
@@ -3866,9 +3892,12 @@
           </div>
 
           <!-- Renewal Due Date (Polished HTML5 Datepicker) -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label for="nodeBillingDueDate" class="text-[11px] t-muted font-medium">تاریخ سررسید بعدی (Due Date):</label>
+          <div class="card-inset border border-card-border rounded-2xl p-2.5 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                <label for="nodeBillingDueDate" class="text-[11px] t-main font-bold">تاریخ سررسید بعدی (Due Date):</label>
+              </div>
               <span id="nodeBillingJalaliPreview" class="text-[11px] font-sans t-warn font-bold" title="تاریخ به شمسی"></span>
             </div>
             <div class="flex items-center gap-1.5">
@@ -3878,31 +3907,42 @@
                 </span>
                 <input type="date" id="nodeBillingDueDate" dir="ltr" class="node-date-input input-base w-full h-10 pr-9 pl-3 rounded-xl text-xs font-sans font-bold t-warn focus:border-amber-500 transition text-center cursor-pointer shadow-sm" onclick="this.showPicker && this.showPicker()" />
               </div>
-              <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(30)" class="h-10 px-2.5 rounded-xl card-inset border border-amber-500/30 hover:border-amber-400 t-warn font-bold text-[11px] font-sans whitespace-nowrap transition active:scale-95" title="تنظیم سررسید برای 30 روز آینده">+30 روز</button>
+              <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(30)" class="h-10 px-2.5 rounded-xl card-inset border border-amber-500/30 hover:border-amber-400 t-warn font-bold text-[11px] font-sans whitespace-nowrap transition active:scale-95 leading-none" title="تنظیم سررسید برای 30 روز آینده">+30 روز</button>
               <button type="button" onclick="window.adminActions.clearNodeBillingDueDate()" class="h-10 w-10 rounded-xl card-inset border border-card-border hover:border-rose-500/40 t-muted hover:text-rose-400 font-bold text-xs flex items-center justify-center transition active:scale-95 shrink-0" title="پاک کردن تاریخ سررسید" aria-label="پاک کردن تاریخ سررسید">✕</button>
             </div>
-            <span class="text-[11px] t-muted mt-1 block">در صورت رسیدن به 3 روز باقی‌مانده، پیام هشدار در تلگرام ارسال می‌شود.</span>
+            <span class="text-[10px] t-muted block">در صورت رسیدن به ۳ روز باقی‌مانده، پیام هشدار در تلگرام ارسال می‌شود.</span>
           </div>
 
           <!-- Notes -->
           <div>
             <div class="flex items-center justify-between mb-1">
               <label for="nodeBillingNotes" class="text-[11px] t-muted">یادداشت و مشخصات:</label>
-              <span class="text-[11px] t-muted">(اختیاری)</span>
+              <span class="text-[10px] t-muted">(اختیاری)</span>
             </div>
-            <input type="text" id="nodeBillingNotes" placeholder="مثلاً: سرور فنلاند - 32GB RAM" class="input-base font-sans text-xs px-3 py-2 rounded-xl" />
+            <input type="text" id="nodeBillingNotes" placeholder="مثلاً: سرور فنلاند - 32GB RAM" class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full" />
+          </div>
+
+          <!-- Quick Pay & Auto-Extend 1 Month Button -->
+          <div class="pt-1">
+            <button type="button" id="nodeBillingPayBtn" onclick="window.adminActions.payAndExtendNodeBilling()" class="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 leading-none">
+              <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span>پرداخت کردم (تمدید ۱ ماه خودکار)</span>
+            </button>
           </div>
 
           <!-- Submit & Cancel Buttons -->
-          <div class="flex items-center gap-2 pt-2">
-            <button type="submit" id="saveNodeBillingBtn" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <div class="flex items-center gap-2 pt-1 border-t border-card-border">
+            <button type="submit" id="saveNodeBillingBtn" class="flex-1 btn btn-primary text-xs py-2.5 rounded-xl font-bold transition shadow active:scale-95 flex items-center justify-center gap-1.5 leading-none">
+              <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               <span>ذخیره اطلاعات سرور</span>
             </button>
             <button type="button" onclick="window.adminActions.closeNodeBillingModal()" class="px-4 btn btn-secondary text-xs py-2.5 rounded-xl transition">
               انصراف
             </button>
           </div>
+        </form>
+      </div>
+    </div>
         </form>
       </div>
     </div>

@@ -693,6 +693,39 @@ openEditSslDomainModal(domain) {
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
+    async payAndExtendNodeBilling() {
+      const input = $('nodeBillingDueDate');
+      const jalaliPreview = $('nodeBillingJalaliPreview');
+      if (!input) return;
+
+      const currentVal = input.value?.trim();
+      let baseDate = new Date();
+      if (currentVal) {
+        const parsed = new Date(currentVal + 'T00:00:00');
+        if (!isNaN(parsed.getTime())) {
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+          if (parsed >= now) {
+            baseDate = parsed;
+          }
+        }
+      }
+      baseDate.setDate(baseDate.getDate() + 30);
+      const yyyy = baseDate.getFullYear();
+      const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(baseDate.getDate()).padStart(2, '0');
+      const isoStr = `${yyyy}-${mm}-${dd}`;
+      input.value = isoStr;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      if (jalaliPreview) {
+        jalaliPreview.innerText = window.formatDateToJalali ? window.formatDateToJalali(isoStr) : isoStr;
+      }
+
+      if (window.hapticFeedback) window.hapticFeedback('success');
+      if (window.showToast) window.showToast('✅ تمدید ۱ ماهه اعمال شد، در حال ثبت...');
+      await this.saveNodeBilling();
+    },
+
     switchAdminAppsTab(osKey = 'ios') {
       const osList = ['ios', 'android', 'windows', 'macos', 'linux'];
       osList.forEach(os => {

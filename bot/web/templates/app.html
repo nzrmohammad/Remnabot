@@ -1130,11 +1130,11 @@
           </div>
 
           <div class="grid grid-cols-2 gap-2 pt-2 border-t border-card-border">
-            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>شارژ کیف پول</span>
+            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5 leading-none">
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span class="leading-none">شارژ کیف پول</span>
             </button>
-            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>ارسال هدیه</span>
+            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5 leading-none">
+              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span class="leading-none">ارسال هدیه</span>
             </button>
           </div>
         </div>
@@ -1633,7 +1633,7 @@
               اگر لینک اشتراک شما افشا شده است یا کلاینت‌ها پاسخ نمی‌دهند، می‌توانید لینک فعلی را باطل کرده و لینک اختصاصی جدید دریافت کنید.
             </p>
             <button id="openRevokeModalBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-[0.98]">
-              <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block icon-white" width="16" height="16" alt="" /> <span>تغییر لینک اشتراک فعلی</span>
+              <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>تغییر لینک اشتراک فعلی</span>
             </button>
           </div>
         </div>
@@ -2558,88 +2558,131 @@
 
           <!-- Rotating Wheel SVG Container -->
           <div id="wheelContainer" class="w-full h-full relative flex items-center justify-center transition-all duration-[3600ms] cubic-bezier(0.15, 0.9, 0.2, 1)">
-            <svg id="wheelSvg" class="w-full h-full drop-shadow-lg" viewBox="0 0 200 200">
+            <svg id="wheelSvg" class="w-full h-full drop-shadow-2xl" viewBox="0 0 200 200">
               <defs>
-                <filter id="sliceShadow" x="-10%" y="-10%" width="120%" height="120%">
-                  <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.8"/>
+                <filter id="sliceShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.85"/>
                 </filter>
-                <linearGradient id="wheelGrad0" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#2563eb"/>
-                  <stop offset="100%" stop-color="#1d4ed8"/>
-                </linearGradient>
-                <linearGradient id="wheelGrad1" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#334155"/>
-                  <stop offset="100%" stop-color="#1e293b"/>
-                </linearGradient>
-                <linearGradient id="wheelGrad2" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#d97706"/>
-                  <stop offset="100%" stop-color="#b45309"/>
-                </linearGradient>
-                <linearGradient id="wheelGrad3" x1="0" y1="0" x2="1" y2="1">
+                <radialGradient id="goldRim" cx="50%" cy="50%" r="50%">
+                  <stop offset="85%" stop-color="#ca8a04"/>
+                  <stop offset="93%" stop-color="#fef08a"/>
+                  <stop offset="98%" stop-color="#eab308"/>
+                  <stop offset="100%" stop-color="#713f12"/>
+                </radialGradient>
+                <linearGradient id="wheelGrad0" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stop-color="#0284c7"/>
-                  <stop offset="100%" stop-color="#0369a1"/>
+                  <stop offset="100%" stop-color="#1e3a8a"/>
                 </linearGradient>
-                <linearGradient id="wheelGrad4" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#7c3aed"/>
-                  <stop offset="100%" stop-color="#6d28d9"/>
+                <linearGradient id="wheelGrad1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#334155"/>
+                  <stop offset="100%" stop-color="#0f172a"/>
                 </linearGradient>
-                <linearGradient id="wheelGrad5" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#059669"/>
-                  <stop offset="100%" stop-color="#047857"/>
+                <linearGradient id="wheelGrad2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#9a3412"/>
+                </linearGradient>
+                <linearGradient id="wheelGrad3" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#8b5cf6"/>
+                  <stop offset="100%" stop-color="#4c1d95"/>
+                </linearGradient>
+                <linearGradient id="wheelGrad4" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#10b981"/>
+                  <stop offset="100%" stop-color="#064e3b"/>
+                </linearGradient>
+                <linearGradient id="wheelGrad5" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f43f5e"/>
+                  <stop offset="100%" stop-color="#881337"/>
                 </linearGradient>
               </defs>
 
-              <!-- Single Sleek Outer Ring -->
-              <circle cx="100" cy="100" r="96" class="fill-slate-900 dark:fill-slate-950" stroke="rgba(255,255,255,0.18)" stroke-width="2" />
+              <!-- Luxury Outer Golden Rim & Base -->
+              <circle cx="100" cy="100" r="99" fill="#0b1329" stroke="url(#goldRim)" stroke-width="3" />
+              <circle cx="100" cy="100" r="95.5" fill="#0f172a" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
 
               <!-- Slices (60 deg each, slice 0 centered at 12 o'clock / 0 deg) -->
               <!-- Slice 0: 🎁 1 GB (0 deg) -->
               <g transform="rotate(0, 100, 100)">
-                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad0)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
-                <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan font-size="11">🎁 </tspan><tspan font-family="Vazirmatn" font-size="10">1 </tspan><tspan font-size="8.5">GB</tspan>
-                </text>
+                <path d="M 100 100 L 53 18.6 A 94 94 0 0 1 147 18.6 Z" fill="url(#wheelGrad0)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                <g transform="translate(100, 37) scale(0.68)" filter="url(#sliceShadow)">
+                  <rect x="-9" y="-1" width="18" height="12" rx="2" fill="#ffffff" />
+                  <rect x="-10" y="-5" width="20" height="4.5" rx="1.5" fill="#38bdf8" />
+                  <rect x="-2" y="-5" width="4" height="16" fill="#0284c7" />
+                  <path d="M-5 -8 C-2 -8 -1 -5 -1 -5 C-1 -5 -2 -2 -5 -5 C-6 -6 -6 -7 -5 -8 Z" fill="#38bdf8" />
+                  <path d="M5 -8 C2 -8 1 -5 1 -5 C1 -5 2 -2 5 -5 C6 -6 6 -7 5 -8 Z" fill="#38bdf8" />
+                </g>
+                <text x="100" y="54" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="10" font-weight="900" direction="ltr" style="direction: ltr; font-family: sans-serif;" filter="url(#sliceShadow)">1 GB</text>
               </g>
 
               <!-- Slice 1: ❌ پوچ (60 deg) -->
               <g transform="rotate(60, 100, 100)">
-                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad1)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
-                <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan font-size="11">❌ </tspan><tspan font-size="9">پوچ</tspan>
-                </text>
+                <path d="M 100 100 L 53 18.6 A 94 94 0 0 1 147 18.6 Z" fill="url(#wheelGrad1)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                <g transform="translate(100, 37) scale(0.68)" filter="url(#sliceShadow)">
+                  <circle cx="0" cy="0" r="9" fill="#1e293b" stroke="#64748b" stroke-width="1.5" />
+                  <path d="M-4.5 -4.5 L4.5 4.5 M4.5 -4.5 L-4.5 4.5" stroke="#fb7185" stroke-width="2.2" stroke-linecap="round" />
+                </g>
+                <text x="100" y="54" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" filter="url(#sliceShadow)">پوچ</text>
               </g>
 
               <!-- Slice 2: 🎟 10% (120 deg) -->
               <g transform="rotate(120, 100, 100)">
-                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad2)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
-                <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan font-size="11">🎟 </tspan><tspan font-family="Vazirmatn" font-size="10">10%</tspan>
-                </text>
+                <path d="M 100 100 L 53 18.6 A 94 94 0 0 1 147 18.6 Z" fill="url(#wheelGrad2)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                <g transform="translate(100, 37) scale(0.68)" filter="url(#sliceShadow)">
+                  <rect x="-10" y="-7" width="20" height="14" rx="3" fill="#fef08a" stroke="#ca8a04" stroke-width="1" />
+                  <circle cx="-10" cy="0" r="2.5" fill="#9a3412" />
+                  <circle cx="10" cy="0" r="2.5" fill="#9a3412" />
+                  <text x="0" y="3.5" text-anchor="middle" fill="#854d0e" font-size="9" font-weight="900" font-family="sans-serif">%</text>
+                </g>
+                <text x="100" y="54" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="10" font-weight="900" direction="ltr" style="direction: ltr; font-family: sans-serif;" filter="url(#sliceShadow)">10%</text>
               </g>
 
               <!-- Slice 3: ⚡️ 500 MB (180 deg) -->
               <g transform="rotate(180, 100, 100)">
-                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad3)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
-                <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan font-size="11">⚡️ </tspan><tspan font-family="Vazirmatn" font-size="10">500 </tspan><tspan font-size="8.5">MB</tspan>
-                </text>
+                <path d="M 100 100 L 53 18.6 A 94 94 0 0 1 147 18.6 Z" fill="url(#wheelGrad3)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                <g transform="translate(100, 37) scale(0.68)" filter="url(#sliceShadow)">
+                  <path d="M1 -9 L-6 1 L0 1 L-2 9 L7 -2 L1 -2 Z" fill="#facc15" stroke="#ca8a04" stroke-width="1" stroke-linejoin="round" />
+                </g>
+                <text x="100" y="54" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9" font-weight="900" direction="ltr" style="direction: ltr; font-family: sans-serif;" filter="url(#sliceShadow)">500 MB</text>
               </g>
 
               <!-- Slice 4: 👑 2 GB (240 deg) -->
               <g transform="rotate(240, 100, 100)">
-                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad4)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
-                <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan font-size="11">👑 </tspan><tspan font-family="Vazirmatn" font-size="10">2 </tspan><tspan font-size="8.5">GB</tspan>
-                </text>
+                <path d="M 100 100 L 53 18.6 A 94 94 0 0 1 147 18.6 Z" fill="url(#wheelGrad4)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                <g transform="translate(100, 37) scale(0.68)" filter="url(#sliceShadow)">
+                  <path d="M-9 5 L-7 -5 L-2.5 -0.5 L0 -6 L2.5 -0.5 L7 -5 L9 5 Z" fill="#fbbf24" stroke="#d97706" stroke-width="1" stroke-linejoin="round" />
+                  <rect x="-9" y="5" width="18" height="3" rx="1" fill="#f59e0b" />
+                  <circle cx="0" cy="-6" r="1.3" fill="#ffffff" />
+                  <circle cx="-7" cy="-5" r="1" fill="#ffffff" />
+                  <circle cx="7" cy="-5" r="1" fill="#ffffff" />
+                </g>
+                <text x="100" y="54" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="10" font-weight="900" direction="ltr" style="direction: ltr; font-family: sans-serif;" filter="url(#sliceShadow)">2 GB</text>
               </g>
 
               <!-- Slice 5: 🔄 دوباره (300 deg) -->
               <g transform="rotate(300, 100, 100)">
-                <path d="M 100 100 L 52 16.9 A 96 96 0 0 1 148 16.9 Z" fill="url(#wheelGrad5)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
-                <text x="100" y="44" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" direction="ltr" style="direction: ltr; unicode-bidi: isolate;" filter="url(#sliceShadow)">
-                  <tspan font-size="11">🔄 </tspan><tspan font-size="9">دوباره</tspan>
-                </text>
+                <path d="M 100 100 L 53 18.6 A 94 94 0 0 1 147 18.6 Z" fill="url(#wheelGrad5)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                <g transform="translate(100, 37) scale(0.68)" filter="url(#sliceShadow)">
+                  <path d="M0 -8 A8 8 0 0 1 7 4 L4 1.5 M7 4 L8 0.5" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M0 8 A8 8 0 0 1 -7 -4 L-4 -1.5 M-7 -4 L-8 -0.5" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                </g>
+                <text x="100" y="54" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="9.5" font-weight="900" filter="url(#sliceShadow)">دوباره</text>
               </g>
+
+              <!-- Inner Concentric Track Ring -->
+              <circle cx="100" cy="100" r="42" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-dasharray="3,3" />
+
+              <!-- 12 Luminous Perimeter Golden Pips / Lights -->
+              <circle cx="100" cy="4.5" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="147.7" cy="17.2" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="182.8" cy="52.3" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="195.5" cy="100" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="182.8" cy="147.7" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="147.7" cy="182.8" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="100" cy="195.5" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="52.3" cy="182.8" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="17.2" cy="147.7" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="4.5" cy="100" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="17.2" cy="52.3" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
+              <circle cx="52.3" cy="17.2" r="2.2" fill="#fef08a" stroke="#ca8a04" stroke-width="0.7" />
             </svg>
           </div>
 
