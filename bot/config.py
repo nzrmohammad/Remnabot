@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     CARD_HOLDER: str = ""              # card owner's name shown to the user
     CARD_AUTO_ENABLED: bool = False    # automated card-to-card via SMS forwarder
     SMS_WEBHOOK_SECRET: str = ""       # secret token to authenticate incoming SMS webhooks
+    SMS_FORWARDER_APP: str = "auto"    # preferred forwarder app: auto, forapp, or sms_forwarder
     TOPUP_MIN_AMOUNT: int = 10000      # Toman
     TOPUP_MAX_AMOUNT: int = 50_000_000 # Toman
 
@@ -117,6 +118,7 @@ class Settings(BaseSettings):
         "ADMIN_TOPIC_ERRORS",
         "ADMIN_TOPIC_BACKUPS",
         "ADMIN_TOPIC_SMS_MANUAL",
+        "ADMIN_TOPIC_SMS_LOGS",
         mode="before",
     )
     @classmethod

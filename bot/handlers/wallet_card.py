@@ -47,7 +47,10 @@ async def topup_receipt(
         await delete_message_silently(bot, message.chat.id, message.message_id)
         return
 
-    from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+    from bot.db.repositories.card_auto_repo import (
+        CardAutoRepository,
+        format_manual_card_block_message,
+    )
     block_info = await CardAutoRepository(session).get_manual_card_block_info(user.telegram_id)
     if block_info:
         await delete_message_silently(bot, message.chat.id, message.message_id)

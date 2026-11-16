@@ -362,9 +362,6 @@ async def custom_plan_custom_days_input(
     data = await state.get_data()
     gb = int(data.get("traffic_gb", 10) or 10)
     squad_uuid = data.get("squad_uuid")
-    squad_name = None
-    if squad_uuid and remnawave:
-        squad_name = await resolve_squad_name(remnawave, squad_uuid)
 
     store_settings = await get_store_settings(session)
     raw = (message.text or "").strip()

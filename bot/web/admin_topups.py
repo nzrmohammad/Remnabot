@@ -10,13 +10,11 @@ from aiohttp import web
 from sqlalchemy import select
 
 from bot.common import admin_thread_kwargs
-from bot.db.models import (
-    AdminLog,
-    User,
-)
+from bot.db.models import User
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.app_settings import get_store_settings
+from bot.services.topups import decide_topup
 from bot.web.admin_common import _check_admin, db_session
 
 logger = logging.getLogger(__name__)
@@ -106,158 +104,87 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
     except (TypeError, ValueError):
         return web.json_response({"ok": False, "error": "شناسه فیش نامعتبر است."}, status=400)
 
-    bot = request.app["bot"]
+    bot = request.app.get("bot")
+    cache = request.app.get("cache")
+    admin_id = admin.get("id")
 
     async with db_session(request) as session:
         wallet_repo = WalletRepository(session)
-        claimed = await wallet_repo.claim_topup(topup_id_int, approved)
-        if not claimed:
+        topup = await wallet_repo.get_topup(topup_id_int)
+        if not topup:
+            return web.json_response({"ok": False, "error": "فیش یافت نشد."}, status=404)
+        if topup.status != "pending":
             return web.json_response({"ok": False, "error": "این فیش قبلاً تعیین وضعیت شده است."}, status=400)
 
-        if approved:
-            try:
-                await wallet_repo.add_balance_atomic(claimed.telegram_id, claimed.amount)
-            except Exception as exc:
-                logger.error("Failed to add balance for topup #%s (user=%s, amount=%s): %s", claimed.id, claimed.telegram_id, claimed.amount, exc)
-                try:
-                    from bot.services.error_reporter import report_error
-                    await report_error(
-                        bot,
-                        session=session,
-                        exc=exc,
-                        context=f"Admin topup approval failed #{claimed.id} amount={claimed.amount}",
-                        user_id=claimed.telegram_id,
-                    )
-                except Exception:
-                    pass
-                raise
-            session.add(
-                AdminLog(
-                    admin_id=admin["id"],
-                    action="topup_approved",
-                    detail=f"تایید فیش {claimed.id} و شارژ {claimed.amount:,} تومان برای {claimed.telegram_id}",
-                )
-            )
-            msg = f"✅ <b>واریز شما تایید شد!</b>\n\nمبلغ {claimed.amount:,} تومان به کیف پول شما اضافه شد."
-        else:
-            session.add(
-                AdminLog(
-                    admin_id=admin["id"],
-                    action="topup_rejected",
-                    detail=f"رد فیش {claimed.id} برای {claimed.telegram_id}",
-                )
-            )
-            msg = "❌ <b>فیش ارسالی شما رد شد.</b>\n\nدر صورت وجود مغایرت با پشتیبانی در ارتباط باشید."
+        admin_msg_id = topup.admin_message_id
+        topup_amount = topup.amount
+        topup_tg_id = topup.telegram_id
 
-        await session.commit()
-
-    # Clear cache
-    cache = request.app.get("cache")
-    if cache and hasattr(cache, "delete"):
-        if hasattr(cache, "invalidate_user"):
-            await cache.invalidate_user(claimed.telegram_id)
-        else:
-            await cache.delete(f"tma:user:{claimed.telegram_id}")
-        await cache.delete("tma:admin:overview")
-
-    # Send telegram notification to user with navigation keyboard
-    try:
-        from aiogram.utils.keyboard import InlineKeyboardBuilder
-
-        from bot.locales.texts import t
-
-        user_lang = "fa"
-        async with db_session(request) as session:
-            user_repo = UserRepository(session)
-            u_obj = await user_repo.get_by_telegram_id(claimed.telegram_id)
-            if u_obj and u_obj.language:
-                user_lang = u_obj.language
-
-            kb = InlineKeyboardBuilder()
-            if approved:
-                if user_lang == "fa":
-                    kb.button(text=t(user_lang, "btn_services"), callback_data="menu:services")
-                    kb.button(text=t(user_lang, "btn_wallet"), callback_data="menu:wallet")
-                else:
-                    kb.button(text=t(user_lang, "btn_wallet"), callback_data="menu:wallet")
-                    kb.button(text=t(user_lang, "btn_services"), callback_data="menu:services")
-                kb.adjust(2)
-            else:
-                kb.button(text=t(user_lang, "btn_support"), callback_data="menu:support")
-                kb.adjust(1)
-
-            if bot:
-                if u_obj:
-                    from bot.services.menu import delete_message_silently
-                    await delete_message_silently(bot, u_obj.telegram_id, u_obj.menu_message_id)
-                sent_msg = await bot.send_message(
-                    chat_id=claimed.telegram_id,
-                    text=msg,
-                    reply_markup=kb.as_markup(),
-                    parse_mode="HTML",
-                )
-                if u_obj and isinstance(getattr(sent_msg, "message_id", None), int):
-                    await user_repo.set_menu_message_id(u_obj, sent_msg.message_id)
-                    await session.commit()
-    except Exception as exc:
-        logger.warning("Could not send topup decision notice to %s: %s", claimed.telegram_id, exc)
-
-    # Sync status with admin supergroup / topic
-    settings = request.app.get("settings")
-    admin_chat_id = settings.ADMIN_CHAT_ID if settings else None
-    if admin_chat_id and bot:
-        store = None
-        try:
-            async with db_session(request) as session:
-                store = await get_store_settings(session)
-        except Exception:
-            pass
-
-        thread_kwargs = admin_thread_kwargs(store, settings, kind="topups") if store and settings else {}
-        status_badge = "✅ تایید شد (از طریق پنل ادمین)" if approved else "❌ رد شد (از طریق پنل ادمین)"
-        admin_name = admin.get("first_name") or admin.get("username") or str(admin.get("id"))
-
-        # 1. Remove pending inline buttons from the original receipt prompt
-        if claimed.admin_message_id:
-            try:
-                await bot.edit_message_reply_markup(
-                    chat_id=admin_chat_id,
-                    message_id=claimed.admin_message_id,
-                    reply_markup=None,
-                )
-            except Exception as exc:
-                logger.debug("Could not remove reply markup for topup %s: %s", claimed.id, exc)
-
-        # 2. Announce resolution into the admin supergroup topic
-        admin_id_val = admin.get("id")
-        admin_id_str = f" (<code>{admin_id_val}</code>)" if admin_id_val else ""
-        notice_text = (
-            f"📌 <b>تعیین وضعیت فیش {claimed.id}</b>\n"
-            f"👤 کاربر: <code>{claimed.telegram_id}</code>\n"
-            f"💰 مبلغ: <b>{claimed.amount:,}</b> تومان\n"
-            f"📊 وضعیت: <b>{status_badge}</b>\n"
-            f"👮 توسط ادمین: <b>{escape(str(admin_name))}</b>{admin_id_str}"
+        changed, note = await decide_topup(
+            bot=bot,
+            session=session,
+            topup_id=topup_id_int,
+            approved=approved,
+            admin_id=admin_id,
+            cache=cache,
         )
-        try:
-            kwargs = dict(thread_kwargs)
-            if claimed.admin_message_id:
-                kwargs["reply_to_message_id"] = claimed.admin_message_id
-            await bot.send_message(
-                chat_id=admin_chat_id,
-                text=notice_text,
-                parse_mode="HTML",
-                **kwargs,
-            )
-        except Exception:
+        if not changed:
+            return web.json_response({"ok": False, "error": note}, status=400)
+
+        # Sync status with admin supergroup / topic
+        settings = request.app.get("settings")
+        admin_chat_id = settings.ADMIN_CHAT_ID if settings else None
+        if admin_chat_id and bot:
+            # 1. Remove pending inline buttons from the original receipt prompt
+            if admin_msg_id:
+                try:
+                    await bot.edit_message_reply_markup(
+                        chat_id=admin_chat_id,
+                        message_id=admin_msg_id,
+                        reply_markup=None,
+                    )
+                except Exception as exc:
+                    logger.debug("Could not remove reply markup for topup %s: %s", topup_id_int, exc)
+
+            # 2. Announce resolution into the admin supergroup topic
+            store = None
             try:
+                store = await get_store_settings(session)
+            except Exception:
+                pass
+            thread_kwargs = admin_thread_kwargs(store, settings, kind="topups") if store and settings else {}
+            status_badge = "✅ تایید شد (از طریق پنل ادمین)" if approved else "❌ رد شد (از طریق پنل ادمین)"
+            admin_name = admin.get("first_name") or admin.get("username") or str(admin.get("id"))
+            admin_id_str = f" (<code>{admin_id}</code>)" if admin_id else ""
+            notice_text = (
+                f"📌 <b>تعیین وضعیت فیش {topup_id_int}</b>\n"
+                f"👤 کاربر: <code>{topup_tg_id}</code>\n"
+                f"💰 مبلغ: <b>{topup_amount:,}</b> تومان\n"
+                f"📊 وضعیت: <b>{status_badge}</b>\n"
+                f"👮 توسط ادمین: <b>{escape(str(admin_name))}</b>{admin_id_str}"
+            )
+            try:
+                kwargs = dict(thread_kwargs)
+                if admin_msg_id:
+                    kwargs["reply_to_message_id"] = admin_msg_id
                 await bot.send_message(
                     chat_id=admin_chat_id,
                     text=notice_text,
                     parse_mode="HTML",
-                    **thread_kwargs,
+                    **kwargs,
                 )
-            except Exception as exc:
-                logger.warning("Failed to send topup update notice to admin chat: %s", exc)
+            except Exception:
+                try:
+                    await bot.send_message(
+                        chat_id=admin_chat_id,
+                        text=notice_text,
+                        parse_mode="HTML",
+                        **thread_kwargs,
+                    )
+                except Exception as exc:
+                    logger.warning("Could not send admin topic sync notice for topup %s: %s", topup_id_int, exc)
+
+        await session.commit()
 
     return web.json_response({
         "ok": True,

@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 # Bot instance resolved dynamically from request.app["bot"]
+from aiogram.exceptions import TelegramRetryAfter
 from aiohttp import web
 
 from bot.common.links import ad_link
@@ -81,6 +82,14 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
                 await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
                 st["sent"] += 1
                 await asyncio.sleep(0.04)  # ~25 messages/sec rate limit
+            except TelegramRetryAfter as retry_err:
+                try:
+                    await asyncio.sleep(retry_err.retry_after + 1)
+                    await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
+                    st["sent"] += 1
+                except Exception as retry_exc:
+                    st["failed"] += 1
+                    logger.debug("Broadcast retry error for user %s: %s", tid, retry_exc)
             except Exception as exc:
                 st["failed"] += 1
                 logger.debug("Broadcast send error for user %s: %s", tid, exc)

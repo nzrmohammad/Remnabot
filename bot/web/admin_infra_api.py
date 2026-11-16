@@ -392,8 +392,11 @@ def _extract_github_downloads(app_id: str, assets_raw: Any) -> dict[str, dict[st
     if not assets:
         return {}
 
-    is_x64 = lambda n: any(a in n for a in ("x64", "amd64", "x86_64", "win64", "windows-64", "windows64", "linux-64", "linux64"))
-    not_alt_arch = lambda n: not any(a in n for a in ("arm64", "aarch64", "armv7", "windows-86", "windows-32", "ia32", "loong", "riscv"))
+    def is_x64(n: str) -> bool:
+        return any(a in n for a in ("x64", "amd64", "x86_64", "win64", "windows-64", "windows64", "linux-64", "linux64"))
+
+    def not_alt_arch(n: str) -> bool:
+        return not any(a in n for a in ("arm64", "aarch64", "armv7", "windows-86", "windows-32", "ia32", "loong", "riscv"))
 
     downloads: dict[str, dict[str, str]] = {}
 
@@ -495,8 +498,6 @@ async def get_admin_github_releases(request: web.Request) -> web.Response:
 
     versions: dict[str, str] = {}
     downloads: dict[str, dict[str, dict[str, str]]] = {}
-    import asyncio
-    import aiohttp
     async with aiohttp.ClientSession(headers={"User-Agent": "Remnabot-App-Monitor/1.0"}) as session:
         results = await asyncio.gather(
             *(_fetch_single_github_release(session, app_id, repo) for app_id, repo in items_to_check.items()),

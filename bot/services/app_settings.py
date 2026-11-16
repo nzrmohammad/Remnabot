@@ -44,6 +44,7 @@ class StoreSettings:
     card_enabled: bool = True
     card_auto_enabled: bool = False
     sms_webhook_secret: str = ""
+    sms_forwarder_app: str = "auto"  # auto, forapp, or sms_forwarder
     topic_errors: int | None = None
     access_mode: str = "open"  # open, invite_only, closed
     stars_enabled: bool = False
@@ -145,6 +146,7 @@ async def get_store_settings(session: AsyncSession) -> StoreSettings:
         card_enabled=_bool(values.get("card_enabled"), True),
         card_auto_enabled=_bool(values.get("card_auto_enabled"), getattr(env, "CARD_AUTO_ENABLED", False)),
         sms_webhook_secret=str(values.get("sms_webhook_secret") or getattr(env, "SMS_WEBHOOK_SECRET", "")).strip(),
+        sms_forwarder_app=str(values.get("sms_forwarder_app") or getattr(env, "SMS_FORWARDER_APP", "auto")).strip().lower(),
         topic_errors=_opt_int(values.get("topic_errors"), env.ADMIN_TOPIC_ERRORS),
         access_mode=str(values.get("access_mode") or "open").strip().lower(),
         stars_enabled=_bool(values.get("stars_enabled"), False),

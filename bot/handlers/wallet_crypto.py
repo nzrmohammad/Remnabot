@@ -178,7 +178,6 @@ async def ton_invoice_cancel(
 async def _render_trx_invoice(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession, invoice,
 ) -> None:
-    lang = user.language or "fa"
     kb = InlineKeyboardBuilder()
     kb.button(text="🔍 ثبت هش تراکنش (TxID)", callback_data=f"wallet:trx:submit_tx:{invoice.id}")
     kb.button(text="❌ لغو فاکتور", callback_data=f"wallet:trx:cancel:{invoice.id}")
@@ -201,7 +200,6 @@ async def _render_trx_invoice(
 async def _render_pol_invoice(
     bot: Bot, user, user_repo: UserRepository, session: AsyncSession, invoice,
 ) -> None:
-    lang = user.language or "fa"
     kb = InlineKeyboardBuilder()
     kb.button(text="🔍 ثبت هش تراکنش (TxHash)", callback_data=f"wallet:pol:submit_tx:{invoice.id}")
     kb.button(text="❌ لغو فاکتور", callback_data=f"wallet:pol:cancel:{invoice.id}")
@@ -234,7 +232,6 @@ async def trx_invoice_submit_tx(
     await state.set_state(TopupStates.waiting_tx_hash)
     await state.update_data(crypto_inv_id=inv_id, crypto_curr="TRX")
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
 
     kb = InlineKeyboardBuilder()
     kb.button(text="❌ لغو", callback_data=f"wallet:trx:cancel:{inv_id}")
@@ -260,7 +257,6 @@ async def pol_invoice_submit_tx(
     await state.set_state(TopupStates.waiting_tx_hash)
     await state.update_data(crypto_inv_id=inv_id, crypto_curr="POL")
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language or "fa"
 
     kb = InlineKeyboardBuilder()
     kb.button(text="❌ لغو", callback_data=f"wallet:pol:cancel:{inv_id}")
@@ -288,7 +284,6 @@ async def crypto_tx_hash_message(
     tx_hash = (message.text or "").strip()
 
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
-    lang = user.language or "fa"
 
     if not tx_hash or not inv_id:
         return

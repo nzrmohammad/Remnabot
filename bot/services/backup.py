@@ -62,13 +62,25 @@ def _json_serializer(obj):
     return str(obj)
 
 
+async def _stream_all(session: AsyncSession, statement, yield_per: int = 500) -> list:
+    """Fetch rows using stream_scalars with yield_per for memory efficiency, with fallback to execute."""
+    if hasattr(session, "stream_scalars"):
+        try:
+            stream = await session.stream_scalars(statement.execution_options(yield_per=yield_per))
+            return [x async for x in stream]
+        except Exception:
+            pass
+    res = await session.execute(statement)
+    return list(res.scalars().all())
+
+
 async def create_database_backup(session: AsyncSession, out_dir: str | Path | None = None) -> Path:
     """Export all primary database tables to a JSON backup file."""
     now = datetime.now(timezone.utc)
     timestamp = now.strftime("%Y%m%d_%H%M%S")
 
     # 1. Users
-    users_res = await session.execute(select(User))
+    users_raw = await _stream_all(session, select(User))
     users = [
         {
             "id": u.id,
@@ -84,10 +96,10 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "auto_renew": u.auto_renew,
             "wheel_last_spin_at": _serialize_val(u.wheel_last_spin_at),
             "wheel_streak": u.wheel_streak,
-                        "last_active_at": _serialize_val(u.last_active_at),
+            "last_active_at": _serialize_val(u.last_active_at),
             "created_at": _serialize_val(u.created_at),
         }
-        for u in users_res.scalars().all()
+        for u in users_raw
     ]
 
     # 2. Wallets
@@ -98,7 +110,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     ]
 
     # 3. Orders
-    orders_res = await session.execute(select(Order))
+    orders_raw = await _stream_all(session, select(Order))
     orders = [
         {
             "id": o.id,
@@ -117,7 +129,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "snapshot_data": getattr(o, "snapshot_data", None),
             "created_at": _serialize_val(o.created_at),
         }
-        for o in orders_res.scalars().all()
+        for o in orders_raw
     ]
 
     # 4. Services
@@ -177,7 +189,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     ]
 
     # 8. Crypto Invoices
-    crypto_res = await session.execute(select(CryptoInvoice))
+    crypto_raw = await _stream_all(session, select(CryptoInvoice))
     crypto_invoices = [
         {
             "id": ci.id,
@@ -194,7 +206,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "created_at": _serialize_val(ci.created_at),
             "paid_at": _serialize_val(ci.paid_at),
         }
-        for ci in crypto_res.scalars().all()
+        for ci in crypto_raw
     ]
 
     # 9. Coupon Usages
@@ -271,7 +283,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     ]
 
     # 14. AdminLog
-    admin_logs_res = await session.execute(select(AdminLog))
+    admin_logs_raw = await _stream_all(session, select(AdminLog))
     admin_logs = [
         {
             "id": al.id,
@@ -281,7 +293,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "target_user_id": al.target_user_id,
             "created_at": _serialize_val(al.created_at),
         }
-        for al in admin_logs_res.scalars().all()
+        for al in admin_logs_raw
     ]
 
     # 15. AlertState
@@ -311,7 +323,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     ]
 
     # 17. KnownDevice
-    known_devices_res = await session.execute(select(KnownDevice))
+    known_devices_raw = await _stream_all(session, select(KnownDevice))
     known_devices = [
         {
             "id": kd.id,
@@ -322,7 +334,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "device_model": kd.device_model,
             "created_at": _serialize_val(kd.created_at),
         }
-        for kd in known_devices_res.scalars().all()
+        for kd in known_devices_raw
     ]
 
     # 18. RetentionState
@@ -357,7 +369,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     ]
 
     # 20. HourlyTrafficSnapshot
-    traffic_snapshots_res = await session.execute(select(HourlyTrafficSnapshot))
+    traffic_snapshots_raw = await _stream_all(session, select(HourlyTrafficSnapshot))
     traffic_snapshots = [
         {
             "id": hts.id,
@@ -366,7 +378,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "delta_bytes": hts.delta_bytes,
             "created_at": _serialize_val(hts.created_at),
         }
-        for hts in traffic_snapshots_res.scalars().all()
+        for hts in traffic_snapshots_raw
     ]
 
     # 21. Campaign
@@ -427,7 +439,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
     ]
 
     # 24. BankSmsLog
-    bank_sms_res = await session.execute(select(BankSmsLog))
+    bank_sms_raw = await _stream_all(session, select(BankSmsLog))
     bank_sms_logs = [
         {
             "id": bsl.id,
@@ -440,7 +452,7 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             "processed": bsl.processed,
             "created_at": _serialize_val(bsl.created_at),
         }
-        for bsl in bank_sms_res.scalars().all()
+        for bsl in bank_sms_raw
     ]
 
     data = {

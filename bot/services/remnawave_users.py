@@ -40,8 +40,7 @@ class RemnawaveUsersMixin:
             # Filter locally to guarantee no cross-user account leakage
             return [
                 u for u in raw_users
-                if not (u.get("telegramId") or u.get("telegram_id"))
-                or str(u.get("telegramId") or u.get("telegram_id")) == str(telegram_id)
+                if str(u.get("telegramId") or u.get("telegram_id") or "") == str(telegram_id)
             ]
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code == 404:

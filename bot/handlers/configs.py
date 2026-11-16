@@ -243,7 +243,6 @@ async def single_config_detail(
         return
 
     cfg = configs[idx]
-    config_name = escape(cfg["name"])
     config_uri = escape(cfg["uri"])
     username = escape(str(account.get("username", "—")))
     proto = str(cfg.get("protocol") or "—").upper()

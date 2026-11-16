@@ -54,7 +54,9 @@ class RateLimitMiddleware(BaseMiddleware):
             logger.warning("rate-limited user %s", uid)
             if isinstance(event, CallbackQuery):
                 try:
-                    await event.answer("⏳ Too fast — please wait a bit.", show_alert=False)
+                    user_lang = getattr(getattr(event, "from_user", None), "language_code", "fa") or "fa"
+                    toast = "⏳ Too fast — please wait a bit." if user_lang.startswith("en") else "⏳ لطفاً کمی صبور باشید..."
+                    await event.answer(toast, show_alert=False)
                 except Exception:
                     pass
             return None

@@ -6,7 +6,6 @@ and by the «تایید شارژها» section of the admin panel (admin_ops.py)
 import logging
 
 from aiogram import Bot
-from aiogram.exceptions import TelegramAPIError
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,6 +24,7 @@ async def decide_topup(
     topup_id: int,
     approved: bool,
     admin_id: int | None = None,
+    cache=None,
 ) -> tuple[bool, str]:
     """Apply the decision; returns (changed, note_text_for_admin)."""
     wallet_repo = WalletRepository(session)
@@ -79,7 +79,8 @@ async def decide_topup(
             detail=f"topup={topup_id} user={topup.telegram_id} amount={topup.amount}",
         )
 
-    cache = getattr(bot, "cache", None)
+    if cache is None:
+        cache = getattr(bot, "cache", None)
     if cache and hasattr(cache, "delete"):
         try:
             if hasattr(cache, "invalidate_user"):
@@ -90,17 +91,28 @@ async def decide_topup(
         except Exception as c_exc:
             logger.debug("Failed invalidating cache for topup %s: %s", topup_id, c_exc)
 
-    try:
-        user_repo = UserRepository(session)
-        if target:
-            from bot.services.menu import delete_message_silently
-            await delete_message_silently(bot, target.telegram_id, target.menu_message_id)
-            sent_msg = await bot.send_message(topup.telegram_id, user_text, reply_markup=kb.as_markup())
-            if isinstance(getattr(sent_msg, "message_id", None), int):
-                await user_repo.set_menu_message_id(target, sent_msg.message_id)
-        else:
-            await bot.send_message(topup.telegram_id, user_text, reply_markup=kb.as_markup())
-    except TelegramAPIError:
-        logger.warning("could not notify user %s about top-up", topup.telegram_id)
+    if bot:
+        try:
+            user_repo = UserRepository(session)
+            if target:
+                from bot.services.menu import delete_message_silently
+                await delete_message_silently(bot, target.telegram_id, target.menu_message_id)
+                sent_msg = await bot.send_message(
+                    chat_id=topup.telegram_id,
+                    text=user_text,
+                    reply_markup=kb.as_markup(),
+                    parse_mode="HTML",
+                )
+                if isinstance(getattr(sent_msg, "message_id", None), int):
+                    await user_repo.set_menu_message_id(target, sent_msg.message_id)
+            else:
+                await bot.send_message(
+                    chat_id=topup.telegram_id,
+                    text=user_text,
+                    reply_markup=kb.as_markup(),
+                    parse_mode="HTML",
+                )
+        except Exception as exc:
+            logger.warning("could not notify user %s about top-up: %s", topup.telegram_id, exc)
 
     return True, note

@@ -44,7 +44,7 @@ async def test_get_user_subscription_configs_priority1_connection_keys():
     app["cache"] = cache
     mock_remnawave = AsyncMock()
     mock_remnawave.get_users_by_telegram_id.return_value = [
-        {"id": "user-42", "uuid": "uuid-42", "shortUuid": "su-42", "subscriptionUrl": "https://sub.example.com/sub/su-42"}
+        {"id": "user-42", "telegramId": 12345, "uuid": "uuid-42", "shortUuid": "su-42", "subscriptionUrl": "https://sub.example.com/sub/su-42"}
     ]
     vmess_payload = base64.b64encode(json.dumps({"v": "2", "ps": "🇳🇱 Amsterdam", "add": "server2.com"}).encode()).decode()
     mock_remnawave.get_user_connection_keys.return_value = [
@@ -76,7 +76,7 @@ async def test_get_user_subscription_configs_empty_when_no_keys():
     cache = FastCache(redis_client=None)
     app["cache"] = cache
     mock_remnawave = AsyncMock()
-    mock_remnawave.get_users_by_telegram_id.return_value = [{"id": "user-1", "subscriptionUrl": "https://sub.example.com/sub/abc"}]
+    mock_remnawave.get_users_by_telegram_id.return_value = [{"id": "user-1", "telegramId": 12345, "subscriptionUrl": "https://sub.example.com/sub/abc"}]
     mock_remnawave.get_user_connection_keys.return_value = None
     app["remnawave"] = mock_remnawave
     session_factory = MagicMock()

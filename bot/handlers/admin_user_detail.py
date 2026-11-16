@@ -174,20 +174,22 @@ async def _render_panel_user_detail(
 
     # Row 4: Devices/HWID list + HWID limit
     if lang == "fa":
-        kb.button(text=t(lang, "btn_hwid_limit"), callback_data=f"adm:puser:hwidlim:{panel_user_id}:{category}:{page}")
+        kb.button(text=t(lang, "btn_hwid_limit", limit=hwid_limit_str), callback_data=f"adm:puser:hwidlim:{panel_user_id}:{category}:{page}")
         kb.button(text=t(lang, "btn_devices_list"), callback_data=f"adm:puser:hwid:{panel_user_id}:{category}:{page}")
     else:
         kb.button(text=t(lang, "btn_devices_list"), callback_data=f"adm:puser:hwid:{panel_user_id}:{category}:{page}")
-        kb.button(text=t(lang, "btn_hwid_limit"), callback_data=f"adm:puser:hwidlim:{panel_user_id}:{category}:{page}")
+        kb.button(text=t(lang, "btn_hwid_limit", limit=hwid_limit_str), callback_data=f"adm:puser:hwidlim:{panel_user_id}:{category}:{page}")
     row_adjust.append(2)
 
     # Row 5: Edit Telegram ID + Edit Description
+    tid_btn_val = str(tid) if (tid and int(tid) > 0) else ("—")
+    desc_btn_val = (desc[:12] + "...") if len(desc) > 12 else desc
     if lang == "fa":
-        kb.button(text=t(lang, "btn_edit_desc"), callback_data=f"adm:puser:desc:{panel_user_id}:{category}:{page}")
-        kb.button(text=t(lang, "btn_edit_tid"), callback_data=f"adm:puser:edittid:{panel_user_id}:{category}:{page}")
+        kb.button(text=t(lang, "btn_edit_desc", desc=desc_btn_val), callback_data=f"adm:puser:desc:{panel_user_id}:{category}:{page}")
+        kb.button(text=t(lang, "btn_edit_tid", tid=tid_btn_val), callback_data=f"adm:puser:edittid:{panel_user_id}:{category}:{page}")
     else:
-        kb.button(text=t(lang, "btn_edit_tid"), callback_data=f"adm:puser:edittid:{panel_user_id}:{category}:{page}")
-        kb.button(text=t(lang, "btn_edit_desc"), callback_data=f"adm:puser:desc:{panel_user_id}:{category}:{page}")
+        kb.button(text=t(lang, "btn_edit_tid", tid=tid_btn_val), callback_data=f"adm:puser:edittid:{panel_user_id}:{category}:{page}")
+        kb.button(text=t(lang, "btn_edit_desc", desc=desc_btn_val), callback_data=f"adm:puser:desc:{panel_user_id}:{category}:{page}")
     row_adjust.append(2)
 
     # Row 6: Telegram user detail link if tid present

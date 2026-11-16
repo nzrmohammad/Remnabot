@@ -213,12 +213,21 @@ async def process_incoming_sms(
     sender: str,
     raw_message: str,
     cache: Any = None,
+    forapp_amount_toman: int | None = None,
+    idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     """Process forwarded bank SMS, match to pending invoice, and credit user wallet."""
     repo = CardAutoRepository(session)
     wallet_repo = WalletRepository(session)
 
     parsed = parse_bank_sms(raw_message, sender)
+    if (not parsed.amount_toman or not parsed.is_deposit) and forapp_amount_toman:
+        # Fallback to ForApp parsed deposit amount if raw parser didn't match unknown bank syntax
+        if parsed.reject_reason != "تراکنش برداشت، خرید یا انتقال خروجی از حساب است":
+            parsed.amount_toman = forapp_amount_toman
+            parsed.amount_rial = forapp_amount_toman * 10
+            parsed.is_deposit = True
+
     logger.debug(
         "Bank SMS parsed result: sender=%r is_deposit=%s amount_rial=%s amount_toman=%s bank=%s raw_preview=%r",
         sender, parsed.is_deposit, parsed.amount_rial, parsed.amount_toman, parsed.bank_name, raw_message[:80],

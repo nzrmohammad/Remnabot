@@ -98,6 +98,7 @@ async def birthday_sweep_loop(
                         None,
                     )
                     traffic_added = False
+                    is_unlimited = False
                     if active_sub:
                         try:
                             primary_id = int(active_sub.get("id"))
@@ -106,7 +107,9 @@ async def birthday_sweep_loop(
                             if current_limit > 0:
                                 new_limit = current_limit + int(traffic_gb * 1024 * 1024 * 1024)
                                 await remnawave.update_user_subscription(primary_id, current_expire, new_limit)
-                            traffic_added = True
+                                traffic_added = True
+                            else:
+                                is_unlimited = True
                         except Exception as e:
                             logger.warning("Failed adding birthday traffic for %s: %s", user.telegram_id, e)
 
@@ -132,11 +135,12 @@ async def birthday_sweep_loop(
                     if cache:
                         await cache.set(dedup_key, "1", ttl_seconds=86400 * 400)
 
-                    traffic_msg = (
-                        f"🎁 <b>{traffic_gb} گیگابایت حجم هدیه آنی</b> (به اشتراک فعال شما افزوده شد)\n"
-                        if traffic_added
-                        else f"🎁 <b>{traffic_gb} گیگابایت حجم هدیه</b>\n"
-                    )
+                    if traffic_added:
+                        traffic_msg = f"🎁 <b>{traffic_gb} گیگابایت حجم هدیه آنی</b> (به اشتراک فعال شما افزوده شد)\n"
+                    elif is_unlimited:
+                        traffic_msg = "♾ <b>سرویس فعال شما نامحدود است</b> (هدیه ویژه شما در قالب کد تخفیف تقدیم می‌گردد)\n"
+                    else:
+                        traffic_msg = f"🎁 <b>{traffic_gb} گیگابایت حجم هدیه</b>\n"
                     custom_msg = (getattr(store, "birthday_custom_message", None) or "").strip()
                     if custom_msg:
                         user_name = html.escape(user.full_name or user.username or "کاربر گرامی")

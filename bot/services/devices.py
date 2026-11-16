@@ -15,7 +15,7 @@ from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
 
-DEVICE_CHECK_INTERVAL_SECONDS = 60
+DEVICE_CHECK_INTERVAL_SECONDS = 300
 
 
 async def check_account_new_devices(
@@ -130,6 +130,9 @@ async def run_devices_check(
         if panel_users is not None:
             # Efficient batch mode: 1 API call to get all users
             for account in panel_users:
+                # Only check active accounts to avoid flooding Remnawave API for expired/disabled users
+                if str(account.get("status", "")).upper() != "ACTIVE":
+                    continue
                 tg_id = account.get("telegramId") or account.get("telegram_id")
                 if not tg_id:
                     continue
@@ -153,6 +156,8 @@ async def run_devices_check(
                             if accounts:
                                 async with session_factory() as item_session:
                                     for acc in accounts:
+                                        if str(acc.get("status", "")).upper() != "ACTIVE":
+                                            continue
                                         await check_account_new_devices(
                                             bot, item_session, remnawave, acc, u.telegram_id, u.language or "fa"
                                         )

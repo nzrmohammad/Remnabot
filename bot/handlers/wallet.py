@@ -344,7 +344,10 @@ async def _render_topup_amount_prompt(
         return
 
     if method == "card" and not getattr(store, "card_auto_enabled", False):
-        from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+        from bot.db.repositories.card_auto_repo import (
+            CardAutoRepository,
+            format_manual_card_block_message,
+        )
         block_info = await CardAutoRepository(session).get_manual_card_block_info(user.telegram_id)
         if block_info:
             kb_block = InlineKeyboardBuilder()
@@ -684,7 +687,10 @@ async def topup_preset_amount(
         await call.answer(err_msg, show_alert=True)
         return
 
-    from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+    from bot.db.repositories.card_auto_repo import (
+        CardAutoRepository,
+        format_manual_card_block_message,
+    )
     block_info = await CardAutoRepository(session).get_manual_card_block_info(user.telegram_id)
     if block_info:
         await call.answer(
@@ -800,7 +806,10 @@ async def topup_amount(
         await render_menu(bot, user, user_repo, err_msg, kb.as_markup())
         return
 
-    from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+    from bot.db.repositories.card_auto_repo import (
+        CardAutoRepository,
+        format_manual_card_block_message,
+    )
     block_info = await CardAutoRepository(session).get_manual_card_block_info(user.telegram_id)
     if block_info:
         await render_menu(
@@ -929,7 +938,10 @@ async def c2c_manual_receipt_callback(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
     uuid_str = call.data.split(":", 2)[2]
-    from bot.db.repositories.card_auto_repo import CardAutoRepository, format_manual_card_block_message
+    from bot.db.repositories.card_auto_repo import (
+        CardAutoRepository,
+        format_manual_card_block_message,
+    )
     repo = CardAutoRepository(session)
     block_info = await repo.get_manual_card_block_info(user.telegram_id)
     if block_info:

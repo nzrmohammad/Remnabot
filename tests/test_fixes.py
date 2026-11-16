@@ -2341,11 +2341,11 @@ async def test_get_users_by_telegram_id_fallback_and_404():
     mock_resp_200 = MagicMock()
     mock_resp_200.status_code = 200
     mock_resp_200.raise_for_status = MagicMock()
-    mock_resp_200.json.return_value = {"response": {"users": [{"id": "user-1", "username": "u1"}]}}
+    mock_resp_200.json.return_value = {"response": {"users": [{"id": "user-1", "username": "u1", "telegramId": 292997086}]}}
 
     client._client.get = AsyncMock(side_effect=[mock_resp_404, mock_resp_200])
     users = await client.get_users_by_telegram_id(292997086)
-    assert users == [{"id": "user-1", "username": "u1"}]
+    assert users == [{"id": "user-1", "username": "u1", "telegramId": 292997086}]
     assert client._client.get.await_count == 2
 
     # Case 2: Both return 404 -> cleanly returns [] without error

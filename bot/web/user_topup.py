@@ -92,6 +92,7 @@ async def _collect_user_topup_guards(session: Any, user_id: int) -> tuple[list[i
 
     try:
         from sqlalchemy import select
+
         from bot.db.models import CardAutoInvoice, Topup
         from bot.db.repositories.card_auto_repo import MANUAL_CARD_COOLDOWN_HOURS
 
@@ -1560,7 +1561,10 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
             )
 
         # Mutex: check if user already has an active pending card-auto or crypto invoice
-        from bot.db.repositories.card_auto_repo import MANUAL_CARD_COOLDOWN_HOURS, CardAutoRepository
+        from bot.db.repositories.card_auto_repo import (
+            MANUAL_CARD_COOLDOWN_HOURS,
+            CardAutoRepository,
+        )
         card_auto_repo = CardAutoRepository(session)
         existing_card = await card_auto_repo.get_active_invoice_by_user(telegram_id)
         if existing_card and existing_card.status == "pending" and _as_utc(existing_card.expires_at) > datetime.now(timezone.utc):
@@ -1754,33 +1758,61 @@ async def post_user_topup_crypto_cancel(request: web.Request) -> web.Response:
 
 
 async def post_webhook_sms(request: web.Request) -> web.Response:
-    """Handle incoming bank SMS forwarded from mobile phone."""
-    peer_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote or "unknown"
+    """Handle incoming bank SMS forwarded from mobile phone (ForApp or SMS Forwarder)."""
+    raw_peer_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote or "unknown"
+    peer_ip = raw_peer_ip.split(",")[0].strip() if "," in raw_peer_ip else raw_peer_ip.strip()
+
+    cache = request.app.get("cache")
+
+    # 1. Endpoint Rate Limiting (per IP, max 60 requests per minute)
+    if cache and hasattr(cache, "get") and hasattr(cache, "set"):
+        try:
+            rl_key = f"rl:sms_webhook_req:{peer_ip}"
+            req_count = await cache.get(rl_key)
+            if req_count is not None and isinstance(req_count, int) and req_count >= 60:
+                logger.warning("SMS webhook rate limit exceeded (60 req/min) for ip=%s", peer_ip)
+                return web.json_response(
+                    {"ok": False, "message": "Too many requests. Please slow down."},
+                    status=429,
+                )
+            await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=60)
+        except Exception as rl_err:
+            logger.debug("Failed checking webhook rate limit for %s: %s", peer_ip, rl_err)
+
     async with db_session(request) as session:
         store = await get_store_settings(session)
 
-        # 1. Authenticate token
+        # 2. Authenticate token strictly via HTTP headers (or request body fallback)
+        # Note: Query token (?token=...) is deliberately NOT accepted to prevent URL token leakage in access logs.
         secret = (store.sms_webhook_secret or "").strip()
         if not secret:
             logger.warning("SMS webhook rejected: sms_webhook_secret is not configured (ip=%s)", peer_ip)
             return web.json_response({"ok": False, "message": "SMS webhook not configured"}, status=403)
 
         auth_header = request.headers.get("Authorization", "")
-        token_header = request.headers.get("X-SMS-Token", "")
-        token_query = request.query.get("token", "")
+        token_header = (
+            request.headers.get("X-SMS-Token", "")
+            or request.headers.get("X-API-Key", "")
+            or request.headers.get("X-Api-Key", "")
+            or request.headers.get("X-Auth-Token", "")
+        )
 
         provided_token = ""
         if token_header:
             provided_token = token_header.strip()
         elif auth_header.startswith("Bearer "):
             provided_token = auth_header.split("Bearer ", 1)[1].strip()
-        elif token_query:
-            provided_token = token_query.strip()
+        elif auth_header.strip():
+            provided_token = auth_header.strip()
 
-        # 2. Extract sender and message text by reading body once to avoid stream exhaustion
+        # 3. Extract sender, message text, and optional metadata (supports ForApp and SMS Forwarder)
         sender = ""
         raw_message = ""
         raw_bytes = b""
+        is_test = False
+        forapp_amount_toman: int | None = None
+        idempotency_key = request.headers.get("Idempotency-Key", "").strip()
+
         if hasattr(request, "read"):
             try:
                 read_res = request.read()
@@ -1807,10 +1839,17 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
             try:
                 body = json.loads(raw_text_payload)
                 if isinstance(body, dict):
-                    sender = str(body.get("from") or body.get("sender") or body.get("phone") or "")
-                    raw_message = str(body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
-                    if not provided_token and body.get("token"):
-                        provided_token = str(body.get("token")).strip()
+                    sender = str(body.get("sender") or body.get("from") or body.get("phone") or body.get("bank") or "")
+                    raw_message = str(body.get("body") or body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
+                    if not idempotency_key and body.get("id"):
+                        idempotency_key = str(body.get("id")).strip()
+                    if not provided_token and (body.get("api_key") or body.get("token")):
+                        provided_token = str(body.get("api_key") or body.get("token")).strip()
+                    if body.get("test") is True or str(body.get("test", "")).strip().lower() in ("true", "1"):
+                        is_test = True
+                    if isinstance(body.get("amount"), (int, float)) and body.get("amount") > 0:
+                        unit = str(body.get("unit") or "rial").strip().lower()
+                        forapp_amount_toman = int(body.get("amount")) // 10 if unit == "rial" else int(body.get("amount"))
             except Exception:
                 pass
         elif hasattr(request, "json"):
@@ -1818,24 +1857,33 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                 json_res = request.json()
                 body = (await json_res) if asyncio.iscoroutine(json_res) else json_res
                 if isinstance(body, dict):
-                    sender = str(body.get("from") or body.get("sender") or body.get("phone") or "")
-                    raw_message = str(body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
-                    if not provided_token and body.get("token"):
-                        provided_token = str(body.get("token")).strip()
+                    sender = str(body.get("sender") or body.get("from") or body.get("phone") or body.get("bank") or "")
+                    raw_message = str(body.get("body") or body.get("message") or body.get("text") or body.get("content") or body.get("msg") or "")
+                    if not idempotency_key and body.get("id"):
+                        idempotency_key = str(body.get("id")).strip()
+                    if not provided_token and (body.get("api_key") or body.get("token")):
+                        provided_token = str(body.get("api_key") or body.get("token")).strip()
+                    if body.get("test") is True or str(body.get("test", "")).strip().lower() in ("true", "1"):
+                        is_test = True
+                    if isinstance(body.get("amount"), (int, float)) and body.get("amount") > 0:
+                        unit = str(body.get("unit") or "rial").strip().lower()
+                        forapp_amount_toman = int(body.get("amount")) // 10 if unit == "rial" else int(body.get("amount"))
             except Exception:
                 pass
 
         # If not JSON, check URL-encoded form parameters or raw text
         if not raw_message and raw_text_payload and "=" in raw_text_payload and any(
-            k in raw_text_payload for k in ("from=", "message=", "text=", "content=", "msg=")
+            k in raw_text_payload for k in ("body=", "from=", "message=", "text=", "content=", "msg=")
         ):
             try:
                 from urllib.parse import parse_qs
                 qs = parse_qs(raw_text_payload)
-                sender = str(qs.get("from", [""])[0] or qs.get("sender", [""])[0] or qs.get("phone", [""])[0] or "")
-                raw_message = str(qs.get("message", [""])[0] or qs.get("text", [""])[0] or qs.get("content", [""])[0] or qs.get("msg", [""])[0] or "")
-                if not provided_token and qs.get("token"):
-                    provided_token = str(qs.get("token", [""])[0]).strip()
+                sender = str(qs.get("sender", [""])[0] or qs.get("from", [""])[0] or qs.get("phone", [""])[0] or "")
+                raw_message = str(qs.get("body", [""])[0] or qs.get("message", [""])[0] or qs.get("text", [""])[0] or qs.get("content", [""])[0] or qs.get("msg", [""])[0] or "")
+                if not provided_token and (qs.get("api_key") or qs.get("token")):
+                    provided_token = str(qs.get("api_key", [""])[0] or qs.get("token", [""])[0]).strip()
+                if str(qs.get("test", [""])[0]).strip().lower() in ("true", "1"):
+                    is_test = True
             except Exception:
                 pass
 
@@ -1843,8 +1891,54 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
         if not raw_message and raw_text_payload:
             raw_message = raw_text_payload
 
+        # 4. Check unauthorized access with rate-limited Telegram failure alert (max 1 alert per 10m per IP)
         if not provided_token or not secrets.compare_digest(provided_token, secret):
             logger.warning("SMS webhook unauthorized attempt from %s (wrong or missing token)", peer_ip)
+            bot = request.app.get("bot")
+            settings = request.app.get("settings")
+            target_topic = getattr(store, "topic_sms_logs", None) or getattr(settings, "ADMIN_TOPIC_SMS_LOGS", None)
+
+            can_send_alert = True
+            if cache and hasattr(cache, "set_nx"):
+                try:
+                    can_send_alert = await cache.set_nx(f"rl:sms_unauth_alert:{peer_ip}", "1", ttl_seconds=600)
+                except Exception as alert_rl_err:
+                    logger.debug("Failed checking unauth alert rate limit: %s", alert_rl_err)
+                    can_send_alert = True
+
+            if can_send_alert and bot and settings and getattr(settings, "ADMIN_CHAT_ID", None) and target_topic:
+                try:
+                    from bot.common import admin_thread_kwargs
+                    query_warning = (
+                        "\n⚠️ <b>توجه امنیتی:</b> توکن ارسال‌شده در آدرس URL (?token=...) به دلیل ناامن بودن نادیده گرفته شد."
+                        if request.query.get("token")
+                        else ""
+                    )
+                    await bot.send_message(
+                        chat_id=settings.ADMIN_CHAT_ID,
+                        text=(
+                            "⛔️ <b>درخواست نامعتبر به وب‌هوک پیامک</b>\n"
+                            "──────────────────\n"
+                            f"🌐 <b>آی‌پی مبدأ:</b> <code>{escape(peer_ip)}</code>\n"
+                            f"📱 <b>فرستنده:</b> <code>{escape(sender or 'نامشخص')}</code>\n"
+                            f"🔑 <b>علت:</b> توکن احراز هویت (Secret) اشتباه است یا ارسال نشده است.{query_warning}\n\n"
+                            "💡 <b>راهنمای تنظیم:</b>\n"
+                            "• در <b>ForApp</b>: کلید امنیتی را در فیلد <b>کلید API</b> قرار دهید (ارسال با هدر <code>X-API-Key</code>).\n"
+                            "• در <b>SMS Forwarder</b>: هدر <code>X-SMS-Token</code> را برابر با سکرت وب‌هوک قرار دهید."
+                        ),
+                        parse_mode="HTML",
+                        **admin_thread_kwargs(topic_id=target_topic),
+                    )
+                except Exception as notify_err:
+                    logger.debug("Failed sending unauthorized SMS alert: %s", notify_err)
+            return web.json_response({
+                "ok": False,
+                "message": "Unauthorized: Invalid or missing token in headers (X-SMS-Token or X-API-Key or Authorization)"
+            }, status=401)
+
+        # 5. Handle test ping from ForApp / SMS Forwarder ("ارسال آزمایشی")
+        if is_test:
+            logger.info("SMS webhook test ping received from %s (sender=%r)", peer_ip, sender)
             bot = request.app.get("bot")
             settings = request.app.get("settings")
             target_topic = getattr(store, "topic_sms_logs", None) or getattr(settings, "ADMIN_TOPIC_SMS_LOGS", None)
@@ -1854,19 +1948,23 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                     await bot.send_message(
                         chat_id=settings.ADMIN_CHAT_ID,
                         text=(
-                            "⛔️ <b>درخواست نامعتبر به وب‌هوک پیامک</b>\n"
+                            "🟢 <b>تست موفق وب‌هوک پیامک (ForApp / SMS Forwarder)</b>\n"
                             "──────────────────\n"
                             f"🌐 <b>آی‌پی مبدأ:</b> <code>{escape(peer_ip)}</code>\n"
-                            f"📱 <b>فرستنده:</b> <code>{escape(sender or 'نامشخص')}</code>\n"
-                            "🔑 <b>علت:</b> توکن احراز هویت (Secret) اشتباه است یا ارسال نشده است.\n\n"
-                            "💡 راهنما: در تنظیمات SMS Forwarder هدر <code>X-SMS-Token</code> یا پارامتر <code>token</code> را برابر با سکرت وب‌هوک فروشگاه قرار دهید."
+                            f"📱 <b>فرستنده:</b> <code>{escape(sender or 'ForApp Test')}</code>\n"
+                            f"📝 <b>متن:</b> <code>{escape(raw_message or 'پیام آزمایشی')}</code>\n\n"
+                            "✅ ارتباط با سرور برقرار است و پیامک‌های واریزی دریافت خواهند شد."
                         ),
                         parse_mode="HTML",
                         **admin_thread_kwargs(topic_id=target_topic),
                     )
-                except Exception as notify_err:
-                    logger.debug("Failed sending unauthorized SMS alert: %s", notify_err)
-            return web.json_response({"ok": False, "message": "Unauthorized"}, status=401)
+                except Exception as test_notify_err:
+                    logger.debug("Failed sending test SMS alert: %s", test_notify_err)
+            return web.json_response({
+                "ok": True,
+                "action": "test_successful",
+                "message": "اتصال وب‌هوک پیامک با موفقیت تأیید شد.",
+            })
 
         if not raw_message or not raw_message.strip():
             logger.warning("SMS webhook empty message body from %s (sender=%r)", peer_ip, sender)
@@ -1875,7 +1973,6 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
         from bot.services.payment.card_auto_service import process_incoming_sms
         bot = request.app.get("bot")
         settings = request.app.get("settings")
-        cache = request.app.get("cache")
 
         result = await process_incoming_sms(
             session=session,
@@ -1885,6 +1982,8 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
             sender=sender or "SMS_Forwarder",
             raw_message=raw_message,
             cache=cache,
+            forapp_amount_toman=forapp_amount_toman,
+            idempotency_key=idempotency_key,
         )
         if result.get("ok") and result.get("action") == "credited" and result.get("telegram_id"):
             await _invalidate_user_caches(cache, result["telegram_id"])

@@ -1112,33 +1112,86 @@
               </label>
             </div>
 
-            <!-- SMS Forwarder Config Box -->
+            <!-- SMS Forwarder & ForApp Config Box -->
             <div id="smsForwarderConfigContainer" class="border-t border-[var(--card-border)] pt-3 space-y-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
-                  <span class="inline-flex items-center gap-1"><img src="/static/img/icons/phone.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /></span> تنظیمات SMS Forwarder
+                  <span class="inline-flex items-center gap-1"><img src="/static/img/icons/phone.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /></span> ثبت خودکار واریزی با پیامک بانکی
                 </span>
                 <div class="flex items-center gap-1.5">
-                  <a href="https://github.com/pppscn/SmsForwarder" target="_blank" rel="noopener noreferrer" class="p-1 rounded-lg t-muted hover:t-main transition flex items-center justify-center border-0 bg-transparent" title="سورس‌کد SMS Forwarder در گیت‌هاب">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                  </a>
                   <span class="text-[11px] text-indigo-400 dark:text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-sans num-bidi">WebHook</span>
                 </div>
               </div>
+
+              <!-- Forwarder App Selector -->
               <div>
-                <label class="text-[11px] t-muted block mb-1">کلید امنیتی وب‌هوک (Secret Token):</label>
-                <input type="text" id="settingSmsWebhookSecret" dir="ltr" placeholder="یک کلمه عبور قوی برای وب‌هوک..." class="w-full card-inset border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none focus:border-indigo-500 transition" />
+                <label class="text-[11px] t-muted block mb-1.5">انتخاب برنامه ارسال پیامک (SMS Forwarder):</label>
+                <div class="grid grid-cols-2 gap-2" id="smsAppTabs">
+                  <button type="button" id="smsAppTabForapp" onclick="window.selectSmsApp('forapp')" class="p-2.5 rounded-xl border border-indigo-500 bg-indigo-500/10 text-right transition flex flex-col justify-between">
+                    <div class="flex items-center justify-between w-full mb-1">
+                      <span class="text-xs font-bold text-indigo-400 flex items-center gap-1">📱 ForApp</span>
+                      <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-sans">توصیه شده</span>
+                    </div>
+                    <span class="text-[10px] t-muted">سریع، ایرانی، بدون فیلتر</span>
+                  </button>
+                  <button type="button" id="smsAppTabForwarder" onclick="window.selectSmsApp('sms_forwarder')" class="p-2.5 rounded-xl border border-[var(--card-border)] card-inset text-right transition flex flex-col justify-between">
+                    <div class="flex items-center justify-between w-full mb-1">
+                      <span class="text-xs font-bold t-main flex items-center gap-1">📨 SMS Forwarder</span>
+                      <span class="text-[10px] bg-slate-500/20 t-muted px-1.5 py-0.5 rounded-full font-sans">متن‌باز</span>
+                    </div>
+                    <span class="text-[10px] t-muted">پروژه گیت‌هاب pppscn</span>
+                  </button>
+                </div>
+                <input type="hidden" id="settingSmsForwarderApp" value="auto" />
               </div>
+
               <div>
-                <label class="text-[11px] t-muted block mb-1">آدرس وب‌هوک اختصاصی سرور (جهت ثبت در اپلیکیشن):</label>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-[11px] t-muted block">کلید امنیتی وب‌هوک (Secret Token):</label>
+                  <button type="button" onclick="window.generateRandomSmsSecret()" class="text-[10px] text-indigo-400 hover:text-indigo-300 transition">تولید کلید تصادفی 🎲</button>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" id="copySmsSecretBtn" onclick="window.copySmsSecret()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی کلید امنیتی">📋</button>
+                  <input type="text" id="settingSmsWebhookSecret" dir="ltr" placeholder="یک کلمه عبور قوی برای وب‌هوک..." class="w-full card-inset border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none focus:border-indigo-500 transition" />
+                </div>
+              </div>
+
+              <div>
+                <label class="text-[11px] t-muted block mb-1">آدرس اختصاصی وب‌هوک در سرور:</label>
                 <div class="flex items-center gap-1.5">
                   <button type="button" id="copySmsWebhookUrlBtn" onclick="window.copySmsWebhookUrl()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی آدرس وب‌هوک">📋</button>
                   <input type="text" id="settingSmsWebhookUrlDisplay" readonly dir="ltr" class="w-full card-inset border border-[var(--card-border)] rounded-xl px-2.5 py-2 text-[11px] font-sans num-bidi t-main select-all outline-none" value="" />
                 </div>
               </div>
-              <p class="text-[11px] t-muted leading-relaxed pt-1">
-                <img src="/static/img/icons/lightbulb.svg?v=ri7" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /><b>راهنمای اتصال:</b> اپلیکیشن اندروید <b>SMS Forwarder</b> را روی گوشی متصل به سیم‌کارت حساب بانکی نصب کنید. یک فورواردر Webhook با متد POST ایجاد نموده و آدرس فوق را در آن قرار دهید. پیامک‌های واریزی در کمتر از 5 ثانیه شناسایی شده و کیف پول کاربر خودکار شارژ می‌شود.
-              </p>
+
+              <!-- ForApp Guide -->
+              <div id="smsGuideForapp" class="p-2.5 rounded-xl card-inset border border-indigo-500/25 space-y-1.5 text-[11px] leading-relaxed">
+                <div class="font-bold text-indigo-400 flex items-center justify-between">
+                  <span class="flex items-center gap-1"><img src="/static/img/icons/lightbulb.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /> راهنمای تنظیم در برنامه ForApp:</span>
+                  <a href="https://github.com/erfjab/forapp/releases/latest" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:text-indigo-300 underline font-sans text-[10px] inline-flex items-center gap-0.5">دانلود APK فوراپ ↗</a>
+                </div>
+                <ol class="list-decimal list-inside space-y-1 t-muted">
+                  <li>برنامه <b>ForApp</b> را روی گوشی دارای سیم‌کارت حساب بانکی نصب کنید.</li>
+                  <li>در بخش مقصدها (Destinations)، یک مقصد جدید از نوع <b>WebHook</b> بسازید.</li>
+                  <li>آدرس وب‌هوک فوق را در فیلد <b>آدرس مقصد (URL)</b> کپی کنید.</li>
+                  <li>کلید امنیتی را در فیلد <b>کلید API</b> قرار دهید (به صورت خودکار در هدر <code>X-API-Key</code> فرستاده می‌شود).</li>
+                  <li>گزینه متد را <b>POST</b> بگذارید و دکمه ذخیره و «ارسال آزمایشی» را بزنید.</li>
+                </ol>
+              </div>
+
+              <!-- SMS Forwarder Guide -->
+              <div id="smsGuideForwarder" class="p-2.5 rounded-xl card-inset border border-[var(--card-border)] space-y-1.5 text-[11px] leading-relaxed hidden">
+                <div class="font-bold t-main flex items-center justify-between">
+                  <span class="flex items-center gap-1"><img src="/static/img/icons/lightbulb.svg?v=ri7" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /> راهنمای تنظیم در SMS Forwarder:</span>
+                  <a href="https://github.com/pppscn/SmsForwarder/releases" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:text-indigo-300 underline font-sans text-[10px] inline-flex items-center gap-0.5">دانلود از گیت‌هاب ↗</a>
+                </div>
+                <ol class="list-decimal list-inside space-y-1 t-muted">
+                  <li>برنامه <b>SMS Forwarder</b> را روی گوشی متصل به سیم‌کارت نصب کنید.</li>
+                  <li>یک فورواردر Webhook با متد <b>POST</b> ایجاد نموده و آدرس وب‌هوک بالا را در آن قرار دهید.</li>
+                  <li>در بخش Headers یک هدر اضافه کنید: کلید <code>X-SMS-Token</code> و مقدار آن را برابر کلید امنیتی بگذارید.</li>
+                  <li>یک قاعده ارسال برای پیامک‌های دریافتی از بانک‌ها تنظیم نمایید.</li>
+                </ol>
+              </div>
             </div>
           </div>
         </div>

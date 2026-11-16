@@ -1159,13 +1159,80 @@ openUserChat(telegram_id, name, tag, topup_id) {
     'settingTopicSmsLogs'
   ];
 
-  function updateSmsWebhookUrlDisplay(secret) {
+  function updateSmsWebhookUrlDisplay() {
     const el = $('settingSmsWebhookUrlDisplay');
     if (!el) return;
     const origin = window.location.origin || '';
-    const tokenPart = secret && String(secret).trim() ? `?token=${encodeURIComponent(String(secret).trim())}` : '';
-    el.value = `${origin}/api/webhooks/sms${tokenPart}`;
+    el.value = `${origin}/api/webhooks/sms`;
   }
+
+  window.selectSmsApp = function (appName) {
+    const hiddenInput = $('settingSmsForwarderApp');
+    if (hiddenInput) hiddenInput.value = appName;
+
+    const tabForapp = $('smsAppTabForapp');
+    const tabForwarder = $('smsAppTabForwarder');
+    const guideForapp = $('smsGuideForapp');
+    const guideForwarder = $('smsGuideForwarder');
+
+    if (appName === 'sms_forwarder') {
+      if (tabForwarder) {
+        tabForwarder.className = 'p-2.5 rounded-xl border border-indigo-500 bg-indigo-500/10 text-right transition flex flex-col justify-between';
+      }
+      if (tabForapp) {
+        tabForapp.className = 'p-2.5 rounded-xl border border-[var(--card-border)] card-inset text-right transition flex flex-col justify-between';
+      }
+      if (guideForapp) guideForapp.classList.add('hidden');
+      if (guideForwarder) guideForwarder.classList.remove('hidden');
+    } else {
+      if (tabForapp) {
+        tabForapp.className = 'p-2.5 rounded-xl border border-indigo-500 bg-indigo-500/10 text-right transition flex flex-col justify-between';
+      }
+      if (tabForwarder) {
+        tabForwarder.className = 'p-2.5 rounded-xl border border-[var(--card-border)] card-inset text-right transition flex flex-col justify-between';
+      }
+      if (guideForapp) guideForapp.classList.remove('hidden');
+      if (guideForwarder) guideForwarder.classList.add('hidden');
+    }
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+  };
+
+  window.copySmsSecret = function () {
+    const el = $('settingSmsWebhookSecret');
+    const val = el?.value?.trim() || '';
+    if (!val) {
+      if (typeof showToast === 'function') showToast('⚠️ ابتدا کلید امنیتی وب‌هوک را وارد یا تولید کنید.');
+      return;
+    }
+    const copyFn = typeof copyToClipboard === 'function' ? copyToClipboard : window.copyToClipboard;
+    if (copyFn) {
+      copyFn(val, '📋 کلید امنیتی در کلیپ‌بورد کپی شد.');
+    } else {
+      prompt('کلید امنیتی وب‌هوک:', val);
+    }
+  };
+
+  window.generateRandomSmsSecret = function () {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_';
+    let res = '';
+    const array = new Uint8Array(24);
+    if (window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(array);
+      for (let i = 0; i < array.length; i++) {
+        res += chars[array[i] % chars.length];
+      }
+    } else {
+      for (let i = 0; i < 24; i++) {
+        res += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+    }
+    const el = $('settingSmsWebhookSecret');
+    if (el) {
+      el.value = res;
+      if (typeof showToast === 'function') showToast('🎲 کلید امنیتی تصادفی جدید تولید شد.');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    }
+  };
 
   window.copySmsWebhookUrl = function () {
     const el = $('settingSmsWebhookUrlDisplay');
@@ -1254,9 +1321,11 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const smsSecretInput = $('settingSmsWebhookSecret');
       if (smsSecretInput) {
         smsSecretInput.value = s.sms_webhook_secret || '';
-        smsSecretInput.oninput = () => updateSmsWebhookUrlDisplay(smsSecretInput.value);
       }
-      updateSmsWebhookUrlDisplay(s.sms_webhook_secret || '');
+      updateSmsWebhookUrlDisplay();
+      if (typeof window.selectSmsApp === 'function') {
+        window.selectSmsApp(s.sms_forwarder_app === 'sms_forwarder' ? 'sms_forwarder' : 'forapp');
+      }
 
       // Birthday Rewards
       const bdaySwitch = $('settingBirthdayRewardSwitch');
@@ -1609,6 +1678,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       card_enabled: $('settingCardSwitch')?.checked ?? true,
       card_auto_enabled: $('settingCardAutoSwitch')?.checked ?? false,
       sms_webhook_secret: $('settingSmsWebhookSecret')?.value?.trim() || '',
+      sms_forwarder_app: $('settingSmsForwarderApp')?.value || 'forapp',
       card_require_phone_verification: $('settingCardRequirePhoneSwitch')?.checked ?? true,
       card_phone_iran_only: $('settingCardPhoneIranSwitch')?.checked ?? true,
       auto_clean_reports: $('settingAutoCleanReportsSwitch')?.checked ?? true,

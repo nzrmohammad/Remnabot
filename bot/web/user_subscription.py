@@ -64,8 +64,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             # Strictly filter by telegramId to prevent cross-account leakage
             panel_users = [
                 u for u in panel_users_raw
-                if not (u.get("telegramId") or u.get("telegram_id"))
-                or str(u.get("telegramId") or u.get("telegram_id")) == str(telegram_id)
+                if str(u.get("telegramId") or u.get("telegram_id") or "") == str(telegram_id)
             ]
     except TimeoutError:
         logger.warning("Timeout fetching panel users for configs (telegram_id=%s)", telegram_id)
@@ -103,9 +102,9 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
             "message": "اشتراک فعالی برای این حساب در پنل یافت نشد.",
         })
 
-    # Strict check: ensure target matches telegram_id if present
+    # Strict check: ensure target matches telegram_id
     target_tid = target.get("telegramId") or target.get("telegram_id")
-    if target_tid is not None and str(target_tid) != str(telegram_id):
+    if str(target_tid or "") != str(telegram_id):
         return web.json_response({
             "ok": True,
             "configs": [],
