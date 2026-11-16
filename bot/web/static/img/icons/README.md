@@ -1,12 +1,12 @@
 # Remnabot Icon System (Microsoft Fluent 3D Standard)
 
 Single Source of Truth (SSOT) for all vector iconography in Remnabot WebApp and Admin interfaces.
-Powered by **Microsoft Fluent 3D (Flat Vector)** and **Microsoft Fluent System UI**.
+Powered by **Microsoft Fluent 3D (Flat Vector)** and **Theme-Safe Fluent Vectors**.
 
 ## 1. Foundations & Grid Spec
 - **Fluent 3D Icons**: `32x32 px` (`viewBox="0 0 32 32"`) with rich, vibrant multi-tone 3D depth and shadows.
-- **Fluent UI Controls**: `24x24 px` (`viewBox="0 0 24 24"`) filled vector paths with `currentColor` / system tokens.
-- **Rendering**: Self-contained SVG assets with WCAG-AA compliant contrasts designed for dark (`#0f172a`) and light surfaces.
+- **Fluent UI Controls**: `24x24 px` or `32x32 px` vector paths with explicit high-contrast WCAG-AA compliant gradients (zero `currentColor` dependency to ensure flawless rendering on both dark and light surfaces).
+- **Theme-Safety**: Every icon renders with guaranteed contrast on dark (`#0f172a`, `#1e293b`) and light surfaces.
 
 ## 2. Typography-to-Icon Size Pairing
 

@@ -329,6 +329,16 @@
     "category": "Help",
     "style": "fluent-3d-flat"
   },
+  "search": {
+    "source": "fluent-emoji-flat:magnifying-glass-tilted-left",
+    "category": "Actions",
+    "style": "fluent-3d-flat"
+  },
+  "plus": {
+    "source": "fluent-emoji-flat:plus",
+    "category": "Actions",
+    "style": "fluent-3d-flat"
+  },
   "medal-gold": {
     "source": "fluent-emoji-flat:1st-place-medal",
     "category": "Loyalty",
@@ -359,73 +369,58 @@
     "category": "Loyalty",
     "style": "fluent-3d-flat"
   },
-  "chevron-down": {
-    "source": "fluent:chevron-down",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "arrow-left": {
-    "source": "fluent:arrow-left",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
   "copy": {
-    "source": "fluent:copy",
+    "source": "fluent-custom:copy",
     "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "plus": {
-    "source": "fluent:plus",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "search": {
-    "source": "fluent:search",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "download": {
-    "source": "fluent:download",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "pause": {
-    "source": "fluent:pause",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "play": {
-    "source": "fluent:play",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "play-btn": {
-    "source": "fluent:play-btn",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "qr": {
-    "source": "fluent:qr",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
-  },
-  "wifi": {
-    "source": "fluent:wifi",
-    "category": "Controls",
-    "style": "fluent-ui-filled"
+    "style": "fluent-gradient-vector"
   },
   "close": {
-    "source": "fluent:close",
+    "source": "fluent-custom:close",
     "category": "Controls",
-    "style": "fluent-ui-filled"
+    "style": "fluent-gradient-vector"
   },
-  "android": {
-    "source": "official-brand:android",
-    "category": "Logos",
-    "style": "official-vector"
+  "chevron-down": {
+    "source": "fluent-custom:chevron-down",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
   },
-  "windows": {
-    "source": "official-brand:windows",
+  "arrow-left": {
+    "source": "fluent-custom:arrow-left",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
+  },
+  "download": {
+    "source": "fluent-custom:download",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
+  },
+  "qr": {
+    "source": "fluent-custom:qr",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
+  },
+  "wifi": {
+    "source": "fluent-custom:wifi",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
+  },
+  "play": {
+    "source": "fluent-custom:play",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
+  },
+  "play-btn": {
+    "source": "fluent-custom:play-btn",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
+  },
+  "pause": {
+    "source": "fluent-custom:pause",
+    "category": "Controls",
+    "style": "fluent-gradient-vector"
+  },
+  "tron": {
+    "source": "official-brand:tron",
     "category": "Logos",
     "style": "official-vector"
   },
@@ -439,13 +434,18 @@
     "category": "Logos",
     "style": "official-vector"
   },
-  "macos": {
-    "source": "official-brand:macos",
+  "android": {
+    "source": "official-brand:android",
     "category": "Logos",
     "style": "official-vector"
   },
-  "linux": {
-    "source": "official-brand:linux",
+  "windows": {
+    "source": "official-brand:windows",
+    "category": "Logos",
+    "style": "official-vector"
+  },
+  "macos": {
+    "source": "official-brand:macos",
     "category": "Logos",
     "style": "official-vector"
   },
@@ -454,8 +454,8 @@
     "category": "Logos",
     "style": "official-vector"
   },
-  "tron": {
-    "source": "official-brand:tron",
+  "linux": {
+    "source": "official-brand:linux",
     "category": "Logos",
     "style": "official-vector"
   }
