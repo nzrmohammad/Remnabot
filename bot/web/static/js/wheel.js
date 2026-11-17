@@ -430,11 +430,11 @@ function setupLuckyWheel() {
 
       let streakNote = '';
       if (currentWheelStreak > 1) {
-        streakNote = `<div class="wheel-streak-note mt-2.5 text-[11px] text-amber-500 dark:text-amber-300 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30 inline-block">🔥 تداوم حضور شما: <b>${fNum(currentWheelStreak)} روز</b> پی‌درپی (شانس جوایز ویژه فعال است)</div>`;
+        streakNote = `<div class="wheel-streak-note mt-2.5 text-[11px] text-amber-500 dark:text-amber-300 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30 inline-flex items-center gap-1.5">${uiIcon('flame', 'w-3.5 h-3.5 shrink-0')}<span>تداوم حضور شما: <b>${fNum(currentWheelStreak)} روز</b> پی‌درپی (شانس جوایز ویژه فعال است)</span></div>`;
       }
       let ticketNote = '';
       if (usedTicket) {
-        ticketNote = `<div class="mt-1 text-[11px] text-purple-600 dark:text-purple-300 font-medium">🎫 1 تیکت مصرف شد (باقیمانده: <b>${fNum(currentWheelTickets)}</b>)</div>`;
+        ticketNote = `<div class="mt-1 text-[11px] text-purple-600 dark:text-purple-300 font-medium inline-flex items-center gap-1.5">${uiIcon('ticket', 'w-3.5 h-3.5 shrink-0')}<span>1 تیکت مصرف شد (باقیمانده: <b>${fNum(currentWheelTickets)}</b>)</span></div>`;
       }
 
       if (isAgain) {
@@ -450,7 +450,7 @@ function setupLuckyWheel() {
         }
         updateWheelUIState(true, true, 0, currentWheelStreak, currentWheelMultiplier, currentWheelTickets);
         spinBtnState(spinWheelBtn, false, 'بچرخون!');
-        if (wheelResultText) wheelResultText.innerHTML = '🔄 <b>شانس مجدد!</b> گردونه دوباره برای شما شارژ شد، همین الان بچرخون!';
+        if (wheelResultText) wheelResultText.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-4 h-4 shrink-0 text-cyan-400')}<span><b>شانس مجدد!</b> گردونه دوباره برای شما شارژ شد، همین الان بچرخون!</span></span>`;
         showWheelResultModal({
           icon: '🔄',
           title: 'شانس مجدد برنده شدید!',
@@ -461,7 +461,7 @@ function setupLuckyWheel() {
         updateWheelUIState(currentWheelTickets > 0, true, nextSec, currentWheelStreak, currentWheelMultiplier, currentWheelTickets);
 
         if (isBlank) {
-          if (wheelResultText) wheelResultText.innerHTML = `❌ <b>متاسفانه پوچ شد!</b> ${usedTicket ? 'می‌توانید با تیکت مجدد شانس خود را امتحان کنید.' : 'شانس بعدی شما 24 ساعت دیگر فعال می‌شود.'}`;
+          if (wheelResultText) wheelResultText.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('cross', 'w-4 h-4 shrink-0 text-rose-500')}<span><b>متاسفانه پوچ شد!</b> ${usedTicket ? 'می‌توانید با تیکت مجدد شانس خود را امتحان کنید.' : 'شانس بعدی شما 24 ساعت دیگر فعال می‌شود.'}</span></span>`;
           showWheelResultModal({
             icon: '❌',
             title: 'متاسفانه این بار پوچ شد!',
@@ -482,7 +482,7 @@ function setupLuckyWheel() {
             } catch(e) {}
           }
           if (wheelResultText) {
-            wheelResultText.innerHTML = `🎉 <b>تبریک!</b> شما برنده <b class="t-warn font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!<br/><span class="font-sans t-accent font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-amber-500/90 font-medium block mt-0.5">⏱ مهلت استفاده: 7 روز در تب فروشگاه</span>`;
+            wheelResultText.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('trophy', 'w-4 h-4 shrink-0')}<span><b>تبریک!</b> شما برنده <b class="t-warn font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!</span></span><br/><span class="font-sans t-accent font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-amber-500/90 font-medium inline-flex items-center gap-1 mt-0.5">${uiIcon('clock', 'w-3 h-3 shrink-0')}<span>مهلت استفاده: 7 روز در تب فروشگاه</span></span>`;
           }
           showWheelResultModal({
             icon: '🎟',
@@ -495,7 +495,7 @@ function setupLuckyWheel() {
           const parsed = typeof fmtTrafficValue === 'function' ? fmtTrafficValue(rawPrize) : { num: 1, unit: 'GB' };
           const valNum = typeof toEnglishDigits === 'function' ? toEnglishDigits(parsed.num) : parsed.num;
           const unit = parsed.unit;
-          if (wheelResultText) wheelResultText.innerHTML = `🎉 <b>تبریک فوق‌العاده!</b> شما برنده <b class="t-success font-bold" dir="ltr"><span class="font-sans">${valNum}</span> ${unit}</b> ترافیک رایگان شدید!`;
+          if (wheelResultText) wheelResultText.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('sparkles', 'w-4 h-4 shrink-0')}<span><b>تبریک فوق‌العاده!</b> شما برنده <b class="t-success font-bold" dir="ltr"><span class="font-sans">${valNum}</span> ${unit}</b> ترافیک رایگان شدید!</span></span>`;
           showWheelResultModal({
             icon: '🎁',
             title: 'تبریک فوق‌العاده!',

@@ -854,17 +854,13 @@ async def notify_admin(
         f"🔑 <code>{escape(str(getattr(result, 'panel_username', '') or ''))}</code>\n\n"
         f"{t('fa', 'buy_remaining_balance', balance=fmt(getattr(result, 'new_balance', 0)), currency=t('fa', 'svc_currency'))}"
     )
-    settings = get_settings()
-    topic_id = settings.ADMIN_TOPIC_ORDERS
-    if session is not None:
-        store = await get_store_settings(session)
-        if getattr(store, "topic_orders", None) is not None:
-            topic_id = store.topic_orders
-    thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
-    try:
-        await bot.send_message(settings.ADMIN_CHAT_ID, text, **thread_kwargs)
-    except Exception:
-        logger.exception("failed to deliver purchase log to admin chat")
+    from bot.services.admin_notifier import send_admin_topic_notification
+    await send_admin_topic_notification(
+        bot=bot,
+        text=text,
+        kind="orders",
+        session=session,
+    )
 
 
 _maybe_reward_referrer = maybe_reward_referrer

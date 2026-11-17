@@ -30,44 +30,15 @@ COOLDOWN_SECONDS = 3600  # 1 hour cooldown for repeated high-resource or offline
 async def _notify_admins(bot: Bot, text: str, session_factory: Any = None) -> bool:
     """Send alert message to the dedicated alerts topic in the admin group, fallback to super admins."""
     settings = get_settings()
-    topic_id = None
-    if session_factory:
-        try:
-            async with session_factory() as session:
-                store = await get_store_settings(session)
-                topic_id = getattr(store, "topic_nodes", None)
-                if topic_id is None:
-                    topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None)
-                if topic_id is None:
-                    topic_id = getattr(store, "topic_alerts", None)
-                if topic_id is None:
-                    topic_id = getattr(settings, "ADMIN_TOPIC_ALERTS", None)
-        except Exception as exc:
-            logger.warning("Could not fetch topic for node alert: %s", exc)
-            topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None) or getattr(settings, "ADMIN_TOPIC_ALERTS", None)
-    else:
-        topic_id = getattr(settings, "ADMIN_TOPIC_NODES", None) or getattr(settings, "ADMIN_TOPIC_ALERTS", None)
-
-    delivered = False
-    admin_chat_id = getattr(settings, "ADMIN_CHAT_ID", None)
-    if admin_chat_id and type(admin_chat_id).__name__ not in ("MagicMock", "AsyncMock", "Mock"):
-        thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
-        try:
-            await bot.send_message(admin_chat_id, text, parse_mode="HTML", **thread_kwargs)
-            delivered = True
-        except Exception as exc:
-            logger.warning("Failed to send node alert to admin group %s (topic %s): %s", admin_chat_id, topic_id, exc)
-            # Note: Never fallback to admin_chat_id without thread, as it dumps into General topic in forum supergroups!
-
-    if not delivered and settings.ADMIN_IDS:
-        for admin_id in settings.ADMIN_IDS:
-            try:
-                await bot.send_message(admin_id, text, parse_mode="HTML")
-                delivered = True
-            except Exception as exc:
-                logger.warning("Failed to send node alert to admin %s: %s", admin_id, exc)
-
-    return delivered
+    from bot.services.admin_notifier import send_admin_topic_notification
+    msg = await send_admin_topic_notification(
+        bot=bot,
+        text=text,
+        kind="nodes",
+        session_factory=session_factory,
+        settings=settings,
+    )
+    return msg is not None
 
 
 async def check_nodes_health_once(

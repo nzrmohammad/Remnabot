@@ -185,8 +185,8 @@ async def topup_receipt(
             topup.id, settings.ADMIN_CHAT_ID, exc,
         )
 
-    # 2. Fallback: if group delivery failed, deliver to individual admin private chats
-    if not delivered and settings.ADMIN_IDS:
+    # 2. Fallback: only deliver to individual admin private chats if no ADMIN_CHAT_ID group is configured
+    if not delivered and not settings.ADMIN_CHAT_ID and settings.ADMIN_IDS:
         for admin_id in settings.ADMIN_IDS:
             try:
                 msg_obj = await _send_admin_receipt(admin_id)

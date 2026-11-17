@@ -91,19 +91,7 @@
       const initial = (displayName || String(u.telegram_id))[0].toUpperCase();
       const p = u.panel_account;
 
-      let statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent border border-slate-400/30 t-muted font-medium">بدون اکانت</span>';
-      if (u.is_banned) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-danger font-bold border border-rose-500/30">مسدود</span>';
-      } else if (u.is_limited || (p && p.exists && ((p.status || '').toUpperCase() === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)))) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent text-amber-700 dark:text-amber-400 font-bold border border-amber-600/40 dark:border-amber-500/30">اتمام حجم</span>';
-      } else if (u.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
-        statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-danger font-bold border border-rose-500/30">منقضی</span>';
-      } else if (p && p.exists) {
-        const st = (p.status || '').toUpperCase();
-        if (st === 'ACTIVE') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-success font-bold border border-emerald-500/30">فعال</span>';
-        else if (st === 'DISABLED') statusBadge = '<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-warn font-bold border border-amber-500/30">غیرفعال</span>';
-        else statusBadge = `<span class="px-1.5 py-0.5 rounded-lg text-[11px] bg-transparent t-info font-bold border border-blue-500/30">${st}</span>`;
-      }
+      const statusBadge = renderUserStatusBadge(u);
 
       const isExpiring = u.is_expiring || (p && p.exists && !u.is_expired && ((p.days_left !== null && p.days_left > 0 && p.days_left <= 3) || (p.remaining_traffic_gb >= 0 && p.remaining_traffic_gb <= 2.0 && p.limit_traffic_gb > 0)));
       const expiringBadgeHtml = isExpiring
@@ -606,25 +594,8 @@ async applyUserModification() {
         else onlineDot.classList.add('hidden');
       }
 
-      // Status Badge
-      const p = user.panel_account;
-      let statusBadge = '<span class="badge card-inset t-muted">بدون اکانت</span>';
-      if (user.is_banned) {
-        statusBadge = '<span class="badge s-danger-soft">مسدود</span>';
-      } else if (user.is_limited || (p && p.exists && ((p.status || '').toUpperCase() === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)))) {
-        statusBadge = '<span class="badge s-warn-soft">اتمام حجم</span>';
-      } else if (user.is_expired || (p && p.exists && (p.status || '').toUpperCase() === 'EXPIRED')) {
-        statusBadge = '<span class="badge s-danger-soft">منقضی</span>';
-      } else if (p && p.exists) {
-        const st = (p.status || '').toUpperCase();
-        if (st === 'ACTIVE') {
-          statusBadge = '<span class="badge s-success-soft">فعال</span>';
-        } else if (st === 'DISABLED') {
-          statusBadge = '<span class="badge s-warn-soft">غیرفعال</span>';
-        } else {
-          statusBadge = `<span class="badge card-inset t-muted">${escapeHtml(st)}</span>`;
-        }
-      }
+      // Status Badge (Unified SSOT)
+      const statusBadge = renderUserStatusBadge(user);
       const statusBadgeElem = $('userProfModalStatusBadge');
       if (statusBadgeElem) statusBadgeElem.innerHTML = statusBadge;
 
@@ -1831,16 +1802,16 @@ async applyUserModification() {
 
     selectBulkStatus(status = 'EXPIRED', silent = false) {
       const META = {
-        EXPIRED: { icon: '❌', label: 'منقضی‌شده (EXPIRED)' },
-        LIMITED: { icon: '⚠️', label: 'پایان ترافیک / محدودشده (LIMITED)' },
-        DISABLED: { icon: '⛔', label: 'غیرفعال‌شده (DISABLED)' },
+        EXPIRED: { icon: uiIcon('cross', 'w-4 h-4 text-rose-500 inline-block'), label: 'منقضی‌شده (EXPIRED)' },
+        LIMITED: { icon: uiIcon('warning', 'w-4 h-4 text-amber-500 inline-block'), label: 'پایان ترافیک / محدودشده (LIMITED)' },
+        DISABLED: { icon: uiIcon('ban', 'w-4 h-4 text-slate-400 inline-block'), label: 'غیرفعال‌شده (DISABLED)' },
       };
       const chosen = META[status] ? status : 'EXPIRED';
       const input = $('bulkStatusSelect');
       const iconEl = $('bulkStatusPickerIcon');
       const labelEl = $('bulkStatusPickerLabel');
       if (input) input.value = chosen;
-      if (iconEl) iconEl.innerText = META[chosen].icon;
+      if (iconEl) iconEl.innerHTML = META[chosen].icon;
       if (labelEl) labelEl.innerText = META[chosen].label;
       if (!silent) {
         this.closeBulkStatusPickerModal();

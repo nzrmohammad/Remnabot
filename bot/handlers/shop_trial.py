@@ -337,7 +337,7 @@ async def service_new_forward(
             settings.ADMIN_CHAT_ID, exc,
         )
 
-    if not sent and settings.ADMIN_IDS:
+    if not sent and not settings.ADMIN_CHAT_ID and settings.ADMIN_IDS:
         for admin_id in settings.ADMIN_IDS:
             try:
                 content = await bot.copy_message(

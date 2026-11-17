@@ -16,7 +16,7 @@ if (typeof window !== 'undefined') {
   window.escapeHtml = escapeHtml;
 }
 
-// Toast notification utility
+// Toast notification utility with Clean Code auto-icon injection & DRY type handling
 let _appToastTimer = null;
 function showToast(msg, typeOrDuration = 3200, duration = 3200) {
   let toast = document.getElementById('appToast');
@@ -25,7 +25,7 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
     toast.id = 'appToast';
     toast.setAttribute('role', 'status');
     toast.setAttribute('aria-live', 'assertive');
-    toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 modal-card t-main px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%] whitespace-pre-line leading-relaxed';
+    toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-50 modal-card t-main px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none max-w-[90%] whitespace-pre-line leading-relaxed flex items-center justify-center gap-2 border';
     toast.dir = 'rtl';
     document.body.appendChild(toast);
   }
@@ -34,12 +34,83 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
     _appToastTimer = null;
   }
   let delay = 3200;
-  if (typeof typeOrDuration === 'number' && !isNaN(typeOrDuration) && typeOrDuration > 0) {
+  let type = null;
+  if (typeof typeOrDuration === 'string') {
+    type = typeOrDuration;
+    if (typeof duration === 'number' && duration > 0) delay = duration;
+  } else if (typeof typeOrDuration === 'number' && !isNaN(typeOrDuration) && typeOrDuration > 0) {
     delay = typeOrDuration;
-  } else if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
-    delay = duration;
   }
-  toast.textContent = String(msg || '');
+
+  let text = String(msg || '').trim();
+
+  // Clean Code & DRY: Auto-detect toast type from leading emoji prefixes and strip them
+  if (!type) {
+    if (/^[✅✔]/.test(text)) {
+      type = 'success';
+      text = text.replace(/^[✅✔]\s*/, '');
+    } else if (/^[❌✖🚫]/.test(text)) {
+      type = 'error';
+      text = text.replace(/^[❌✖🚫]\s*/, '');
+    } else if (/^[⚠️⚡]/.test(text)) {
+      type = 'warning';
+      text = text.replace(/^[⚠️⚡]\s*/, '');
+    } else if (/^[📋]/.test(text)) {
+      type = 'copy';
+      text = text.replace(/^[📋]\s*/, '');
+    } else if (/^[🔄⏳]/.test(text)) {
+      type = 'sync';
+      text = text.replace(/^[🔄⏳]\s*/, '');
+    } else if (/^[🔒🔐]/.test(text)) {
+      type = 'lock';
+      text = text.replace(/^[🔒🔐]\s*/, '');
+    } else if (/^[📢🔔]/.test(text)) {
+      type = 'info';
+      text = text.replace(/^[📢🔔]\s*/, '');
+    }
+  }
+
+  const iconNameMap = {
+    success: 'check',
+    error: 'cross',
+    warning: 'warning',
+    copy: 'copy',
+    sync: 'recycle',
+    lock: 'lock_shield',
+    info: 'bell',
+  };
+
+  const borderClassMap = {
+    success: 'border-emerald-500/30',
+    error: 'border-rose-500/30',
+    warning: 'border-amber-500/30',
+    copy: 'border-blue-500/30',
+    sync: 'border-cyan-500/30',
+    lock: 'border-purple-500/30',
+    info: 'border-sky-500/30',
+  };
+
+  // Reset any previous toast border classes
+  toast.classList.remove(
+    'border-emerald-500/30',
+    'border-rose-500/30',
+    'border-amber-500/30',
+    'border-blue-500/30',
+    'border-cyan-500/30',
+    'border-purple-500/30',
+    'border-sky-500/30'
+  );
+
+  let iconHtml = '';
+  if (type && iconNameMap[type] && typeof uiIcon === 'function') {
+    iconHtml = uiIcon(iconNameMap[type], 'w-4 h-4 shrink-0 inline-block');
+    const borderCls = borderClassMap[type];
+    if (borderCls) {
+      toast.classList.add(borderCls);
+    }
+  }
+
+  toast.innerHTML = `${iconHtml}<span>${escapeHtml(text)}</span>`;
   toast.classList.remove('opacity-0', '-translate-y-2');
   toast.classList.add('opacity-100', 'translate-y-0');
   _appToastTimer = setTimeout(() => {
@@ -47,6 +118,39 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
     toast.classList.add('opacity-0', '-translate-y-2');
     _appToastTimer = null;
   }, delay);
+}
+
+// Centralized Single Source of Truth (SSOT) for User Subscription Status Badges
+function renderUserStatusBadge(u) {
+  if (!u) return '<span class="badge badge-neutral">بدون اکانت</span>';
+  const p = u.panel_account;
+  const pStatus = (p && p.exists && p.status) ? String(p.status).toUpperCase() : '';
+  const isLimited = u.is_limited || (p && p.exists && (pStatus === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)));
+  const isExpired = u.is_expired || (p && p.exists && pStatus === 'EXPIRED');
+
+  if (u.is_banned) {
+    return `<span class="badge badge-danger">${uiIcon('ban', 'w-3 h-3')}<span>مسدود</span></span>`;
+  }
+  if (isLimited) {
+    return `<span class="badge badge-warn">${uiIcon('warning', 'w-3 h-3')}<span>اتمام حجم</span></span>`;
+  }
+  if (isExpired) {
+    return `<span class="badge badge-danger">${uiIcon('cross', 'w-3 h-3')}<span>منقضی</span></span>`;
+  }
+  const rawStatus = (pStatus || String(u.raw_status || '')).toUpperCase();
+  if (rawStatus === 'ACTIVE') {
+    return `<span class="badge badge-success">${uiIcon('check', 'w-3 h-3')}<span>فعال</span></span>`;
+  }
+  if (rawStatus === 'DISABLED') {
+    return `<span class="badge badge-warn">${uiIcon('pause', 'w-3 h-3')}<span>غیرفعال</span></span>`;
+  }
+  if (rawStatus) {
+    return `<span class="badge badge-info"><span>${escapeHtml(rawStatus)}</span></span>`;
+  }
+  return '<span class="badge badge-neutral">بدون اکانت</span>';
+}
+if (typeof window !== 'undefined') {
+  window.renderUserStatusBadge = renderUserStatusBadge;
 }
 
 // Global Banner Notification Utility (for session expiry, timeouts, system notices)
