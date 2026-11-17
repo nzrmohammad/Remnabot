@@ -2803,8 +2803,8 @@
           </div>
 
           <!-- Traffic input & quick chips -->
-          <div class="space-y-1.5">
-            <div class="flex justify-between items-center">
+          <div class="form-group">
+            <div class="form-label">
               <label class="text-[11px] t-muted font-medium">افزایش حجم ترافیک (GB):</label>
               <span class="badge-optional">اختیاری</span>
             </div>
@@ -2818,8 +2818,8 @@
           </div>
 
           <!-- Days input & quick chips -->
-          <div class="space-y-1.5">
-            <div class="flex justify-between items-center">
+          <div class="form-group">
+            <div class="form-label">
               <label class="text-[11px] t-muted font-medium">تمدید مدت زمان (روز):</label>
               <span class="badge-optional">اختیاری</span>
             </div>
@@ -4127,20 +4127,20 @@
         <div class="space-y-3 text-xs">
           <!-- Row 1: Telegram ID + Username in 2-column grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div class="space-y-1">
-              <div class="flex justify-between items-center">
+            <div class="form-group">
+              <div class="form-label">
                 <label class="text-[11px] t-muted font-medium">شناسه عددی تلگرام:</label>
                 <span class="badge-required s-danger-soft border text-[11px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
               </div>
               <input type="number" inputmode="numeric" id="createUserTelegramId" placeholder="مثلاً 123456789" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
             </div>
-            <div class="space-y-1">
-              <div class="flex justify-between items-center">
+            <div class="form-group">
+              <div class="form-label">
                 <label class="text-[11px] t-muted font-medium">نام کاربری در پنل:</label>
                 <span class="badge-optional s-neutral-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg font-sans">اختیاری</span>
               </div>
               <input type="text" id="createUserUsername" oninput="window.adminActions.onUsernameInput(this.value)" placeholder="پیش‌فرض: خودکار" class="input-base text-xs font-sans placeholder:text-right" dir="ltr" />
-              <div id="createUserUsernameStatus" class="text-[11px] font-medium hidden"></div>
+              <div id="createUserUsernameStatus" class="form-hint hidden"></div>
             </div>
           </div>
 

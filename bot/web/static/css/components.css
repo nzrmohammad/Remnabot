@@ -41,6 +41,79 @@
   -webkit-backdrop-filter: blur(8px);
 }
 
+/* --- Symmetrical Data & Key-Value Rows --- */
+.data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.75rem;
+}
+.data-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.data-row-sm {
+  padding: 0.375rem 0;
+  font-size: 0.6875rem;
+}
+.data-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+html.theme-light .data-label {
+  color: #64748b;
+}
+.data-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-align: left;
+}
+
+/* --- Symmetrical Empty States --- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  border-radius: var(--radius-xl);
+  background-color: var(--inset-bg);
+  border: 1px dashed var(--card-border);
+  gap: 0.375rem;
+}
+html.theme-light .empty-state {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+.empty-state-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  opacity: 0.85;
+  margin-bottom: 0.25rem;
+  flex-shrink: 0;
+}
+.empty-state-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.empty-state-desc {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  max-width: 280px;
+}
+
 /* Surface Contracts: Immersive Dark Game/Media Canvas */
 .surface-dark,
 .on-dark,
@@ -238,6 +311,49 @@ html.theme-light .textarea-base:focus {
   font-size: 10px;
 }
 
+/* --- Form Layout & Labels --- */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  user-select: none;
+}
+html.theme-light .form-label {
+  color: #64748b;
+}
+
+.form-label-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+html.theme-light .form-label-title {
+  color: #475569;
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+html.theme-light .form-hint {
+  color: #64748b;
+}
+
 /* --- 4. Badges & Chips --- */
 .badge {
   display: inline-flex;
@@ -309,6 +425,37 @@ html.theme-light .badge-optional {
   border-color: #cbd5e1;
   background-color: #f1f5f9;
   color: #64748b;
+}
+
+/* --- Copyable Code & Technical Data Chip --- */
+.code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--inset-bg);
+  border: 1px solid var(--card-border);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--c-accent);
+  cursor: pointer;
+  user-select: all;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.code-chip:hover {
+  border-color: var(--c-accent-border);
+  background-color: var(--c-accent-soft);
+}
+html.theme-light .code-chip {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0284c7;
+}
+html.theme-light .code-chip:hover {
+  background-color: #e0f2fe;
+  border-color: #7dd3fc;
 }
 
 /* --- 5. Semantic Typography Utilities --- */

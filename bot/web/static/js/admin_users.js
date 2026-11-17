@@ -952,8 +952,10 @@ async applyUserModification() {
         if (records.length === 0) {
           if (list) {
             list.innerHTML = `
-              <div class="card-inset rounded-2xl p-4 border border-card-border text-center text-xs t-muted">
-                <span>📜 هنوز درخواستی برای دریافت لینک اشتراک این کاربر ثبت نشده است.</span>
+              <div class="empty-state">
+                <img src="/static/img/icons/clock.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
+                <span class="empty-state-title">تاریخچه سابسکریپشن خالی است</span>
+                <span class="empty-state-desc">هنوز درخواستی برای دریافت لینک اشتراک این کاربر ثبت نشده است.</span>
               </div>
             `;
           }
@@ -1033,8 +1035,10 @@ async applyUserModification() {
         if (devices.length === 0) {
           if (list) {
             list.innerHTML = `
-              <div class="card-inset rounded-2xl p-4 border border-card-border text-center text-xs t-muted">
-                <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک این کاربر ثبت نشده است.</span>
+              <div class="empty-state">
+                <img src="/static/img/icons/phone.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
+                <span class="empty-state-title">دستگاه فعالی یافت نشد</span>
+                <span class="empty-state-desc">در حال حاضر هیچ دستگاه فعالی روی اشتراک این کاربر ثبت نشده است.</span>
               </div>
             `;
           }
