@@ -141,11 +141,16 @@
     closeCardTemplateModal() {
       $('cardTemplateModal')?.classList.add('hidden');
     },
-    selectCardTemplate(val, name, icon = '💳') {
+    selectCardTemplate(val, name) {
       const input = $('settingCardTemplate');
       if (input) input.value = val;
       if ($('settingCardTemplateLabel')) $('settingCardTemplateLabel').innerText = name;
-      if ($('settingCardTemplateIcon')) $('settingCardTemplateIcon').innerText = icon;
+      if ($('settingCardTemplateIcon')) {
+        const isMin = val === 'minimal';
+        $('settingCardTemplateIcon').innerHTML = isMin
+          ? '<img src="/static/img/icons/receipt.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />'
+          : '<img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />';
+      }
       this.closeCardTemplateModal();
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
@@ -873,7 +878,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         }
         if (sub) sub.textContent = 'کاربران جدید نیازمند لینک دعوت/رفرال هستند';
         if (icon) {
-          icon.textContent = '🎟️';
+          icon.innerHTML = '<img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />';
           icon.className = 'w-8 h-8 rounded-xl s-accent-soft border flex items-center justify-center text-sm flex-shrink-0';
         }
       } else if (mode === 'closed') {
@@ -883,7 +888,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         }
         if (sub) sub.textContent = 'ثبت‌نام متوقف شده است؛ سرویس‌های فعلی فعالند';
         if (icon) {
-          icon.textContent = '🔒';
+          icon.innerHTML = '<img src="/static/img/icons/lock-shield.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />';
           icon.className = 'w-8 h-8 rounded-xl s-danger-soft border flex items-center justify-center text-sm flex-shrink-0';
         }
       } else {
@@ -893,7 +898,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         }
         if (sub) sub.textContent = 'ورود و ثبت‌نام برای تمامی کاربران آزاد است';
         if (icon) {
-          icon.textContent = '🌐';
+          icon.innerHTML = '<img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />';
           icon.className = 'w-8 h-8 rounded-xl s-success-soft border flex items-center justify-center text-sm flex-shrink-0';
         }
       }
@@ -1357,7 +1362,11 @@ openUserChat(telegram_id, name, tag, topup_id) {
         cardTemplate.value = s.card_template || 'blubank';
         const isMin = s.card_template === 'minimal';
         if ($('settingCardTemplateLabel')) $('settingCardTemplateLabel').innerText = isMin ? 'ساده' : 'بلوبانک';
-        if ($('settingCardTemplateIcon')) $('settingCardTemplateIcon').innerText = isMin ? '📄' : '💳';
+        if ($('settingCardTemplateIcon')) {
+          $('settingCardTemplateIcon').innerHTML = isMin
+            ? '<img src="/static/img/icons/receipt.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />'
+            : '<img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />';
+        }
       }
 
       const defSquadEl = $('settingDefaultSquadUuid');

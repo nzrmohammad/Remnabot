@@ -77,7 +77,7 @@ async handleTopup(topup_id, approved) {
       const amtInput = $('walletModalAmount');
       const reasonInput = $('walletModalReason');
       if (modal) modal.classList.remove('hidden');
-      if (title) title.innerText = `💰 کیف پول: ${name}`;
+      if (title) title.innerHTML = `<img src="/static/img/icons/wallet.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1.5" width="16" height="16" alt="" /><span>کیف پول: ${escapeHtml(name)}</span>`;
       if (amtInput) amtInput.value = '50000';
       if (reasonInput) reasonInput.value = 'شارژ دستی توسط مدیریت';
       amtInput?.focus();
@@ -438,12 +438,18 @@ openCryptoRatesModal() {
           <!-- Stars Auto-Calculation from Live USDT Benchmark -->
           <div class="space-y-1.5 mt-3 pt-2.5 border-t border-slate-700/60">
             <div class="flex items-center justify-between px-1">
-              <span id="modalStarsBenchmarkTitle" class="text-[11px] font-bold t-warn">⭐️ نرخ پیشنهادی استارز تلگرام:</span>
+              <span id="modalStarsBenchmarkTitle" class="text-[11px] font-bold t-warn flex items-center gap-1">
+                <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                <span>نرخ پیشنهادی استارز تلگرام:</span>
+              </span>
             </div>
             <div class="space-y-1.5">
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
-                  <span class="text-slate-200 font-bold text-[11px] block">🛡️ فرمول بدون ضرر</span>
+                  <span class="text-slate-200 font-bold text-[11px] flex items-center gap-1">
+                    <img src="/static/img/icons/shield.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                    <span>فرمول بدون ضرر</span>
+                  </span>
                   <span class="text-[11px] text-slate-400">نقد کردن با کسر کارمزد تلگرام</span>
                 </div>
                 <div class="flex items-center gap-2">
@@ -455,7 +461,10 @@ openCryptoRatesModal() {
               </div>
               <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
                 <div>
-                  <span class="text-slate-200 font-bold text-[11px] block">🏷️ نرخ خرید فرگمنت</span>
+                  <span class="text-slate-200 font-bold text-[11px] flex items-center gap-1">
+                    <img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                    <span>نرخ خرید فرگمنت</span>
+                  </span>
                   <span class="text-[11px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت</span>
                 </div>
                 <div class="flex items-center gap-2">

@@ -722,7 +722,7 @@ openEditSslDomainModal(domain) {
       }
 
       if (window.hapticFeedback) window.hapticFeedback('success');
-      if (window.showToast) window.showToast('✅ تمدید ۱ ماهه اعمال شد، در حال ثبت...');
+      if (window.showToast) window.showToast('✅ تمدید 1 ماهه اعمال شد، در حال ثبت...');
       await this.saveNodeBilling();
     },
 
@@ -1004,12 +1004,20 @@ openEditSslDomainModal(domain) {
     if (m) m.classList.add('hidden');
   };
 
+  const CHECK_HOST_TYPE_ICONS = {
+    ping: '/static/img/icons/antenna.svg?v=fl2',
+    tcp: '/static/img/icons/zap.svg?v=fl2',
+    http: '/static/img/icons/globe.svg?v=fl2',
+    dns: '/static/img/icons/search.svg?v=fl2',
+  };
+
   window.selectCheckHostType = function(type, label, icon) {
     const input = $('checkHostTypeSelect');
     if (input) input.value = type;
     const disp = $('checkHostTypeDisplay');
     if (disp) {
-      disp.innerHTML = `<span>${icon || '📡'}</span><span>${label || type}</span>`;
+      const iconSrc = CHECK_HOST_TYPE_ICONS[type] || '/static/img/icons/antenna.svg?v=fl2';
+      disp.innerHTML = `<img src="${iconSrc}" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /><span>${label || type}</span>`;
     }
     window.handleCheckHostTypeChange(type);
     window.closeCheckHostTypeModal();
@@ -1032,7 +1040,7 @@ openEditSslDomainModal(domain) {
     if (input) input.value = count;
     const disp = $('checkHostNodesDisplay');
     if (disp) {
-      disp.innerHTML = `<span>${icon || '🌐'}</span><span>${label || count + ' نود'}</span>`;
+      disp.innerHTML = `<img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /><span>${label || count + ' نود'}</span>`;
     }
     window.closeCheckHostNodesModal();
     if (window.hapticFeedback) window.hapticFeedback('selection');

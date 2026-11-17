@@ -262,7 +262,7 @@
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1">
                   ${pkgIconHtml}
-                  <b class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
+                  <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                   ${statusBadge ? `<div class="flex-shrink-0">${statusBadge}</div>` : ''}
                 </div>
                 <div class="flex items-baseline gap-1 shrink-0 text-left" dir="rtl">
@@ -496,7 +496,7 @@
 
       const baseName = plan ? String(plan.name || '').trim() : '';
       const duplicateName = baseName
-        ? (baseName.endsWith('(کپی)') ? `${baseName} ۲` : `${baseName} (کپی)`)
+        ? (baseName.endsWith('(کپی)') ? `${baseName} 2` : `${baseName} (کپی)`)
         : '';
 
       const titleStr = (plan && isDuplicate)

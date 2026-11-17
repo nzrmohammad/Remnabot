@@ -1187,7 +1187,7 @@ openHighRiskUsersModal() {
       if (users.length === 0) {
         list.innerHTML = `
           <div class="text-center py-8 text-slate-400 space-y-2">
-            <span class="text-3xl">🛡️</span>
+            <img src="/static/img/icons/shield.svg?v=fl2" class="ui-icon-img w-10 h-10 mx-auto" width="40" height="40" alt="" />
             <div class="text-xs font-bold text-slate-200">هیچ کاربر پرخطری یافت نشد</div>
             <div class="text-[11px] text-slate-400">تمام کاربران دارای 3 دستگاه متصل یا کمتر هستند.</div>
           </div>
@@ -1217,7 +1217,7 @@ openHighRiskUsersModal() {
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
                 <button type="button" data-tg-id="${escapeHtml(String(tgId))}" data-account-name="${escapeHtml(String(u.name || u.username || 'کاربر'))}" data-p-user-id="${escapeHtml(String(pUserId))}" onclick="window.adminActions.inspectHighRiskUser(this.dataset.tgId, this.dataset.accountName, this.dataset.pUserId)" class="px-2.5 py-1.5 rounded-xl bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/40 text-[11px] font-bold transition active:scale-95 flex items-center gap-1">
-                  <span>🔍</span><span>بررسی</span>
+                  <img src="/static/img/icons/search.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>بررسی</span>
                 </button>
               </div>
             </div>
@@ -1420,14 +1420,18 @@ openHighRiskUsersModal() {
       if (topUsers.length === 0) {
         usersListEl.innerHTML = '<div class="text-slate-400 text-[11px] text-center py-4">داده‌ای در این بازه ثبت نشده است</div>';
       } else {
-        const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+        const medalIcons = [
+          '<img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="1" />',
+          '<img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="2" />',
+          '<img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="3" />',
+        ];
         usersListEl.innerHTML = topUsers.map((u, i) => {
-          const medal = medals[i] || '👤';
+          const medal = medalIcons[i] || `<span class="w-4 h-4 rounded-full bg-slate-700/60 text-slate-300 font-sans text-[10px] font-bold inline-flex items-center justify-center shrink-0">${i + 1}</span>`;
           const userTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(u.used_gb, { html: false }) : u.used_gb;
           return `
             <div class="flex items-center justify-between p-1.5 rounded-lg border border-slate-700/40 bg-transparent">
               <div class="flex items-center gap-1.5 min-w-0">
-                <span class="text-xs">${medal}</span>
+                <span class="text-xs flex items-center justify-center">${medal}</span>
                 <span class="font-sans text-xs t-main font-semibold truncate max-w-[120px]" dir="ltr">${u.username}</span>
               </div>
               <span class="font-sans text-xs text-cyan-600 dark:text-cyan-400 font-bold" dir="ltr">${userTrafStr}</span>

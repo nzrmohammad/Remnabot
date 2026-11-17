@@ -704,7 +704,7 @@
                   <input type="hidden" id="checkHostTypeSelect" value="ping" />
                   <button type="button" id="checkHostTypeBtn" onclick="window.openCheckHostTypeModal()" class="input-base w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition hover:border-blue-500/50">
                     <span id="checkHostTypeDisplay" class="flex items-center gap-1.5 truncate">
-                      <span>📡</span>
+                      <img src="/static/img/icons/antenna.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                       <span>پینگ (Ping)</span>
                     </span>
                     <svg class="w-3.5 h-3.5 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -715,7 +715,7 @@
                   <input type="hidden" id="checkHostMaxNodesSelect" value="10" />
                   <button type="button" id="checkHostNodesBtn" onclick="window.openCheckHostNodesModal()" class="input-base w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition hover:border-blue-500/50">
                     <span id="checkHostNodesDisplay" class="flex items-center gap-1.5 truncate">
-                      <span>🌐</span>
+                      <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                       <span>10 نود (پیش‌فرض)</span>
                     </span>
                     <svg class="w-3.5 h-3.5 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -946,7 +946,7 @@
               <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl card-inset">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div id="accessModeIconBox" class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 t-success flex items-center justify-center text-sm flex-shrink-0">
-                    🌐
+                    <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                   </div>
                   <div class="min-w-0">
                     <span class="t-main font-semibold text-xs block">حالت دسترسی ربات</span>
@@ -966,7 +966,7 @@
               <div class="flex items-center justify-between p-2.5 rounded-xl card-inset">
                 <div class="flex items-center gap-2.5">
                   <div class="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-sm flex-shrink-0">
-                    🕒
+                    <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                   </div>
                   <div>
                     <span class="t-main font-semibold text-xs block">منطقه زمانی سامانه</span>
@@ -1046,7 +1046,7 @@
                 <input type="hidden" id="settingCardTemplate" value="blubank" />
                 <div role="button" tabindex="0" onclick="window.adminActions.openCardTemplateModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-[var(--card-border)] hover:border-blue-500/50 group">
                   <div class="flex items-center gap-2">
-                    <span id="settingCardTemplateIcon" class="text-sm">💳</span>
+                    <span id="settingCardTemplateIcon" class="text-sm flex items-center"><img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
                     <span id="settingCardTemplateLabel" class="text-xs t-main font-bold">بلوبانک</span>
                   </div>
                   <div class="flex items-center t-muted group-hover:text-slate-200 text-xs">
@@ -1129,14 +1129,20 @@
                 <div class="grid grid-cols-2 gap-2" id="smsAppTabs">
                   <button type="button" id="smsAppTabForapp" onclick="window.selectSmsApp('forapp')" class="p-2.5 rounded-xl border border-indigo-500 bg-indigo-500/10 text-right transition flex flex-col justify-between">
                     <div class="flex items-center justify-between w-full mb-1">
-                      <span class="text-xs font-bold text-indigo-400 flex items-center gap-1">📱 ForApp</span>
+                      <span class="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
+                        <img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                        <span>ForApp</span>
+                      </span>
                       <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-sans">توصیه شده</span>
                     </div>
                     <span class="text-[10px] t-muted">سریع، ایرانی، بدون فیلتر</span>
                   </button>
                   <button type="button" id="smsAppTabForwarder" onclick="window.selectSmsApp('sms_forwarder')" class="p-2.5 rounded-xl border border-[var(--card-border)] card-inset text-right transition flex flex-col justify-between">
                     <div class="flex items-center justify-between w-full mb-1">
-                      <span class="text-xs font-bold t-main flex items-center gap-1">📨 SMS Forwarder</span>
+                      <span class="text-xs font-bold t-main flex items-center gap-1.5">
+                        <img src="/static/img/icons/chat.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                        <span>SMS Forwarder</span>
+                      </span>
                       <span class="text-[10px] bg-slate-500/20 t-muted px-1.5 py-0.5 rounded-full font-sans">متن‌باز</span>
                     </div>
                     <span class="text-[10px] t-muted">پروژه گیت‌هاب pppscn</span>
@@ -1148,10 +1154,13 @@
               <div>
                 <div class="flex items-center justify-between mb-1">
                   <label class="text-[11px] t-muted block">کلید امنیتی وب‌هوک (Secret Token):</label>
-                  <button type="button" onclick="window.generateRandomSmsSecret()" class="text-[10px] text-indigo-400 hover:text-indigo-300 transition">تولید کلید تصادفی 🎲</button>
+                  <button type="button" onclick="window.generateRandomSmsSecret()" class="text-[10px] text-indigo-400 hover:text-indigo-300 transition inline-flex items-center gap-1">
+                    <span>تولید کلید تصادفی</span>
+                    <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0" width="12" height="12" alt="" />
+                  </button>
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <button type="button" id="copySmsSecretBtn" onclick="window.copySmsSecret()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی کلید امنیتی">📋</button>
+                  <button type="button" id="copySmsSecretBtn" onclick="window.copySmsSecret()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی کلید امنیتی"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                   <input type="text" id="settingSmsWebhookSecret" dir="ltr" placeholder="یک کلمه عبور قوی برای وب‌هوک..." class="w-full card-inset border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none focus:border-indigo-500 transition" />
                 </div>
               </div>
@@ -1159,7 +1168,7 @@
               <div>
                 <label class="text-[11px] t-muted block mb-1">آدرس اختصاصی وب‌هوک در سرور:</label>
                 <div class="flex items-center gap-1.5">
-                  <button type="button" id="copySmsWebhookUrlBtn" onclick="window.copySmsWebhookUrl()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی آدرس وب‌هوک">📋</button>
+                  <button type="button" id="copySmsWebhookUrlBtn" onclick="window.copySmsWebhookUrl()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی آدرس وب‌هوک"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
                   <input type="text" id="settingSmsWebhookUrlDisplay" readonly dir="ltr" class="w-full card-inset border border-[var(--card-border)] rounded-xl px-2.5 py-2 text-[11px] font-sans num-bidi t-main select-all outline-none" value="" />
                 </div>
               </div>
@@ -1377,16 +1386,16 @@
 
             <div>
               <label class="text-[11px] t-muted block mb-1">پاداش دعوت (GB)</label>
-              <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+              <input type="number" id="settingRefReward" dir="ltr" placeholder="5" class="input-base text-xs font-sans num-bidi text-purple-600 dark:text-purple-300 font-bold" />
             </div>
 
             <!-- Default Store & Trial Squad Custom Selector -->
             <div class="py-2.5 border-t border-[var(--card-border)]">
-              <label class="text-[11px] t-muted block mb-1.5 font-medium">🧩 اسکواد پیش‌فرض سرویس تست:</label>
+              <label class="text-[11px] t-muted block mb-1.5 font-medium">اسکواد پیش‌فرض سرویس تست:</label>
               <input type="hidden" id="settingDefaultSquadUuid" value="" />
               <div role="button" tabindex="0" onclick="window.adminActions.openDefaultSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-[var(--card-border)] hover:border-blue-500/50 group">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span id="settingDefaultSquadIcon" class="text-sm">🧩</span>
+                  <span id="settingDefaultSquadIcon" class="text-sm flex items-center"><img src="/static/img/icons/nodes.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
                   <span id="settingDefaultSquadLabel" class="text-xs t-main font-bold truncate">انتخاب کنید</span>
                 </div>
                 <div class="flex items-center t-muted group-hover:text-slate-200 text-xs gap-1 flex-shrink-0">
@@ -2214,7 +2223,7 @@
           <div role="button" tabindex="0" class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxBirthday')" data-target="settingsBoxBirthday">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-pink-500/15 t-pink border border-pink-500/30 flex items-center justify-center flex-shrink-0">
-                <span class="text-base">🎂</span>
+                <img src="/static/img/icons/cake.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               </div>
               <div>
                 <b class="text-xs text-white block">پاداش و تبریک زادروز (تولد)</b>
@@ -2269,7 +2278,7 @@
           <div role="button" tabindex="0" class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxCustomPlan')" data-target="settingsBoxCustomPlan">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-cyan-500/15 t-accent border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-                <span class="text-base">🎛️</span>
+                <img src="/static/img/icons/settings.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               </div>
               <div>
                 <b class="text-xs text-white block">طراحی و تعرفه‌گذاری بسته دلخواه</b>
@@ -2393,7 +2402,7 @@
           <div role="button" tabindex="0" class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxLoyalty')" data-target="settingsBoxLoyalty">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-amber-500/15 t-warn border border-amber-500/30 flex items-center justify-center flex-shrink-0">
-                <span class="text-base">👑</span>
+                <img src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               </div>
               <div>
                 <b class="text-xs text-white block">باشگاه مشتریان و سطوح وفاداری</b>
@@ -2423,7 +2432,7 @@
               <!-- Tier 1: Bronze -->
               <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base">🥉</span>
+                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
                   <div>
                     <b class="text-xs t-main block">سطح برنزی (پایه)</b>
                     <span class="text-[11px] t-muted">سطح پیش‌فرض اولیه</span>
@@ -2437,13 +2446,13 @@
               <!-- Tier 2: Silver -->
               <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base">🥈</span>
+                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
                   <b class="text-xs t-main">نقره‌ای</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="w-24 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="w-14 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
                   <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
@@ -2451,13 +2460,13 @@
               <!-- Tier 3: Gold -->
               <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base">🥇</span>
+                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
                   <b class="text-xs t-warn">طلایی</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="w-24 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="w-14 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
                   <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
@@ -2465,13 +2474,13 @@
               <!-- Tier 4: Platinum -->
               <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base">💎</span>
-                  <b class="text-xs text-cyan-300">پلاتین</b>
+                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/diamond.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
+                  <b class="text-xs text-cyan-500 dark:text-cyan-300">پلاتین</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="w-24 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="w-14 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
                   <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
@@ -2479,13 +2488,13 @@
               <!-- Tier 5: Ruby -->
               <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base">🔮</span>
+                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
                   <b class="text-xs t-purple">یاقوت</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="w-24 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="w-14 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
                   <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
@@ -2493,13 +2502,13 @@
               <!-- Tier 6: Emerald -->
               <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base">❇️</span>
+                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
                   <b class="text-xs t-success">زمرد</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="w-24 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="w-14 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
                   <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
@@ -2507,13 +2516,13 @@
               <!-- Tier 7: Diamond -->
               <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base">👑</span>
-                  <b class="text-xs text-amber-300">الماس</b>
+                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
+                  <b class="text-xs text-amber-500 dark:text-amber-300">الماس</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="w-24 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
+                  <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
                   <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="w-14 bg-slate-900 border border-[var(--card-border)] rounded-lg px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center" title="درصد تخفیف" autocomplete="off" />
+                  <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
                   <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
                 </div>
               </div>
@@ -2526,7 +2535,7 @@
           <div role="button" tabindex="0" class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-750/40 transition" onclick="window.adminActions.toggleSettingsBox('settingsBoxBranding')" data-target="settingsBoxBranding">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-purple-500/15 t-purple border border-purple-500/30 flex items-center justify-center flex-shrink-0">
-                <span class="text-base">🎨</span>
+                <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               </div>
               <div>
                 <b class="text-xs text-white block">لوگو و هویت برند فروشگاه</b>
@@ -2540,7 +2549,7 @@
             <div class="flex items-center gap-3.5 p-1">
               <div id="adminLogoPreviewBox" class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 border border-[var(--card-border)] bg-slate-900/60">
                 <img id="adminStoreLogoImg" class="w-full h-full object-contain hidden" alt="Logo Preview" / width="16" height="16">
-                <span id="adminStoreLogoEmpty" class="text-2xl text-slate-500">🛍️</span>
+                <span id="adminStoreLogoEmpty" class="text-2xl text-slate-500 flex items-center justify-center"><img src="/static/img/icons/shop.svg?v=fl2" class="ui-icon-img w-8 h-8 opacity-40 shrink-0" width="32" height="32" alt="" /></span>
               </div>
               <div class="flex-1 space-y-1.5 min-w-0">
                 <p class="text-[11px] t-muted leading-snug">این تصویر در بالای فاکتورها، رسیدهای دیجیتال تلگرام و مینی‌اپ نمایش داده می‌شود.</p>
@@ -2838,7 +2847,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 w-full max-w-[340px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
           <h4 id="walletModalTitle" class="text-xs font-bold t-main flex items-center gap-1.5">
-            <svg class="w-4 h-4 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <img src="/static/img/icons/wallet.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />
             <span>شارژ کیف پول کاربر</span>
           </h4>
           <button onclick="window.adminActions.closeWalletModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -2856,11 +2865,11 @@
           </div>
           <div>
             <label class="text-[11px] t-muted block mb-1">مبلغ به تومان:</label>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" id="walletModalAmount" placeholder="مثلاً: 50000" min="1000" step="1000" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-sm font-sans text-emerald-300 outline-none" />
+            <input type="number" inputmode="numeric" pattern="[0-9]*" id="walletModalAmount" placeholder="مثلاً: 50000" min="1000" step="1000" class="input-base text-sm font-sans text-emerald-500 dark:text-emerald-300 font-bold" />
           </div>
           <div>
             <label class="text-[11px] t-muted block mb-1">توضیحات (اختیاری):</label>
-            <input type="text" id="walletModalReason" placeholder="شارژ دستی توسط مدیریت..." class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs text-slate-200 outline-none" />
+            <input type="text" id="walletModalReason" placeholder="شارژ دستی توسط مدیریت..." class="input-base text-xs" />
           </div>
         </div>
         <div class="flex gap-2">
@@ -3005,7 +3014,7 @@
               <input type="hidden" id="bulkStatusSelect" value="EXPIRED" />
               <div role="button" tabindex="0" onclick="window.adminActions.openBulkStatusPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition hover:border-indigo-500/60 active:scale-[0.99] group">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span id="bulkStatusPickerIcon" class="text-sm">❌</span>
+                  <span id="bulkStatusPickerIcon" class="text-sm flex items-center"><img src="/static/img/icons/cross.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
                   <span id="bulkStatusPickerLabel" class="text-xs t-main font-bold truncate">منقضی‌شده (EXPIRED)</span>
                 </div>
                 <span class="t-muted text-xs group-hover:t-main transition">▾</span>
@@ -3014,7 +3023,7 @@
           </div>
 
           <div id="bulkWarningBox" class="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed flex items-start gap-1.5">
-            <span class="flex-shrink-0 text-xs">⚠️</span>
+            <span class="flex-shrink-0 text-xs flex items-center"><img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
             <span id="bulkWarningText">این عملیات به صورت مستقیم در پنل رمناویو اعمال می‌شود و حجم یا روز مشخص‌شده به تمام کاربران منتخب افزوده خواهد شد.</span>
           </div>
         </div>
@@ -3033,7 +3042,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[350px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">📊</span>
+            <img src="/static/img/icons/reports.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">وضعیت مورد نظر جهت عملیات</h4>
           </div>
           <button type="button" onclick="window.adminActions.closeBulkStatusPickerModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -3159,7 +3168,7 @@
           </div>
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="text-[11px] t-muted block">سقف تعداد فروش (موجودی):</label>
+              <label class="text-[11px] t-muted block">سقف تعداد فروش (خالی = نامحدود):</label>
               <span class="text-[10px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
             </div>
             <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalMaxPurchases" placeholder="خالی = نامحدود" min="0" class="input-base w-full px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-blue-500" />
@@ -3400,7 +3409,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
           <h3 class="text-xs font-bold t-main flex items-center gap-1.5">
-            <span>⚡️</span>
+            <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />
             <span>تولید کارت شارژ / گیفت‌کارت (گروهی)</span>
           </h3>
           <button onclick="window.adminActions.closeBatchVoucherModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -3408,32 +3417,32 @@
         <div class="space-y-3 text-xs">
           <div>
             <label class="t-muted block mb-1">مبلغ هر کارت شارژ (تومان)</label>
-            <input type="number" id="batchVoucherAmount" placeholder="50000" class="w-full bg-slate-800 border border-[var(--card-border)] rounded-xl px-3 py-2 font-sans text-cyan-300 outline-none focus:border-cyan-500 transition" />
+            <input type="number" id="batchVoucherAmount" placeholder="50000" class="input-base font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="t-muted block mb-1">تعداد کدها</label>
-              <input type="number" id="batchVoucherCount" value="10" min="1" max="500" class="w-full bg-slate-800 border border-[var(--card-border)] rounded-xl px-3 py-2 font-sans text-white outline-none focus:border-cyan-500 transition" />
+              <input type="number" id="batchVoucherCount" value="10" min="1" max="500" class="input-base font-sans" />
             </div>
             <div>
               <label class="t-muted block mb-1">پیشوند کد</label>
-              <input type="text" id="batchVoucherPrefix" value="GIFT-" dir="ltr" class="w-full bg-slate-800 border border-[var(--card-border)] rounded-xl px-3 py-2 font-sans text-white text-left outline-none focus:border-cyan-500 transition uppercase" />
+              <input type="text" id="batchVoucherPrefix" value="GIFT-" dir="ltr" class="input-base font-sans text-left uppercase" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="t-muted block mb-1">حداکثر دفعات استفاده</label>
-              <input type="number" id="batchVoucherMaxUses" value="1" min="1" class="w-full bg-slate-800 border border-[var(--card-border)] rounded-xl px-3 py-2 font-sans text-white outline-none focus:border-cyan-500 transition" />
+              <input type="number" id="batchVoucherMaxUses" value="1" min="1" class="input-base font-sans" />
             </div>
             <div>
               <label class="t-muted block mb-1">انقضا (روز)</label>
-              <input type="number" id="batchVoucherExpireDays" value="" placeholder="0 = نامحدود" min="0" class="w-full bg-slate-800 border border-[var(--card-border)] rounded-xl px-3 py-2 font-sans text-white outline-none focus:border-cyan-500 transition" />
+              <input type="number" id="batchVoucherExpireDays" value="" placeholder="0 = نامحدود" min="0" class="input-base font-sans" />
             </div>
           </div>
           <div id="batchVoucherResultsBox" class="hidden space-y-1.5 pt-2 border-t border-[var(--card-border)]">
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span>کدهای تولید شده:</span>
-              <button type="button" onclick="window.adminActions.copyBatchCodes()" class="t-accent hover:text-cyan-300 font-bold text-[11px]">📋 کپی همه کدها</button>
+              <button type="button" onclick="window.adminActions.copyBatchCodes()" class="t-accent hover:text-cyan-300 font-bold text-[11px] inline-flex items-center gap-1"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>کپی همه کدها</span></button>
             </div>
             <textarea id="batchVoucherGeneratedCodes" readonly rows="4" class="w-full bg-slate-950 border border-[var(--card-border)] rounded-xl p-2 font-sans text-[11px] t-success select-all outline-none" dir="ltr"></textarea>
           </div>
@@ -3706,7 +3715,7 @@
           <!-- Option 1: Open -->
           <div role="button" tabindex="0" onclick="window.adminActions.selectAccessMode('open')" id="accessOpt-open" class="access-mode-opt cursor-pointer p-3 rounded-2xl border transition flex items-start gap-3 card-inset border-card-border hover:border-emerald-500/50">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
-              🌐
+              <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
@@ -3723,7 +3732,7 @@
           <!-- Option 2: Invite-Only -->
           <div role="button" tabindex="0" onclick="window.adminActions.selectAccessMode('invite_only')" id="accessOpt-invite_only" class="access-mode-opt cursor-pointer p-3 rounded-2xl border transition flex items-start gap-3 card-inset border-card-border hover:border-cyan-500/50">
             <div class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-500 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
-              🎟️
+              <img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
@@ -3740,7 +3749,7 @@
           <!-- Option 3: Closed -->
           <div role="button" tabindex="0" onclick="window.adminActions.selectAccessMode('closed')" id="accessOpt-closed" class="access-mode-opt cursor-pointer p-3 rounded-2xl border transition flex items-start gap-3 card-inset border-card-border hover:border-rose-500/50">
             <div class="w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
-              🔒
+              <img src="/static/img/icons/lock-shield.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
@@ -3910,7 +3919,7 @@
               <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(30)" class="h-10 px-2.5 rounded-xl card-inset border border-amber-500/30 hover:border-amber-400 t-warn font-bold text-[11px] font-sans whitespace-nowrap transition active:scale-95 leading-none" title="تنظیم سررسید برای 30 روز آینده">+30 روز</button>
               <button type="button" onclick="window.adminActions.clearNodeBillingDueDate()" class="h-10 w-10 rounded-xl card-inset border border-card-border hover:border-rose-500/40 t-muted hover:text-rose-400 font-bold text-xs flex items-center justify-center transition active:scale-95 shrink-0" title="پاک کردن تاریخ سررسید" aria-label="پاک کردن تاریخ سررسید">✕</button>
             </div>
-            <span class="text-[10px] t-muted block">در صورت رسیدن به ۳ روز باقی‌مانده، پیام هشدار در تلگرام ارسال می‌شود.</span>
+            <span class="text-[10px] t-muted block">در صورت رسیدن به 3 روز باقی‌مانده، پیام هشدار در تلگرام ارسال می‌شود.</span>
           </div>
 
           <!-- Notes -->
@@ -3926,7 +3935,7 @@
           <div class="pt-1">
             <button type="button" id="nodeBillingPayBtn" onclick="window.adminActions.payAndExtendNodeBilling()" class="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-[0.98] flex items-center justify-center gap-1.5 leading-none">
               <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-              <span>پرداخت کردم (تمدید ۱ ماه خودکار)</span>
+              <span>پرداخت کردم (تمدید 1 ماه خودکار)</span>
             </button>
           </div>
 
@@ -4006,7 +4015,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 w-full max-w-[380px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5">
           <h4 class="text-xs font-bold t-main flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+            <img src="/static/img/icons/link.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />
             <span>ساخت لینک تبلیغاتی جدید</span>
           </h4>
           <button type="button" onclick="window.adminActions.closeCreateCampaignModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4015,7 +4024,7 @@
         <form id="createCampaignForm" onsubmit="window.adminActions.submitCreateCampaign(event)" class="space-y-3.5 text-xs">
           <div>
             <label class="text-[11px] t-muted block mb-1">نام کمپین / منبع تبلیغ:</label>
-            <input type="text" id="campaignNameInput" required placeholder="مثلاً: بنر کانال تلگرام پروکسی" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-blue-500 transition" />
+            <input type="text" id="campaignNameInput" required placeholder="مثلاً: بنر کانال تلگرام پروکسی" class="input-base text-xs" />
           </div>
 
           <div>
@@ -4023,14 +4032,14 @@
               <label class="text-[11px] t-muted">شناسه لینک (انگلیسی، بدون فاصله):</label>
             </div>
             <div class="relative">
-              <input type="text" id="campaignCodeInput" required dir="ltr" placeholder="channel_proxy" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              <input type="text" id="campaignCodeInput" required dir="ltr" placeholder="channel_proxy" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
             </div>
             <span class="text-[11px] t-muted mt-1 block">فقط حروف انگلیسی، عدد، خط‌تیره یا زیرخط</span>
           </div>
 
           <div>
             <label class="text-[11px] t-muted block mb-1">هزینه تبلیغ به تومان (اختیاری):</label>
-            <input type="number" id="campaignCostInput" min="0" step="1000" placeholder="مثلاً: 500000" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-amber-500 transition" />
+            <input type="number" id="campaignCostInput" min="0" step="1000" placeholder="مثلاً: 500000" class="input-base text-xs font-sans text-amber-600 dark:text-amber-300 font-bold" />
             <span class="text-[11px] t-muted mt-1 block">جهت محاسبه سودآوری و درصد بازگشت سرمایه (ROI)</span>
           </div>
 
@@ -4109,7 +4118,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5">
           <h4 class="text-xs font-bold t-main flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            <img src="/static/img/icons/users.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />
             <span>ایجاد کاربر جدید در پنل</span>
           </h4>
           <button type="button" onclick="window.adminActions.closeCreateUserModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4122,7 +4131,7 @@
               <label class="text-[11px] t-muted font-medium">شناسه عددی تلگرام:</label>
               <span class="s-danger-soft border text-[11px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
             </div>
-            <input type="number" inputmode="numeric" id="createUserTelegramId" placeholder="مثلاً 123456789" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500" />
+            <input type="number" inputmode="numeric" id="createUserTelegramId" placeholder="مثلاً 123456789" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
           </div>
 
           <!-- Username (optional) with live availability check -->
@@ -4131,19 +4140,19 @@
               <label class="text-[11px] t-muted font-medium">نام کاربری در پنل:</label>
               <span class="s-neutral-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg font-sans">اختیاری</span>
             </div>
-            <input type="text" id="createUserUsername" oninput="window.adminActions.onUsernameInput(this.value)" placeholder="پیش‌فرض: خودکار" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-white outline-none focus:border-cyan-500 placeholder:text-right" dir="ltr" />
+            <input type="text" id="createUserUsername" oninput="window.adminActions.onUsernameInput(this.value)" placeholder="پیش‌فرض: خودکار" class="input-base text-xs font-sans placeholder:text-right" dir="ltr" />
             <div id="createUserUsernameStatus" class="text-[11px] font-medium hidden"></div>
           </div>
 
           <!-- Plan selector trigger -->
           <div class="space-y-1">
             <label class="text-[11px] t-muted font-medium">بسته اشتراک انتخابی:</label>
-            <div role="button" tabindex="0" onclick="window.adminActions.openPlanPickerModal()" class="w-full bg-slate-900 border border-[var(--card-border)] hover:border-blue-500/60 rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
+            <div role="button" tabindex="0" onclick="window.adminActions.openPlanPickerModal()" class="w-full card-inset border border-[var(--card-border)] hover:border-blue-500/60 rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
               <div class="flex items-center gap-2 min-w-0">
                 <span id="createUserPlanIcon" class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4" width="16" height="16" alt="" /></span>
                 <span id="createUserPlanLabel" class="text-xs text-white font-medium truncate">انتخاب کنید</span>
               </div>
-              <span class="t-muted text-xs group-hover:text-white transition">▼</span>
+              <span class="t-muted text-xs group-hover:t-main transition">▼</span>
             </div>
             <input type="hidden" id="createUserSelectedPlanId" value="" />
           </div>
@@ -4152,18 +4161,18 @@
           <div class="grid grid-cols-2 gap-2">
             <div class="space-y-1">
               <label class="text-[11px] t-muted font-medium">حجم (GB):</label>
-              <input type="number" inputmode="numeric" id="createUserTraffic" placeholder="0 = نامحدود" min="0" value="" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500" />
+              <input type="number" inputmode="numeric" id="createUserTraffic" placeholder="0 = نامحدود" min="0" value="" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
             </div>
             <div class="space-y-1">
               <label class="text-[11px] t-muted font-medium">مدت زمان (روز):</label>
-              <input type="number" inputmode="numeric" id="createUserDuration" placeholder="مثلاً 30" min="1" value="" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-amber-500" />
+              <input type="number" inputmode="numeric" id="createUserDuration" placeholder="مثلاً 30" min="1" value="" class="input-base text-xs font-sans text-amber-600 dark:text-amber-300 font-bold" />
             </div>
           </div>
 
           <!-- HWID Limit -->
           <div class="space-y-1">
             <label class="text-[11px] t-muted font-medium block">محدودیت دستگاه (HWID):</label>
-            <input type="number" inputmode="numeric" id="createUserHwid" placeholder="خالی = پیش‌فرض پنل" min="1" max="10" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-purple-300 outline-none focus:border-purple-500" />
+            <input type="number" inputmode="numeric" id="createUserHwid" placeholder="خالی = پیش‌فرض پنل" min="1" max="10" class="input-base text-xs font-sans text-purple-600 dark:text-purple-300 font-bold" />
           </div>
 
           <!-- Internal Squad -->
@@ -4175,7 +4184,7 @@
             <input type="hidden" id="createUserSquadSelect" value="" />
             <div role="button" tabindex="0" onclick="window.adminActions.openSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
               <div class="flex items-center gap-2 min-w-0">
-                <span id="createUserSquadIcon" class="text-sm">🌐</span>
+                <span id="createUserSquadIcon" class="text-sm flex items-center"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
                 <span id="createUserSquadLabel" class="text-xs t-main font-medium truncate">انتخاب کنید</span>
               </div>
               <span class="t-muted text-xs group-hover:t-main transition">▼</span>
@@ -4198,10 +4207,10 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">📦</span>
+            <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">انتخاب بسته اشتراک</h4>
           </div>
-          <button type="button" onclick="window.adminActions.closePlanPickerModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition active:scale-95" aria-label="بستن">✕</button>
+          <button type="button" onclick="window.adminActions.closePlanPickerModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
         <div id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[55vh] text-xs px-2.5 py-1.5">
           <!-- Dynamically populated complete packages -->
@@ -4214,7 +4223,7 @@
       <div class="modal-card border border-rose-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">⚠️</span>
+            <img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <div>
               <h4 class="text-xs font-bold t-main">کاربران پرخطر (نشست‌های بالا)</h4>
               <span class="text-[11px] t-muted block mt-0.5">کاربران دارای 3 دستگاه یا بیشتر</span>
@@ -4233,7 +4242,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[340px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">🏷️</span>
+            <img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">انتخاب نشان بازاریابی</h4>
           </div>
           <button type="button" onclick="window.adminActions.closePlanBadgePickerModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4249,7 +4258,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[350px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">🧩</span>
+            <img src="/static/img/icons/nodes.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">انتخاب دسته سرور (اسکواد)</h4>
           </div>
           <button type="button" onclick="window.adminActions.closePlanSquadPickerModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4265,7 +4274,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">🧩</span>
+            <img src="/static/img/icons/nodes.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">انتخاب اسکواد داخلی</h4>
           </div>
           <button type="button" onclick="window.adminActions.closeSquadPickerModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4281,7 +4290,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">🧩</span>
+            <img src="/static/img/icons/nodes.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">اسکواد پیش‌فرض فروشگاه و تست</h4>
           </div>
           <button type="button" onclick="window.adminActions.closeDefaultSquadPickerModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4297,15 +4306,15 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[340px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">💳</span>
+            <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">انتخاب قالب کارت بانکی</h4>
           </div>
           <button type="button" onclick="window.adminActions.closeCardTemplateModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
         <div id="cardTemplateList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-2.5 py-1.5">
-          <div role="button" tabindex="0" id="cardTplOpt_blubank" onclick="window.adminActions.selectCardTemplate('blubank', 'بلوبانک', '💳')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm">
+          <div role="button" tabindex="0" id="cardTplOpt_blubank" onclick="window.adminActions.selectCardTemplate('blubank', 'بلوبانک')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm">
             <div class="flex items-center gap-2.5">
-              <span class="text-base">💳</span>
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               <div>
                 <span class="text-xs font-bold t-info block">بلوبانک</span>
                 <span class="text-[11px] t-muted block">طراحی سه‌بعدی کارت با افکت چرخش و چیپ هوشمند</span>
@@ -4313,9 +4322,9 @@
             </div>
             <span class="text-xs text-blue-400 font-bold" id="cardTplCheck_blubank">✓</span>
           </div>
-          <div role="button" tabindex="0" id="cardTplOpt_minimal" onclick="window.adminActions.selectCardTemplate('minimal', 'ساده', '📄')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 card-inset border-card-border hover:border-slate-500">
+          <div role="button" tabindex="0" id="cardTplOpt_minimal" onclick="window.adminActions.selectCardTemplate('minimal', 'ساده')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 card-inset border-card-border hover:border-slate-500">
             <div class="flex items-center gap-2.5">
-              <span class="text-base">📄</span>
+              <img src="/static/img/icons/receipt.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               <div>
                 <span class="text-xs font-bold t-main block">ساده</span>
                 <span class="text-[11px] t-muted block">کادر متنی ساده فقط با نمایش شماره کارت و کپی</span>
@@ -4332,7 +4341,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[340px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">🎨</span>
+            <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">انتخاب رنگ کارت بلوبانک</h4>
           </div>
           <button type="button" onclick="window.adminActions.closeCardColorModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4348,7 +4357,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">🕒</span>
+            <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">انتخاب منطقه زمانی سامانه</h4>
           </div>
           <button type="button" onclick="window.adminActions.closeTimezoneModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4364,7 +4373,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">📡</span>
+            <img src="/static/img/icons/antenna.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">انتخاب نوع تست شبکه</h4>
           </div>
           <button type="button" onclick="window.closeCheckHostTypeModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4372,7 +4381,7 @@
         <div class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-1 py-1">
           <div role="button" tabindex="0" onclick="window.selectCheckHostType('ping', 'پینگ (Ping)', '')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">📡</span>
+              <img src="/static/img/icons/antenna.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
                 <b class="t-main block text-xs">پینگ (Ping)</b>
                 <span class="text-[11px] t-muted block mt-0.5">بررسی تاخیر و پکت‌لاست از نقاط مختلف</span>
@@ -4383,7 +4392,7 @@
 
           <div role="button" tabindex="0" onclick="window.selectCheckHostType('tcp', 'پورت TCP', '')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">🔌</span>
+              <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
                 <b class="t-main block text-xs">پورت TCP</b>
                 <span class="text-[11px] t-muted block mt-0.5">سنجش باز بودن پورت و اتصال TCP</span>
@@ -4394,7 +4403,7 @@
 
           <div role="button" tabindex="0" onclick="window.selectCheckHostType('http', 'درخواست HTTP', '')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">🌐</span>
+              <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
                 <b class="t-main block text-xs">درخواست HTTP</b>
                 <span class="text-[11px] t-muted block mt-0.5">تست پاسخ وب‌سرور، کد وضعیت و زمان پاسخ</span>
@@ -4405,7 +4414,7 @@
 
           <div role="button" tabindex="0" onclick="window.selectCheckHostType('dns', 'استعلام DNS', '')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">🔍</span>
+              <img src="/static/img/icons/search.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
                 <b class="t-main block text-xs">استعلام DNS</b>
                 <span class="text-[11px] t-muted block mt-0.5">تفکیک نام دامنه و IPهای دریافتی جهانی</span>
@@ -4422,7 +4431,7 @@
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[340px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
-            <span class="text-base">🌍</span>
+            <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
             <h4 class="text-xs font-bold t-main">تعداد نودهای جهانی</h4>
           </div>
           <button type="button" onclick="window.closeCheckHostNodesModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4430,7 +4439,7 @@
         <div class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-1 py-1">
           <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(6, '6 نود', '⚡️')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">⚡️</span>
+              <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
                 <b class="t-main block text-xs">6 نود</b>
                 <span class="text-[11px] t-muted block mt-0.5">سریع‌ترین بررسی (تست فوق‌العاده سریع)</span>
@@ -4441,7 +4450,7 @@
 
           <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(10, '10 نود (پیش‌فرض)', '🌐')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">🌐</span>
+              <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
                 <b class="t-main block text-xs">10 نود (پیش‌فرض)</b>
                 <span class="text-[11px] t-muted block mt-0.5">پوشش متوازن اروپا، آسیا و آمریکا</span>
@@ -4452,7 +4461,7 @@
 
           <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(15, '15 نود', '📊')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">📊</span>
+              <img src="/static/img/icons/reports.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
                 <b class="t-main block text-xs">15 نود</b>
                 <span class="text-[11px] t-muted block mt-0.5">پوشش کامل‌تر قاره‌ای و منطقه‌ای</span>
@@ -4463,7 +4472,16 @@
 
           <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(20, '20 نود', '🌍')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">🌍</span>
+              <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
+              <div>
+                <b class="t-main block text-xs">20 نود</b>
+                <span class="text-[11px] t-muted block mt-0.5">تست جامع سراسری بین‌المللی</span>
+              </div>
+            </div>
+            <span class="text-blue-400 opacity-0 group-hover:opacity-100 transition text-sm">✓</span>
+          </div>
+        </div>
+      </div>
               <div>
                 <b class="t-main block text-xs">20 نود</b>
                 <span class="text-[11px] t-muted block mt-0.5">تست جامع سراسری بین‌المللی</span>

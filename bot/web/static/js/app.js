@@ -467,9 +467,9 @@ function setupConfigsModal() {
     if (!configsModalList) return;
     if (!window.lastUserData?.active_sub) {
       configsModalList.innerHTML = `
-        <div class="text-center py-6 text-slate-400 text-xs">
-          <span class="text-base">📱</span>
-          <div class="mt-1 leading-relaxed">اشتراک فعالی برای نمایش کانفیگ‌ها وجود ندارد.</div>
+        <div class="text-center py-6 text-slate-400 text-xs space-y-2">
+          <img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-8 h-8 mx-auto" width="32" height="32" alt="" />
+          <div class="leading-relaxed">اشتراک فعالی برای نمایش کانفیگ‌ها وجود ندارد.</div>
         </div>
       `;
       if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
@@ -477,7 +477,7 @@ function setupConfigsModal() {
     }
     configsModalList.innerHTML = `
       <div class="text-center py-6 text-slate-400 text-xs space-y-2">
-        <span class="inline-block animate-spin text-base">🔄</span>
+        <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-8 h-8 mx-auto animate-spin" width="32" height="32" alt="" />
         <div>در حال دریافت کانفیگ‌ها از پنل...</div>
       </div>
     `;
@@ -496,11 +496,12 @@ function setupConfigsModal() {
         const msg = resData?.message || res?.message || resData?.error || res?.error || 'کانفیگی در پنل رمنانو یافت نشد.';
         configsModalList.innerHTML = `
           <div class="text-center py-6 t-muted text-xs space-y-2">
-            <span class="text-base block">⚠️</span>
+            <img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-8 h-8 mx-auto" width="32" height="32" alt="" />
             <div class="leading-relaxed font-medium">${escapeHtml(msg)}</div>
             <div class="pt-2 flex items-center justify-center gap-2">
-              <button type="button" id="retryConfigsBtn" class="px-3 py-1.5 rounded-xl s-accent-soft border text-[11px] font-bold transition active:scale-95">
-                🔄 تلاش مجدد
+              <button type="button" id="retryConfigsBtn" class="px-3 py-1.5 rounded-xl s-accent-soft border text-[11px] font-bold transition active:scale-95 inline-flex items-center gap-1.5">
+                <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+                <span>تلاش مجدد</span>
               </button>
             </div>
           </div>
@@ -510,11 +511,12 @@ function setupConfigsModal() {
     } catch (e) {
       configsModalList.innerHTML = `
         <div class="text-center py-6 t-danger text-xs space-y-2">
-          <span class="text-base block">❌</span>
+          <img src="/static/img/icons/cross.svg?v=fl2" class="ui-icon-img w-8 h-8 mx-auto" width="32" height="32" alt="" />
           <div class="leading-relaxed">خطا در دریافت کانفیگ‌ها: ${escapeHtml(e?.message || 'ارتباط با سرور برقرار نشد')}</div>
           <div class="pt-2 flex items-center justify-center gap-2">
-            <button type="button" id="retryConfigsBtnErr" class="px-3 py-1.5 rounded-xl s-accent-soft border text-[11px] font-bold transition active:scale-95">
-              🔄 تلاش مجدد
+            <button type="button" id="retryConfigsBtnErr" class="px-3 py-1.5 rounded-xl s-accent-soft border text-[11px] font-bold transition active:scale-95 inline-flex items-center gap-1.5">
+              <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+              <span>تلاش مجدد</span>
             </button>
           </div>
         </div>
@@ -1554,7 +1556,7 @@ function openAlertPickerModal(type) {
     if (subEl) subEl.innerText = 'هنگامی که مصرف بسته به این درصد برسد، ربات پیام هشدار ارسال می‌کند.';
     if (iconBox) {
       iconBox.className = 'w-10 h-10 rounded-2xl bg-cyan-500/20 t-accent border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0';
-      iconBox.innerHTML = '⚠️';
+      iconBox.innerHTML = '<img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />';
     }
     const currentVal = parseInt($('settingTrafficPercentSelect')?.value || '80', 10);
     const options = [
@@ -1581,7 +1583,7 @@ function openAlertPickerModal(type) {
     if (subEl) subEl.innerText = 'چند روز مانده به پایان مدت اشتراک پیام یادآوری تمدید ارسال شود؟';
     if (iconBox) {
       iconBox.className = 'w-10 h-10 rounded-2xl s-warn-soft border flex items-center justify-center text-lg flex-shrink-0';
-      iconBox.innerHTML = '⏰';
+      iconBox.innerHTML = '<img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />';
     }
     const currentVal = parseInt($('settingExpireDaysSelect')?.value || '3', 10);
     const options = [
@@ -3720,14 +3722,14 @@ function hydrateUserInterface(data) {
 
         const updatedHtml = updatedDate ? `
           <div class="flex items-center justify-between t-muted">
-            <span class="flex items-center gap-1"><span>🔄</span> آخرین فعالیت:</span>
+            <span class="flex items-center gap-1"><img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>آخرین فعالیت:</span></span>
             <span class="font-sans font-medium t-main num-bidi" dir="ltr">${updatedDate}</span>
           </div>
         ` : '';
 
         const addedHtml = addedDate ? `
           <div class="flex items-center justify-between t-muted">
-            <span class="flex items-center gap-1"><span>📅</span> زمان ثبت:</span>
+            <span class="flex items-center gap-1"><img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>زمان ثبت:</span></span>
             <span class="font-sans font-medium t-muted num-bidi" dir="ltr">${addedDate}</span>
           </div>
         ` : '';
@@ -3736,7 +3738,7 @@ function hydrateUserInterface(data) {
           <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2 text-xs">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                <span class="text-2xl shrink-0">${icon}</span>
+                <span class="text-2xl shrink-0 flex items-center justify-center">${(typeof window.uiEmojiIcon === 'function') ? window.uiEmojiIcon(icon, 'w-6 h-6') : icon}</span>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-xs font-bold t-main truncate">${escapeHtml(model)}</span>
@@ -3753,12 +3755,12 @@ function hydrateUserInterface(data) {
             <div class="pt-1.5 border-t border-card-border text-[11px] font-sans space-y-1">
               ${resolvedOs ? `
                 <div class="flex items-center justify-between t-muted">
-                  <span class="flex items-center gap-1"><span>💻</span> سیستم‌عامل:</span>
+                  <span class="flex items-center gap-1"><img src="/static/img/icons/desktop.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>سیستم‌عامل:</span></span>
                   <span class="font-sans font-bold t-main num-bidi" dir="ltr">${escapeHtml(resolvedOs)}</span>
                 </div>
               ` : ''}
               <div class="flex items-center justify-between t-muted">
-                <span class="flex items-center gap-1"><span>🌐</span> آی‌پی:</span>
+                <span class="flex items-center gap-1"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>آی‌پی:</span></span>
                 <span class="font-sans font-bold t-accent num-bidi" dir="ltr">${escapeHtml(ip)}</span>
               </div>
               ${addedHtml}
