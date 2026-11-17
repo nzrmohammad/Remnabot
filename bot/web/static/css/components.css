@@ -273,6 +273,44 @@ html.theme-light .badge-plan-type {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
+.badge-required {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  background-color: rgba(244, 63, 94, 0.12);
+  color: #f43f5e;
+  line-height: 1.25;
+  user-select: none;
+}
+html.theme-light .badge-required {
+  border-color: rgba(225, 29, 72, 0.35);
+  background-color: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+}
+
+.badge-optional {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.625rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--card-border);
+  background-color: var(--inset-bg);
+  color: var(--text-muted);
+  line-height: 1.25;
+  user-select: none;
+}
+html.theme-light .badge-optional {
+  border-color: #cbd5e1;
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
 /* --- 5. Semantic Typography Utilities --- */
 .t-main       { color: var(--text-main); }
 .t-muted      { color: var(--text-muted); }

@@ -173,8 +173,8 @@
         };
         const tierKey = TIER_SVG_ICONS[pkgIcon];
         const pkgIconHtml = tierKey
-          ? `<span class="w-5 h-5 rounded-lg card-inset border border-card-border flex items-center justify-center flex-shrink-0" title="نشان بسته">${uiIcon(tierKey, 'w-3.5 h-3.5')}</span>`
-          : (pkgIcon ? `<span class="text-sm select-none leading-none flex-shrink-0" title="آیکون بسته">${pkgIcon}</span>` : '');
+          ? `<span class="w-7 h-7 rounded-xl card-inset border border-card-border flex items-center justify-center flex-shrink-0 shadow-sm" title="نشان بسته">${uiIcon(tierKey, 'w-5 h-5')}</span>`
+          : (pkgIcon ? `<span class="w-7 h-7 rounded-xl card-inset border border-card-border flex items-center justify-center text-base select-none leading-none flex-shrink-0 shadow-sm" title="آیکون بسته">${pkgIcon}</span>` : '');
 
         const bKey = (p.badge || '').toLowerCase();
         const planCategory = getPlanCategory(p);
@@ -259,13 +259,21 @@
           <div data-plan-type="${planCategory}" data-plan-id="${p.id}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
             <div class="space-y-1.5">
               <!-- Top Row: Price and تومان on Right, Icons + Name + statusBadge flush Left (LTR) -->
-              <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center justify-between gap-2" dir="ltr">
                 <div class="flex items-center justify-start gap-1.5 min-w-0 flex-1">
                   ${pkgIconHtml}
                   <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                   ${statusBadge ? `<div class="flex-shrink-0">${statusBadge}</div>` : ''}
                 </div>
-                <div class="flex items-baseline gap-1 shrink-0 text-left" dir="rtl">
+                <div class="flex items-center gap-1 shrink-0 px-1" dir="ltr">
+                  <button type="button" data-move-up onclick="window.adminActions.movePlan(${p.id}, 'up')" class="w-7 h-7 rounded-lg card-inset border border-slate-700/60 hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به بالا" aria-label="انتقال به بالا">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+                  </button>
+                  <button type="button" data-move-down onclick="window.adminActions.movePlan(${p.id}, 'down')" class="w-7 h-7 rounded-lg card-inset border border-slate-700/60 hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به پایین" aria-label="انتقال به پایین">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                </div>
+                <div class="flex items-baseline gap-1 shrink-0 text-right" dir="rtl">
                   <span class="text-sm font-black t-success font-sans num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
                   <span class="text-[11px] font-sans font-medium text-slate-400">تومان</span>
                 </div>
@@ -277,14 +285,6 @@
                   ${typeBadge}
                   ${tagBadge}
                   ${squadBadge}
-                </div>
-                <div class="flex items-center gap-1 shrink-0" dir="ltr">
-                  <button type="button" data-move-up onclick="window.adminActions.movePlan(${p.id}, 'up')" class="w-7 h-7 rounded-lg card-inset border border-slate-700/60 hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به بالا" aria-label="انتقال به بالا">
-                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
-                  </button>
-                  <button type="button" data-move-down onclick="window.adminActions.movePlan(${p.id}, 'down')" class="w-7 h-7 rounded-lg card-inset border border-slate-700/60 hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به پایین" aria-label="انتقال به پایین">
-                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-                  </button>
                 </div>
               </div>
             </div>

@@ -1130,11 +1130,13 @@
           </div>
 
           <div class="grid grid-cols-2 gap-2 pt-2 border-t border-card-border">
-            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5 leading-none">
-              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span class="leading-none">شارژ کیف پول</span>
+            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span class="inline-block">شارژ کیف پول</span>
             </button>
-            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5 leading-none">
-              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span class="leading-none">ارسال هدیه</span>
+            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span class="inline-block">ارسال هدیه</span>
             </button>
           </div>
         </div>
@@ -1687,7 +1689,7 @@
         </div>
         <div>
           <h3 class="text-base font-extrabold t-main">آیا از ابطال لینک اشتراک مطمئنید؟</h3>
-          <p id="revokeTargetAccountName" class="text-xs font-bold text-cyan-500 dark:text-cyan-400 mt-1 num-bidi hidden"></p>
+          <p id="revokeTargetAccountName" dir="rtl" class="text-xs font-bold text-cyan-500 dark:text-cyan-400 mt-1 hidden"></p>
           <p class="text-xs t-muted mt-2 leading-relaxed">
             با صدور لینک جدید، لینک قبلی شما در تمام گوشی‌ها و نرم‌افزارها <b>فوراً از کار خواهد افتاد</b> و باید لینک سابسکریپشن جدید را داخل کلاینت خود وارد کنید.
           </p>
@@ -2129,7 +2131,7 @@
                   <label class="text-[11px] t-muted font-bold flex items-center gap-1.5">
                     <img src="/static/img/icons/receipt.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />تصویر فیش واریزی:
                   </label>
-                  <span class="text-[11px] t-danger font-bold bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">الزامی</span>
+                  <span class="badge-required">الزامی</span>
                 </div>
                 <input type="file" id="topupCardImageInput" accept="image/*" class="hidden">
                 <button id="uploadCardReceiptImageBtn" type="button" class="w-full card-inset hover:border-cyan-400 t-main text-xs py-2.5 px-3 rounded-xl border border-dashed border-cyan-500/50 transition flex items-center justify-center gap-2 active:scale-95 shadow-sm">
@@ -2149,7 +2151,7 @@
               <div class="space-y-1 pt-1">
                 <div class="flex items-center justify-between">
                   <label class="text-[11px] t-muted font-medium">کد پیگیری یا توضیحات:</label>
-                  <span class="text-[10px] t-muted px-2 py-0.5 rounded-full border border-card-border bg-card-inner">اختیاری</span>
+                  <span class="badge-optional">اختیاری</span>
                 </div>
                 <textarea id="topupCardReceiptInput" rows="2" placeholder="کد پیگیری، شماره ارجاع یا توضیح دلخواه" class="input-base w-full p-2.5 rounded-xl text-xs outline-none resize-none focus:border-cyan-500 transition border border-card-border"></textarea>
               </div>
@@ -3099,9 +3101,7 @@
         </div>
 
         <!-- Status & Verdict Badge -->
-        <div id="speedStatusBadge" class="py-2 px-3 rounded-xl card-inset text-[11px] t-muted font-medium text-center transition min-h-[38px] flex items-center justify-center">
-          آماده برای تست سرعت دانلود، آپلود و پینگ
-        </div>
+        <div id="speedStatusBadge" class="py-2 px-3 rounded-xl card-inset text-[11px] t-muted font-medium text-center transition min-h-[38px] hidden items-center justify-center"></div>
 
         <!-- Action Button -->
         <div class="pt-0.5 flex-shrink-0">
@@ -3454,8 +3454,8 @@
       <div class="modal-card border border-sky-500/50 rounded-3xl p-5 w-full max-w-[350px] text-center shadow-2xl relative my-auto space-y-4">
         <button type="button" onclick="window.closeMembershipModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن مودال عضویت"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
-        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-sky-500/30 bg-sky-500/10 mt-1">
-          <img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-8 h-8" width="32" height="32" alt="" />
+        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-amber-500/30 bg-amber-500/10 mt-1">
+          <img id="membershipModalHeaderIcon" src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-8 h-8" width="32" height="32" alt="" />
         </div>
 
         <div>
@@ -3480,7 +3480,7 @@
               <img src="/static/img/icons/wallet.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
               <span>مجموع پرداختی</span>
             </span>
-            <b id="membershipTotalSpent" class="text-xs font-sans font-bold t-success block num-bidi" dir="ltr">-- تومان</b>
+            <b id="membershipTotalSpent" class="text-xs font-bold t-success block" dir="rtl"><span class="font-sans font-bold num-bidi" dir="ltr">--</span> <span>تومان</span></b>
           </div>
 
           <div class="card-inset rounded-2xl p-2.5 space-y-1">
@@ -3563,7 +3563,7 @@
           </div>
           <div class="flex items-center justify-between pb-1.5 border-b border-card-border">
             <span class="t-muted text-[11px]">آدرس آی‌پی:</span>
-            <span id="killDeviceModalIp" class="font-sans t-accent text-xs" dir="ltr">IP: —</span>
+            <span id="killDeviceModalIp" class="font-sans t-accent text-xs" dir="ltr">—</span>
           </div>
           <p class="text-[11px] t-muted pt-1">
             <img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> با قطع این دستگاه، اتصال آن فوراً متوقف شده و برای اتصال مجدد باید لینک اشتراک در نرم‌افزار بروزرسانی شود.
@@ -3672,7 +3672,7 @@
           <div class="space-y-1">
             <div class="flex items-center justify-between">
               <label for="giftMessageInput" class="text-[11px] t-muted block">پیام تبریک یا یادداشت دلخواه:</label>
-              <span class="text-[11px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
+              <span class="badge-optional">اختیاری</span>
             </div>
             <input type="text" id="giftMessageInput" maxlength="150" placeholder="مثال: تقدیم با احترام، امیدوارم مفید باشه! 🌹" class="input-base w-full p-2.5 rounded-xl text-xs outline-none" />
           </div>

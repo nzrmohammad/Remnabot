@@ -975,26 +975,28 @@ async applyUserModification() {
             return `
               <div class="srh-card card-inset p-3 rounded-2xl border border-card-border space-y-2 text-xs overflow-hidden">
                 <!-- Line 1: Client name & OS/platform tag -->
-                <div class="flex items-center justify-between gap-2 min-w-0">
+                <div class="flex items-center justify-between gap-2 min-w-0" dir="ltr">
                   <div class="flex items-center gap-2 min-w-0 flex-1">
-                    <span class="text-base flex-shrink-0">${r.client_icon || '📱'}</span>
-                    <b class="t-main text-xs truncate min-w-0 flex-1" title="${escapeHtml(r.user_agent || rawClientName)}">${escapeHtml(rawClientName)}</b>
-                    <span class="text-[10.5px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans flex-shrink-0 max-w-[90px] truncate">${escapeHtml(r.client_tag || 'App')}</span>
+                    <span class="text-base flex-shrink-0">${r.client_icon || '<img src="/static/img/icons/desktop.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />'}</span>
+                    <b class="t-main text-xs truncate min-w-0 flex-1 font-sans font-bold" title="${escapeHtml(r.user_agent || rawClientName)}">${escapeHtml(rawClientName)}</b>
                   </div>
-                  ${errorBadgeHtml}
+                  <div class="flex items-center gap-1.5 shrink-0" dir="rtl">
+                    ${errorBadgeHtml}
+                    <span class="text-[10.5px] px-2 py-0.5 rounded-lg card-inset border border-card-border t-muted font-sans font-medium flex-shrink-0 max-w-[100px] truncate">${escapeHtml(r.client_tag || 'App')}</span>
+                  </div>
                 </div>
 
                 <!-- Stacked Meta Rows (LTR): IP row then Timestamp + relative time row -->
                 <div class="pt-2 border-t border-card-border space-y-1.5 text-[11px] t-muted">
                   <div class="flex justify-start" dir="ltr">
                     <button type="button" dir="ltr" class="font-sans t-accent font-bold select-all hover:underline cursor-pointer inline-flex items-center gap-1.5 btn-copy-ip-r max-w-full truncate" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
-                      <span>🌐</span>
+                      <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
                       <span class="truncate">${escapeHtml(r.ip || '—')}</span>
                     </button>
                   </div>
                   <div class="flex items-center justify-between gap-2 font-sans min-w-0" dir="ltr">
                     <span class="inline-flex items-center gap-1.5 font-bold t-main num-bidi truncate" title="${escapeHtml(r.request_at || r.relative_time || '')}">
-                      <span>⏱</span>
+                      <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
                       <span>${tsText}</span>
                     </span>
                     ${relHtml}
@@ -1404,18 +1406,22 @@ async applyUserModification() {
       if (window.hapticFeedback) window.hapticFeedback('selection');
 
       // Ensure plans are loaded
-      let plans = window.adminData && window.adminData.plans ? window.adminData.plans : [];
+      let plans = (window.adminPlansData && window.adminPlansData.length)
+        ? window.adminPlansData
+        : (window.adminData && window.adminData.plans ? window.adminData.plans : (window._lastPickerPlans || []));
       if (!plans.length && window.api && window.api.getAdminPlans) {
         try {
           const res = await window.api.getAdminPlans();
           if (res && res.ok && Array.isArray(res.plans)) {
             plans = res.plans;
+            window.adminPlansData = plans;
             if (window.adminData) window.adminData.plans = plans;
           }
         } catch (e) {
           console.error('Failed to load plans for plan picker modal', e);
         }
       }
+      window._lastPickerPlans = plans;
 
       // Filter ONLY complete packages (traffic_gb > 0 && duration_days > 0)
       const completePlans = plans.filter(p => p.is_active !== false && p.traffic_gb > 0 && p.duration_days > 0);
@@ -1574,7 +1580,9 @@ async applyUserModification() {
         return;
       }
 
-      const plans = (window.adminData && window.adminData.plans) || [];
+      const plans = (window.adminPlansData && window.adminPlansData.length)
+        ? window.adminPlansData
+        : (window._lastPickerPlans || (window.adminData && window.adminData.plans) || []);
       const plan = plans.find(p => String(p.id) === String(planId));
       if (!plan) return;
 
@@ -1583,9 +1591,18 @@ async applyUserModification() {
       let pIcon = (pEmojiMatches && pEmojiMatches[0]) ? pEmojiMatches[0] : (Number(plan.traffic_gb) > 0 && Number(plan.duration_days) === 0 ? '⚡️' : (Number(plan.traffic_gb) === 0 && Number(plan.duration_days) > 0 ? '⏳' : '📦'));
       if (iconEl) iconEl.innerText = pIcon;
       if (labelEl) labelEl.innerText = `${plan.name} (${trafficLabel} - ${plan.duration_days} روز)`;
-      if (trafficInput) trafficInput.value = plan.traffic_gb || 0;
-      if (durationInput) durationInput.value = plan.duration_days || 30;
-      if (hwidInput) hwidInput.value = plan.hwid_limit || '';
+      if (trafficInput) {
+        trafficInput.value = plan.traffic_gb != null ? plan.traffic_gb : 0;
+        trafficInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (durationInput) {
+        durationInput.value = plan.duration_days != null ? plan.duration_days : 30;
+        durationInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (hwidInput) {
+        hwidInput.value = plan.hwid_limit || '';
+        hwidInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
 
       if (plan.squad_uuid) {
         if (squadSelect) squadSelect.value = plan.squad_uuid;

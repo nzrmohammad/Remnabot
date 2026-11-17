@@ -2806,7 +2806,7 @@
           <div class="space-y-1.5">
             <div class="flex justify-between items-center">
               <label class="text-[11px] t-muted font-medium">افزایش حجم ترافیک (GB):</label>
-              <span class="text-[11px] t-muted font-sans">اختیاری</span>
+              <span class="badge-optional">اختیاری</span>
             </div>
             <input type="number" inputmode="numeric" pattern="[0-9]*" id="modifyModalTraffic" placeholder="0 = بدون تغییر" min="0" step="1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500" />
             <div class="flex gap-1.5 pt-0.5" dir="ltr">
@@ -2821,7 +2821,7 @@
           <div class="space-y-1.5">
             <div class="flex justify-between items-center">
               <label class="text-[11px] t-muted font-medium">تمدید مدت زمان (روز):</label>
-              <span class="text-[11px] t-muted font-sans">اختیاری</span>
+              <span class="badge-optional">اختیاری</span>
             </div>
             <input type="number" inputmode="numeric" pattern="[0-9]*" id="modifyModalDays" placeholder="0 = بدون تغییر" min="0" step="1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-amber-500" />
             <div class="flex gap-1.5 pt-0.5" dir="rtl">
@@ -3162,14 +3162,14 @@
           <div id="planModalDescContainer">
             <div class="flex items-center justify-between mb-1">
               <label class="text-[11px] t-muted block">توضیحات کوتاه:</label>
-              <span class="text-[10px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
+              <span class="badge-optional">اختیاری</span>
             </div>
             <input type="text" id="planModalDesc" dir="rtl" placeholder="مناسب بازی و دانلود، بدون قطعی" class="input-base w-full px-3 py-2 text-xs text-right t-main outline-none focus:border-blue-500" />
           </div>
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="text-[11px] t-muted block">سقف تعداد فروش (خالی = نامحدود):</label>
-              <span class="text-[10px] px-2 py-0.5 rounded-full card-inset border border-card-border t-muted font-normal select-none">اختیاری</span>
+              <span class="badge-optional">اختیاری</span>
             </div>
             <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalMaxPurchases" placeholder="خالی = نامحدود" min="0" class="input-base w-full px-3 py-2 text-xs font-sans text-amber-300 outline-none focus:border-blue-500" />
           </div>
@@ -3926,7 +3926,7 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label for="nodeBillingNotes" class="text-[11px] t-muted">یادداشت و مشخصات:</label>
-              <span class="text-[10px] t-muted">(اختیاری)</span>
+              <span class="badge-optional">(اختیاری)</span>
             </div>
             <input type="text" id="nodeBillingNotes" placeholder="مثلاً: سرور فنلاند - 32GB RAM" class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full" />
           </div>
@@ -4115,7 +4115,7 @@
 
     <!-- MODAL: Create User (ایجاد کاربر جدید متصل به شناسه تلگرام) -->
     <div id="createUserModal" role="dialog" aria-modal="true" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl relative">
+      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 w-full max-w-[420px] space-y-3.5 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5">
           <h4 class="text-xs font-bold t-main flex items-center gap-1.5">
             <img src="/static/img/icons/users.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />
@@ -4125,29 +4125,29 @@
         </div>
 
         <div class="space-y-3 text-xs">
-          <!-- Telegram ID (required) -->
-          <div class="space-y-1">
-            <div class="flex justify-between items-center">
-              <label class="text-[11px] t-muted font-medium">شناسه عددی تلگرام:</label>
-              <span class="s-danger-soft border text-[11px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
+          <!-- Row 1: Telegram ID + Username in 2-column grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] t-muted font-medium">شناسه عددی تلگرام:</label>
+                <span class="badge-required s-danger-soft border text-[11px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
+              </div>
+              <input type="number" inputmode="numeric" id="createUserTelegramId" placeholder="مثلاً 123456789" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
             </div>
-            <input type="number" inputmode="numeric" id="createUserTelegramId" placeholder="مثلاً 123456789" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] t-muted font-medium">نام کاربری در پنل:</label>
+                <span class="badge-optional s-neutral-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg font-sans">اختیاری</span>
+              </div>
+              <input type="text" id="createUserUsername" oninput="window.adminActions.onUsernameInput(this.value)" placeholder="پیش‌فرض: خودکار" class="input-base text-xs font-sans placeholder:text-right" dir="ltr" />
+              <div id="createUserUsernameStatus" class="text-[11px] font-medium hidden"></div>
+            </div>
           </div>
 
-          <!-- Username (optional) with live availability check -->
-          <div class="space-y-1">
-            <div class="flex justify-between items-center">
-              <label class="text-[11px] t-muted font-medium">نام کاربری در پنل:</label>
-              <span class="s-neutral-soft border text-[10.5px] font-bold px-2 py-0.5 rounded-lg font-sans">اختیاری</span>
-            </div>
-            <input type="text" id="createUserUsername" oninput="window.adminActions.onUsernameInput(this.value)" placeholder="پیش‌فرض: خودکار" class="input-base text-xs font-sans placeholder:text-right" dir="ltr" />
-            <div id="createUserUsernameStatus" class="text-[11px] font-medium hidden"></div>
-          </div>
-
-          <!-- Plan selector trigger -->
+          <!-- Row 2: Plan selector trigger -->
           <div class="space-y-1">
             <label class="text-[11px] t-muted font-medium">بسته اشتراک انتخابی:</label>
-            <div role="button" tabindex="0" onclick="window.adminActions.openPlanPickerModal()" class="w-full card-inset border border-[var(--card-border)] hover:border-blue-500/60 rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
+            <div role="button" tabindex="0" onclick="window.adminActions.openPlanPickerModal()" class="w-full card-inset border border-[var(--card-border)] hover:border-blue-500/60 rounded-xl px-3 py-2 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
               <div class="flex items-center gap-2 min-w-0">
                 <span id="createUserPlanIcon" class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4" width="16" height="16" alt="" /></span>
                 <span id="createUserPlanLabel" class="text-xs text-white font-medium truncate">انتخاب کنید</span>
@@ -4157,8 +4157,8 @@
             <input type="hidden" id="createUserSelectedPlanId" value="" />
           </div>
 
-          <!-- Traffic (GB) & Duration (Days) in grid -->
-          <div class="grid grid-cols-2 gap-2">
+          <!-- Row 3: Traffic (GB) & Duration (Days) in grid -->
+          <div class="grid grid-cols-2 gap-2.5">
             <div class="space-y-1">
               <label class="text-[11px] t-muted font-medium">حجم (GB):</label>
               <input type="number" inputmode="numeric" id="createUserTraffic" placeholder="0 = نامحدود" min="0" value="" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
@@ -4169,25 +4169,25 @@
             </div>
           </div>
 
-          <!-- HWID Limit -->
-          <div class="space-y-1">
-            <label class="text-[11px] t-muted font-medium block">محدودیت دستگاه (HWID):</label>
-            <input type="number" inputmode="numeric" id="createUserHwid" placeholder="خالی = پیش‌فرض پنل" min="1" max="10" class="input-base text-xs font-sans text-purple-600 dark:text-purple-300 font-bold" />
-          </div>
-
-          <!-- Internal Squad -->
-          <div class="space-y-1">
-            <div class="flex justify-between items-center">
-              <label class="text-[11px] t-muted font-medium">اسکواد داخلی (Internal Squad):</label>
-              <span class="s-danger-soft border text-[11px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
+          <!-- Row 4: HWID Limit & Squad in grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="space-y-1">
+              <label class="text-[11px] t-muted font-medium block">محدودیت دستگاه (HWID):</label>
+              <input type="number" inputmode="numeric" id="createUserHwid" placeholder="خالی = پیش‌فرض پنل" min="1" max="10" class="input-base text-xs font-sans text-purple-600 dark:text-purple-300 font-bold" />
             </div>
-            <input type="hidden" id="createUserSquadSelect" value="" />
-            <div role="button" tabindex="0" onclick="window.adminActions.openSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
-              <div class="flex items-center gap-2 min-w-0">
-                <span id="createUserSquadIcon" class="text-sm flex items-center"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
-                <span id="createUserSquadLabel" class="text-xs t-main font-medium truncate">انتخاب کنید</span>
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] t-muted font-medium">اسکواد داخلی:</label>
+                <span class="badge-required s-danger-soft border text-[11px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
               </div>
-              <span class="t-muted text-xs group-hover:t-main transition">▼</span>
+              <input type="hidden" id="createUserSquadSelect" value="" />
+              <div role="button" tabindex="0" onclick="window.adminActions.openSquadPickerModal()" class="w-full card-inset border border-[var(--card-border)] hover:border-blue-500/60 rounded-xl px-3 py-2 flex items-center justify-between cursor-pointer transition active:scale-[0.99] group">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span id="createUserSquadIcon" class="text-sm flex items-center"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
+                  <span id="createUserSquadLabel" class="text-xs t-main font-medium truncate">انتخاب کنید</span>
+                </div>
+                <span class="t-muted text-xs group-hover:t-main transition">▼</span>
+              </div>
             </div>
           </div>
         </div>

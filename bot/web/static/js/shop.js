@@ -123,7 +123,9 @@ function renderWonCoupons(data) {
   const activeCode = (window.activeCoupon?.code || '').toUpperCase();
   list.innerHTML = coupons.map(c => {
     const isApplied = Boolean(activeCode && c.code && activeCode === String(c.code).toUpperCase());
-    const btnText = isApplied ? '✓ فعال شد' : '⚡️ استفاده';
+    const btnInner = isApplied
+      ? `<span class="inline-flex items-center gap-1" dir="rtl"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>فعال شد</span></span>`
+      : `<span class="inline-flex items-center gap-1" dir="rtl"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>استفاده</span></span>`;
     const btnClass = isApplied
       ? 'won-coupon-apply-btn bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition active:scale-95 shrink-0 shadow-sm'
       : 'won-coupon-apply-btn btn btn-primary text-xs font-semibold px-3 py-1.5 rounded-lg shadow shrink-0';
@@ -137,7 +139,7 @@ function renderWonCoupons(data) {
           <span class="text-[11px] t-success font-sans block mt-0.5"><span class="font-sans font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
         </div>
         <button type="button" class="${btnClass}" data-code="${escapeHtml(c.code)}">
-          ${btnText}
+          ${btnInner}
         </button>
       </div>
     `;

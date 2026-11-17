@@ -572,6 +572,7 @@
 
     isTesting = true;
     abortController = new AbortController();
+    if (statusText) statusText.classList.remove('hidden');
 
     if (startBtn) {
       startBtn.classList.add('bg-rose-600', 'hover:bg-rose-500');

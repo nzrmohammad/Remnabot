@@ -1890,7 +1890,9 @@ function openMembershipModal() {
       .filter(tx => tx.type === 'order' || (tx.status && (tx.status === 'موفق' || tx.status === 'تایید شده')))
       .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
   }
-  if (spentEl) spentEl.innerText = `${totalSpentVal.toLocaleString('en-US')} تومان`;
+  if (spentEl) {
+    spentEl.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${totalSpentVal.toLocaleString('en-US')}</span> <span>تومان</span>`;
+  }
 
   let usedGb = Number(sub?.lifetime_used_traffic_gb ?? sub?.traffic_used_gb ?? sub?.used_traffic_gb ?? 0);
   if (usedGb <= 0 && sub?.traffic_total_gb && sub?.traffic_remaining_gb) {
@@ -5604,7 +5606,7 @@ let pendingKillSingleHwid = null;
 function openKillSingleDeviceModal(hwid, model, ip) {
   pendingKillSingleHwid = hwid;
   if ($('killDeviceModalModel')) $('killDeviceModalModel').innerText = model || 'دستگاه متصل';
-  if ($('killDeviceModalIp')) $('killDeviceModalIp').innerText = ip ? `IP: ${ip}` : 'IP: —';
+  if ($('killDeviceModalIp')) $('killDeviceModalIp').innerText = ip || '—';
   const m = $('killSingleDeviceModal');
   if (m) m.classList.remove('hidden');
   hapticFeedback('warning');
