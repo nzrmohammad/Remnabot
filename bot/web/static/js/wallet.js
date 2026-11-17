@@ -214,8 +214,10 @@ function renderWalletTransactions(transactions) {
   const txList = allWalletTransactions || [];
   if (txList.length === 0) {
     txContainer.innerHTML = `
-      <div class="p-4 rounded-xl bg-transparent border border-[var(--card-border)] text-center text-xs text-slate-400">
-        <span>🧾 هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
+      <div class="empty-state">
+        <img src="/static/img/icons/receipt.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
+        <span class="empty-state-title">تاریخچه تراکنش‌ها خالی است</span>
+        <span class="empty-state-desc">هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
       </div>
     `;
     const oldPag = document.getElementById('walletTxPagination');

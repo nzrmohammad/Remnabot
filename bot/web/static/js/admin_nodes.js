@@ -22,7 +22,13 @@
     const container = $('adminOverviewNodesList');
     if (!container) return;
     if (!nodes || nodes.length === 0) {
-      container.innerHTML = '<div class="p-3 text-center text-slate-400">هیچ نودی یافت نشد</div>';
+      container.innerHTML = `
+        <div class="empty-state">
+          <img src="/static/img/icons/nodes.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
+          <span class="empty-state-title">هیچ نودی یافت نشد</span>
+          <span class="empty-state-desc">ارتباط با کلاستر رمنانو برقرار است اما نودی ثبت نشده است.</span>
+        </div>
+      `;
       return;
     }
 

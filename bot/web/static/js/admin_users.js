@@ -991,7 +991,7 @@ async applyUserModification() {
                 <!-- Stacked Meta Rows (LTR): IP row then Timestamp + relative time row -->
                 <div class="pt-2 border-t border-card-border space-y-1.5 text-[11px] t-muted">
                   <div class="flex justify-start" dir="ltr">
-                    <button type="button" dir="ltr" class="font-sans t-accent font-bold select-all hover:underline cursor-pointer inline-flex items-center gap-1.5 btn-copy-ip-r max-w-full truncate" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
+                    <button type="button" dir="ltr" class="code-chip select-all btn-copy-ip-r max-w-full truncate" data-ip="${escapeHtml(r.ip || '')}" title="کلیک جهت کپی آی‌پی">
                       <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
                       <span class="truncate">${escapeHtml(r.ip || '—')}</span>
                     </button>

@@ -536,10 +536,10 @@ function renderFilteredShopPlans() {
 
   if (allPlans.length === 0) {
     shopContainer.innerHTML = `
-      <div class="py-8 px-4 rounded-2xl card-inset text-center space-y-2">
-        <span class="text-3xl block">📦</span>
-        <b class="text-xs t-main block">در حال حاضر بسته‌ای برای خرید موجود نیست</b>
-        <p class="text-[11px] t-muted">لطفاً بعداً مراجعه فرمایید یا با پشتیبانی در ارتباط باشید.</p>
+      <div class="empty-state">
+        <img src="/static/img/icons/package.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
+        <span class="empty-state-title">در حال حاضر بسته‌ای برای خرید موجود نیست</span>
+        <span class="empty-state-desc">لطفاً بعداً مراجعه فرمایید یا با پشتیبانی در ارتباط باشید.</span>
       </div>
     `;
     if (couponSection) couponSection.classList.add('hidden');
@@ -561,11 +561,11 @@ function renderFilteredShopPlans() {
     const catLabels = { traffic: 'افزایش حجم', time: 'افزایش زمان', full: 'سرویس‌های کامل' };
     const curLabel = catLabels[currentShopCategory] || 'این دسته‌بندی';
     shopContainer.innerHTML = `
-      <div class="py-8 px-4 rounded-2xl card-inset text-center space-y-3">
-        <span class="text-3xl block">🔍</span>
-        <b class="text-xs t-main block">بسته‌ای در بخش «${curLabel}» یافت نشد</b>
-        <p class="text-[11px] t-muted">می‌توانید سایر سرویس‌های فعال را بررسی نمایید.</p>
-        <button type="button" onclick="window.switchShopCategory('full')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition shadow active:scale-95 mx-auto">
+      <div class="empty-state">
+        <img src="/static/img/icons/search.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
+        <span class="empty-state-title">بسته‌ای در بخش «${escapeHtml(curLabel)}» یافت نشد</span>
+        <span class="empty-state-desc">می‌توانید سایر سرویس‌های فعال را بررسی نمایید.</span>
+        <button type="button" onclick="window.switchShopCategory('full')" class="btn btn-primary text-xs py-2 px-4 rounded-xl mt-2">
           مشاهده سرویس‌های کامل
         </button>
       </div>

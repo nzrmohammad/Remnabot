@@ -128,12 +128,11 @@
       if (!container) return;
       if (!adminPlansData || adminPlansData.length === 0) {
         container.innerHTML = `
-          <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
-            <div class="w-10 h-10 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center mx-auto text-xl">
-              📦
-            </div>
-            <p class="text-xs">هیچ سرویس یا تعرفه‌ای هنوز ثبت نشده است.</p>
-            <button onclick="window.adminActions.openPlanModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow active:scale-95">
+          <div class="empty-state">
+            <img src="/static/img/icons/package.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
+            <span class="empty-state-title">هیچ سرویس یا تعرفه‌ای هنوز ثبت نشده است</span>
+            <span class="empty-state-desc">برای شروع فروش، اولین بسته اشتراک را تعریف فرمایید.</span>
+            <button type="button" onclick="window.adminActions.openPlanModal()" class="btn btn-primary text-xs py-2 px-4 rounded-xl mt-2">
               + ایجاد اولین سرویس
             </button>
           </div>
@@ -739,12 +738,11 @@
         });
         if (adminCouponsData.length === 0) {
           container.innerHTML = `
-            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 space-y-3">
-              <div class="w-10 h-10 rounded-2xl bg-pink-500/15 t-pink flex items-center justify-center mx-auto">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
-              </div>
-              <p class="text-xs">هیچ کد تخفیفی ایجاد نشده است.</p>
-              <button onclick="window.adminActions.openCouponModal()" class="bg-transparent hover:bg-pink-500/15 border border-pink-500/50 t-pink hover:text-pink-300 text-xs font-bold px-4 py-2 rounded-xl transition active:scale-95">
+            <div class="empty-state">
+              <img src="/static/img/icons/ticket.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
+              <span class="empty-state-title">هیچ کد تخفیفی ایجاد نشده است</span>
+              <span class="empty-state-desc">برای ارائه تخفیف به کاربران، یک کوپن جدید تعریف فرمایید.</span>
+              <button type="button" onclick="window.adminActions.openCouponModal()" class="btn btn-primary text-xs py-2 px-4 rounded-xl mt-2">
                 + ایجاد اولین کد تخفیف
               </button>
             </div>
