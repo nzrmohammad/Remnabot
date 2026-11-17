@@ -30,9 +30,8 @@ _last_topic_cached_epoch: float = 0.0
 def update_cached_topic_errors(topic_id: int | None) -> None:
     """Updates the in-memory cached topic ID for error logs."""
     global _cached_topic_errors, _last_topic_cached_epoch
-    if topic_id is not None:
-        _cached_topic_errors = int(topic_id)
-        _last_topic_cached_epoch = time.time()
+    _cached_topic_errors = int(topic_id) if topic_id is not None else None
+    _last_topic_cached_epoch = time.time()
 
 
 def get_cached_topic_errors() -> int | None:
@@ -118,27 +117,45 @@ async def report_error(
     ) or "Pause on PRI/Upgrade" in exc_msg:
         return
 
-    # Filter out normal Telegram long-polling socket timeouts, network blips, and polling conflict errors
-    if (
-        exc_type in (
-            "TelegramNetworkError",
-            "ClientConnectorError",
-            "ServerDisconnectedError",
-            "TimeoutError",
-            "TelegramConflictError",
-        )
-        or any(
-            phrase in exc_msg
-            for phrase in (
-                "Request timeout error",
-                "Cannot connect to host api.telegram.org",
-                "Server disconnected",
-                "Conflict: terminated by other getUpdates request",
+    # Filter out normal Telegram long-polling socket timeouts, network blips, 502/504 Bad Gateway, and polling conflict errors
+    exc_msg_lower = exc_msg.lower()
+    ctx_lower = str(context).lower()
+    if "failed to fetch updates" in exc_msg_lower or "getupdates" in exc_msg_lower:
+        return
+
+    is_polling_or_aiogram = any(
+        k in ctx_lower for k in ("dispatcher", "getupdates", "polling", "aiogram")
+    )
+    if is_polling_or_aiogram:
+        if (
+            exc_type in (
+                "TelegramNetworkError",
+                "TelegramServerError",
+                "TelegramRetryAfter",
+                "ClientConnectorError",
+                "ClientOSError",
+                "ServerDisconnectedError",
+                "TimeoutError",
+                "TelegramConflictError",
             )
-        )
-    ):
-        ctx_lower = str(context).lower()
-        if "dispatcher" in ctx_lower or "getupdates" in ctx_lower or "polling" in ctx_lower or "aiogram" in ctx_lower:
+            or any(
+                phrase in exc_msg_lower
+                for phrase in (
+                    "request timeout error",
+                    "cannot connect to host api.telegram.org",
+                    "server disconnected",
+                    "conflict: terminated by other getupdates request",
+                    "bad gateway",
+                    "gateway timeout",
+                    "internal server error",
+                    "service unavailable",
+                    "telegramservererror",
+                    "telegramnetworkerror",
+                    "telegramconflicterror",
+                    "failed to fetch updates",
+                )
+            )
+        ):
             return
 
     sig = f"{exc_type}:{exc_msg[:80]}:{context[:50]}"
@@ -248,19 +265,25 @@ async def report_error(
                     topic_id,
                     send_exc,
                 )
-                # Retry plain text with topic
+                # Retry plain text with the exact same thread_kwargs (preserving topic)
                 try:
                     await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None, **thread_kwargs)
                     delivered = True
-                except Exception:
-                    # Retry plain text without topic (in case topic ID is invalid)
-                    try:
-                        await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None)
-                        delivered = True
-                    except Exception as retry_exc:
-                        logger.warning("Failed retry without thread: %s", retry_exc)
+                except Exception as retry_exc:
+                    logger.warning("Failed retry with thread to admin chat %s (topic %s): %s", settings.ADMIN_CHAT_ID, topic_id, retry_exc)
+                    # NOTE: Do NOT retry without thread_kwargs if topic_id is set!
+                    # In Telegram forum supergroups, sending without message_thread_id dumps directly
+                    # into the General topic (Topic #1), which corrupts forum topic organization.
+                    if not topic_id:
+                        try:
+                            await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None)
+                            delivered = True
+                        except Exception:
+                            pass
 
-        if not delivered and settings.ADMIN_IDS:
+        # Only fall back to direct admin messaging (ADMIN_IDS) if no ADMIN_CHAT_ID group is configured.
+        # When an admin group is configured, errors must stay isolated to the group/topic and not spam private chats.
+        elif settings.ADMIN_IDS:
             for aid in settings.ADMIN_IDS:
                 try:
                     await bot.send_message(aid, text)
@@ -346,6 +369,16 @@ class TelegramErrorLogHandler(logging.Handler):
         if record.exc_info and record.exc_info[0] in (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
             return
 
+        rec_name_lower = record.name.lower()
+        rec_msg = str(record.getMessage())
+        rec_msg_lower = rec_msg.lower()
+
+        # Completely ignore any polling update fetch errors from aiogram / dispatcher
+        if "failed to fetch updates" in rec_msg_lower:
+            return
+
+        is_aiogram_or_dispatcher = "dispatcher" in rec_name_lower or "aiogram" in rec_name_lower
+
         # Ignore client-side connection/parsing exceptions
         if record.exc_info and record.exc_info[0]:
             exc_name = record.exc_info[0].__name__
@@ -361,28 +394,41 @@ class TelegramErrorLogHandler(logging.Handler):
                 "BrokenPipeError",
             ):
                 return
-            if exc_name in (
+            if is_aiogram_or_dispatcher and exc_name in (
                 "TelegramNetworkError",
+                "TelegramServerError",
+                "TelegramRetryAfter",
                 "ClientConnectorError",
+                "ClientOSError",
                 "ServerDisconnectedError",
                 "TimeoutError",
                 "TelegramConflictError",
             ):
-                if "dispatcher" in record.name.lower() or "aiogram" in record.name.lower():
-                    return
+                return
 
-        # Also check message string if exc_info was stripped
-        rec_msg = str(record.getMessage())
-        if "dispatcher" in record.name.lower() or "aiogram" in record.name.lower():
+        # Also check message string if exc_info was stripped or formatted into message
+        if is_aiogram_or_dispatcher:
             if any(
-                p in rec_msg
+                p in rec_msg_lower
                 for p in (
-                    "TelegramConflictError",
-                    "Conflict: terminated by other getUpdates request",
-                    "TelegramNetworkError",
-                    "ClientConnectorError",
-                    "ServerDisconnectedError",
-                    "TimeoutError",
+                    "failed to fetch updates",
+                    "getupdates",
+                    "telegramconflicterror",
+                    "conflict: terminated by other getupdates request",
+                    "telegramnetworkerror",
+                    "telegramservererror",
+                    "telegramretryafter",
+                    "clientconnectorerror",
+                    "clientoserror",
+                    "serverdisconnectederror",
+                    "timeouterror",
+                    "bad gateway",
+                    "gateway timeout",
+                    "internal server error",
+                    "service unavailable",
+                    "request timeout",
+                    "cannot connect to host api.telegram.org",
+                    "server disconnected",
                 )
             ):
                 return
