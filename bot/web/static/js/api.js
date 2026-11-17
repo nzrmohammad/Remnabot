@@ -148,6 +148,9 @@ const api = {
     if (accountId) {
       url += (url.includes('?') ? '&' : '?') + `account_id=${accountId}`;
     }
+    if (options.refresh) {
+      url += (url.includes('?') ? '&' : '?') + 'refresh=1';
+    }
     const res = await this.request(url, { method: 'GET', ...options });
     const data = res.data || {};
     data._status = res.status;

@@ -3060,7 +3060,7 @@ function applySystemBlockScreen(mode, data = {}) {
   const supportLink = data.support_link || '';
   const hasSupportContact = Boolean(supportLink && rawSupportContact && rawSupportContact !== '—' && rawSupportContact !== '-');
 
-  ['maintSupportBox', 'inviteSupportBox', 'bannedSupportBox'].forEach(boxId => {
+  ['maintSupportBox', 'inviteSupportBox', 'bannedSupportBox', 'joinGateSupportBox'].forEach(boxId => {
     const el = $(boxId);
     if (el) el.classList.toggle('hidden', !hasSupportContact);
   });
@@ -3068,10 +3068,29 @@ function applySystemBlockScreen(mode, data = {}) {
   const maintScreen = $('systemMaintenanceScreen');
   const inviteScreen = $('systemInviteOnlyScreen');
   const bannedScreen = $('systemBannedScreen');
+  const joinGateScreen = $('systemJoinGateScreen');
 
   if (maintScreen) maintScreen.classList.toggle('hidden', mode !== 'maintenance');
   if (inviteScreen) inviteScreen.classList.toggle('hidden', mode !== 'invite_only');
   if (bannedScreen) bannedScreen.classList.toggle('hidden', mode !== 'banned');
+  if (joinGateScreen) joinGateScreen.classList.toggle('hidden', mode !== 'join_gate');
+
+  if (mode === 'join_gate') {
+    const chName = $('joinGateChannelName');
+    const chLink = $('joinGateChannelLinkBtn');
+    if (chName && data.join_gate_channel) {
+      chName.innerText = data.join_gate_channel;
+    }
+    if (chLink && data.join_gate_channel_link) {
+      chLink.href = data.join_gate_channel_link;
+      chLink.onclick = (e) => {
+        if (window.Telegram?.WebApp?.openTelegramLink) {
+          e.preventDefault();
+          window.Telegram.WebApp.openTelegramLink(data.join_gate_channel_link);
+        }
+      };
+    }
+  }
 
   const isBlocked = Boolean(mode);
   window.isSystemBlocked = isBlocked;
@@ -3127,6 +3146,7 @@ function hydrateUserInterface(data) {
     if (data.is_banned) blockMode = 'banned';
     else if (data.is_maintenance) blockMode = 'maintenance';
     else if (data.is_invite_only) blockMode = 'invite_only';
+    else if (data.is_join_gate) blockMode = 'join_gate';
   }
   if (applySystemBlockScreen(blockMode, data)) return;
 
@@ -4752,6 +4772,37 @@ function openSupportContact() {
   }
 }
 window.openSupportContact = openSupportContact;
+
+async function checkJoinGateMembership() {
+  const btn = $('joinGateRecheckBtn');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('sync', 'w-3.5 h-3.5 animate-spin')}<span>در حال بررسی...</span></span>`;
+  }
+  try {
+    if (window.hapticFeedback) window.hapticFeedback('impact');
+    const res = await window.api.getMe(window.currentAccountId || null, { refresh: true });
+    if (res && (res.ok || res._httpOk) && res.data) {
+      if (!res.data.is_join_gate) {
+        if (window.showToast) window.showToast('عضویت شما با موفقیت تأیید شد. خوش آمدید! 🎉');
+        if (typeof hydrateUserInterface === 'function') hydrateUserInterface(res.data);
+      } else {
+        if (window.showToast) window.showToast('⚠️ هنوز در کانال عضو نشده‌اید. لطفاً ابتدا در کانال عضو شوید.');
+      }
+    } else {
+      if (window.showToast) window.showToast('❌ خطا در ارتباط با سرور.');
+    }
+  } catch (err) {
+    if (window.showToast) window.showToast('❌ خطا در بررسی عضویت کانال');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml || `<span class="inline-flex items-center gap-2">${uiIcon('sync', 'w-4 h-4')}<span>تأیید عضویت و ورود</span></span>`;
+    }
+  }
+}
+window.checkJoinGateMembership = checkJoinGateMembership;
 
 // ========================================================
 // GIFT TO FRIENDS SYSTEM (ارسال هدیه به دوستان)

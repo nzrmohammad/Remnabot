@@ -132,7 +132,8 @@ async def notify_admin_sms_webhook_log(
 
     thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
     bank_label = escape(parsed.bank_name or "نامشخص")
-    sender_label = escape(sender)
+    clean_sender = str(sender or "").strip()
+    sender_label = f"\u200e<code>\u2066{escape(clean_sender)}\u2069</code>\u200e"
     clean_preview = escape(raw_message.strip()[:400])
 
     amount_str = f"<b>{parsed.amount_toman:,} تومان</b> ({parsed.amount_rial:,} ریال)" if getattr(parsed, "amount_toman", 0) else "تشخیص داده نشد"
@@ -184,7 +185,7 @@ async def notify_admin_sms_webhook_log(
     text = (
         f"📥 <b>پیامک دریافتی از وب‌هوک</b>\n"
         "──────────────────\n"
-        f"📱 فرستنده: <code>{sender_label}</code>\n"
+        f"📱 فرستنده: {sender_label}\n"
         f"🏦 بانک: <b>{bank_label}</b>\n"
         f"💰 مبلغ استخراج‌شده: {amount_str}\n\n"
         "📝 <b>متن پیامک:</b>\n"
@@ -316,7 +317,7 @@ async def process_incoming_sms(
                     "──────────────────\n"
                     f"💰 مبلغ واریز: <b>{amount_toman:,} تومان</b> ({parsed.amount_rial:,} ریال)\n"
                     f"🏦 بانک: <b>{escape(parsed.bank_name or 'نامشخص')}</b>\n"
-                    f"📱 فرستنده: <code>{escape(sender)}</code>\n\n"
+                    f"📱 فرستنده: \u200e<code>\u2066{escape(sender.strip())}\u2069</code>\u200e\n\n"
                     f"📝 متن پیامک:\n<code>{escape(raw_message[:300])}</code>\n\n"
                     "ℹ️ علت: کاربر فاکتوری با این مبلغ ثبت نکرده یا مهلت فاکتور به پایان رسیده بود."
                 )
@@ -416,7 +417,7 @@ async def process_incoming_sms(
                 f"{uname_line}"
                 f"💰 مبلغ واریزی: <b>{credited_amount:,} تومان</b>\n"
                 f"🏦 بانک: <b>{escape(parsed.bank_name or 'بانک')}</b>\n"
-                f"📱 فرستنده: <code>{escape(sender)}</code>\n"
+                f"📱 فرستنده: \u200e<code>\u2066{escape(sender.strip())}\u2069</code>\u200e\n"
                 f"💳 موجودی جدید کاربر: <b>{new_bal:,} تومان</b>"
             )
             await bot.send_message(

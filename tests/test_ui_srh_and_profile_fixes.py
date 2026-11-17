@@ -808,10 +808,10 @@ def test_admin_plan_card_and_picker_ltr_and_shop_compact_price():
     assert shop_js.find("isIranServerPlan") > shop_js.find("const proceedPurchaseFlow = () =>")
     assert "proceedPurchaseFlow();" in shop_js and "onAction: proceedPurchaseFlow" in shop_js
 
-    # 3. Create user Plan Picker keeps RTL 'custom' option and LTR complete plans; Squad Picker removes right 🧩 icon
+    # 3. Create user Plan Picker uses RTL balanced layout for plans and custom option; Squad Picker removes right 🧩 icon
     plan_picker_section = admin_users_js[admin_users_js.find("openPlanPickerModal"):admin_users_js.find("closePlanPickerModal")]
-    assert "selectCreateUserPlan('custom')\" class=\"p-3 rounded-2xl" in plan_picker_section
-    assert "selectCreateUserPlan('${p.id}')\" dir=\"ltr\"" in plan_picker_section
+    assert "selectCreateUserPlan('custom')\" dir=\"rtl\" class=\"p-3 rounded-2xl" in plan_picker_section
+    assert "selectCreateUserPlan('${p.id}')\" dir=\"rtl\"" in plan_picker_section
 
     squad_picker_section = admin_users_js[admin_users_js.find("openSquadPickerModal"):admin_users_js.find("closeSquadPickerModal")]
     assert 'dir="ltr" class="p-3 rounded-2xl' in squad_picker_section

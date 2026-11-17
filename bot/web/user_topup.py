@@ -1920,7 +1920,7 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                             "⛔️ <b>درخواست نامعتبر به وب‌هوک پیامک</b>\n"
                             "──────────────────\n"
                             f"🌐 <b>آی‌پی مبدأ:</b> <code>{escape(peer_ip)}</code>\n"
-                            f"📱 <b>فرستنده:</b> <code>{escape(sender or 'نامشخص')}</code>\n"
+                            f"📱 <b>فرستنده:</b> \u200e<code>\u2066{escape((sender or 'نامشخص').strip())}\u2069</code>\u200e\n"
                             f"🔑 <b>علت:</b> توکن احراز هویت (Secret) اشتباه است یا ارسال نشده است.{query_warning}\n\n"
                             "💡 <b>راهنمای تنظیم:</b>\n"
                             "• در <b>ForApp</b>: کلید امنیتی را در فیلد <b>کلید API</b> قرار دهید (ارسال با هدر <code>X-API-Key</code>).\n"
@@ -1951,7 +1951,7 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
                             "🟢 <b>تست موفق وب‌هوک پیامک (ForApp / SMS Forwarder)</b>\n"
                             "──────────────────\n"
                             f"🌐 <b>آی‌پی مبدأ:</b> <code>{escape(peer_ip)}</code>\n"
-                            f"📱 <b>فرستنده:</b> <code>{escape(sender or 'ForApp Test')}</code>\n"
+                            f"📱 <b>فرستنده:</b> \u200e<code>\u2066{escape((sender or 'ForApp Test').strip())}\u2069</code>\u200e\n"
                             f"📝 <b>متن:</b> <code>{escape(raw_message or 'پیام آزمایشی')}</code>\n\n"
                             "✅ ارتباط با سرور برقرار است و پیامک‌های واریزی دریافت خواهند شد."
                         ),

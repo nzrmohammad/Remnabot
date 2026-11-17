@@ -1419,12 +1419,14 @@ async applyUserModification() {
       };
 
       let html = `
-        <div onclick="window.adminActions.selectCreateUserPlan('custom')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-          <div class="min-w-0 flex-1">
+        <div onclick="window.adminActions.selectCreateUserPlan('custom')" dir="rtl" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div class="min-w-0 flex-1 text-right">
             <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
             <span class="text-[11px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
           </div>
-          ${selectedId === 'custom' ? '<span class="shrink-0 text-blue-400 text-sm font-bold">✓</span>' : ''}
+          <div class="shrink-0 flex items-center gap-2.5 text-left" dir="ltr">
+            <span class="w-5 h-5 rounded-full ${selectedId === 'custom' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 font-black' : 'border border-slate-700/60'} flex items-center justify-center text-xs shrink-0">${selectedId === 'custom' ? '✓' : ''}</span>
+          </div>
         </div>
       `;
 
@@ -1448,20 +1450,22 @@ async applyUserModification() {
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
 
           return `
-            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-              <div class="min-w-0 flex-1 text-left">
-                <div class="flex items-center justify-start gap-1.5 flex-wrap">
-                  <span class="font-bold t-main text-xs truncate">${escapeHtml(p.name)}</span>
+            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" dir="rtl" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+              <div class="min-w-0 flex-1 text-right space-y-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-bold t-main text-xs">${escapeHtml(p.name)}</span>
                   ${badgeHtml}
                 </div>
-                <div class="flex items-center justify-start gap-2 text-[11px] t-muted mt-0.5 font-sans flex-wrap">
+                <div class="flex items-center gap-2 text-[11px] t-muted font-sans flex-wrap">
                   <span class="text-cyan-600 dark:text-cyan-300 font-bold inline-flex items-center gap-0.5" dir="ltr"><span class="font-sans font-bold">${toEnglishDigits(p.traffic_gb)}</span><span>GB</span></span>
                   <span>•</span>
-                  <span class="text-amber-600 dark:text-amber-300 font-bold" dir="rtl">${p.duration_days} روز</span>
-                  ${priceLabel ? `<span>•</span> <span class="t-muted font-sans" dir="rtl">${escapeHtml(priceLabel)}</span>` : ''}
+                  <span class="text-amber-600 dark:text-amber-300 font-bold">${p.duration_days} روز</span>
                 </div>
               </div>
-              ${isSelected ? '<span class="text-blue-400 text-sm font-bold shrink-0">✓</span>' : ''}
+              <div class="shrink-0 flex items-center gap-2.5 text-left" dir="ltr">
+                ${priceLabel ? `<span class="font-bold text-xs t-main font-sans" dir="rtl">${escapeHtml(priceLabel)}</span>` : ''}
+                <span class="w-5 h-5 rounded-full ${isSelected ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 font-black' : 'border border-slate-700/60'} flex items-center justify-center text-xs shrink-0">${isSelected ? '✓' : ''}</span>
+              </div>
             </div>
           `;
         }).join('');

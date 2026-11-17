@@ -401,6 +401,9 @@ async def get_user_me(request: web.Request) -> web.Response:
     cache: FastCache = request.app["cache"]
     cache_key = f"tma:user:{telegram_id}:dashboard:{req_account_id or 'default'}"
 
+    if request.query.get("refresh") in ("1", "true"):
+        await cache.delete(cache_key)
+
     cached_data = await cache.get(cache_key)
     if cached_data:
         return web.json_response({"ok": True, "data": cached_data, "cached": True})
@@ -458,6 +461,57 @@ async def get_user_me(request: web.Request) -> web.Response:
                             },
                         },
                     })
+
+        # Mandatory Channel Membership Gate
+        if (
+            getattr(store_settings, "join_gate_enabled", False)
+            and getattr(store_settings, "join_gate_channel", "")
+            and not is_adm
+        ):
+            from bot.common.helpers import check_channel_membership
+            bot = request.app.get("bot")
+            is_member = await check_channel_membership(bot, store_settings.join_gate_channel, telegram_id)
+            if not is_member:
+                channel_str = store_settings.join_gate_channel.strip()
+                if channel_str.startswith("@"):
+                    channel_url = f"https://t.me/{channel_str[1:]}"
+                elif channel_str.startswith("https://t.me/"):
+                    channel_url = channel_str
+                elif channel_str.startswith("-100"):
+                    channel_url = f"https://t.me/c/{channel_str[4:]}"
+                else:
+                    channel_url = f"https://t.me/{channel_str}"
+
+                raw_support = (getattr(store_settings, "support_contact", "") or "").strip()
+                support_link = ""
+                if raw_support and raw_support not in ("—", "-"):
+                    if raw_support.startswith(("http://", "https://")):
+                        support_link = raw_support
+                    elif raw_support.startswith("t.me/"):
+                        support_link = f"https://{raw_support}"
+                    elif raw_support.startswith("@"):
+                        support_link = f"https://t.me/{raw_support[1:]}"
+                    else:
+                        support_link = f"https://t.me/{raw_support}"
+
+                return web.json_response({
+                    "ok": True,
+                    "cached": False,
+                    "data": {
+                        "is_join_gate": True,
+                        "join_gate_channel": store_settings.join_gate_channel,
+                        "join_gate_channel_link": channel_url,
+                        "is_maintenance": await is_maintenance(session),
+                        "support_contact": raw_support,
+                        "support_link": support_link,
+                        "user": {
+                            "id": telegram_id,
+                            "first_name": user_auth.get("first_name", "کاربر"),
+                            "username": user_auth.get("username"),
+                            "is_admin": False,
+                        },
+                    },
+                })
 
         first_name = user_auth.get("first_name", "")
         last_name = user_auth.get("last_name", "")

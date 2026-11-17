@@ -463,6 +463,7 @@ const UI_ICON_FILES = {
   edit: 'edit',
   copy: 'copy',
   pause: 'pause',
+  github: 'github',
   play_btn: 'play-btn',
   trash: 'trash',
   trophy: 'trophy',
