@@ -36,9 +36,11 @@
       const flag = n.flag || getFlagEmoji(n.country_code);
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
       const statusColor = isOnline ? 't-success' : 't-danger';
-      const statusBadge = isOnline
-        ? '<span class="inline-flex items-center gap-1 text-[11px] font-bold bg-transparent t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>آنلاین</span>'
-        : '<span class="inline-flex items-center gap-1 text-[11px] font-bold bg-transparent t-danger border border-rose-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>آفلاین</span>';
+      const statusBadge = typeof renderNodeStatusBadge === 'function'
+        ? renderNodeStatusBadge(isOnline)
+        : (isOnline
+          ? '<span class="inline-flex items-center gap-1 text-[11px] font-bold bg-transparent t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>آنلاین</span>'
+          : '<span class="inline-flex items-center gap-1 text-[11px] font-bold bg-transparent t-danger border border-rose-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>آفلاین</span>');
 
       const cpuText = (n.cpu_percent && n.cpu_percent > 0) ? `CPU: ${n.cpu_percent}%` : null;
       const ramText = (n.ram_percent && n.ram_percent > 0) ? `RAM: ${n.ram_percent}%` : null;
@@ -291,8 +293,8 @@
             <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
             <div class="flex items-center gap-2 flex-shrink-0">
               ${(n.days_until_due !== null && n.days_until_due <= 3) ? `
-                <span class="text-[11px] font-bold bg-transparent t-warn border border-amber-500/30 px-2 py-0.5 rounded-xl flex items-center gap-1">
-                  <span>⏳</span>
+                <span class="badge badge-warn flex items-center gap-1">
+                  ${uiIcon('clock', 'w-3 h-3 text-amber-500')}
                   <span>${n.days_until_due <= 0 ? 'سررسید!' : n.days_until_due + ' روز'}</span>
                 </span>
               ` : ''}
@@ -303,9 +305,9 @@
                   <span class="text-indigo-400 font-bold">↑${formatSpeed(ulSpeed)}</span>
                 </div>
               ` : ''}
-              <span class="text-[11px] font-bold font-sans ${statusBorder} bg-transparent px-2.5 py-1 rounded-xl border flex items-center gap-1.5">
+              <span class="badge ${isOnline ? 'badge-success' : 'badge-danger'} font-sans flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
-                ${statusBadge}
+                <span>${statusBadge}</span>
               </span>
               <svg class="settings-box-chevron node-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -428,7 +430,7 @@
 
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5 t-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
                   <span>موعد سررسید تمدید:</span>
                 </span>
                 <div>${dueBadgeHtml}</div>
@@ -618,13 +620,18 @@ openEditSslDomainModal(domain) {
     },
 
 // --- Node Infra-Billing & Cost Actions ---
-    openNodeBillingModal(nodeUuid, nodeName, provider = '', costToman = 0, costEur = 0, dueDate = '', notes = '', flag = '🖥️', currency = 'EUR') {
+    openNodeBillingModal(nodeUuid, nodeName, provider = '', costToman = 0, costEur = 0, dueDate = '', notes = '', flag = '', currency = 'EUR') {
       const modal = $('nodeBillingModal');
       if (!modal) return;
       $('nodeBillingUuid').value = nodeUuid || '';
       $('nodeBillingName').value = nodeName || '';
       $('nodeBillingModalTitle').innerText = nodeName ? `هزینه و تمدید: ${nodeName}` : 'هزینه و تمدید سرور';
-      $('nodeBillingModalFlag').innerText = flag || '🖥️';
+      const flagEl = $('nodeBillingModalFlag');
+      if (flagEl) {
+        flagEl.innerHTML = flag && flag !== '🖥️'
+          ? (typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-6 h-4 inline-block rounded shadow-xs object-cover align-middle') : flag)
+          : uiIcon('desktop', 'w-5 h-5 shrink-0 text-cyan-400 align-middle');
+      }
       $('nodeBillingProvider').value = provider || '';
       $('nodeBillingCostToman').value = costToman || '';
       $('nodeBillingCostEur').value = costEur || '';

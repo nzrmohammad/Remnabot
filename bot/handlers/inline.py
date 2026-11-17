@@ -120,7 +120,7 @@ async def inline_query_handler(
                 f"⚡ <b>وضعیت اشتراک {uname}</b>",
                 "──────────────────",
                 f"📊 <b>حجم باقی‌مانده:</b> <code>{traffic_str}</code>",
-                f"⏳ <b>اعتبار باقی‌مانده:</b> <code>{days_str}</code>",
+                f"🗓 <b>اعتبار باقی‌مانده:</b> <code>{days_str}</code>",
                 f"📶 <b>وضعیت سرویس:</b> <code>{status_fa}</code>",
                 "──────────────────",
                 f"🚀 ارائه شده توسط @{bot_username}",

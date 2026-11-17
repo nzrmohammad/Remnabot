@@ -722,7 +722,7 @@ openCryptoRatesModal() {
             <!-- Action Buttons: Chat on right, Photo icon & Action buttons on left (همه بدون پس‌زمینه) -->
             <div class="flex items-center justify-between gap-2 pt-1 border-t border-card-border">
               <button data-action="chat" data-tgid="${t.telegram_id}" data-name="${escapeHtml(uLabel)}" data-tag="${escapeHtml(usernameTag || ('#' + t.telegram_id))}" data-topupid="${t.id}" onclick="window.adminActions.openUserChat(this.dataset.tgid, this.dataset.name, this.dataset.tag, this.dataset.topupid)" class="btn btn-secondary px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95" title="گفتگوی مستقیم با کاربر">
-                <svg class="w-3.5 h-3.5 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                <img src="/static/img/icons/chat.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
                 <span>چت با کاربر</span>
               </button>
 
@@ -737,10 +737,10 @@ openCryptoRatesModal() {
                   </button>
                 `}
                 <button type="button" onclick="window.adminActions.handleTopup(${t.id}, false)" class="w-8 h-8 rounded-xl bg-transparent hover:bg-rose-500/10 text-rose-500 hover:t-danger border border-rose-500/40 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="رد فیش">
-                  ✕
+                  <img src="/static/img/icons/cross.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" alt="رد" />
                 </button>
                 <button type="button" onclick="window.adminActions.handleTopup(${t.id}, true)" class="w-8 h-8 rounded-xl bg-transparent hover:bg-emerald-500/10 t-success hover:text-emerald-300 border border-emerald-500/40 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="تایید و شارژ موجودی">
-                  ✓
+                  <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" alt="تایید" />
                 </button>
               </div>
             </div>

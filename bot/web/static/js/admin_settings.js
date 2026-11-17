@@ -2077,7 +2077,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
     const origHtml = btn ? btn.innerHTML : '';
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<span>⏳</span><span>در حال دریافت نسخه‌ها از GitHub...</span>';
+      btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 shrink-0 inline-block animate-spin')}<span>در حال دریافت نسخه‌ها از GitHub...</span></span>`;
     }
     try {
       if (window.hapticFeedback) window.hapticFeedback('impact');

@@ -149,8 +149,15 @@ function renderUserStatusBadge(u) {
   }
   return '<span class="badge badge-neutral">بدون اکانت</span>';
 }
+// Centralized Single Source of Truth (SSOT) for Node Online/Offline Status Badges
+function renderNodeStatusBadge(isOnline) {
+  return isOnline
+    ? '<span class="badge badge-success"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>آنلاین</span></span>'
+    : '<span class="badge badge-danger"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>آفلاین</span></span>';
+}
 if (typeof window !== 'undefined') {
   window.renderUserStatusBadge = renderUserStatusBadge;
+  window.renderNodeStatusBadge = renderNodeStatusBadge;
 }
 
 // Global Banner Notification Utility (for session expiry, timeouts, system notices)

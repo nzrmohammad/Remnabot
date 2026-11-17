@@ -187,7 +187,7 @@ async def wheel_spin_action(
         elif ptype == "coupon":
             lines.append("🎉 <b>تبریک! شما برنده کد تخفیف ویژه شدید:</b>")
             lines.append(f"🎟 <b>کد:</b> <code>{escape(prize.get('code', ''))}</code>")
-            lines.append("⏳ <b>مهلت استفاده:</b> 7 روز (قابل استفاده در بخش خرید سرویس)")
+            lines.append("🗓 <b>مهلت استفاده:</b> 7 روز (قابل استفاده در بخش خرید سرویس)")
         elif ptype == "traffic":
             lines.append(f"🎉 <b>تبریک! برنده {pname} شدید!</b>")
             if applied:
@@ -281,7 +281,7 @@ async def wheel_my_coupons(
             lines.append(
                 f"{i}) 🎟 <b>کد تخفیف:</b> <code>{code}</code>\n"
                 f"   🏷 میزان تخفیف: <b>\u200e{pct}%\u200e</b>\n"
-                f"   ⏳ مهلت استفاده: <b>7 روزه</b>"
+                f"   🗓 مهلت استفاده: <b>7 روزه</b>"
             )
             if i < len(coupons[:5]):
                 lines.append("")

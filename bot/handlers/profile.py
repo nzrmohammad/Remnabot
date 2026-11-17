@@ -242,7 +242,7 @@ async def process_birthday_input(
     if days_left == 0:
         congrats_hint = "\n🎉 <b>امروز سالروز تولد شماست! زادروزتان همایون باد!</b>"
     elif days_left is not None:
-        congrats_hint = f"\n⏳ <b>{days_left} روز</b> تا سالروز تولد شما باقیمانده است."
+        congrats_hint = f"\n🗓 <b>{days_left} روز</b> تا سالروز تولد شما باقیمانده است."
     else:
         congrats_hint = ""
 

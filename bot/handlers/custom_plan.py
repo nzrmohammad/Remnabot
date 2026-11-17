@@ -425,7 +425,7 @@ async def _build_custom_plan_summary(
 
     lines.extend([
         f"📦 حجم ترافیک : <b>{gb} گیگابایت</b>",
-        f"⏳ مدت زمان اعتبار : <b>{days} روز</b>",
+        f"🗓 مدت زمان اعتبار : <b>{days} روز</b>",
         f"👥 کاربر همزمان مجاز : <b>{hwid} دستگاه</b>",
         SEPARATOR,
         f"💰 تعرفه بدون تخفیف : {fmt(raw_base)} تومان",

@@ -1946,11 +1946,11 @@ function renderDashboardBirthdayCountdown(user) {
       profBadge.classList.add('hidden');
     } else if (isToday || daysLeft === 0) {
       profBadge.classList.remove('hidden');
-      profBadge.innerHTML = '<span>🎉 امروز (مبارک!)</span>';
+      profBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('cake', 'w-3 h-3 text-pink-400 shrink-0')} امروز (مبارک!)</span>`;
       profBadge.className = 'px-2 py-0.5 rounded-lg bg-pink-500/15 border border-pink-500/30 text-[11px] t-pink font-bold cursor-pointer transition';
     } else if (daysLeft !== null && daysLeft !== undefined) {
       profBadge.classList.remove('hidden');
-      profBadge.innerHTML = `<span>⏳ ${toEnglishDigits(daysLeft)} روز</span>`;
+      profBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${toEnglishDigits(daysLeft)} روز</span>`;
       profBadge.className = 'px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-bold cursor-pointer hover:border-accent transition';
     } else {
       profBadge.classList.add('hidden');
@@ -3213,7 +3213,7 @@ function hydrateUserInterface(data) {
           daysPassed = Math.max(1, Math.floor((Date.now() - ct) / (1000 * 60 * 60 * 24)));
         }
       }
-      profJoinBadge.innerHTML = `<span>⏳ ${toEnglishDigits(daysPassed)} روز</span>`;
+      profJoinBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${toEnglishDigits(daysPassed)} روز</span>`;
       profJoinBadge.classList.remove('hidden');
     }
     const hasBirthDate = Boolean(user.birth_date && String(user.birth_date).trim());
@@ -5200,21 +5200,21 @@ function renderInvoiceModalFields(inv, orderId) {
   const emojiMatches = rawItemTitle.match(emojiRegex);
   let cleanItemTitle = rawItemTitle.replace(emojiRegex, '').trim() || rawItemTitle;
   cleanItemTitle = cleanItemTitle.replace(/\s*\([^)]*(?:GB|روز|day)[^)]*\)/gi, '').trim();
-  let itemIcon = (emojiMatches && emojiMatches[0]) ? emojiMatches[0] : '📦';
+  let itemIcon = (emojiMatches && emojiMatches[0]) ? emojiMatches[0] : 'package';
   if (!emojiMatches || !emojiMatches.length) {
     const lowerTitle = rawItemTitle.toLowerCase();
-    if (lowerTitle.includes('طلایی') || lowerTitle.includes('gold')) itemIcon = '🥇';
-    else if (lowerTitle.includes('نقره') || lowerTitle.includes('silver')) itemIcon = '🥈';
-    else if (lowerTitle.includes('برنز') || lowerTitle.includes('bronze')) itemIcon = '🥉';
-    else if (lowerTitle.includes('الماس') || lowerTitle.includes('diamond')) itemIcon = '💎';
-    else if (lowerTitle.includes('ویژه') || lowerTitle.includes('vip')) itemIcon = '👑';
-    else if (lowerTitle.includes('حجم') || inv.item?.badge === 'traffic') itemIcon = '⚡️';
-    else if (lowerTitle.includes('زمان') || lowerTitle.includes('روز') || inv.item?.badge === 'time') itemIcon = '⏳';
+    if (lowerTitle.includes('طلایی') || lowerTitle.includes('gold')) itemIcon = 'medal-gold';
+    else if (lowerTitle.includes('نقره') || lowerTitle.includes('silver')) itemIcon = 'medal-silver';
+    else if (lowerTitle.includes('برنز') || lowerTitle.includes('bronze')) itemIcon = 'medal-bronze';
+    else if (lowerTitle.includes('الماس') || lowerTitle.includes('diamond')) itemIcon = 'diamond';
+    else if (lowerTitle.includes('ویژه') || lowerTitle.includes('vip')) itemIcon = 'crown';
+    else if (lowerTitle.includes('حجم') || inv.item?.badge === 'traffic') itemIcon = 'zap';
+    else if (lowerTitle.includes('زمان') || lowerTitle.includes('روز') || inv.item?.badge === 'time') itemIcon = 'clock';
   }
 
   $('invItemTitle').innerText = cleanItemTitle;
   if ($('invItemIcon')) {
-    $('invItemIcon').innerText = itemIcon;
+    $('invItemIcon').innerHTML = typeof uiEmojiIcon === 'function' ? uiEmojiIcon(itemIcon, 'w-5 h-5 inline-block') : itemIcon;
   }
   $('invItemSpecs').innerText = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
   $('invItemAmount').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');

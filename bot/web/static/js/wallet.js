@@ -170,19 +170,19 @@ function getTxPurchaseInfo(tx) {
     let emojiStr = (emojis && emojis.length > 0) ? emojis.join('') : '';
     if (!emojiStr) {
       const lowerName = cleanOnly.toLowerCase();
-      if (lowerName.includes('طلایی') || lowerName.includes('gold')) emojiStr = '🥇';
-      else if (lowerName.includes('نقره') || lowerName.includes('silver')) emojiStr = '🥈';
-      else if (lowerName.includes('برنز') || lowerName.includes('bronze')) emojiStr = '🥉';
-      else if (lowerName.includes('الماس') || lowerName.includes('diamond')) emojiStr = '💎';
-      else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = '👑';
-      else if (lowerName.includes('گیم') || lowerName.includes('game')) emojiStr = '🎮';
-      else if (lowerName.includes('خانواده') || lowerName.includes('family')) emojiStr = '👥';
-      else if (typeRowText === 'خرید بسته حجم') emojiStr = '⚡️';
-      else if (typeRowText === 'خرید بسته زمان') emojiStr = '⏳';
-      else emojiStr = '📦';
+      if (lowerName.includes('طلایی') || lowerName.includes('gold')) emojiStr = 'medal-gold';
+      else if (lowerName.includes('نقره') || lowerName.includes('silver')) emojiStr = 'medal-silver';
+      else if (lowerName.includes('برنز') || lowerName.includes('bronze')) emojiStr = 'medal-bronze';
+      else if (lowerName.includes('الماس') || lowerName.includes('diamond')) emojiStr = 'diamond';
+      else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = 'crown';
+      else if (lowerName.includes('گیم') || lowerName.includes('game')) emojiStr = 'gamepad';
+      else if (lowerName.includes('خانواده') || lowerName.includes('family')) emojiStr = 'users';
+      else if (typeRowText === 'خرید بسته حجم') emojiStr = 'zap';
+      else if (typeRowText === 'خرید بسته زمان') emojiStr = 'clock';
+      else emojiStr = 'package';
     }
 
-    const iconHtml = `<span class="shrink-0 text-base leading-none">${emojiStr || '📦'}</span>`;
+    const iconHtml = `<span class="shrink-0 inline-flex items-center justify-center">${typeof uiEmojiIcon === 'function' ? uiEmojiIcon(emojiStr || '📦', 'w-4 h-4') : (emojiStr || '📦')}</span>`;
     planHtml = `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
   }
 
@@ -1960,7 +1960,7 @@ function setupWalletListeners() {
     const btn = document.getElementById('submitStarsTopupBtn');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<span>⏳</span> در حال ایجاد فاکتور استارز...';
+      btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 inline-block shrink-0 animate-spin')}<span>در حال ایجاد فاکتور استارز...</span></span>`;
     }
     try {
       const res = await window.api.createStarsInvoice(amt);
@@ -2216,7 +2216,7 @@ function setupWalletListeners() {
     }
     const btn = document.getElementById('submitTrxTxIdBtn');
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> در حال استعلام از شبکه ترون...';
+    btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 inline-block shrink-0 animate-spin')}<span>در حال استعلام از شبکه ترون...</span></span>`;
     try {
       const res = await window.api.verifyTrxInvoice(currentTrxInvoice.id, txId);
       if (res.ok) {
@@ -2391,7 +2391,7 @@ function setupWalletListeners() {
     }
     const btn = document.getElementById('submitPolTxIdBtn');
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> در حال استعلام از شبکه پلیگان...';
+    btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 inline-block shrink-0 animate-spin')}<span>در حال استعلام از شبکه پلیگان...</span></span>`;
     try {
       const res = await window.api.verifyPolInvoice(currentPolInvoice.id, txId);
       if (res.ok) {

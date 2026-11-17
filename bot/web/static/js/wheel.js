@@ -314,7 +314,7 @@ function setupLuckyWheel() {
     const ws = window.lastUserData?.wheel_status;
     if (ws && !ws.has_active_sub) {
       showWheelResultModal({
-        icon: '🔒',
+        icon: 'lock_shield',
         title: 'نیاز به اشتراک فعال',
         message: 'برای استفاده از گردونه شانس، داشتن حداقل یک اشتراک فعال در پنل الزامی است.',
         isError: true,
@@ -327,7 +327,7 @@ function setupLuckyWheel() {
     const hasTickets = currentWheelTickets > 0;
     if (isCooldownNow && !hasTickets) {
       showWheelResultModal({
-        icon: '⏳',
+        icon: 'clock',
         title: 'مهلت 24 ساعته',
         message: `گردونه شانس هر 24 ساعت یک‌بار فعال می‌شود.<br/><span class="t-warn font-sans font-bold text-sm block mt-2" dir="ltr">${formatCountdown(remainingSec)}</span><span class="text-[11px] text-slate-400 block mt-0.5">زمان باقیمانده تا شانس رایگان روزانه شما (با معرفی دوستان تیکت شانس بدون محدودیت دریافت کنید!)</span>`,
         isError: true,

@@ -309,7 +309,7 @@ async def _render_purchase_result(
                 f"{t(lang, 'stats_account')} : <code>{escape(result.panel_username)}</code>"
             )
         receipt_lines.extend([
-            f"⏳ {t(lang, 'receipt_duration')} : <b>{dur_text}</b>",
+            f"🗓 {t(lang, 'receipt_duration')} : <b>{dur_text}</b>",
             f"🌐 {t(lang, 'receipt_traffic')} : <b>{traf_text}</b>",
         ])
 

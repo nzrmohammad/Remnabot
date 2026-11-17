@@ -513,7 +513,7 @@ function renderShopPlans(data) {
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'traffic';
     } else if (daysLeft <= 3) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-warn-soft border';
-      noticeEl.innerHTML = `<span>⏳</span><span>تنها <b>${daysLeft} روز</b> از اشتراک شما باقیمانده است؛ جهت جلوگیری از قطعی، <b>خرید یا تمدید دوره کامل</b> پیشنهاد می‌شود.</span>`;
+      noticeEl.innerHTML = `<span>${uiIcon('clock', 'w-4 h-4 shrink-0 text-amber-500 inline-block align-middle')}</span><span>تنها <b>${daysLeft} روز</b> از اشتراک شما باقیمانده است؛ جهت جلوگیری از قطعی، <b>خرید یا تمدید دوره کامل</b> پیشنهاد می‌شود.</span>`;
       noticeEl.dataset.shouldShow = 'true';
       if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
       else noticeEl.classList.add('hidden');
@@ -902,15 +902,27 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
   const actBtn = document.getElementById('shopGuidanceActionBtn');
   const secBtn = document.getElementById('shopGuidanceSecondaryBtn');
 
+  const renderLabelWithIcon = (text, fallbackIcon) => {
+    if (!text) return '';
+    const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
+    const match = text.match(emojiRegex);
+    let icon = match ? match[0] : fallbackIcon;
+    let clean = text.replace(emojiRegex, '').trim();
+    if (icon && typeof uiEmojiIcon === 'function') {
+      return `<span class="inline-flex items-center gap-1.5">${uiEmojiIcon(icon, 'w-3.5 h-3.5 shrink-0')}<span>${escapeHtml(clean)}</span></span>`;
+    }
+    return escapeHtml(clean || text);
+  };
+
   if (tEl) tEl.innerText = title || 'راهنمای انتخاب بسته';
   if (bEl) {
-    bEl.innerText = badgeText || '⚡️ پیشنهاد هوشمند';
+    bEl.innerHTML = renderLabelWithIcon(badgeText || 'پیشنهاد هوشمند', 'zap');
     bEl.className = badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border border-cyan-500/30';
   }
   if (txtEl) txtEl.innerHTML = message || '';
 
   if (actBtn) {
-    actBtn.innerText = actionText || 'تایید و ادامه';
+    actBtn.innerHTML = renderLabelWithIcon(actionText || 'تایید و ادامه', 'check');
     actBtn.onclick = () => {
       closeModal('shopGuidanceModal');
       if (typeof onAction === 'function') onAction();
@@ -918,7 +930,7 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
   }
 
   if (secBtn) {
-    secBtn.innerText = secondaryText;
+    secBtn.innerHTML = renderLabelWithIcon(secondaryText, secondaryText === 'انصراف' ? 'cross' : null);
     secBtn.onclick = () => {
       closeModal('shopGuidanceModal');
       if (typeof onSecondary === 'function') onSecondary();
@@ -1025,7 +1037,7 @@ function setupBuyButtons() {
       if (!hasActiveSub && (isExtraTraffic || isTimeOnly)) {
         openShopGuidanceModal({
           title: 'اشتراک فعالی یافت نشد',
-          badgeText: '❌ نیازمند سرویس فعال',
+          badgeText: 'نیازمند سرویس فعال',
           badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-danger-soft border border-rose-500/30',
           message: 'بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند. لطفاً ابتدا از تب «سرویس‌های کامل» یک اشتراک جدید تهیه فرمایید.',
           actionText: 'مشاهده سرویس‌های کامل',
@@ -1050,8 +1062,8 @@ function setupBuyButtons() {
 
         if (isSwitch) {
           openShopGuidanceModal({
-            title: '⚠️ هشدار مهم تغییر دسته سرور',
-            badgeText: '🔄 تغییر دسته سرور',
+            title: 'هشدار مهم تغییر دسته سرور',
+            badgeText: 'تغییر دسته سرور',
             badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
             message: `شما در حال تغییر سرویس اشتراک فعلی خود به «<b>${formatPlanTitle(planObj.name, { plainText: true, iconPosition: 'left' })}</b>» هستید.<br><br>
 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
@@ -1060,9 +1072,9 @@ function setupBuyButtons() {
 3. هزینه کامل بسته جدید دریافت خواهد شد.<br><br>
 راهنما: چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، می‌توانید از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا «بسته افزایش حجم» تهیه فرمایید.<br><br>
 آیا برای مشاهده پیش‌فاکتور و خرید این بسته موافقید؟`,
-            actionText: '✅ متوجه شدم، مشاهده پیش‌فاکتور',
+            actionText: 'متوجه شدم، مشاهده پیش‌فاکتور',
             onAction: () => openCheckoutConfirmModal(planObj),
-            secondaryText: '❌ انصراف',
+            secondaryText: 'انصراف',
             onSecondary: () => closeModal('shopGuidanceModal'),
           });
           return;
@@ -1084,12 +1096,12 @@ function setupBuyButtons() {
           } else {
             openShopGuidanceModal({
               title: 'اشتراک شما فعال است',
-              badgeText: 'ℹ️ سرویس فعال دارید',
+              badgeText: 'سرویس فعال دارید',
               badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/40',
               message: `شما در حال حاضر دارای اشتراک فعال با <b>${daysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در 3 روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
-              actionText: '⚡️ بسته‌های افزایش حجم',
+              actionText: 'بسته‌های افزایش حجم',
               onAction: () => switchShopCategory('traffic'),
-              secondaryText: '⏳ بسته‌های افزایش زمان',
+              secondaryText: 'بسته‌های افزایش زمان',
               onSecondary: () => switchShopCategory('time'),
             });
           }
@@ -1100,10 +1112,10 @@ function setupBuyButtons() {
         if (hasActiveSub && daysLeft <= 3 && isExtraTraffic) {
           openShopGuidanceModal({
             title: 'هشدار پایان اعتبار زمانی',
-            badgeText: '⏳ تمدید سرویس کامل',
+            badgeText: 'تمدید سرویس کامل',
             badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
             message: `تنها <b>${daysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
-            actionText: '💎 تمدید دوره کامل',
+            actionText: 'تمدید دوره کامل',
             onAction: () => switchShopCategory('full'),
             secondaryText: 'ادامه خرید بسته حجم',
             onSecondary: () => openCheckoutConfirmModal(planObj),
@@ -1169,15 +1181,15 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
     const emoji = emojiMatch[0];
     const cleanName = rawName.replace(emoji, '').trim();
     if (sNameEl) sNameEl.innerText = cleanName;
-    if (sIconEl) sIconEl.innerText = emoji;
+    if (sIconEl) sIconEl.innerHTML = typeof uiEmojiIcon === 'function' ? uiEmojiIcon(emoji, 'w-7 h-7') : emoji;
   } else {
     if (sNameEl) sNameEl.innerText = rawName;
     const isResExtraTraffic = (Number(res.duration_days) === 0 && Number(res.traffic_gb) > 0);
     const isResExtraTime = (Number(res.traffic_gb) === 0 && Number(res.duration_days) > 0);
-    let fallbackIcon = '📦';
-    if (isResExtraTraffic || rawName.includes('حجم')) fallbackIcon = '⚡️';
-    else if (isResExtraTime || rawName.includes('زمان') || rawName.includes('روز')) fallbackIcon = '⏳';
-    if (sIconEl) sIconEl.innerText = fallbackIcon;
+    let fallbackIcon = 'package';
+    if (isResExtraTraffic || rawName.includes('حجم')) fallbackIcon = 'zap';
+    else if (isResExtraTime || rawName.includes('زمان') || rawName.includes('روز')) fallbackIcon = 'clock';
+    if (sIconEl) sIconEl.innerHTML = typeof uiIcon === 'function' ? uiIcon(fallbackIcon, 'w-7 h-7') : '📦';
   }
 
   const isResExtraTraffic = (Number(res.duration_days) === 0 && Number(res.traffic_gb) > 0);

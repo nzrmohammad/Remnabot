@@ -199,7 +199,7 @@
               <!-- Column 1: Remaining Volume -->
               <div class="bg-transparent rounded-lg p-1.5 border border-slate-700/60 flex items-center gap-2">
                 <div class="w-7 h-7 rounded-md bg-transparent border border-cyan-500/30 flex items-center justify-center text-cyan-500 dark:text-cyan-400 text-xs shrink-0">
-                  ⚡
+                  ${uiIcon('zap', 'w-4 h-4 text-cyan-400')}
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
                   <span class="text-slate-400 text-[11px] block">حجم باقی‌مانده</span>
@@ -212,7 +212,7 @@
               <!-- Column 2: Time & Expiration -->
               <div class="bg-transparent rounded-lg p-1.5 border border-slate-700/60 flex items-center gap-2">
                 <div class="w-7 h-7 rounded-md bg-transparent border ${timeBoxBorder} flex items-center justify-center ${timeColor} text-xs shrink-0">
-                  ⏳
+                  ${uiIcon('clock', `w-4 h-4 ${timeColor}`)}
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
                   <span class="text-slate-400 text-[11px] block truncate" title="${timeSub}">${timeSub}</span>
@@ -1563,8 +1563,8 @@ async applyUserModification() {
 
       const trafficLabel = fmtTraffic(plan.traffic_gb, { html: false });
       const pEmojiMatches = (plan.name || '').match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu);
-      let pIcon = (pEmojiMatches && pEmojiMatches[0]) ? pEmojiMatches[0] : (Number(plan.traffic_gb) > 0 && Number(plan.duration_days) === 0 ? '⚡️' : (Number(plan.traffic_gb) === 0 && Number(plan.duration_days) > 0 ? '⏳' : '📦'));
-      if (iconEl) iconEl.innerText = pIcon;
+      let pIcon = (pEmojiMatches && pEmojiMatches[0]) ? pEmojiMatches[0] : (Number(plan.traffic_gb) > 0 && Number(plan.duration_days) === 0 ? 'zap' : (Number(plan.traffic_gb) === 0 && Number(plan.duration_days) > 0 ? 'clock' : 'package'));
+      if (iconEl) iconEl.innerHTML = typeof uiEmojiIcon === 'function' ? uiEmojiIcon(pIcon, 'w-4 h-4') : pIcon;
       if (labelEl) labelEl.innerText = `${plan.name} (${trafficLabel} - ${plan.duration_days} روز)`;
       if (trafficInput) {
         trafficInput.value = plan.traffic_gb != null ? plan.traffic_gb : 0;

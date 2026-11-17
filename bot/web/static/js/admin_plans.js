@@ -452,7 +452,7 @@
         if (badgeSel && (!badgeSel.value || badgeSel.value === 'traffic')) badgeSel.value = 'time';
         if (notice) {
           notice.className = 'text-[10.5px] text-amber-700 dark:text-amber-300 mt-1.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 leading-relaxed font-medium';
-          notice.innerHTML = '⏳ <b>بسته افزایش زمان:</b> ترافیک اکانت بدون تغییر مانده و صرفاً مدت زمان اعتبار سرویس افزایش می‌یابد.';
+          notice.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('clock', 'w-4 h-4 shrink-0 inline-block align-middle')}<b>بسته افزایش زمان:</b></span> ترافیک اکانت بدون تغییر مانده و صرفاً مدت زمان اعتبار سرویس افزایش می‌یابد.`;
           notice.classList.remove('hidden');
         }
       } else {
@@ -549,7 +549,7 @@
         return `
           <div onclick="window.adminActions.selectPlanBadge('${key}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
             <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'}">${escapeHtml(label)}</span>
-            <span class="text-xs font-bold t-info">${isSelected ? '✓' : ''}</span>
+            <span class="text-xs font-bold t-info">${isSelected ? (typeof uiIcon === 'function' ? uiIcon('check', 'w-4 h-4') : '✓') : ''}</span>
           </div>
         `;
       }).join('');

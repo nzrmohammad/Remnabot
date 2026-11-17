@@ -262,7 +262,7 @@ async def service_trial_username(
         f"📅 {t(lang, 'receipt_date')} : <code>{dt_str}</code>",
         f"💳 {t(lang, 'receipt_status')} : <b>{t(lang, 'receipt_status_paid')}</b>",
         f"{t(lang, 'stats_account')} : <code>{escape(raw_name)}</code>",
-        f"⏳ {t(lang, 'receipt_duration')} : <b>{t(lang, 'svc_days', days=dur_days)}</b>",
+        f"🗓 {t(lang, 'receipt_duration')} : <b>{t(lang, 'svc_days', days=dur_days)}</b>",
         f"🌐 {t(lang, 'receipt_traffic')} : <b>{t(lang, 'svc_gb', gb=store.trial_traffic_gb)}</b>",
     ]
     if sub_url:
@@ -277,7 +277,7 @@ async def service_trial_username(
         f"🎁 <b>سرویس تست ایجاد شد</b>\n\n"
         f"👤 کاربر: {escape(user.username or '')} (<code>{user.telegram_id}</code>)\n"
         f"🔑 اکانت پنل: <code>{escape(raw_name)}</code>\n"
-        f"🌐 حجم: {ltr_frag(f'{store.trial_traffic_gb} GB')} | ⏳ مدت: {dur_days} روز\n"
+        f"🌐 حجم: {ltr_frag(f'{store.trial_traffic_gb} GB')} | 🗓 مدت: {dur_days} روز\n"
         f"🔗 شناسه تلگرام: {escape(tg_username)}"
     )
     thread_kwargs = admin_thread_kwargs(store, get_settings(), kind="orders")
