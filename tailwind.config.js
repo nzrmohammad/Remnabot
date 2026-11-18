@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'slate-750': '#293548',
+        'slate-750': 'var(--slate-750)',
         surface: {
           DEFAULT: 'var(--card-bg)',
           page: 'var(--page-bg)',

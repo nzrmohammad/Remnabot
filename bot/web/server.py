@@ -23,7 +23,8 @@ STATIC_DIR = Path(__file__).parent / "static"
 
 _API_WINDOW = 60.0
 _API_MAX_GENERAL = 120  # 120 requests/min per IP
-_API_MAX_SENSITIVE = 20 # 20 requests/min on sensitive financial/coupon endpoints
+_API_MAX_SENSITIVE = 20 # 20 requests/min on sensitive financial/purchase endpoints
+_API_MAX_COUPON = 20    # 20 requests/min dedicated bucket for coupon validation (prevents checkout DoS)
 _api_buckets: dict[str, deque[float]] = defaultdict(deque)
 
 DEFAULT_TRUSTED_ORIGINS = frozenset({"https://web.telegram.org", "https://telegram.org"})
@@ -133,9 +134,13 @@ async def api_rate_limit_middleware(request: web.Request, handler):
         }
         is_sensitive = request.path in admin_sensitive_paths and request.method == "POST"
         max_reqs = 30 if is_sensitive else 150
+        bucket_suffix = "sens" if is_sensitive else "gen"
+    elif request.path == "/api/user/validate_coupon" and request.method == "POST":
+        is_sensitive = False
+        max_reqs = _API_MAX_COUPON
+        bucket_suffix = "coupon"
     else:
         sensitive_paths = {
-            "/api/user/validate_coupon",
             "/api/user/purchase",
             "/api/user/custom-plan/purchase",
             "/api/user/spin",
@@ -158,6 +163,7 @@ async def api_rate_limit_middleware(request: web.Request, handler):
         }
         is_sensitive = request.path in sensitive_paths and request.method == "POST"
         max_reqs = _API_MAX_SENSITIVE if is_sensitive else _API_MAX_GENERAL
+        bucket_suffix = "sens" if is_sensitive else "gen"
 
     now = time.monotonic()
     cache = request.app.get("cache")
@@ -169,7 +175,7 @@ async def api_rate_limit_middleware(request: web.Request, handler):
     # Distributed Redis rate-limiting if Redis is active
     if redis:
         try:
-            rl_key = f"tma:rl:{subject_id}:{'sens' if is_sensitive else 'gen'}"
+            rl_key = f"tma:rl:{subject_id}:{bucket_suffix}"
             pipe = redis.pipeline()
             pipe.incr(rl_key)
             pipe.ttl(rl_key)
@@ -188,7 +194,7 @@ async def api_rate_limit_middleware(request: web.Request, handler):
 
     # In-memory rate limiting fallback if Redis is not used or failed
     if not redis_checked:
-        bucket_key = f"{subject_id}:sens" if is_sensitive else f"{subject_id}:gen"
+        bucket_key = f"{subject_id}:{bucket_suffix}"
         bucket = _api_buckets[bucket_key]
 
         while bucket and now - bucket[0] > _API_WINDOW:

@@ -152,7 +152,7 @@ class CryptoRepository:
         invoice_id: int,
         tx_hash: str,
         allow_expired: bool = False,
-        max_expired_grace_minutes: int = 120,
+        max_expired_grace_minutes: int = 15,
     ) -> CryptoInvoice | None:
         """Atomically transition invoice from pending (or recently expired within grace) -> paid.
         Prevents race-condition double-crediting if concurrent checks occur.

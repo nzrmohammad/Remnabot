@@ -57,8 +57,7 @@ html, body {
 }
 
 #phoneFrame {
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
   background-color: var(--frame-bg);
   border-color: var(--frame-border);
   color: var(--text-main);

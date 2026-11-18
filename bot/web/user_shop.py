@@ -48,9 +48,11 @@ async def post_user_spin(request: web.Request) -> web.Response:
     cache: FastCache = request.app["cache"]
 
     # Concurrency / Race-condition guard via distributed lock
+    import secrets
     spin_lock_key = f"lock:user:{telegram_id}:spin"
+    spin_token = secrets.token_hex(16)
     if hasattr(cache, "set_nx"):
-        lock_acquired = await cache.set_nx(spin_lock_key, "1", ttl_seconds=5)
+        lock_acquired = await cache.set_nx(spin_lock_key, spin_token, ttl_seconds=30)
         if not lock_acquired:
             return web.json_response(
                 {"ok": False, "error": "درخواست همزمان شناسایی شد. لطفاً چند لحظه بعد تلاش کنید."},
@@ -60,7 +62,9 @@ async def post_user_spin(request: web.Request) -> web.Response:
     try:
         return await _do_user_spin(request, telegram_id, cache, user_auth=user_auth)
     finally:
-        if hasattr(cache, "delete"):
+        if hasattr(cache, "release_lock"):
+            await cache.release_lock(spin_lock_key, spin_token)
+        elif hasattr(cache, "delete"):
             await cache.delete(spin_lock_key)
 
 
@@ -398,6 +402,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             bot=bot,
             session_factory=session_factory,
             cache=cache,
+            coupon_discount_amount=discount_amount,
         )
 
         effective_price = max(0, service.price - total_discount)

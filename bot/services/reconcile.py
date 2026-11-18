@@ -7,6 +7,7 @@ possibly-free service never goes unnoticed — the admin can check the panel
 and revoke/charge manually.
 """
 import asyncio
+from datetime import datetime, timedelta, timezone
 import json
 import logging
 from typing import Any
@@ -141,6 +142,33 @@ async def run_reconcile(
 
             if panel_handled:
                 await repo.mark_failed(order)
+                closed += 1
+
+        # Check for service gifts stuck in claimed state past crash window without a fulfilled order
+        from bot.db.models import GiftCard
+        stale_gift_cutoff = datetime.now(timezone.utc) - timedelta(minutes=STALE_MINUTES)
+        stale_gifts_res = await session.execute(
+            select(GiftCard).where(
+                GiftCard.gift_type == "SERVICE",
+                GiftCard.is_claimed.is_(True),
+                GiftCard.claimed_at.is_not(None),
+                GiftCard.claimed_at <= stale_gift_cutoff,
+            )
+        )
+        for gc in stale_gifts_res.scalars().all():
+            ord_res = await session.execute(
+                select(Order).where(
+                    Order.telegram_id == gc.receiver_telegram_id,
+                    Order.service_id == gc.service_id,
+                    Order.created_at >= (gc.claimed_at - timedelta(minutes=2)),
+                    Order.status == "paid",
+                )
+            )
+            if not ord_res.scalar_one_or_none():
+                logger.warning("Reconcile: auto-reverting orphaned gift card %s (id=%s) stuck since %s", gc.code, gc.id, gc.claimed_at)
+                gc.is_claimed = False
+                gc.claimed_at = None
+                gc.receiver_telegram_id = None
                 closed += 1
 
         await session.commit()

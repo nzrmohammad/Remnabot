@@ -3250,7 +3250,7 @@
     </div>
 
     <!-- MODAL: Edit SSL Domain (ویرایش دامنه سفارشی) -->
-    <div id="editSslDomainModal" role="dialog" aria-modal="true" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div id="editSslDomainModal" role="dialog" aria-modal="true" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4 animate-fadeIn">
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
           <div class="flex items-center gap-2">
@@ -3265,13 +3265,13 @@
         <div class="space-y-3 text-xs">
           <div>
             <label class="text-[11px] t-muted block mb-1">دامنه فعلی:</label>
-            <div class="p-2.5 rounded-xl bg-slate-950/60 border border-[var(--card-border)]">
+            <div class="p-2.5 rounded-xl card-inset border border-card-border">
               <span id="editSslDomainCurrent" class="font-sans text-xs font-bold t-muted block text-left" dir="ltr">--</span>
             </div>
           </div>
           <div>
             <label class="text-[11px] t-muted block mb-1">آدرس جدید دامنه:</label>
-            <input type="text" id="editSslDomainNewInput" dir="ltr" placeholder="sub.example.com" class="w-full bg-slate-950/80 border border-[var(--card-border)] text-white rounded-xl px-3 py-2 text-xs font-sans text-left focus:outline-none focus:border-cyan-500 transition" />
+            <input type="text" id="editSslDomainNewInput" dir="ltr" placeholder="sub.example.com" class="w-full input-base px-3 py-2 text-xs font-sans text-left transition" />
           </div>
           <p class="text-[11px] t-muted leading-relaxed">
             گواهی امنیتی SSL و تاریخ انقضای دامنه جدید بلافاصله پس از ثبت پایش خواهد شد.
@@ -3328,7 +3328,7 @@
     </div>
 
     <!-- MODAL: Delete Plan Confirmation (حذف تعرفه فروش) -->
-    <div id="deletePlanModal" role="dialog" aria-modal="true" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div id="deletePlanModal" role="dialog" aria-modal="true" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4 animate-fadeIn">
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
           <div class="flex items-center gap-2">
@@ -3367,7 +3367,7 @@
     </div>
 
     <!-- MODAL: Delete Coupon Confirmation -->
-    <div id="deleteCouponModal" role="dialog" aria-modal="true" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div id="deleteCouponModal" role="dialog" aria-modal="true" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4 animate-fadeIn">
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
           <div class="flex items-center gap-2">
@@ -3383,7 +3383,7 @@
           <p class="t-muted leading-relaxed">
             آیا از حذف دائمی کد تخفیف زیر اطمینان دارید؟
           </p>
-          <div class="p-3 rounded-2xl bg-slate-950/60 border border-[var(--card-border)] text-center">
+          <div class="p-3 rounded-2xl card-inset border border-card-border text-center">
             <span id="deleteCouponModalCode" class="font-sans text-base font-bold t-pink uppercase tracking-wider">OFF20</span>
           </div>
           <p class="text-[11px] t-danger/90 flex items-center gap-1.5 pt-1">
@@ -3405,7 +3405,7 @@
     </div>
 
     <!-- MODAL: Batch Generate Vouchers -->
-    <div id="batchVoucherModal" role="dialog" aria-modal="true" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div id="batchVoucherModal" role="dialog" aria-modal="true" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4 animate-fadeIn">
       <div class="modal-card border border-[var(--card-border)] rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative">
         <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
           <h3 class="text-xs font-bold t-main flex items-center gap-1.5">
@@ -3444,7 +3444,7 @@
               <span>کدهای تولید شده:</span>
               <button type="button" onclick="window.adminActions.copyBatchCodes()" class="t-accent hover:text-cyan-300 font-bold text-[11px] inline-flex items-center gap-1"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>کپی همه کدها</span></button>
             </div>
-            <textarea id="batchVoucherGeneratedCodes" readonly rows="4" class="w-full bg-slate-950 border border-[var(--card-border)] rounded-xl p-2 font-sans text-[11px] t-success select-all outline-none" dir="ltr"></textarea>
+            <textarea id="batchVoucherGeneratedCodes" readonly rows="4" class="w-full input-base rounded-xl p-2 font-sans text-[11px] t-success select-all outline-none" dir="ltr"></textarea>
           </div>
         </div>
         <div class="flex gap-2 pt-2">

@@ -845,8 +845,10 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
         bot = request.app["bot"]
         from aiogram.types import LabeledPrice
 
+        import secrets
         exp_ts = int(time.time()) + 3600
-        payload = f"stars_topup:{telegram_id}:{amount}:{stars_count}:{exp_ts}"
+        nonce = secrets.token_hex(8)
+        payload = f"stars_topup:{telegram_id}:{amount}:{stars_count}:{exp_ts}:{nonce}"
         try:
             link = await bot.create_invoice_link(
                 title="شارژ کیف پول",
@@ -1759,8 +1761,8 @@ async def post_user_topup_crypto_cancel(request: web.Request) -> web.Response:
 
 async def post_webhook_sms(request: web.Request) -> web.Response:
     """Handle incoming bank SMS forwarded from mobile phone (ForApp or SMS Forwarder)."""
-    raw_peer_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote or "unknown"
-    peer_ip = raw_peer_ip.split(",")[0].strip() if "," in raw_peer_ip else raw_peer_ip.strip()
+    from bot.web.auth import get_client_ip
+    peer_ip = get_client_ip(request)
 
     cache = request.app.get("cache")
 

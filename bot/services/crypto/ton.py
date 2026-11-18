@@ -151,7 +151,7 @@ async def verify_and_credit_ton_invoice(
                 )
                 continue
 
-        paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=allow_expired, max_expired_grace_minutes=120)
+        paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=allow_expired, max_expired_grace_minutes=15)
         if not paid_inv:
             continue
 

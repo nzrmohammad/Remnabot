@@ -109,10 +109,16 @@ async def stars_successful_payment_handler(
             pass
         return
 
+    exp_ts = None
+    nonce = None
     try:
         user_tid = int(parts[1])
         amount_toman = int(parts[2])
         stars_count = int(parts[3])
+        if len(parts) > 4 and parts[4].isdigit():
+            exp_ts = int(parts[4])
+        if len(parts) > 5:
+            nonce = parts[5].strip()
     except (ValueError, TypeError) as exc:
         logger.exception("Invalid payload numbers in %s", payload)
         try:
@@ -127,6 +133,33 @@ async def stars_successful_payment_handler(
         except Exception:
             pass
         return
+
+    # 1. Validate expiration timestamp
+    import time
+    if exp_ts and time.time() > exp_ts:
+        logger.warning(
+            "Expired Stars payment received for charge_id %s (exp_ts=%s, now=%s)",
+            sp.telegram_payment_charge_id, exp_ts, int(time.time()),
+        )
+        try:
+            mismatch_topup = Topup(
+                telegram_id=user_tid,
+                amount=amount_toman,
+                status="rejected",
+                receipt_hash=f"expired:{sp.telegram_payment_charge_id}",
+            )
+            session.add(mismatch_topup)
+            await session.commit()
+        except Exception as rec_err:
+            logger.warning("Failed to record expired stars topup: %s", rec_err)
+        return
+
+    # 2. Idempotency guard: prevent duplicate crediting via payload nonce or telegram charge ID
+    if nonce and cache and hasattr(cache, "set_nx"):
+        nonce_claimed = await cache.set_nx(f"stars:nonce:{nonce}", "1", ttl_seconds=86400 * 30)
+        if not nonce_claimed:
+            logger.warning("Stars payment nonce %s already consumed for charge_id %s, ignoring replay.", nonce, sp.telegram_payment_charge_id)
+            return
 
     # Idempotency guard: prevent duplicate crediting if Telegram retries webhook
     receipt_hash = f"stars:{sp.telegram_payment_charge_id}"

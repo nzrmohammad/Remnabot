@@ -279,8 +279,12 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
         old_balance = int(wallet.balance if wallet else 0)
         new_balance = await wallet_repo.adjust_balance_atomic(target_id, amount)
 
+        actual_diff = abs(new_balance - old_balance) if amount < 0 else amount
         action_name = "wallet_charge" if amount > 0 else "wallet_deduct"
-        detail_msg = f"{'افزایش' if amount > 0 else 'کسر'} {abs(amount):,} تومان موجودی کاربر {target_id} ({reason})"
+        detail_msg = (
+            f"{'افزایش' if amount > 0 else 'کسر'} {actual_diff:,} تومان موجودی کاربر {target_id} "
+            f"({'درخواست کسر: ' + f'{abs(amount):,} | ' if amount < 0 and actual_diff != abs(amount) else ''}{reason})"
+        )
         session.add(AdminLog(admin_id=admin["id"], action=action_name, detail=detail_msg, target_user_id=target_id))
         await session.commit()
 
@@ -293,9 +297,10 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
     bot = request.app.get("bot")
     if bot:
         sign = "+" if amount > 0 else "-"
+        effective_amount = actual_diff
         notif = (
             f"🔔 <b>تغییر موجودی کیف پول</b>\n\n"
-            f"مبلغ: <b>{sign}{abs(amount):,} تومان</b>\n"
+            f"مبلغ: <b>{sign}{effective_amount:,} تومان</b>\n"
             f"موجودی جدید: <b>{new_balance:,} تومان</b>\n"
             f"توضیحات: {reason}"
         )

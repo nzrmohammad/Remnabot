@@ -251,8 +251,8 @@ async def verify_and_credit_trx_invoice(
         )
         return False, 0, reason
 
-    # Mark paid and credit atomically (expired invoices allowed only within 2h confirmation grace when tx was pre-expiry)
-    paid_inv = await crypto_repo.mark_paid(invoice.id, clean_tx, allow_expired=True, max_expired_grace_minutes=120)
+    # Mark paid and credit atomically (expired invoices allowed only within confirmation grace when tx was pre-expiry)
+    paid_inv = await crypto_repo.mark_paid(invoice.id, clean_tx, allow_expired=True, max_expired_grace_minutes=15)
     if not paid_inv:
         logger.warning("TRX mark_paid failed: invoice_id=%s tg_id=%s tx_hash=%s", invoice.id, invoice.telegram_id, clean_tx)
         return False, 0, "امکان تغییر وضعیت فاکتور به پرداخت‌شده وجود ندارد."

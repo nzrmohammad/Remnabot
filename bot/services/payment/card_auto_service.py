@@ -22,7 +22,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.app_settings import StoreSettings
 from bot.services.formatting import ltr_frag
-from bot.services.payment.bank_sms_parser import parse_bank_sms
+from bot.services.payment.bank_sms_parser import normalize_sms_digits, parse_bank_sms
 
 logger = logging.getLogger(__name__)
 
@@ -223,11 +223,23 @@ async def process_incoming_sms(
 
     parsed = parse_bank_sms(raw_message, sender)
     if (not parsed.amount_toman or not parsed.is_deposit) and forapp_amount_toman:
-        # Fallback to ForApp parsed deposit amount if raw parser didn't match unknown bank syntax
-        if parsed.reject_reason != "تراکنش برداشت، خرید یا انتقال خروجی از حساب است":
+        # Fallback to ForApp parsed deposit amount only if:
+        # 1. Raw parser has NO reject reason (never allow withdrawals, outbound transfers, or explicit rejects)
+        # 2. Raw message text actually contains the digits of the claimed amount (prevents external amount injection)
+        clean_digits = re.sub(r"\D", "", normalize_sms_digits(raw_message))
+        amt_str = str(forapp_amount_toman)
+        amt_rial_str = str(forapp_amount_toman * 10)
+        has_amount_in_body = bool(amt_str in clean_digits or amt_rial_str in clean_digits)
+
+        if not parsed.reject_reason and has_amount_in_body:
             parsed.amount_toman = forapp_amount_toman
             parsed.amount_rial = forapp_amount_toman * 10
             parsed.is_deposit = True
+        else:
+            logger.warning(
+                "Rejected external amount fallback: reject_reason=%r has_amount_in_body=%s forapp_amount=%s",
+                parsed.reject_reason, has_amount_in_body, forapp_amount_toman,
+            )
 
     logger.debug(
         "Bank SMS parsed result: sender=%r is_deposit=%s amount_rial=%s amount_toman=%s bank=%s raw_preview=%r",

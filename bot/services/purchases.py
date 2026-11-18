@@ -140,6 +140,7 @@ async def execute_purchase(
     bot: Any = None,
     session_factory: Any = None,
     cache: Any = None,
+    coupon_discount_amount: int | None = None,
 ) -> PurchaseResult:
     """Buy a service with per-user anti-concurrency lock (distributed + in-process)."""
     dist_lock = False
@@ -181,6 +182,7 @@ async def execute_purchase(
                 coupon_code=coupon_code,
                 bot=bot,
                 session_factory=session_factory,
+                coupon_discount_amount=coupon_discount_amount,
             )
             if res.ok and cache and hasattr(cache, "delete"):
                 try:
@@ -213,6 +215,7 @@ async def _execute_purchase_impl(
     coupon_code: str | None = None,
     bot: Any = None,
     session_factory: Any = None,
+    coupon_discount_amount: int | None = None,
 ) -> PurchaseResult:
     """Buy a service implementation."""
     from bot.services.app_settings import is_maintenance
@@ -334,7 +337,7 @@ async def _execute_purchase_impl(
                 coupon_obj.id,
                 telegram_id,
                 order_id=pending.id,
-                discount_applied=discount_amount,
+                discount_applied=(coupon_discount_amount if coupon_discount_amount is not None else discount_amount),
             )
             if claimed_usage is None:
                 await order_repo.mark_failed(pending)

@@ -418,7 +418,11 @@ async def _create_and_render_stars_invoice(
     lang = user.language or "fa"
     stars_rate = getattr(store, "stars_rate_toman", 0) or 1500
     stars_count = max(1, math.ceil(amount / stars_rate))
-    payload = f"stars_topup:{user.telegram_id}:{amount}:{stars_count}"
+    import secrets
+    import time
+    exp_ts = int(time.time()) + 3600
+    nonce = secrets.token_hex(8)
+    payload = f"stars_topup:{user.telegram_id}:{amount}:{stars_count}:{exp_ts}:{nonce}"
 
     link = None
     try:

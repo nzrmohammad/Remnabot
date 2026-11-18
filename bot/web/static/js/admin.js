@@ -62,8 +62,11 @@
       tg.expand();
       if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
       // tg.requestFullscreen removed to prevent header falling under Telegram client menu
-      if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
-      if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
+      const isLight = document.documentElement.classList.contains('theme-light');
+      const hColor = isLight ? '#ffffff' : '#111a2e';
+      const bColor = isLight ? '#f8fafc' : '#0c1220';
+      if (tg.setHeaderColor) tg.setHeaderColor(hColor);
+      if (tg.setBackgroundColor) tg.setBackgroundColor(bColor);
       if (tg.onEvent) {
         tg.onEvent('viewportChanged', () => {
           if (!tg.isExpanded) tg.expand();
