@@ -896,6 +896,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت سبک دسکتاپ ویندوز با تفکیک ترافیک اپ‌ها و اتصال مستقیم پرسرعت',
       icon: '🛡️',
       scheme: null
+    },
+    {
+      id: 'byp',
+      name: 'Byp',
+      version: '1.1.0',
+      desc: 'کلاینت سبک ویندوز با تفکیک ترافیک پردازه‌ها (Split Tunneling) و پینگ عالی برای بازی‌ها',
+      icon: '⚡',
+      scheme: null
     }
   ],
   macos: [

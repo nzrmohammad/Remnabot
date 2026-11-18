@@ -40,6 +40,7 @@ APP_DISPLAY_NAMES: dict[str, str] = {
     "pattng": "PattNG",
     "zedsecure": "Zedsecure",
     "v2raytun": "v2RayTun",
+    "byp": "Byp",
 }
 
 
@@ -134,6 +135,7 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("Zedsecure", "https://github.com/CluvexStudio/ZedSecure/releases/latest"),
             ("OneXray", "https://github.com/YuanDevTeam/OneXray/releases/latest"),
             ("v2RayTun", "https://v2raytun.com/"),
+            ("Byp", "https://github.com/devlsam/byp/releases/latest"),
         ],
     ),
     "macos": (

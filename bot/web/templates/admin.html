@@ -1583,46 +1583,34 @@
 
             <!-- PANE: iOS Apps (Shadowrocket, Streisand, V2Box, Incy, Happ, OneXray, Hiddify) -->
             <div id="adminAppsPane_ios" class="admin-apps-pane space-y-2.5">
-              <!-- Recommended & Alternative App Selectors: iOS -->
-              <div class="space-y-2">
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
-                    <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
-                  </div>
+              <!-- Recommended, Alternative & 3rd App Selectors: iOS (3 boxes in 1 row) -->
+              <div class="grid grid-cols-3 gap-2">
+                <div class="relative min-w-0">
                   <input type="hidden" id="appRecommended_ios" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('ios', 'recommended')" id="appRecommendedBtn_ios" class="btn btn-secondary text-cyan-700 dark:text-cyan-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appRecommendedLabel_ios">بدون برنامه پیشنهادی</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('ios', 'recommended')" id="appRecommendedBtn_ios" title="برنامه پیشنهادی (رتبه 1)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-amber-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
+                    <span id="appRecommendedLabel_ios" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
-                    <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appAlternative_ios" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('ios', 'alternative')" id="appAlternativeBtn_ios" class="btn btn-secondary text-sky-700 dark:text-sky-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appAlternativeLabel_ios">بدون برنامه جایگزین</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('ios', 'alternative')" id="appAlternativeBtn_ios" title="برنامه جایگزین (رتبه 2)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-sky-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
+                    <span id="appAlternativeLabel_ios" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
-                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appThird_ios" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('ios', 'third')" id="appThirdBtn_ios" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appThirdLabel_ios">بدون برنامه رتبه سوم</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('ios', 'third')" id="appThirdBtn_ios" title="برنامه رتبه سوم (رتبه 3)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-emerald-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span id="appThirdLabel_ios" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
               </div>
 
               <!-- Shadowrocket -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/shadowrocket.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/shadowrocket.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Shadowrocket" loading="lazy" />
                     <b class="text-white text-xs font-bold font-sans">Shadowrocket</b>
@@ -1646,7 +1634,7 @@
 
               <!-- Streisand -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/streisand.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/streisand.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Streisand" loading="lazy" />
                     <b class="text-white text-xs font-bold font-sans">Streisand</b>
@@ -1670,7 +1658,7 @@
 
               <!-- V2Box -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/v2box.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/v2box.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="V2Box" loading="lazy" />
                     <b class="text-white text-xs font-bold font-sans">V2Box</b>
@@ -1694,7 +1682,7 @@
 
               <!-- Incy -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/incy.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/incy.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Incy" loading="lazy" />
                     <b class="text-white text-xs font-bold font-sans">Incy</b>
@@ -1718,7 +1706,7 @@
 
               <!-- Happ -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/happ.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/happ.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Happ" loading="lazy" />
                     <b class="text-white text-xs font-bold font-sans">Happ</b>
@@ -1742,7 +1730,7 @@
 
               <!-- OneXray -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/onexray.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/onexray.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="OneXray" loading="lazy" />
                     <b class="text-white text-xs font-bold font-sans">OneXray</b>
@@ -1766,7 +1754,7 @@
 
               <!-- Hiddify -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Hiddify</b>
@@ -1792,46 +1780,34 @@
 
             <!-- PANE: Android Apps (v2rayNG, Happ, Hiddify, Incy) -->
             <div id="adminAppsPane_android" class="admin-apps-pane space-y-2.5 hidden">
-              <!-- Recommended & Alternative App Selectors: Android -->
-              <div class="space-y-2">
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
-                    <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
-                  </div>
+              <!-- Recommended, Alternative & 3rd App Selectors: Android (3 boxes in 1 row) -->
+              <div class="grid grid-cols-3 gap-2">
+                <div class="relative min-w-0">
                   <input type="hidden" id="appRecommended_android" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('android', 'recommended')" id="appRecommendedBtn_android" class="btn btn-secondary text-cyan-700 dark:text-cyan-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appRecommendedLabel_android">بدون برنامه پیشنهادی</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('android', 'recommended')" id="appRecommendedBtn_android" title="برنامه پیشنهادی (رتبه 1)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-amber-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
+                    <span id="appRecommendedLabel_android" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
-                    <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appAlternative_android" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('android', 'alternative')" id="appAlternativeBtn_android" class="btn btn-secondary text-sky-700 dark:text-sky-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appAlternativeLabel_android">بدون برنامه جایگزین</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('android', 'alternative')" id="appAlternativeBtn_android" title="برنامه جایگزین (رتبه 2)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-sky-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
+                    <span id="appAlternativeLabel_android" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
-                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appThird_android" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('android', 'third')" id="appThirdBtn_android" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appThirdLabel_android">بدون برنامه رتبه سوم</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('android', 'third')" id="appThirdBtn_android" title="برنامه رتبه سوم (رتبه 3)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-emerald-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span id="appThirdLabel_android" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
               </div>
 
               <!-- v2rayNG -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/v2rayng.webp" class="w-5 h-5 rounded-md object-contain" alt="v2rayNG" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">v2rayNG</b>
@@ -1864,7 +1840,7 @@
 
               <!-- Happ -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/happ.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Happ</b>
@@ -1897,7 +1873,7 @@
 
               <!-- Hiddify -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/hiddify.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Hiddify</b>
@@ -1930,7 +1906,7 @@
 
               <!-- Incy -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Incy</b>
@@ -1960,46 +1936,34 @@
 
             <!-- PANE: Windows Apps (v2rayN, Hiddify, Happ, Incy) -->
             <div id="adminAppsPane_windows" class="admin-apps-pane space-y-2.5 hidden">
-              <!-- Recommended & Alternative App Selectors: Windows -->
-              <div class="space-y-2">
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
-                    <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
-                  </div>
+              <!-- Recommended, Alternative & 3rd App Selectors: Windows (3 boxes in 1 row) -->
+              <div class="grid grid-cols-3 gap-2">
+                <div class="relative min-w-0">
                   <input type="hidden" id="appRecommended_windows" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('windows', 'recommended')" id="appRecommendedBtn_windows" class="btn btn-secondary text-cyan-700 dark:text-cyan-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appRecommendedLabel_windows">بدون برنامه پیشنهادی</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('windows', 'recommended')" id="appRecommendedBtn_windows" title="برنامه پیشنهادی (رتبه 1)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-amber-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
+                    <span id="appRecommendedLabel_windows" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
-                    <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appAlternative_windows" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('windows', 'alternative')" id="appAlternativeBtn_windows" class="btn btn-secondary text-sky-700 dark:text-sky-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appAlternativeLabel_windows">بدون برنامه جایگزین</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('windows', 'alternative')" id="appAlternativeBtn_windows" title="برنامه جایگزین (رتبه 2)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-sky-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
+                    <span id="appAlternativeLabel_windows" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
-                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appThird_windows" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('windows', 'third')" id="appThirdBtn_windows" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appThirdLabel_windows">بدون برنامه رتبه سوم</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('windows', 'third')" id="appThirdBtn_windows" title="برنامه رتبه سوم (رتبه 3)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-emerald-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span id="appThirdLabel_windows" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
               </div>
 
               <!-- v2rayN -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/v2rayn.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="v2rayN" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">v2rayN</b>
@@ -2032,7 +1996,7 @@
 
               <!-- Hiddify -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/hiddify.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Hiddify</b>
@@ -2065,7 +2029,7 @@
 
               <!-- Happ -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/happ.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Happ</b>
@@ -2098,7 +2062,7 @@
 
               <!-- Incy -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/incy.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Incy</b>
@@ -2128,46 +2092,34 @@
 
             <!-- PANE: macOS Apps (Hiddify, Happ, Incy, V2Box) -->
             <div id="adminAppsPane_macos" class="admin-apps-pane space-y-2.5 hidden">
-              <!-- Recommended & Alternative App Selectors: macOS -->
-              <div class="space-y-2">
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
-                    <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
-                  </div>
+              <!-- Recommended, Alternative & 3rd App Selectors: macOS (3 boxes in 1 row) -->
+              <div class="grid grid-cols-3 gap-2">
+                <div class="relative min-w-0">
                   <input type="hidden" id="appRecommended_macos" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('macos', 'recommended')" id="appRecommendedBtn_macos" class="btn btn-secondary text-cyan-700 dark:text-cyan-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appRecommendedLabel_macos">بدون برنامه پیشنهادی</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('macos', 'recommended')" id="appRecommendedBtn_macos" title="برنامه پیشنهادی (رتبه 1)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-amber-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
+                    <span id="appRecommendedLabel_macos" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
-                    <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appAlternative_macos" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('macos', 'alternative')" id="appAlternativeBtn_macos" class="btn btn-secondary text-sky-700 dark:text-sky-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appAlternativeLabel_macos">بدون برنامه جایگزین</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('macos', 'alternative')" id="appAlternativeBtn_macos" title="برنامه جایگزین (رتبه 2)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-sky-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
+                    <span id="appAlternativeLabel_macos" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
-                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appThird_macos" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('macos', 'third')" id="appThirdBtn_macos" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appThirdLabel_macos">بدون برنامه رتبه سوم</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('macos', 'third')" id="appThirdBtn_macos" title="برنامه رتبه سوم (رتبه 3)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-emerald-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span id="appThirdLabel_macos" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
               </div>
 
               <!-- Hiddify (macOS) -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Hiddify</b>
@@ -2195,7 +2147,7 @@
 
               <!-- Happ (macOS) -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Happ</b>
@@ -2223,7 +2175,7 @@
 
               <!-- Incy (macOS) -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Incy</b>
@@ -2251,7 +2203,7 @@
 
               <!-- V2Box (macOS) -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">V2Box</b>
@@ -2281,46 +2233,34 @@
 
             <!-- PANE: Linux Apps (Hiddify, NekoRay, v2rayA, Incy) -->
             <div id="adminAppsPane_linux" class="admin-apps-pane space-y-2.5 hidden">
-              <!-- Recommended & Alternative App Selectors: Linux -->
-              <div class="space-y-2">
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
-                    <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
-                  </div>
+              <!-- Recommended, Alternative & 3rd App Selectors: Linux (3 boxes in 1 row) -->
+              <div class="grid grid-cols-3 gap-2">
+                <div class="relative min-w-0">
                   <input type="hidden" id="appRecommended_linux" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('linux', 'recommended')" id="appRecommendedBtn_linux" class="btn btn-secondary text-cyan-700 dark:text-cyan-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appRecommendedLabel_linux">بدون برنامه پیشنهادی</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('linux', 'recommended')" id="appRecommendedBtn_linux" title="برنامه پیشنهادی (رتبه 1)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-amber-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
+                    <span id="appRecommendedLabel_linux" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
-                    <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appAlternative_linux" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('linux', 'alternative')" id="appAlternativeBtn_linux" class="btn btn-secondary text-sky-700 dark:text-sky-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appAlternativeLabel_linux">بدون برنامه جایگزین</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('linux', 'alternative')" id="appAlternativeBtn_linux" title="برنامه جایگزین (رتبه 2)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-sky-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
+                    <span id="appAlternativeLabel_linux" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
-                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
-                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
-                  </div>
+                <div class="relative min-w-0">
                   <input type="hidden" id="appThird_linux" value="">
-                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('linux', 'third')" id="appThirdBtn_linux" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <span id="appThirdLabel_linux">بدون برنامه رتبه سوم</span>
-                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('linux', 'third')" id="appThirdBtn_linux" title="برنامه رتبه سوم (رتبه 3)" class="w-full p-2.5 rounded-2xl card-inset border border-[var(--card-border)] hover:border-emerald-400/50 transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm text-center">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span id="appThirdLabel_linux" class="text-xs font-sans font-medium truncate text-slate-400">انتخاب کنید</span>
                   </button>
                 </div>
               </div>
 
               <!-- Hiddify (Linux) -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Hiddify</b>
@@ -2349,7 +2289,7 @@
 
               <!-- NekoRay (Linux) -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/nekoray.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="NekoRay" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">NekoRay</b>
@@ -2378,7 +2318,7 @@
 
               <!-- v2rayA (Linux) -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/v2raya.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="v2rayA" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">v2rayA</b>
@@ -2407,7 +2347,7 @@
 
               <!-- Incy (Linux) -->
               <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
                     <b class="text-white text-xs font-bold font-sans">Incy</b>

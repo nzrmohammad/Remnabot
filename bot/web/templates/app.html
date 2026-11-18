@@ -2981,8 +2981,8 @@
     <!-- ======================================================== -->
     <!-- 8. MODAL: CONNECTION GUIDE & APPS (راهنمای اتصال و دانلود برنامه‌ها) -->
     <!-- ======================================================== -->
-    <div id="tutorialModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[380px] shadow-2xl relative my-auto text-xs max-h-[85vh] flex flex-col space-y-3">
+    <div id="tutorialModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[420px] sm:max-w-[450px] shadow-2xl relative my-auto text-xs h-[86vh] max-h-[92vh] flex flex-col space-y-3">
         <!-- Close Button -->
         <button id="closeTutorialModalBtn" type="button" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن راهنمای اتصال"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
@@ -3016,7 +3016,7 @@
         </div>
 
         <!-- Apps List Container (with breathing room so cards never touch the scrollbar) -->
-        <div id="tutorialAppsList" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 py-1 px-2.5 max-h-[48vh]">
+        <div id="tutorialAppsList" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 py-1 px-2.5 min-h-0">
           <!-- Dynamically populated based on active OS -->
         </div>
 

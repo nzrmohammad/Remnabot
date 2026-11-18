@@ -354,6 +354,7 @@ GITHUB_REPOS: dict[str, str] = {
     "onexray": "YuanDevTeam/OneXray",
     "incy": "INCY-DEV/incy-platforms",
     "v2raytun": "DigneZzZ/v2raytun",
+    "byp": "devlsam/byp",
 }
 
 APPSTORE_IDS: dict[str, str] = {
@@ -525,6 +526,8 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                     if app_id == "blackwall" and clean_ver.lower().endswith("-en"):
                         clean_ver = clean_ver[:-3]
                     if app_id == "happ":
+                        dl_map.setdefault("windows", {})["version"] = clean_ver
+                        dl_map.setdefault("macos", {})["version"] = clean_ver
                         try:
                             async with session.get("https://api.github.com/repos/Happ-proxy/happ-android/releases/latest", timeout=6) as a_resp:
                                 if a_resp.status == 200:
@@ -537,6 +540,17 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                                         dl_map.setdefault("android", {})["version"] = a_tag
                         except Exception:
                             pass
+                    if app_id == "incy":
+                        body_str = f"{release.get('name') or ''} {release.get('body') or ''}"
+                        d_m = re.search(r"Desktop\s*\*\*([0-9.]+)\*\*", body_str, re.IGNORECASE)
+                        a_m = re.search(r"Android\s*\*\*([0-9.]+)\*\*", body_str, re.IGNORECASE)
+                        d_ver = d_m.group(1) if d_m else "3.9.1"
+                        a_ver = a_m.group(1) if a_m else "4.0.1"
+                        dl_map.setdefault("windows", {})["version"] = d_ver
+                        dl_map.setdefault("macos", {})["version"] = d_ver
+                        dl_map.setdefault("linux", {})["version"] = d_ver
+                        dl_map.setdefault("android", {})["version"] = a_ver
+                        clean_ver = d_ver
                     return app_id, clean_ver, dl_map
         except Exception as exc:
             if idx == len(candidates) - 1:
@@ -552,12 +566,14 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                 raw_tag = loc.rstrip("/").split("/")[-1].strip()
                 clean_ver = raw_tag.lstrip("vV")
                 if clean_ver.lower() in ("latest", "release", "current") and app_id == "incy":
-                    clean_ver = "4.0.1"
+                    clean_ver = "3.9.1"
                 if clean_ver:
                     if app_id == "blackwall" and clean_ver.lower().endswith("-en"):
                         clean_ver = clean_ver[:-3]
                     dl_map: dict[str, dict[str, str]] = {}
                     if app_id == "happ":
+                        dl_map.setdefault("windows", {})["version"] = clean_ver
+                        dl_map.setdefault("macos", {})["version"] = clean_ver
                         try:
                             async with session.get("https://github.com/Happ-proxy/happ-android/releases/latest", allow_redirects=False, timeout=8) as ar:
                                 aloc = ar.headers.get("Location") or ""
@@ -567,6 +583,12 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                                         dl_map["android"] = {"version": a_tag}
                         except Exception:
                             pass
+                    if app_id == "incy":
+                        dl_map.setdefault("windows", {})["version"] = "3.9.1"
+                        dl_map.setdefault("macos", {})["version"] = "3.9.1"
+                        dl_map.setdefault("linux", {})["version"] = "3.9.1"
+                        dl_map.setdefault("android", {})["version"] = "4.0.1"
+                        clean_ver = "3.9.1"
                     return app_id, clean_ver, dl_map
     except Exception as exc:
         logger.debug("HTML redirect fallback failed for %s: %s", repo, exc)

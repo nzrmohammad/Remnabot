@@ -32,7 +32,7 @@
   const OS_APPS_MAP = {
     ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify', 'karing', 'v2raytun'],
     android: ['v2rayng', 'pattng', 'happ', 'hiddify', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall'],
-    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall'],
+    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall', 'byp'],
     macos: ['hiddify', 'karing', 'pattn', 'zedsecure', 'happ', 'incy', 'v2box', 'v2raytun', 'blackwall'],
     linux: ['hiddify', 'karing', 'pattn', 'zedsecure', 'incy', 'nekoray', 'v2raya', 'blackwall'],
   };
@@ -49,6 +49,7 @@
     hiddify: { name: 'Hiddify' },
     nekoray: { name: 'NekoRay' },
     v2raya: { name: 'v2rayA' },
+    byp: { name: 'Byp', icon: '⚡', version: '1.1.0', hasGithub: true, hasPortable: true },
     karing: { name: 'Karing', icon: '🚗', version: '1.2.26', hasGithub: true, hasPortable: true, hasStoreOnMac: true },
     pattn: { name: 'PattN', icon: '⚡️', version: '7.25.6', hasGithub: true, hasPortable: true },
     pattng: { name: 'PattNG', icon: '⚡️', version: '2.3.15', hasGithub: true },
@@ -61,7 +62,7 @@
     const extraByOs = {
       ios: ['karing', 'v2raytun'],
       android: ['pattng', 'karing', 'zedsecure', 'v2raytun', 'blackwall'],
-      windows: ['pattn', 'karing', 'zedsecure', 'v2raytun', 'blackwall'],
+      windows: ['pattn', 'karing', 'zedsecure', 'v2raytun', 'blackwall', 'byp'],
       macos: ['karing', 'pattn', 'zedsecure', 'v2raytun', 'blackwall'],
       linux: ['karing', 'pattn', 'zedsecure', 'blackwall'],
     };
@@ -98,7 +99,7 @@
           </button>` : '';
         return `
           <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
-            <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+            <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
               <div class="flex items-center gap-2">
                 <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="${meta.name}" loading="lazy" />
                 <span class="text-sm leading-none hidden" style="display:none;">${meta.icon || '📱'}</span>
@@ -943,7 +944,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
       const pickerRole = (role === 'alternative' || role === 'third') ? role : 'recommended';
       const osNames = { ios: 'iOS', android: 'اندروید', windows: 'ویندوز', macos: 'مک', linux: 'لینوکس' };
-      const emptyLabel = pickerRole === 'third' ? 'بدون برنامه رتبه سوم' : (pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی');
+      const emptyLabel = 'حذف انتخاب (بدون برنامه)';
       const roleIcon = pickerRole === 'third'
         ? '<img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400 inline-block align-middle" width="16" height="16" alt="" />'
         : (pickerRole === 'alternative'
@@ -1001,9 +1002,22 @@ openUserChat(telegram_id, name, tag, topup_id) {
     updateRecommendedAppButton(os, appId, role = 'recommended') {
       const pickerRole = (role === 'alternative' || role === 'third') ? role : 'recommended';
       const lbl = $(pickerRole === 'third' ? `appThirdLabel_${os}` : (pickerRole === 'alternative' ? `appAlternativeLabel_${os}` : `appRecommendedLabel_${os}`));
+      const btn = $(pickerRole === 'third' ? `appThirdBtn_${os}` : (pickerRole === 'alternative' ? `appAlternativeBtn_${os}` : `appRecommendedBtn_${os}`));
       if (lbl) {
-        const emptyLabel = pickerRole === 'third' ? 'بدون برنامه رتبه سوم' : (pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی');
-        lbl.innerText = appId ? (CLIENT_APP_META[appId]?.name || appId) : emptyLabel;
+        if (appId) {
+          lbl.innerText = CLIENT_APP_META[appId]?.name || appId;
+          lbl.className = 'text-xs font-sans font-bold truncate ' + (
+            pickerRole === 'recommended' ? 'text-amber-400' : (pickerRole === 'alternative' ? 'text-sky-400' : 'text-emerald-400')
+          );
+          btn?.classList.remove('border-amber-500/50', 'border-sky-500/50', 'border-emerald-500/50');
+          btn?.classList.add(
+            pickerRole === 'recommended' ? 'border-amber-500/50' : (pickerRole === 'alternative' ? 'border-sky-500/50' : 'border-emerald-500/50')
+          );
+        } else {
+          lbl.innerText = 'انتخاب کنید';
+          lbl.className = 'text-xs font-sans font-medium truncate text-slate-400';
+          btn?.classList.remove('border-amber-500/50', 'border-sky-500/50', 'border-emerald-500/50');
+        }
       }
     }
   });
@@ -2323,10 +2337,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const dlInfo = modalGithubData.downloads[appId] || {};
       const directDlUrl = dlInfo.android?.direct_url || dlInfo.windows?.url || dlInfo.windows?.portable_url || '';
 
-      let displayLatestVer = latestVer || '—';
-      if (appId === 'happ' && dlInfo.android?.version && latestVer) {
-        displayLatestVer = `${latestVer} (دسکتاپ) / ${dlInfo.android.version} (اندروید)`;
-      }
+      const isMultiOsApp = (appId === 'happ' && Boolean(dlInfo.android?.version)) ||
+                           (appId === 'incy') ||
+                           (Boolean(dlInfo.android?.version) && Boolean(dlInfo.windows?.version) && dlInfo.android.version !== dlInfo.windows.version);
 
       const supportedOses = Object.entries(OS_APPS_MAP).filter(([_, ids]) => ids.includes(appId)).map(([os]) => os);
       const osBadges = supportedOses.map(os => {
@@ -2337,6 +2350,60 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
       const isIosOnly = (supportedOses.length === 1 && supportedOses[0] === 'ios') || ['shadowrocket', 'streisand', 'onexray'].includes(appId);
       const applyIcon = isIosOnly ? '/static/img/icons/ios.svg?v=fl2' : '/static/img/icons/github.svg?v=fl2';
+
+      let versionSectionHtml = '';
+      if (isMultiOsApp) {
+        const desktopVer = dlInfo.windows?.version || dlInfo.macos?.version || dlInfo.linux?.version || latestVer || '';
+        const androidVer = dlInfo.android?.version || (appId === 'incy' ? '4.0.1' : '');
+        const curDesktop = $(`appVersion_windows_${appId}`)?.value || $(`appVersion_macos_${appId}`)?.value || '';
+        const curAndroid = $(`appVersion_android_${appId}`)?.value || '';
+        const curIos = $(`appVersion_ios_${appId}`)?.value || '';
+
+        versionSectionHtml = `
+          <!-- Row 2: Versions Display (Stacked vertically for Multi-OS apps) -->
+          <div class="space-y-1.5 text-xs card-inset rounded-xl p-2.5 border border-[var(--card-border)]">
+            <div class="text-[10px] t-accent font-bold px-1 mb-1">آخرین نسخه (گیت‌هاب):</div>
+            <div class="flex items-center justify-between px-1">
+              <span class="t-muted text-[11px]">🖥️ نسخه دسکتاپ (Windows / Mac / Linux):</span>
+              <b class="font-sans ${desktopVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${desktopVer ? `v${escapeHtml(desktopVer)}` : '—'}</b>
+            </div>
+            <div class="flex items-center justify-between px-1">
+              <span class="t-muted text-[11px]">🤖 نسخه اندروید (Android):</span>
+              <b class="font-sans ${androidVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${androidVer ? `v${escapeHtml(androidVer)}` : '—'}</b>
+            </div>
+            <div class="border-t border-slate-700/30 pt-1.5 mt-1 space-y-1">
+              <div class="text-[10px] t-muted font-medium px-1">نسخه فعلی در تنظیمات:</div>
+              <div class="flex items-center justify-between px-1">
+                <span class="t-muted text-[11px]">دسکتاپ:</span>
+                <b class="font-sans t-main num-bidi" dir="ltr">${escapeHtml(curDesktop || '—')}</b>
+              </div>
+              <div class="flex items-center justify-between px-1">
+                <span class="t-muted text-[11px]">اندروید:</span>
+                <b class="font-sans t-main num-bidi" dir="ltr">${escapeHtml(curAndroid || '—')}</b>
+              </div>
+              ${curIos ? `
+              <div class="flex items-center justify-between px-1">
+                <span class="t-muted text-[11px]">iOS:</span>
+                <b class="font-sans t-main num-bidi" dir="ltr">${escapeHtml(curIos)}</b>
+              </div>` : ''}
+            </div>
+          </div>
+        `;
+      } else {
+        versionSectionHtml = `
+          <!-- Row 2: Versions Display (Stacked vertically) -->
+          <div class="space-y-1.5 text-xs card-inset rounded-xl p-2.5 border border-[var(--card-border)]">
+            <div class="flex items-center justify-between px-1">
+              <span class="t-muted text-[11px]">نسخه فعلی:</span>
+              <b class="font-sans t-main num-bidi" dir="ltr">${escapeHtml(currentVer || '—')}</b>
+            </div>
+            <div class="flex items-center justify-between px-1">
+              <span class="t-muted text-[11px]">آخرین نسخه:</span>
+              <b class="font-sans ${latestVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${latestVer ? `v${escapeHtml(latestVer)}` : '—'}</b>
+            </div>
+          </div>
+        `;
+      }
 
       return `
         <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-2.5">
@@ -2355,17 +2422,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
             </div>
           </div>
 
-          <!-- Row 2: Versions Display (Stacked vertically) -->
-          <div class="space-y-1.5 text-xs card-inset rounded-xl p-2.5 border border-[var(--card-border)]">
-            <div class="flex items-center justify-between px-1">
-              <span class="t-muted text-[11px]">نسخه فعلی:</span>
-              <b class="font-sans t-main num-bidi" dir="ltr">${escapeHtml(currentVer || '—')}</b>
-            </div>
-            <div class="flex items-center justify-between px-1">
-              <span class="t-muted text-[11px]">آخرین نسخه:</span>
-              <b class="font-sans ${latestVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${escapeHtml(displayLatestVer)}</b>
-            </div>
-          </div>
+          ${versionSectionHtml}
 
           <!-- Row 3: Action Buttons (Right: اعمال, Left: استعلام) -->
           <div dir="rtl" class="flex items-center justify-between pt-1 border-t border-[var(--card-border)]">
