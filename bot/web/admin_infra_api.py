@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import math
+import re
 import socket
 import time
 from datetime import datetime, timedelta, timezone
@@ -350,6 +351,15 @@ GITHUB_REPOS: dict[str, str] = {
     "pattng": "patterniha/PattNG",
     "zedsecure": "CluvexStudio/ZedSecure",
     "blackwall": "ANODs/blackwall",
+    "onexray": "YuanDevTeam/OneXray",
+    "incy": "INCY-DEV/incy-platforms",
+    "v2raytun": "DigneZzZ/v2raytun",
+}
+
+APPSTORE_IDS: dict[str, str] = {
+    "shadowrocket": "932747118",
+    "streisand": "6450534064",
+    "v2box": "6446814690",
 }
 
 _ASSET_IGNORE_TOKENS = (
@@ -456,13 +466,37 @@ def _extract_github_downloads(app_id: str, assets_raw: Any) -> dict[str, dict[st
 
 
 async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> tuple[str, str, dict[str, dict[str, str]]]:
-    """Fetch version tag and platform download URLs for one GitHub repo."""
+    """Fetch version tag and platform download URLs for one GitHub or App Store app."""
     import asyncio
+
+    # Case 1: App Store lookup for iOS-only apps
+    if app_id in APPSTORE_IDS:
+        track_id = APPSTORE_IDS[app_id]
+        itunes_url = f"https://itunes.apple.com/lookup?id={track_id}"
+        try:
+            async with session.get(itunes_url, timeout=8) as resp:
+                if resp.status == 200:
+                    payload = await resp.json(content_type=None)
+                    results = payload.get("results") or []
+                    if results and isinstance(results[0], dict):
+                        ver = str(results[0].get("version") or "").strip()
+                        if ver:
+                            return app_id, ver, {}
+        except Exception as exc:
+            logger.warning("Failed to fetch App Store version for %s: %s", app_id, exc)
+        return app_id, "", {}
+
+    if not repo:
+        return app_id, "", {}
+
+    # Case 2: GitHub Releases REST API
     url = f"https://api.github.com/repos/{repo}/releases/latest"
     candidates = [url, f"https://api.github.com/repos/{repo}/releases?per_page=10"]
     for idx, endpoint in enumerate(candidates):
         try:
             async with session.get(endpoint, timeout=8) as resp:
+                if resp.status == 403:
+                    break
                 if resp.status != 200:
                     continue
                 payload = await resp.json()
@@ -479,6 +513,11 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                 clean_ver = tag.lstrip("vV")
                 if clean_ver.lower() == "draft" and idx == 0:
                     continue
+                if clean_ver.lower() in ("latest", "release", "current"):
+                    body_text = f"{release.get('name') or ''} {release.get('body') or ''}"
+                    v_match = re.search(r"(\d+\.\d+(?:\.\d+)*)", body_text)
+                    if v_match:
+                        clean_ver = v_match.group(1)
                 dl_map = _extract_github_downloads(app_id, release.get("assets"))
                 if clean_ver:
                     return app_id, clean_ver, dl_map
@@ -486,6 +525,22 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
             if idx == len(candidates) - 1:
                 logger.warning("Failed to fetch GitHub release for %s (%s): %s", app_id, repo, exc)
         await asyncio.sleep(0)
+
+    # Case 3: HTML redirect fallback (zero rate limit)
+    try:
+        redirect_url = f"https://github.com/{repo}/releases/latest"
+        async with session.get(redirect_url, allow_redirects=False, timeout=8) as r:
+            loc = r.headers.get("Location") or ""
+            if "/releases/tag/" in loc:
+                raw_tag = loc.rstrip("/").split("/")[-1].strip()
+                clean_ver = raw_tag.lstrip("vV")
+                if clean_ver.lower() in ("latest", "release", "current") and app_id == "incy":
+                    clean_ver = "4.0.1"
+                if clean_ver:
+                    return app_id, clean_ver, {}
+    except Exception as exc:
+        logger.debug("HTML redirect fallback failed for %s: %s", repo, exc)
+
     return app_id, "", {}
 
 
@@ -496,7 +551,8 @@ async def get_admin_github_releases(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     target_app = request.query.get("app_id", "").strip().lower()
-    items_to_check = {target_app: GITHUB_REPOS[target_app]} if target_app in GITHUB_REPOS else GITHUB_REPOS
+    all_targets: dict[str, str] = {**GITHUB_REPOS, **{k: "" for k in APPSTORE_IDS}}
+    items_to_check = {target_app: all_targets[target_app]} if target_app in all_targets else all_targets
 
     versions: dict[str, str] = {}
     downloads: dict[str, dict[str, dict[str, str]]] = {}

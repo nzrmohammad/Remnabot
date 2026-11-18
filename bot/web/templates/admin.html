@@ -4550,18 +4550,12 @@
           <button type="button" onclick="window.closeGithubAppSyncModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
 
-        <!-- Search & Global Sync Action Bar -->
-        <div class="space-y-2 shrink-0">
-          <div class="relative">
-            <input type="text" id="githubAppSearchInput" oninput="window.filterGithubAppSyncList(this.value)" placeholder="جستجوی برنامه..." class="input-base text-xs pr-9 pl-3 py-2.5 rounded-xl w-full" />
-            <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
-              <img src="/static/img/icons/search.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 opacity-60" width="14" height="14" alt="" />
-            </span>
-          </div>
+        <!-- Global Sync Action Bar -->
+        <div class="shrink-0">
           <div class="flex items-center gap-2">
             <button type="button" id="githubAppModalFetchAllBtn" onclick="window.fetchAllGithubReleasesInModal()" class="flex-1 btn btn-secondary text-xs py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
               <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-              <span>استعلام زنده از GitHub</span>
+              <span>استعلام از GitHub</span>
             </button>
             <button type="button" id="githubAppModalApplyAllBtn" onclick="window.applyAllGithubSyncToForm()" class="flex-1 btn btn-primary text-xs py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
               <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />

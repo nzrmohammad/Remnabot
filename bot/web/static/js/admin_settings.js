@@ -2082,6 +2082,15 @@ openUserChat(telegram_id, name, tag, topup_id) {
     v2box: { appStore: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814043' },
     happ: { playStore: 'https://play.google.com/store/apps/details?id=com.happproxy' },
     v2raytun: { playStore: 'https://play.google.com/store/apps/details?id=com.v2raytun.android', appStore: 'https://apps.apple.com/app/v2raytun/id6476628114' },
+    onexray: { appStore: 'https://apps.apple.com/app/onexray/id6745748773' },
+  };
+
+  const OS_ICON_MAP = {
+    windows: { icon: '/static/img/icons/windows.svg?v=fl2', title: 'Windows' },
+    ios: { icon: '/static/img/icons/ios.svg?v=fl2', title: 'iOS' },
+    android: { icon: '/static/img/icons/android.svg?v=fl2', title: 'Android' },
+    macos: { icon: '/static/img/icons/macos.svg?v=fl2', title: 'macOS' },
+    linux: { icon: '/static/img/icons/linux.svg?v=fl2', title: 'Linux' },
   };
 
   let modalGithubData = {
@@ -2228,15 +2237,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
   function renderGithubAppSyncModalCards() {
     const container = $('githubAppSyncListContainer');
     if (!container) return;
-    const query = modalGithubData.searchQuery;
-    const appIds = Object.keys(CLIENT_APP_META).filter(id => {
-      if (!query) return true;
-      const meta = CLIENT_APP_META[id] || {};
-      return id.toLowerCase().includes(query) || (meta.name && meta.name.toLowerCase().includes(query));
-    });
+    const appIds = Object.keys(CLIENT_APP_META);
 
     if (appIds.length === 0) {
-      container.innerHTML = `<div class="p-8 text-center t-muted text-xs">هیچ برنامه‌ای منطبق با جستجو یافت نشد.</div>`;
+      container.innerHTML = `<div class="p-8 text-center t-muted text-xs">هیچ برنامه‌ای یافت نشد.</div>`;
       return;
     }
 
@@ -2250,7 +2254,11 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const directDlUrl = dlInfo.android?.direct_url || dlInfo.windows?.url || dlInfo.windows?.portable_url || '';
 
       const supportedOses = Object.entries(OS_APPS_MAP).filter(([_, ids]) => ids.includes(appId)).map(([os]) => os);
-      const osBadges = supportedOses.map(os => `<span class="px-1.5 py-0.5 rounded text-[10px] card-inset border border-slate-700/50 t-muted font-sans uppercase">${os}</span>`).join(' ');
+      const osBadges = supportedOses.map(os => {
+        const info = OS_ICON_MAP[os];
+        if (!info) return '';
+        return `<span class="w-6 h-6 rounded-lg card-inset border border-slate-700/50 flex items-center justify-center p-1" title="${info.title}" aria-label="${info.title}"><img src="${info.icon}" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="${info.title}" /></span>`;
+      }).join(' ');
 
       const playPresetBtn = presets.playStore ? `
         <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'play', '${presets.playStore}')" class="w-8 h-8 rounded-xl card-inset border border-emerald-500/30 hover:border-emerald-500/70 text-emerald-400 flex items-center justify-center transition active:scale-95 shadow-sm" title="درج لینک Google Play" aria-label="Google Play">
@@ -2287,27 +2295,27 @@ openUserChat(telegram_id, name, tag, topup_id) {
             </div>
           </div>
 
-          <!-- Row 2: Versions Display -->
-          <div class="grid grid-cols-2 gap-2 text-xs card-inset rounded-xl p-2.5 border border-slate-700/40">
-            <div class="flex items-center justify-between px-1.5">
+          <!-- Row 2: Versions Display (Stacked vertically) -->
+          <div class="space-y-1.5 text-xs card-inset rounded-xl p-2.5 border border-[var(--card-border)]">
+            <div class="flex items-center justify-between px-1">
               <span class="t-muted text-[11px]">نسخه فعلی:</span>
-              <b class="font-sans t-main">${escapeHtml(currentVer || '—')}</b>
+              <b class="font-sans t-main num-bidi" dir="ltr">${escapeHtml(currentVer || '—')}</b>
             </div>
-            <div class="flex items-center justify-between px-1.5">
-              <span class="t-muted text-[11px]">آخرین GitHub:</span>
-              <b class="font-sans ${latestVer ? 'text-emerald-400' : 't-muted'}">${escapeHtml(latestVer || '—')}</b>
+            <div class="flex items-center justify-between px-1">
+              <span class="t-muted text-[11px]">آخرین نسخه:</span>
+              <b class="font-sans ${latestVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${escapeHtml(latestVer || '—')}</b>
             </div>
           </div>
 
           <!-- Row 3: Action Buttons & Store Icons in Separate Line -->
-          <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-700/40">
+          <div class="flex items-center justify-between gap-2 pt-1 border-t border-[var(--card-border)]">
             <div class="flex items-center gap-1.5" dir="ltr">
               ${playPresetBtn}
               ${appStorePresetBtn}
               ${directPresetBtn}
             </div>
             <div class="flex items-center gap-2">
-              <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="استعلام از GitHub">
+              <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="استعلام نسخه">
                 <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
                 <span>استعلام</span>
               </button>
