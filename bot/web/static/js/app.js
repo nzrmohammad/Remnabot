@@ -1230,7 +1230,7 @@ function renderTutorialApps(osKey) {
           <!-- Right side: App Icon + Name -->
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-10 h-10 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
-              <img src="/static/img/apps/${app.id}.png" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="if(!this.dataset.triedWebp){this.dataset.triedWebp='1';this.src='/static/img/apps/${app.id}.webp';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" />
+              <img src="/static/img/apps/${app.id}.webp?v=fl3" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${app.id}.png?v=fl3';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
             <div class="min-w-0 flex-1">

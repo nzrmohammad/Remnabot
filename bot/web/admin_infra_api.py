@@ -520,6 +520,18 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                         clean_ver = v_match.group(1)
                 dl_map = _extract_github_downloads(app_id, release.get("assets"))
                 if clean_ver:
+                    if app_id == "blackwall" and clean_ver.lower().endswith("-en"):
+                        clean_ver = clean_ver[:-3]
+                    if app_id == "happ" and "android" not in dl_map:
+                        try:
+                            async with session.get("https://api.github.com/repos/Happ-proxy/happ-android/releases/latest", timeout=6) as a_resp:
+                                if a_resp.status == 200:
+                                    a_data = await a_resp.json()
+                                    a_dl = _extract_github_downloads("happ", a_data.get("assets"))
+                                    if "android" in a_dl:
+                                        dl_map["android"] = a_dl["android"]
+                        except Exception:
+                            pass
                     return app_id, clean_ver, dl_map
         except Exception as exc:
             if idx == len(candidates) - 1:
@@ -537,6 +549,8 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                 if clean_ver.lower() in ("latest", "release", "current") and app_id == "incy":
                     clean_ver = "4.0.1"
                 if clean_ver:
+                    if app_id == "blackwall" and clean_ver.lower().endswith("-en"):
+                        clean_ver = clean_ver[:-3]
                     return app_id, clean_ver, {}
     except Exception as exc:
         logger.debug("HTML redirect fallback failed for %s: %s", repo, exc)

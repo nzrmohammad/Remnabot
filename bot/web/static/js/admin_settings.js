@@ -85,17 +85,17 @@
           </div>` : '';
         const portableRow = (os === 'windows' && meta.hasPortable) ? `
           <div>
-            <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه Portable:</label>
-            <input type="text" id="appDownloadPortable_${os}_${appId}" dir="ltr" placeholder="لینک نسخه پرتابل (اختیاری)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
+            <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
+            <input type="text" id="appDownloadPortable_${os}_${appId}" dir="ltr" placeholder="لینک نسخه پرتابل (اختیاری)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
           </div>` : '';
         const ghBtn = meta.hasGithub ? `
-          <button type="button" onclick="window.fetchGithubAppVersion('${appId}', '${os}')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه و لینک از گیت‌هاب">
-            <span>🐙</span><span>گیت‌هاب</span>
+          <button type="button" onclick="window.fetchGithubAppVersion('${appId}', '${os}')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+            <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="GitHub" />
           </button>` : '';
         return `
-          <div class="p-3 rounded-2xl border border-slate-700/50 space-y-2 bg-transparent">
+          <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
             <div class="flex items-center gap-2">
-              <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain" alt="${meta.name}" loading="lazy" />
+              <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain" alt="${meta.name}" loading="lazy" />
               <span class="text-sm leading-none hidden" style="display:none;">${meta.icon || '📱'}</span>
               <b class="text-white text-xs">${meta.name}</b>
             </div>
@@ -923,7 +923,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const currentVal = $(inputId)?.value || '';
       const appIds = OS_APPS_MAP[os] || [];
       let html = `
-        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', '${emptyLabel}', '${pickerRole}')" dir="ltr" class="w-full p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-card-border t-muted hover:t-main'} active:scale-95">
+        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', '${emptyLabel}', '${pickerRole}')" dir="rtl" class="w-full p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-card-border t-muted hover:t-main'} active:scale-95">
           <div class="flex items-center gap-2.5">
             <img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 opacity-60" width="16" height="16" alt="" />
             <span class="text-xs font-sans font-medium">${emptyLabel}</span>
@@ -938,7 +938,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         html += `
           <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}', '${pickerRole}')" dir="ltr" class="w-full p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-card-border t-muted hover:t-main'} active:scale-95">
             <div class="flex items-center gap-2.5">
-              <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';}" class="w-6 h-6 rounded-lg object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
+              <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';}" class="w-6 h-6 rounded-lg object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
               <span class="font-sans font-bold text-xs">${escapeHtml(appName)}</span>
             </div>
             ${isSelected ? '<span class="t-accent font-bold">✓</span>' : ''}
@@ -2080,9 +2080,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
     streisand: { appStore: 'https://apps.apple.com/app/streisand/id6450534064' },
     shadowrocket: { appStore: 'https://apps.apple.com/app/shadowrocket/id932747118' },
     v2box: { appStore: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814043' },
-    happ: { playStore: 'https://play.google.com/store/apps/details?id=com.happproxy' },
+    happ: { playStore: 'https://play.google.com/store/apps/details?id=com.happproxy', appStore: 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215' },
     v2raytun: { playStore: 'https://play.google.com/store/apps/details?id=com.v2raytun.android', appStore: 'https://apps.apple.com/app/v2raytun/id6476628114' },
     onexray: { appStore: 'https://apps.apple.com/app/onexray/id6745748773' },
+    incy: { playStore: 'https://play.google.com/store/apps/details?id=com.incy.app', appStore: 'https://apps.apple.com/us/app/incy/id6756943388' },
   };
 
   const OS_ICON_MAP = {
@@ -2260,31 +2261,13 @@ openUserChat(telegram_id, name, tag, topup_id) {
         return `<span class="w-6 h-6 rounded-lg card-inset border border-slate-700/50 flex items-center justify-center p-1" title="${info.title}" aria-label="${info.title}"><img src="${info.icon}" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="${info.title}" /></span>`;
       }).join(' ');
 
-      const playPresetBtn = presets.playStore ? `
-        <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'play', '${presets.playStore}')" class="w-8 h-8 rounded-xl card-inset border border-emerald-500/30 hover:border-emerald-500/70 text-emerald-400 flex items-center justify-center transition active:scale-95 shadow-sm" title="درج لینک Google Play" aria-label="Google Play">
-          <img src="/static/img/icons/android.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="Google Play" />
-        </button>
-      ` : '';
-
-      const appStorePresetBtn = presets.appStore ? `
-        <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'appstore', '${presets.appStore}')" class="w-8 h-8 rounded-xl card-inset border border-sky-500/30 hover:border-sky-500/70 text-sky-400 flex items-center justify-center transition active:scale-95 shadow-sm" title="درج لینک App Store" aria-label="App Store">
-          <img src="/static/img/icons/ios.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="App Store" />
-        </button>
-      ` : '';
-
-      const directPresetBtn = directDlUrl ? `
-        <div class="w-8 h-8 rounded-xl card-inset border border-purple-500/30 text-purple-400 flex items-center justify-center shadow-sm" title="فایل دانلود گیت‌هاب آماده است" aria-label="دانلود مستقیم">
-          <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="دانلود مستقیم" />
-        </div>
-      ` : '';
-
       return `
         <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-2.5">
           <!-- Row 1: App Identity (LTR) -->
           <div dir="ltr" class="flex items-center justify-between gap-2.5">
             <div class="flex items-center gap-2.5 min-w-0">
               <div class="w-10 h-10 rounded-xl card-inset p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-                <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';}" class="w-full h-full object-contain rounded-lg" alt="${escapeHtml(appName)}" loading="lazy" />
+                <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';}" class="w-full h-full object-contain rounded-lg" alt="${escapeHtml(appName)}" loading="lazy" />
               </div>
               <div class="min-w-0 text-left">
                 <b class="text-sm t-main font-bold truncate block font-sans tracking-wide">${escapeHtml(appName)}</b>
@@ -2307,23 +2290,16 @@ openUserChat(telegram_id, name, tag, topup_id) {
             </div>
           </div>
 
-          <!-- Row 3: Action Buttons & Store Icons in Separate Line -->
-          <div class="flex items-center justify-between gap-2 pt-1 border-t border-[var(--card-border)]">
-            <div class="flex items-center gap-1.5" dir="ltr">
-              ${playPresetBtn}
-              ${appStorePresetBtn}
-              ${directPresetBtn}
-            </div>
-            <div class="flex items-center gap-2">
-              <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="استعلام نسخه">
-                <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-                <span>استعلام</span>
-              </button>
-              <button type="button" onclick="window.applySingleAppGithubToForm('${appId}')" class="btn btn-primary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="اعمال به فرم تنظیمات">
-                <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-                <span>اعمال</span>
-              </button>
-            </div>
+          <!-- Row 3: Action Buttons (Right-aligned in RTL) -->
+          <div class="flex items-center justify-start gap-2 pt-1 border-t border-[var(--card-border)]">
+            <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="استعلام نسخه">
+              <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span>استعلام</span>
+            </button>
+            <button type="button" onclick="window.applySingleAppGithubToForm('${appId}')" class="btn btn-primary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="اعمال به فرم تنظیمات">
+              <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span>اعمال</span>
+            </button>
           </div>
         </div>
       `;
