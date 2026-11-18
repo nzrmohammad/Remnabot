@@ -22,6 +22,7 @@
 ## 📖 Table of Contents
 - [⚡ Key Features](#-key-features)
 - [📱 UI & Mini App Showcase](#-ui--mini-app-showcase)
+- [📱 Supported Client Applications & OS Compatibility](#-supported-client-applications--os-compatibility)
 - [🏛 Project Architecture](#-project-architecture)
 - [⚡ Zero-Conflict Deployment Model](#-zero-conflict-deployment-model)
 - [📦 Prerequisites & Compatibility](#-prerequisites--compatibility)
@@ -130,6 +131,34 @@ Remnabot provides a production-grade Telegram client portal and administrative o
 </div>
 
 </details>
+
+---
+
+## 📱 Supported Client Applications & OS Compatibility
+
+Remnabot features a dynamic client app recommendation and sync engine. Administrators can set 🥇 **Recommended**, 🥈 **Alternative**, and 🥉 **3rd-Tier** applications per operating system, with automatic live version and download link extraction from official GitHub repositories and pre-linked Google Play and Apple App Store shortcuts.
+
+### جدول سیستم‌عامل‌های تحت پشتیبانی نرم‌افزارها
+
+| نام نرم‌افزار | هسته اصلی (Core) | Android | iOS | Windows | macOS | Linux | توضیحات و کاربری اصلی |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Hiddify** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | کلاینت چندسکویی کامل، رابط کاربری فوق‌العاده مدرن و ساده، پشتیبانی از تمامی پروتکل‌ها |
+| **Karing** | Sing-box | ✅ | ✅ | ✅ | ✅ | ❌ | کلاینت فوق‌العاده سریع و سبک با قابلیت مسیریابی هوشمند پیشرفته و رول‌بندی ترافیک |
+| **Happ** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | کلاینت نسل جدید، هماهنگ با شدیدترین محدودیت‌ها، پشتیبانی هم‌زمان دسکتاپ و موبایل |
+| **V2RayNG** | Xray-core | ✅ | ❌ | ❌ | ❌ | ❌ | کلاینت سنتی، بسیار پایدار و باسابقه برای سیستم‌عامل اندروید |
+| **v2rayN** | Xray / Sing-box | ❌ | ❌ | ✅ | ❌ | ❌ | شناخته‌شده‌ترین و پرامکانات‌ترین کلاینت ویندوز با پشتیبانی از هسته‌های چندگانه |
+| **Nekoray** | Xray / Sing-box | ❌ | ❌ | ✅ | ❌ | ✅ | کارایی بسیار بالا در حالت TUN و سیستم‌عامل لینوکس و ویندوز |
+| **Shadowrocket** | Custom / Xray | ❌ | ✅ | ❌ | ❌ | ❌ | قدرتمندترین کلاینت iOS با امکانات وسیع رول‌نویسی و بازنویسی پکت |
+| **Streisand** | Sing-box | ❌ | ✅ | ❌ | ❌ | ❌ | کلاینت سبک، ساده و کاربرپسند اختصاصی آیفون و آیپد |
+| **OneXray** | Xray-core | ❌ | ✅ | ❌ | ❌ | ❌ | کلاینت مدرن هسته Xray اختصاصی محیط‌های اپل |
+| **V2Box** | V2Ray / Xray | ✅ | ✅ | ❌ | ✅ | ❌ | رابط کاربری شیک، مخصوصاً محبوب روی سیستم‌عامل‌های iOS و macOS |
+| **Sing-box** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | کلاینت خالص رسمی هسته سینگ‌باکس با کمترین مصرف باتری و رم |
+| **Clash Meta / Verge** | Mihomo | ✅ | ❌ | ✅ | ✅ | ✅ | مدیریت و سوئیچ فوق‌العاده بر روی پروکسی‌ها با سیستم رول کلش |
+| **Flclash** | Mihomo | ✅ | ❌ | ✅ | ✅ | ✅ | رابط کاربری مدرن مبتنی بر فلاتر برای هسته میهومو (کلش) |
+| **v2rayTun** | Sing-box | ✅ | ✅ | ❌ | ❌ | ❌ | کلاینت ساده و روان موبایلی با اتصال سریع |
+| **Incy** | Sing-box | ✅ | ✅ | ❌ | ❌ | ❌ | کلاینت بهینه‌شده برای اتصال‌های تک‌کلیکه |
+| **Blackwall** | Sing-box | ❌ | ❌ | ✅ | ✅ | ✅ | کلاینت مدرن دسکتاپ چندسکویی |
+| **MahsaNG** | Xray-core | ✅ | ❌ | ❌ | ❌ | ❌ | نسخه سفارشی‌شده بر پایه V2RayNG برای دور زدن فیلترینگ شدید |
 
 ---
 
@@ -782,7 +811,7 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 
 ## 🧪 Testing & Quality Assurance
 
-Remnabot maintains a strict test-driven development workflow with **322 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
+Remnabot maintains a strict test-driven development workflow with **499 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
 
 ```bash
 # Execute test suite
