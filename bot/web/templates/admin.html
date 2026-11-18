@@ -967,7 +967,7 @@
             </div>
 
             <!-- Timezone Selector (منطقه زمانی سامانه) -->
-            <div class="py-1 border-t border-[var(--card-border)] pt-2">
+            <div class="py-1">
               <div class="flex items-center justify-between p-2.5 rounded-xl card-inset">
                 <div class="flex items-center gap-2.5">
                   <div class="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-sm flex-shrink-0">
@@ -987,7 +987,7 @@
             </div>
 
             <!-- History Page Size -->
-            <div class="py-1 border-t border-[var(--card-border)] pt-2 space-y-1">
+            <div class="py-1 space-y-1">
               <label class="text-[11px] t-muted block font-semibold">تعداد آیتم تاریخچه تراکنش‌ها و سفارشات در هر صفحه:</label>
               <input type="number" id="settingHistoryPageSize" min="5" max="100" step="5" placeholder="15" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
@@ -1010,7 +1010,7 @@
           </div>
           <div id="settingsBoxCard" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
             <!-- Card Payment Switch -->
-            <div class="flex items-center justify-between py-2 border-b border-[var(--card-border)] mb-1">
+            <div class="flex items-center justify-between py-1 mb-1">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه کارت به کارت</span>
                 <span class="text-[11px] t-muted">واریز و دریافت فیش دستی توسط کاربران</span>
@@ -1031,7 +1031,7 @@
               <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
             <!-- Graphical Card Toggle -->
-            <div class="flex items-center justify-between py-2 border-t border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-semibold block text-xs">طراحی گرافیکی مدرن کارت</span>
                 <span class="text-[11px] t-muted">نمایش کارت بانکی به شکل کارت اعتباری سه‌بعدی و مدرن با قابلیت چرخش</span>
@@ -1078,7 +1078,7 @@
               <label class="text-[11px] t-muted block mb-1">حداقل مبلغ افزایش موجودی (تومان)</label>
               <input type="number" id="settingMinTopup" dir="ltr" placeholder="20000" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
             </div>
-            <div class="flex items-center justify-between py-2 border-t border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-medium block">احراز هویت شماره تماس</span>
                 <span class="text-[11px] t-muted">فقط کاربرانی که شماره تلفن خود را به اشتراک گذاشته‌اند مجاز به پرداخت کارت‌به‌کارت باشند</span>
@@ -1090,7 +1090,7 @@
                 </div>
               </label>
             </div>
-            <div class="flex items-center justify-between py-2 border-t border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-medium block">محدودیت احراز فقط برای شماره ایران (<span class="num-bidi font-sans" dir="ltr">+98</span>)</span>
                 <span class="text-[11px] t-muted">تنها شماره‌های معتبر ایران مجاز به تأیید هویت و شارژ کارت به کارت باشند</span>
@@ -1104,7 +1104,7 @@
             </div>
 
             <!-- Auto Card-to-Card via SMS Forwarder -->
-            <div class="flex items-center justify-between py-2 border-t border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-medium block">کارت‌به‌کارت هوشمند و آنی (پیامکی)</span>
                 <span class="text-[11px] t-muted">شارژ خودکار و لحظه‌ای کیف پول با پیامک واریز بانکی</span>
@@ -1118,7 +1118,7 @@
             </div>
 
             <!-- SMS Forwarder & ForApp Config Box -->
-            <div id="smsForwarderConfigContainer" class="border-t border-[var(--card-border)] pt-3 space-y-2.5">
+            <div id="smsForwarderConfigContainer" class="pt-1 space-y-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
                   <span class="inline-flex items-center gap-1"><img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /></span> ثبت خودکار واریزی با پیامک بانکی
@@ -1138,7 +1138,7 @@
                         <img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
                         <span>ForApp</span>
                       </span>
-                      <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-sans inline-flex items-center justify-center leading-normal">توصیه شده</span>
+                      <span class="text-[10px] bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full font-sans inline-flex items-center justify-center leading-normal">توصیه شده</span>
                     </div>
                     <span class="text-[10px] t-muted">سریع، ایرانی، بدون فیلتر</span>
                   </button>
@@ -1158,23 +1158,26 @@
 
               <div>
                 <div class="flex items-center justify-between mb-1">
-                  <label class="text-[11px] t-muted block">کلید امنیتی وب‌هوک (Secret Token):</label>
-                  <button type="button" onclick="window.generateRandomSmsSecret()" class="text-[10px] text-indigo-400 hover:text-indigo-300 transition inline-flex items-center gap-1">
-                    <span>تولید کلید تصادفی</span>
-                    <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0" width="12" height="12" alt="" />
+                  <label for="settingSmsWebhookSecret" class="text-[11px] t-muted block">کلید امنیتی وب‌هوک (Secret Token):</label>
+                  <button type="button" onclick="window.generateRandomSmsSecret()" class="p-1 rounded-lg hover:bg-indigo-500/15 text-indigo-400 hover:text-indigo-300 transition inline-flex items-center justify-center active:scale-95" title="تولید کلید تصادفی" aria-label="تولید کلید تصادفی">
+                    <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
                   </button>
                 </div>
-                <div class="flex items-center gap-1.5">
-                  <button type="button" id="copySmsSecretBtn" onclick="window.copySmsSecret()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی کلید امنیتی"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
-                  <input type="text" id="settingSmsWebhookSecret" dir="ltr" placeholder="یک کلمه عبور قوی برای وب‌هوک..." class="w-full card-inset border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none focus:border-indigo-500 transition" />
+                <div class="relative">
+                  <input type="text" id="settingSmsWebhookSecret" dir="ltr" placeholder="یک کلمه عبور قوی برای وب‌هوک..." class="w-full card-inset border border-[var(--card-border)] rounded-xl pr-3 pl-10 py-2.5 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none focus:border-indigo-500 transition" />
+                  <button type="button" id="copySmsSecretBtn" onclick="window.copySmsSecret()" class="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg card-inset border border-indigo-500/30 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0 shadow-sm" title="کپی کلید امنیتی">
+                    <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                  </button>
                 </div>
               </div>
 
               <div>
-                <label class="text-[11px] t-muted block mb-1">آدرس اختصاصی وب‌هوک در سرور:</label>
-                <div class="flex items-center gap-1.5">
-                  <button type="button" id="copySmsWebhookUrlBtn" onclick="window.copySmsWebhookUrl()" class="p-2 rounded-xl card-inset border border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0" title="کپی آدرس وب‌هوک"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
-                  <input type="text" id="settingSmsWebhookUrlDisplay" readonly dir="ltr" class="w-full card-inset border border-[var(--card-border)] rounded-xl px-2.5 py-2 text-[11px] font-sans num-bidi t-main select-all outline-none" value="" />
+                <label for="settingSmsWebhookUrlDisplay" class="text-[11px] t-muted block mb-1">آدرس اختصاصی وب‌هوک در سرور:</label>
+                <div class="relative">
+                  <input type="text" id="settingSmsWebhookUrlDisplay" readonly dir="ltr" class="w-full card-inset border border-[var(--card-border)] rounded-xl pr-3 pl-10 py-2.5 text-[11px] font-sans num-bidi t-main select-all outline-none focus:border-indigo-500 transition" value="" />
+                  <button type="button" id="copySmsWebhookUrlBtn" onclick="window.copySmsWebhookUrl()" class="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg card-inset border border-indigo-500/30 text-indigo-400 hover:text-indigo-300 text-xs transition active:scale-95 flex items-center justify-center shrink-0 shadow-sm" title="کپی آدرس وب‌هوک">
+                    <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                  </button>
                 </div>
               </div>
 
@@ -1271,7 +1274,7 @@
             </div>
 
             <!-- Crypto Payment Switch -->
-            <div class="flex items-center justify-between py-2 border-t border-b border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه TON</span>
                 <span class="text-[11px] t-muted">پرداخت خودکار و تایید آنی بلاکچین TON</span>
@@ -1285,7 +1288,7 @@
             </div>
 
             <!-- TRX Payment Switch -->
-            <div class="flex items-center justify-between py-2 border-b border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه ترون (TRX - شبکه Tron)</span>
                 <span class="text-[11px] t-muted">پرداخت مستقیم با آدرس متمرکز و استعلام آن‌چین TxID</span>
@@ -1299,7 +1302,7 @@
             </div>
 
             <!-- POL Payment Switch -->
-            <div class="flex items-center justify-between py-2 border-b border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه پلیگان (POL - شبکه Polygon)</span>
                 <span class="text-[11px] t-muted">پرداخت مستقیم با آدرس متمرکز و استعلام آن‌چین TxHash</span>
@@ -1313,7 +1316,7 @@
             </div>
 
             <!-- Telegram Stars Payment Switch -->
-            <div class="flex items-center justify-between py-2 border-b border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه استارز تلگرام (Stars)</span>
                 <span class="text-[11px] t-muted">پرداخت رسمی درون‌برنامه‌ای تلگرام</span>
@@ -1351,7 +1354,7 @@
           </div>
           <div id="settingsBoxTrial" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
             <!-- Trial Subscription Switch -->
-            <div class="flex items-center justify-between py-2 border-b border-[var(--card-border)] mb-1">
+            <div class="flex items-center justify-between py-1 mb-1">
               <div>
                 <span class="t-main font-semibold block text-xs">اشتراک تست رایگان</span>
                 <span class="text-[11px] t-muted">امکان دریافت سرویس آزمایشی توسط کاربران</span>
@@ -1376,7 +1379,7 @@
             </div>
 
             <!-- Referral System Switch -->
-            <div class="flex items-center justify-between py-2 border-t border-[var(--card-border)] pt-2">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-semibold block text-xs">سیستم زیرمجموعه‌گیری</span>
                 <span class="text-[11px] t-muted">پاداش ترافیک هدیه برای دعوت از دوستان</span>
@@ -1395,7 +1398,7 @@
             </div>
 
             <!-- Default Store & Trial Squad Custom Selector -->
-            <div class="py-2.5 border-t border-[var(--card-border)]">
+            <div class="py-1">
               <label class="text-[11px] t-muted block mb-1.5 font-medium">اسکواد پیش‌فرض سرویس تست:</label>
               <input type="hidden" id="settingDefaultSquadUuid" value="" />
               <div role="button" tabindex="0" onclick="window.adminActions.openDefaultSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-[var(--card-border)] hover:border-blue-500/50 group">
@@ -1412,7 +1415,7 @@
             </div>
 
             <!-- Direct Support in Bot Switch -->
-            <div class="flex items-center justify-between py-2 border-t border-[var(--card-border)] pt-2">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <span class="t-main font-semibold block text-xs">چت پشتیبانی درون ربات</span>
                 <span class="text-[11px] t-muted">ارسال مستقیم پیام تیکت به تاپیک پشتیبانی ادمین</span>
@@ -1431,7 +1434,7 @@
             </div>
 
             <!-- Join Gate Settings (Inside Trial Section) -->
-            <div class="border-t border-[var(--card-border)] pt-3 space-y-2.5">
+            <div class="pt-1 space-y-2.5">
               <div class="flex items-center justify-between">
                 <div>
                   <span class="t-main font-medium block text-xs">عضویت اجباری در کانال</span>
@@ -1517,7 +1520,7 @@
               </div>
             </div>
             <!-- Auto Clean Previous Reports Switch -->
-            <div class="flex items-center justify-between pt-3 border-t border-[var(--card-border)] mt-3">
+            <div class="flex items-center justify-between pt-1 mt-1">
               <div>
                 <span class="t-main font-medium text-xs block flex items-center gap-1"><img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />حذف خودکار گزارش قبلی</span>
                 <span class="text-[11px] t-muted block mt-0.5">پس از ارسال هر گزارش جدید، پیام گزارش قبلی حذف شود تا تاپیک گزارش‌ها همیشه خلوت باشد.</span>
@@ -2250,7 +2253,7 @@
                 </div>
               </label>
             </div>
-            <div class="grid grid-cols-2 gap-2.5 pt-1 border-t border-[var(--card-border)]">
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
               <div>
                 <label class="text-[11px] t-muted block mb-1">حجم ترافیک هدیه (GB)</label>
                 <input type="number" id="settingBirthdayRewardTraffic" dir="ltr" placeholder="2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-pink-300 outline-none focus:border-pink-500 transition" />
@@ -2260,7 +2263,7 @@
                 <input type="number" id="settingBirthdayRewardDiscount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
               </div>
             </div>
-            <div class="pt-2 border-t border-[var(--card-border)] space-y-1.5">
+            <div class="pt-1 space-y-1.5">
               <div class="flex items-center justify-between">
                 <label class="text-[11px] t-muted font-medium block">متن پیام تبریک و هدیه زادروز:</label>
                 <button type="button" onclick="window.adminActions.resetBirthdayTemplate()" class="text-[11px] t-pink hover:text-pink-300 transition">بازنشانی پیش‌فرض</button>
@@ -2308,7 +2311,7 @@
             </div>
 
             <!-- Pricing Rates: 2x2 Grid (Per GB, Per Day, Base Price, Extra User Percent) -->
-            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--card-border)]">
+            <div class="grid grid-cols-2 gap-2 pt-1">
               <div>
                 <label class="text-[11px] t-muted block mb-1 truncate">قیمت هر گیگابایت (تومان)</label>
                 <input type="number" id="settingCustomPlanPricePerGb" dir="ltr" placeholder="2500" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
@@ -2328,7 +2331,7 @@
             </div>
 
             <!-- Volume Slider Limits: Min / Max GB -->
-            <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-[var(--card-border)]">
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
               <div>
                 <label class="text-[11px] t-muted block mb-1">حداقل حجم (GB)</label>
                 <input type="number" id="settingCustomPlanMinGb" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-200 outline-none focus:border-cyan-500 transition" />
@@ -2340,7 +2343,7 @@
             </div>
 
             <!-- Duration Slider Limits: Min / Max Days -->
-            <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-[var(--card-border)]">
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
               <div>
                 <label class="text-[11px] t-muted block mb-1">حداقل مدت (روز)</label>
                 <input type="number" id="settingCustomPlanMinDays" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-200 outline-none focus:border-indigo-500 transition" />
@@ -2352,7 +2355,7 @@
             </div>
 
             <!-- Volume Discount Tiers (تخفیف‌های پلکانی حجم مصرفی) -->
-            <div class="pt-3 border-t border-[var(--card-border)] space-y-2">
+            <div class="pt-1 space-y-2">
               <div class="flex items-center justify-between">
                 <div>
                   <b class="text-xs t-main block">تخفیف‌های پلکانی حجم مصرفی</b>
@@ -2363,31 +2366,31 @@
                 <!-- Tier 1 -->
                 <div>
                   <label class="text-[11px] t-muted block mb-1">پله اول: از چند گیگابایت</label>
-                  <input type="number" id="settingCustomPlanTier1MinGb" dir="ltr" placeholder="51" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
+                  <input type="number" id="settingCustomPlanTier1MinGb" dir="ltr" placeholder="51" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله اول (%)</label>
-                  <input type="number" id="settingCustomPlanTier1Discount" dir="ltr" placeholder="10" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
+                  <input type="number" id="settingCustomPlanTier1Discount" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
 
                 <!-- Tier 2 -->
                 <div>
                   <label class="text-[11px] t-muted block mb-1">پله دوم: از چند گیگابایت</label>
-                  <input type="number" id="settingCustomPlanTier2MinGb" dir="ltr" placeholder="101" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
+                  <input type="number" id="settingCustomPlanTier2MinGb" dir="ltr" placeholder="101" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله دوم (%)</label>
-                  <input type="number" id="settingCustomPlanTier2Discount" dir="ltr" placeholder="20" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
+                  <input type="number" id="settingCustomPlanTier2Discount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
 
                 <!-- Tier 3 -->
                 <div>
                   <label class="text-[11px] t-muted block mb-1">پله سوم: از چند گیگابایت</label>
-                  <input type="number" id="settingCustomPlanTier3MinGb" dir="ltr" placeholder="201" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
+                  <input type="number" id="settingCustomPlanTier3MinGb" dir="ltr" placeholder="201" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله سوم (%)</label>
-                  <input type="number" id="settingCustomPlanTier3Discount" dir="ltr" placeholder="30" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
+                  <input type="number" id="settingCustomPlanTier3Discount" dir="ltr" placeholder="30" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-emerald-300 outline-none focus:border-emerald-500 transition" />
                 </div>
               </div>
             </div>
@@ -2410,7 +2413,7 @@
           </div>
           <div id="settingsBoxLoyalty" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
             <!-- Main Enable/Disable Toggle for Loyalty Club -->
-            <div class="flex items-center justify-between py-2.5 border-b border-[var(--card-border)]">
+            <div class="flex items-center justify-between py-1">
               <div>
                 <b class="text-xs t-main block">فعال‌سازی باشگاه مشتریان</b>
                 <span class="text-[11px] t-muted block mt-0.5">در صورت غیرفعال بودن، تخفیف‌های سطوح وفاداری در فروشگاه اعمال نخواهند شد.</span>
@@ -4154,7 +4157,7 @@
           </h4>
           <button type="button" onclick="window.adminActions.closeRecommendedAppModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
-        <div id="recommendedAppPickerList" class="space-y-2.5 flex-1 min-h-0 max-h-[60vh] overflow-y-auto custom-scroll text-xs py-1 pl-1 pr-0.5">
+        <div id="recommendedAppPickerList" dir="ltr" class="space-y-2.5 flex-1 min-h-0 max-h-[60vh] overflow-y-auto custom-scroll text-xs py-1 px-1">
           <!-- Dynamically populated options -->
         </div>
       </div>
@@ -4342,7 +4345,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closeDefaultSquadPickerModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
-        <div id="defaultSquadPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs pr-0.5">
+        <div id="defaultSquadPickerList" dir="ltr" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-1">
           <!-- Dynamically populated squads -->
         </div>
       </div>
@@ -4409,7 +4412,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closeTimezoneModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
-        <div id="timezoneList" class="space-y-1.5 flex-1 overflow-y-auto custom-scroll text-xs px-2 py-1">
+        <div id="timezoneList" dir="ltr" class="space-y-1.5 flex-1 overflow-y-auto custom-scroll text-xs px-2 py-1">
           <!-- Dynamically populated timezone options -->
         </div>
       </div>
@@ -4537,7 +4540,7 @@
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-3 shrink-0">
           <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center shrink-0">
-              <img src="/static/img/icons/cloud-download.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+              <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
             </div>
             <div>
               <h4 class="text-xs font-bold t-main">همگام‌سازی نسخه‌ها و لینک‌های دانلود</h4>
@@ -4550,9 +4553,9 @@
         <!-- Search & Global Sync Action Bar -->
         <div class="space-y-2 shrink-0">
           <div class="relative">
-            <input type="text" id="githubAppSearchInput" oninput="window.filterGithubAppSyncList(this.value)" placeholder="جستجوی برنامه بر اساس نام..." class="input-base text-xs px-3 py-2 pl-8 rounded-xl w-full" />
-            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 t-muted pointer-events-none">
-              <img src="/static/img/icons/search.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+            <input type="text" id="githubAppSearchInput" oninput="window.filterGithubAppSyncList(this.value)" placeholder="جستجوی برنامه..." class="input-base text-xs pr-9 pl-3 py-2.5 rounded-xl w-full" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
+              <img src="/static/img/icons/search.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 opacity-60" width="14" height="14" alt="" />
             </span>
           </div>
           <div class="flex items-center gap-2">

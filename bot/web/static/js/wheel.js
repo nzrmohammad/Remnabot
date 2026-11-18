@@ -172,34 +172,34 @@ function checkAndUpdateWheelCooldown() {
   return wheelCooldownSeconds;
 }
 
+function updateDashboardWheelBadge(canSpin, nextSeconds, tickets, hasActiveSub) {
+  const badge = document.getElementById('luckyWheelBadge');
+  if (!badge) return;
+  badge.classList.remove('hidden');
+  if (hasActiveSub === false) {
+    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-slate-500/30 bg-slate-500/10 text-slate-400 leading-none';
+    badge.innerText = 'نیاز به اشتراک';
+    return;
+  }
+  const rem = typeof nextSeconds === 'number' ? nextSeconds : wheelCooldownSeconds;
+  if (tickets > 0 && rem > 0) {
+    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-none';
+    badge.innerText = `${tickets} تیکت`;
+  } else if (rem > 0) {
+    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-none';
+    badge.innerText = formatCountdown(rem);
+  } else {
+    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-none';
+    badge.innerText = 'آماده چرخش';
+  }
+}
+
 function startWheelCountdown(sec) {
   const s = Math.max(0, Math.round(sec));
   wheelCooldownSeconds = s;
   wheelTargetEndTime = s > 0 ? (Date.now() + s * 1000) : 0;
   const timerBox = document.getElementById('wheelTimerContainer');
   const timerText = document.getElementById('wheelCountdownText');
-
-  function updateDashboardWheelBadge(canSpin, nextSeconds, tickets, hasActiveSub) {
-    const badge = document.getElementById('luckyWheelBadge');
-    if (!badge) return;
-    badge.classList.remove('hidden');
-    if (hasActiveSub === false) {
-      badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-slate-500/30 bg-slate-500/10 text-slate-400 leading-none';
-      badge.innerText = 'نیاز به اشتراک';
-      return;
-    }
-    const rem = typeof nextSeconds === 'number' ? nextSeconds : wheelCooldownSeconds;
-    if (tickets > 0 && rem > 0) {
-      badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-none';
-      badge.innerText = `${tickets} تیکت`;
-    } else if (rem > 0) {
-      badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-none';
-      badge.innerText = formatCountdown(rem);
-    } else {
-      badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-none';
-      badge.innerText = 'آماده چرخش';
-    }
-  }
 
   if (s <= 0) {
     if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
@@ -335,7 +335,12 @@ function setupLuckyWheel() {
         ws.spin_tickets || 0
       );
     }
-    wheelModal.open();
+    if (wheelModal && typeof wheelModal.open === 'function') {
+      wheelModal.open();
+    } else {
+      const m = document.getElementById('luckyWheelModal');
+      if (m) m.classList.remove('hidden');
+    }
   }
   window.openLuckyWheel = openLuckyWheel;
 
@@ -511,13 +516,15 @@ function setupLuckyWheel() {
           const couponCode = chosenPrize.code || 'OFF10';
           if (chosenPrize.code) {
             try {
-              const localCoupons = JSON.parse(localStorage.getItem('user_won_coupons') || '[]');
+              const currentUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || window.lastUserData?.user?.id;
+              const storageKey = currentUserId ? `user_won_coupons_${currentUserId}` : 'user_won_coupons';
+              const localCoupons = JSON.parse(localStorage.getItem(storageKey) || '[]');
               localCoupons.unshift({
                 code: chosenPrize.code,
                 discount_percent: chosenPrize.percent || 10,
                 expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
               });
-              localStorage.setItem('user_won_coupons', JSON.stringify(localCoupons.slice(0, 10)));
+              localStorage.setItem(storageKey, JSON.stringify(localCoupons.slice(0, 10)));
             } catch(e) {}
           }
           if (wheelResultText) {

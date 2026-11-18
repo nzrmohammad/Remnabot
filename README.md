@@ -35,6 +35,7 @@
   - [Stage 7: Telegram Menu Button Registration](#stage-7-telegram-menu-button-registration)
 - [🔄 Updating Guide](#-updating-guide)
 - [⚡ Redis Verification & Operational Monitoring](#-redis-verification--operational-monitoring)
+- [📜 Logging & Diagnostics](#-logging-diagnostics--real-time-auditing)
 - [🔍 Troubleshooting & Conflict Resolution](#-troubleshooting--conflict-resolution)
 - [💾 Migration & Server Relocation](#-migration--server-relocation)
 - [⚙️ Configuration Guide (`.env`)](#-configuration-guide-env)
@@ -595,6 +596,66 @@ Watch live database commands processed by Redis in real-time as users interact w
 ```bash
 docker compose exec redis redis-cli -a remnabot_redis_secret monitor
 ```
+
+---
+
+## 📜 Logging, Diagnostics & Real-Time Auditing
+
+Remnabot provides a multi-tier logging architecture designed for enterprise monitoring, auditability, and immediate incident response:
+
+### 1. Live Container Logs (Docker)
+The primary and fastest method to inspect real-time application behavior, incoming webhooks, background tasks, and error traces:
+
+```bash
+# Stream live logs in real time (follow mode)
+docker compose logs -f bot
+
+# View the latest 200 log entries with exact timestamps
+docker compose logs --tail=200 -t bot
+
+# Filter specifically for errors or warnings
+docker compose logs bot | grep -E "ERROR|WARNING|CRITICAL"
+
+# Monitor incoming SMS forwarder and bank deposit webhooks
+docker compose logs -f bot | grep -i "webhook"
+```
+
+### 2. Persistent Log File on Disk (`LOG_FILE`)
+Remnabot has built-in support for persisting logs to disk with an automated **RotatingFileHandler** (20 MB maximum per file with 5 backup archives, ensuring zero disk exhaustion):
+
+1. Add the following variables to your `.env` file:
+   ```env
+   LOG_FILE=data/bot.log
+   LOG_LEVEL=INFO   # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+   ```
+2. Because the `botdata` volume maps to `/app/data` (or the `./data` directory on host), logs are safely preserved across container restarts and builds:
+   ```bash
+   # Follow the log file live on the host
+   tail -f data/bot.log
+
+   # Search for a specific Telegram ID or transaction
+   grep "123456789" data/bot.log
+   ```
+
+### 3. Real-Time Telegram Forum Topics (Zero-CLI Monitoring)
+Admins do not need SSH terminal access for everyday operational monitoring. Remnabot automatically streams categorized runtime events directly into designated Telegram Supergroup Forum Topics:
+
+* **System Errors (`ADMIN_TOPIC_ERRORS`)**: Full stack traces, unhandled exceptions, and traceback dumps dispatched instantaneously.
+* **SMS Webhook Logs (`ADMIN_TOPIC_SMS_LOGS`)**: Complete audit trail of incoming SMS webhooks, extracted bank card numbers, amounts, and automatic approval/rejection decisions.
+* **Fiscal & Bandwidth Reports (`ADMIN_TOPIC_REPORTS`)**: Nightly (23:59), weekly, and monthly consolidated financial and server traffic summaries.
+* **Nodes & Health Alerts (`ADMIN_TOPIC_NODES`)**: Server node offline/online notifications, CPU/RAM telemetry spikes, and panel sync statuses.
+
+### 4. Linux Systemd Service (Non-Docker Deployments)
+If running Remnabot as a native systemd unit:
+```bash
+# Follow live systemd journal logs
+journalctl -u remnabot -f
+
+# View the latest 100 log lines without paging
+journalctl -u remnabot -n 100 --no-pager
+```
+
+---
 
 ## 💾 Migration & Server Relocation
 

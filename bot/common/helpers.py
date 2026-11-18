@@ -1,5 +1,9 @@
 """Common text parsing and sanitization utilities."""
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 _DIGIT_MAP = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 
 
@@ -72,7 +76,11 @@ async def check_channel_membership(bot, channel: str, user_id: int) -> bool:
         member = await bot.get_chat_member(chat_id=clean_channel, user_id=user_id)
         status = getattr(member, "status", None)
         return status in ("creator", "administrator", "member", "restricted")
-    except Exception:
+    except Exception as e:
+        err_msg = str(e).lower()
+        if any(term in err_msg for term in ("user_not_participant", "user not found", "participant_id_invalid", "member not found")):
+            return False
+        logger.warning("check_channel_membership failed for %s in %s: %s", user_id, clean_channel, e)
         # If bot is not in channel or channel is unreachable, allow user through
         return True
 

@@ -4039,6 +4039,11 @@ function hydrateUserInterface(data) {
         console.warn('Could not render active sub analytics:', e);
       }
     } else {
+      const noSubHtml = '<div class="col-span-2 text-center py-2.5 t-muted text-[11px]" dir="rtl">اشتراک فعالی برای نمایش تفکیک مصرف وجود ندارد.</div>';
+      ['repDailyNodesContainer', 'repNightlyNodesContainer', 'repWeeklyNodesContainer', 'repMonthlyNodesContainer'].forEach(cId => {
+        const el = $(cId);
+        if (el) el.innerHTML = noSubHtml;
+      });
       if (typeof resetActiveSubAnalytics === 'function') {
         resetActiveSubAnalytics();
       }

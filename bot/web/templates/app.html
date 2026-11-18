@@ -274,7 +274,7 @@
 
         <!-- Quick Interactive Action Cards (گردونه شانس و کارت استوری) -->
         <div class="grid grid-cols-2 gap-2.5">
-          <button id="openLuckyWheelBtn" class="card lucky-wheel-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
+          <button id="openLuckyWheelBtn" type="button" onclick="window.openLuckyWheel && window.openLuckyWheel()" class="card lucky-wheel-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
             <span class="text-xs font-bold t-main flex items-center gap-1.5 lucky-wheel-title">
               <img src="/static/img/icons/wheel.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
               <span>گردونه شانس</span>
@@ -621,7 +621,7 @@
           <div class="pt-2 border-t border-card-border text-xs">
             <span class="t-muted font-medium block mb-1">تفکیک مصرف سرورها:</span>
             <div id="repDailyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-sans text-[11px]">
-              <div class="col-span-2 text-center py-2 t-muted text-[11px]">در حال دریافت داده‌ها...</div>
+              <div class="col-span-2 text-center py-2 t-muted text-[11px]" dir="rtl">...در حال دریافت داده‌ها</div>
             </div>
           </div>
         </div>
@@ -658,7 +658,7 @@
           <div class="pt-2 border-t border-card-border text-xs">
             <span class="t-muted font-medium block mb-1">تفکیک مصرف سرورها:</span>
             <div id="repNightlyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-sans text-[11px]">
-              <div class="col-span-2 text-center py-2 t-muted text-[11px]">در حال دریافت داده‌ها...</div>
+              <div class="col-span-2 text-center py-2 t-muted text-[11px]" dir="rtl">...در حال دریافت داده‌ها</div>
             </div>
           </div>
         </div>
@@ -687,7 +687,7 @@
           <div class="pt-2 border-t border-card-border text-xs">
             <span class="t-muted font-medium block mb-1">تفکیک مصرف سرورها در 7 روز گذشته:</span>
             <div id="repWeeklyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-sans text-[11px]">
-              <div class="col-span-2 text-center py-2 t-muted text-[11px]">در حال دریافت داده‌ها...</div>
+              <div class="col-span-2 text-center py-2 t-muted text-[11px]" dir="rtl">...در حال دریافت داده‌ها</div>
             </div>
           </div>
         </div>
@@ -733,7 +733,7 @@
           <div class="pt-2 border-t border-card-border text-xs">
             <span class="t-muted font-medium block mb-1">تفکیک مصرف سرورها:</span>
             <div id="repMonthlyNodesContainer" dir="ltr" class="grid grid-cols-2 gap-1.5 font-sans text-[11px]">
-              <div class="col-span-2 text-center py-2 t-muted text-[11px]">در حال دریافت داده‌ها...</div>
+              <div class="col-span-2 text-center py-2 t-muted text-[11px]" dir="rtl">...در حال دریافت داده‌ها</div>
             </div>
           </div>
         </div>

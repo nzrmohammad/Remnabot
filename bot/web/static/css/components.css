@@ -618,8 +618,15 @@ input.node-date-input::-webkit-calendar-picker-indicator:hover {
 }
 
 .ui-icon-img.icon-white,
-img.icon-white {
+img.icon-white,
+img[src*="github.svg"],
+.icon-github {
   filter: brightness(0) invert(1);
+}
+
+html.theme-light img[src*="github.svg"]:not(.icon-white),
+html.theme-light .icon-github:not(.icon-white) {
+  filter: none;
 }
 
 .nav-btn .nav-icon-pill .ui-icon-img,

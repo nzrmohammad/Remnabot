@@ -101,12 +101,22 @@ function renderWonCoupons(data) {
   };
 
   let coupons = (data?.won_coupons || []).filter(isValidCoupon);
-  if (coupons.length === 0) {
+  const currentUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || window.lastUserData?.user?.id;
+  const storageKey = currentUserId ? `user_won_coupons_${currentUserId}` : null;
+
+  // Purge legacy unscoped storage key to prevent cross-user leakage on shared devices
+  try {
+    if (localStorage.getItem('user_won_coupons')) {
+      localStorage.removeItem('user_won_coupons');
+    }
+  } catch(e) {}
+
+  if (coupons.length === 0 && storageKey) {
     try {
-      const local = JSON.parse(localStorage.getItem('user_won_coupons') || '[]');
+      const local = JSON.parse(localStorage.getItem(storageKey) || '[]');
       if (Array.isArray(local)) {
         const validLocal = local.filter(isValidCoupon);
-        localStorage.setItem('user_won_coupons', JSON.stringify(validLocal));
+        localStorage.setItem(storageKey, JSON.stringify(validLocal));
         coupons = validLocal;
       }
     } catch(e) {}

@@ -1147,3 +1147,31 @@ async def test_user_leaderboard_zero_traffic_unranked(session_factory):
         assert daily.get("top_20") == []
 
 
+@pytest.mark.anyio
+async def test_check_channel_membership_handles_participant_status_and_errors():
+    from bot.common.helpers import check_channel_membership
+
+    bot = AsyncMock()
+
+    # Case 1: Active member
+    bot.get_chat_member.return_value = MagicMock(status="member")
+    assert await check_channel_membership(bot, "@my_channel", 12345) is True
+
+    # Case 2: Left or kicked
+    bot.get_chat_member.return_value = MagicMock(status="left")
+    assert await check_channel_membership(bot, "@my_channel", 12345) is False
+
+    # Case 3: User not participant exception from Telegram
+    bot.get_chat_member.side_effect = Exception("Bad Request: USER_NOT_PARTICIPANT")
+    assert await check_channel_membership(bot, "@my_channel", 12345) is False
+
+    # Case 4: User not found exception
+    bot.get_chat_member.side_effect = Exception("Bad Request: user not found")
+    assert await check_channel_membership(bot, "@my_channel", 12345) is False
+
+    # Case 5: Network / connection failure fallback
+    bot.get_chat_member.side_effect = Exception("Connection timeout to api.telegram.org")
+    assert await check_channel_membership(bot, "@my_channel", 12345) is True
+
+
+

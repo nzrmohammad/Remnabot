@@ -213,12 +213,12 @@
       list.innerHTML = zones.map(z => {
         const isSelected = currentVal === z.id;
         return `
-          <div onclick="window.adminActions.selectTimezone('${z.id}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 mx-0.5 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
+          <div onclick="window.adminActions.selectTimezone('${z.id}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 mx-0.5 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
             <div class="flex items-center gap-2.5">
               <span class="text-base">${typeof renderFlagHtml === 'function' ? renderFlagHtml(z.flag, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover align-middle') : z.flag}</span>
               <span class="text-xs font-sans num-bidi font-bold ${isSelected ? 'text-blue-600 dark:text-blue-400 font-black' : 't-main'}">${z.name}</span>
             </div>
-            ${isSelected ? '<span class="text-[11px] text-blue-600 dark:text-blue-400 font-bold bg-blue-500/15 px-2 py-0.5 rounded-md">✓ انتخاب‌شده</span>' : ''}
+            ${isSelected ? '<span class="text-[11px] text-blue-600 dark:text-blue-400 font-bold bg-blue-500/15 px-2 py-0.5 rounded-md">✓</span>' : ''}
           </div>
         `;
       }).join('');
@@ -259,11 +259,11 @@
       }
 
       let html = `
-        <div onclick="window.adminActions.selectDefaultSquad('', 'انتخاب کنید', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === '' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+        <div onclick="window.adminActions.selectDefaultSquad('', 'انتخاب کنید')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === '' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
           <div class="flex items-center gap-2.5 min-w-0">
-            <span class="text-base">🧩</span>
+            <img src="/static/img/icons/nodes.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 opacity-60" width="16" height="16" alt="" />
             <div>
-              <span class="text-xs font-bold ${currentVal === '' ? 't-info' : 't-main'} block">انتخاب کنید</span>
+              <span class="text-xs font-bold ${currentVal === '' ? 't-info' : 't-main'} block">None / انتخاب کنید</span>
               <span class="text-[10px] t-muted block">بدون تعیین اسکواد اختصاصی پیش‌فرض</span>
             </div>
           </div>
@@ -276,10 +276,10 @@
         const name = sq.name || uuid;
         const isSelected = currentVal === uuid;
         html += `
-          <div onclick="window.adminActions.selectDefaultSquad('${escapeHtml(uuid)}', '${escapeHtml(name)}', '🧩')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div onclick="window.adminActions.selectDefaultSquad('${escapeHtml(uuid)}', '${escapeHtml(name)}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
             <div class="flex items-center gap-2.5 min-w-0">
-              <span class="text-base">🧩</span>
-              <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'} truncate block">${escapeHtml(name)}</span>
+              <img src="/static/img/icons/nodes.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-cyan-400" width="16" height="16" alt="" />
+              <span class="text-xs font-sans font-bold ${isSelected ? 't-info' : 't-main'} truncate block">${escapeHtml(name)}</span>
             </div>
             ${isSelected ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
           </div>
@@ -291,11 +291,10 @@
     closeDefaultSquadPickerModal() {
       $('defaultSquadPickerModal')?.classList.add('hidden');
     },
-    selectDefaultSquad(uuid, name, icon = '🧩') {
+    selectDefaultSquad(uuid, name) {
       const input = $('settingDefaultSquadUuid');
       if (input) input.value = uuid;
       if ($('settingDefaultSquadLabel')) $('settingDefaultSquadLabel').innerText = uuid ? name : 'انتخاب کنید';
-      if ($('settingDefaultSquadIcon')) $('settingDefaultSquadIcon').innerText = icon;
       this.closeDefaultSquadPickerModal();
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
@@ -914,18 +913,20 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const pickerRole = role === 'alternative' ? 'alternative' : 'recommended';
       const osNames = { ios: 'iOS', android: 'اندروید', windows: 'ویندوز', macos: 'مک', linux: 'لینوکس' };
       const emptyLabel = pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی';
-      const roleIcon = pickerRole === 'alternative' ? '🥈' : '🥇';
+      const roleIcon = pickerRole === 'alternative'
+        ? '<img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400 inline-block align-middle" width="16" height="16" alt="" />'
+        : '<img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400 inline-block align-middle" width="16" height="16" alt="" />';
       const roleTitle = pickerRole === 'alternative' ? 'انتخاب برنامه جایگزین' : 'انتخاب برنامه پیشنهادی';
-      if (title) title.innerHTML = `<span>${roleIcon}</span><span>${roleTitle} (${osNames[os] || os})</span>`;
+      if (title) title.innerHTML = `<span class="inline-flex items-center gap-1.5">${roleIcon}<span>${roleTitle} (${osNames[os] || os})</span></span>`;
 
       const inputId = pickerRole === 'alternative' ? `appAlternative_${os}` : `appRecommended_${os}`;
       const currentVal = $(inputId)?.value || '';
       const appIds = OS_APPS_MAP[os] || [];
       let html = `
-        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', '${emptyLabel}', '${pickerRole}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
-          <div class="flex items-center gap-2">
-            <span class="text-base">🚫</span>
-            <span>${emptyLabel}</span>
+        <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '', '${emptyLabel}', '${pickerRole}')" dir="ltr" class="w-full p-3 rounded-2xl border transition flex items-center justify-between ${!currentVal ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-card-border t-muted hover:t-main'} active:scale-95">
+          <div class="flex items-center gap-2.5">
+            <img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 opacity-60" width="16" height="16" alt="" />
+            <span class="text-xs font-sans font-medium">${emptyLabel}</span>
           </div>
           ${!currentVal ? '<span class="t-accent font-bold">✓</span>' : ''}
         </button>
@@ -935,11 +936,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const appName = CLIENT_APP_META[appId]?.name || appId;
         const isSelected = currentVal === appId;
         html += `
-          <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}', '${pickerRole}')" class="w-full text-right p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-slate-700/50 t-muted hover:t-main'} active:scale-95">
-            <div class="flex items-center gap-2">
-              <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
-              <span class="text-base hidden" style="display:none;">📱</span>
-              <span class="font-medium">${escapeHtml(appName)}</span>
+          <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}', '${pickerRole}')" dir="ltr" class="w-full p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-card-border t-muted hover:t-main'} active:scale-95">
+            <div class="flex items-center gap-2.5">
+              <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';}" class="w-6 h-6 rounded-lg object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
+              <span class="font-sans font-bold text-xs">${escapeHtml(appName)}</span>
             </div>
             ${isSelected ? '<span class="t-accent font-bold">✓</span>' : ''}
           </button>
@@ -2253,55 +2253,69 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const osBadges = supportedOses.map(os => `<span class="px-1.5 py-0.5 rounded text-[10px] card-inset border border-slate-700/50 t-muted font-sans uppercase">${os}</span>`).join(' ');
 
       const playPresetBtn = presets.playStore ? `
-        <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'play', '${presets.playStore}')" class="text-[10px] text-cyan-400 hover:underline">درج لینک Google Play</button>
+        <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'play', '${presets.playStore}')" class="w-8 h-8 rounded-xl card-inset border border-emerald-500/30 hover:border-emerald-500/70 text-emerald-400 flex items-center justify-center transition active:scale-95 shadow-sm" title="درج لینک Google Play" aria-label="Google Play">
+          <img src="/static/img/icons/android.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="Google Play" />
+        </button>
       ` : '';
 
       const appStorePresetBtn = presets.appStore ? `
-        <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'appstore', '${presets.appStore}')" class="text-[10px] text-blue-400 hover:underline">درج لینک App Store</button>
+        <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'appstore', '${presets.appStore}')" class="w-8 h-8 rounded-xl card-inset border border-sky-500/30 hover:border-sky-500/70 text-sky-400 flex items-center justify-center transition active:scale-95 shadow-sm" title="درج لینک App Store" aria-label="App Store">
+          <img src="/static/img/icons/ios.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="App Store" />
+        </button>
       ` : '';
 
       const directPresetBtn = directDlUrl ? `
-        <span class="text-[10px] text-emerald-400">لینک دانلود فایل آماده است</span>
+        <div class="w-8 h-8 rounded-xl card-inset border border-purple-500/30 text-purple-400 flex items-center justify-center shadow-sm" title="فایل دانلود گیت‌هاب آماده است" aria-label="دانلود مستقیم">
+          <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="دانلود مستقیم" />
+        </div>
       ` : '';
 
       return `
         <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-2.5">
-          <div class="flex items-center justify-between gap-2">
+          <!-- Row 1: App Identity (LTR) -->
+          <div dir="ltr" class="flex items-center justify-between gap-2.5">
             <div class="flex items-center gap-2.5 min-w-0">
-              <div class="w-9 h-9 rounded-xl card-inset p-1 flex items-center justify-center shrink-0 overflow-hidden">
-                <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-full h-full object-contain rounded-lg" alt="${escapeHtml(appName)}" loading="lazy" />
-                <span class="text-base hidden" style="display:none;">📱</span>
+              <div class="w-10 h-10 rounded-xl card-inset p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
+                <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';}" class="w-full h-full object-contain rounded-lg" alt="${escapeHtml(appName)}" loading="lazy" />
               </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5">
-                  <b class="text-xs t-main font-bold truncate">${escapeHtml(appName)}</b>
-                  <div class="flex items-center gap-1">${osBadges}</div>
-                </div>
-                <div class="text-[11px] t-muted mt-0.5 flex items-center gap-2">
-                  <span>نسخه فعلی: <b class="font-sans t-main">${escapeHtml(currentVer || '—')}</b></span>
-                  ${latestVer ? `<span>آخرین گیت‌هاب: <b class="font-sans text-emerald-400">${escapeHtml(latestVer)}</b></span>` : ''}
-                </div>
+              <div class="min-w-0 text-left">
+                <b class="text-sm t-main font-bold truncate block font-sans tracking-wide">${escapeHtml(appName)}</b>
               </div>
             </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-[11px] py-1 px-2.5 rounded-xl font-bold flex items-center gap-1 shadow-sm transition active:scale-95" title="استعلام نسخه از GitHub">
-                <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0" width="12" height="12" alt="" />
-                <span>استعلام</span>
-              </button>
-              <button type="button" onclick="window.applySingleAppGithubToForm('${appId}')" class="btn btn-primary text-[11px] py-1 px-2.5 rounded-xl font-bold flex items-center gap-1 shadow-sm transition active:scale-95" title="اعمال به فرم تنظیمات">
-                <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0" width="12" height="12" alt="" />
-                <span>اعمال</span>
-              </button>
+            <div class="flex items-center gap-1 flex-wrap justify-end">
+              ${osBadges}
             </div>
           </div>
 
-          <!-- Quick Shortcuts & Links Preview -->
-          <div class="pt-1 border-t border-slate-700/40 flex flex-wrap items-center justify-between gap-1.5 text-[10px]">
-            <div class="flex items-center gap-2">
+          <!-- Row 2: Versions Display -->
+          <div class="grid grid-cols-2 gap-2 text-xs card-inset rounded-xl p-2.5 border border-slate-700/40">
+            <div class="flex items-center justify-between px-1.5">
+              <span class="t-muted text-[11px]">نسخه فعلی:</span>
+              <b class="font-sans t-main">${escapeHtml(currentVer || '—')}</b>
+            </div>
+            <div class="flex items-center justify-between px-1.5">
+              <span class="t-muted text-[11px]">آخرین GitHub:</span>
+              <b class="font-sans ${latestVer ? 'text-emerald-400' : 't-muted'}">${escapeHtml(latestVer || '—')}</b>
+            </div>
+          </div>
+
+          <!-- Row 3: Action Buttons & Store Icons in Separate Line -->
+          <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-700/40">
+            <div class="flex items-center gap-1.5" dir="ltr">
               ${playPresetBtn}
               ${appStorePresetBtn}
+              ${directPresetBtn}
             </div>
-            <div>${directPresetBtn}</div>
+            <div class="flex items-center gap-2">
+              <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="استعلام از GitHub">
+                <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                <span>استعلام</span>
+              </button>
+              <button type="button" onclick="window.applySingleAppGithubToForm('${appId}')" class="btn btn-primary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="اعمال به فرم تنظیمات">
+                <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                <span>اعمال</span>
+              </button>
+            </div>
           </div>
         </div>
       `;
