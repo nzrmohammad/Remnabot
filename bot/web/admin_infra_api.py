@@ -449,6 +449,7 @@ def _extract_github_downloads(app_id: str, assets_raw: Any) -> dict[str, dict[st
         lambda n: n.endswith(".dmg") and "arm64" in n,
         lambda n: n.endswith(".dmg") and ("x64" in n or "x86_64" in n or "64" in n or "macos" in n),
         lambda n: n.endswith(".pkg") and "macos" in n,
+        lambda n: n.endswith((".dmg", ".pkg", ".zip")) and ("macos" in n or "darwin" in n or "mac" in n),
     )
     if mac_dmg:
         downloads["macos"] = {"url": mac_dmg}
@@ -457,6 +458,7 @@ def _extract_github_downloads(app_id: str, assets_raw: Any) -> dict[str, dict[st
         assets,
         lambda n: n.endswith(".appimage") and is_x64(n) and not_alt_arch(n),
         lambda n: n.endswith(".deb") and is_x64(n) and not_alt_arch(n),
+        lambda n: n.endswith((".tar.gz", ".tar.xz", ".zip", ".rpm")) and "linux" in n and is_x64(n) and not_alt_arch(n),
         lambda n: n.endswith(".tar.gz") and is_x64(n) and "appimage" in n and not_alt_arch(n),
     )
     if linux_pkg:
@@ -522,14 +524,17 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                 if clean_ver:
                     if app_id == "blackwall" and clean_ver.lower().endswith("-en"):
                         clean_ver = clean_ver[:-3]
-                    if app_id == "happ" and "android" not in dl_map:
+                    if app_id == "happ":
                         try:
                             async with session.get("https://api.github.com/repos/Happ-proxy/happ-android/releases/latest", timeout=6) as a_resp:
                                 if a_resp.status == 200:
                                     a_data = await a_resp.json()
+                                    a_tag = str(a_data.get("tag_name") or "").strip().lstrip("vV")
                                     a_dl = _extract_github_downloads("happ", a_data.get("assets"))
                                     if "android" in a_dl:
                                         dl_map["android"] = a_dl["android"]
+                                    if a_tag:
+                                        dl_map.setdefault("android", {})["version"] = a_tag
                         except Exception:
                             pass
                     return app_id, clean_ver, dl_map
@@ -551,7 +556,18 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                 if clean_ver:
                     if app_id == "blackwall" and clean_ver.lower().endswith("-en"):
                         clean_ver = clean_ver[:-3]
-                    return app_id, clean_ver, {}
+                    dl_map: dict[str, dict[str, str]] = {}
+                    if app_id == "happ":
+                        try:
+                            async with session.get("https://github.com/Happ-proxy/happ-android/releases/latest", allow_redirects=False, timeout=8) as ar:
+                                aloc = ar.headers.get("Location") or ""
+                                if "/releases/tag/" in aloc:
+                                    a_tag = aloc.rstrip("/").split("/")[-1].strip().lstrip("vV")
+                                    if a_tag:
+                                        dl_map["android"] = {"version": a_tag}
+                        except Exception:
+                            pass
+                    return app_id, clean_ver, dl_map
     except Exception as exc:
         logger.debug("HTML redirect fallback failed for %s: %s", repo, exc)
 

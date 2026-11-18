@@ -62,6 +62,9 @@ def _get_platform_apps_from_json(client_apps_json: str, platform: str) -> list[t
         alt_app = str((data.get("alternative") or {}).get(platform, "")).lower()
         if not alt_app and platform == "windows":
             alt_app = str((data.get("alternative") or {}).get("desktop", "")).lower()
+        third_app = str((data.get("third") or {}).get(platform, "")).lower()
+        if not third_app and platform == "windows":
+            third_app = str((data.get("third") or {}).get("desktop", "")).lower()
 
         apps: list[tuple[str, str, int]] = []
         for app_id, cfg in platform_data.items():
@@ -81,7 +84,7 @@ def _get_platform_apps_from_json(client_apps_json: str, platform: str) -> list[t
             version = str(cfg.get("version") or "").strip()
             label = f"{name} ({version})" if version else name
             app_key = app_id.lower()
-            rank = 0 if (rec_app and rec_app == app_key) else (1 if (alt_app and alt_app == app_key) else 2)
+            rank = 0 if (rec_app and rec_app == app_key) else (1 if (alt_app and alt_app == app_key) else (2 if (third_app and third_app == app_key) else 3))
             apps.append((label, url, rank))
 
         apps.sort(key=lambda x: x[2])

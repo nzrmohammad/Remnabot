@@ -74,14 +74,18 @@
         const hasDirectExtraBox = os === 'android' || (os === 'macos' && Boolean(meta.hasStoreOnMac));
         const downloadLabel = os === 'windows'
           ? 'لینک دانلود نسخه نصبی (Setup):'
-          : (hasDirectExtraBox || hasStoreBox ? 'لینک دانلود نرم‌افزار:' : 'لینک دانلود مستقیم:');
+          : (os === 'android'
+            ? 'لینک Play Store:'
+            : (os === 'ios'
+              ? 'لینک App Store:'
+              : (hasDirectExtraBox || hasStoreBox ? 'لینک دانلود نرم‌افزار:' : 'لینک دانلود مستقیم:')));
         const downloadPlaceholder = (!hasStoreBox && os !== 'windows')
           ? 'مثلاً لینک مستقیم یا گیت‌هاب'
           : 'پیش‌فرض خالی (عدم نمایش)';
         const extraRow = hasDirectExtraBox ? `
           <div>
-            <label class="text-[11px] text-slate-400 block mb-1">لینک دانلود مستقیم:</label>
-            <input type="text" id="appDownloadExtra_${os}_${appId}" dir="ltr" placeholder="${os === 'android' ? 'مثلاً لینک فایل apk از گیت‌هاب' : 'مثلاً لینک گیت‌هاب یا فایل dmg'}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+            <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+            <input type="text" id="appDownloadExtra_${os}_${appId}" dir="ltr" placeholder="${os === 'android' ? 'مثلاً لینک فایل apk از گیت‌هاب' : 'مثلاً لینک گیت‌هاب یا فایل dmg'}" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
           </div>` : '';
         const portableRow = (os === 'windows' && meta.hasPortable) ? `
           <div>
@@ -93,24 +97,32 @@
             <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="GitHub" />
           </button>` : '';
         return `
-          <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-            <div class="flex items-center gap-2">
-              <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain" alt="${meta.name}" loading="lazy" />
-              <span class="text-sm leading-none hidden" style="display:none;">${meta.icon || '📱'}</span>
-              <b class="text-white text-xs">${meta.name}</b>
-            </div>
-            <div>
-              <label class="text-[11px] text-slate-400 block mb-1">${downloadLabel}</label>
-              <input type="text" id="appDownload_${os}_${appId}"${hasStoreBox ? ' data-store-only="1"' : ''} dir="ltr" placeholder="${downloadPlaceholder}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-            </div>
-            ${extraRow}
-            ${portableRow}
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label class="text-[11px] text-slate-400">نسخه نرم‌افزار (Version):</label>
-                ${ghBtn}
+          <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+            <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+              <div class="flex items-center gap-2">
+                <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="${meta.name}" loading="lazy" />
+                <span class="text-sm leading-none hidden" style="display:none;">${meta.icon || '📱'}</span>
+                <b class="text-white text-xs font-bold font-sans">${meta.name}</b>
               </div>
-              <input type="text" id="appVersion_${os}_${appId}" dir="ltr" placeholder="پیش‌فرض: ${meta.version || '1.0.0'}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+              <div class="flex items-center gap-2">
+                <span id="appCardVer_${os}_${appId}" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div>
+            </button>
+            <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+              <div>
+                <label class="text-[11px] t-muted block mb-1">${downloadLabel}</label>
+                <input type="text" id="appDownload_${os}_${appId}"${hasStoreBox ? ' data-store-only="1"' : ''} dir="ltr" placeholder="${downloadPlaceholder}" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+              </div>
+              ${extraRow}
+              ${portableRow}
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                  ${ghBtn}
+                </div>
+                <input type="text" id="appVersion_${os}_${appId}" dir="ltr" placeholder="پیش‌فرض: ${meta.version || '1.0.0'}" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+              </div>
             </div>
           </div>`;
       }).join('');
@@ -121,6 +133,25 @@
 
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
+    toggleAppCard(btn) {
+      const card = btn.closest('.admin-app-card') || btn.parentElement;
+      const body = card?.querySelector('.admin-app-card-body');
+      const chevron = btn.querySelector('.admin-app-card-chevron');
+      if (body) {
+        const isHidden = body.classList.contains('hidden');
+        body.classList.toggle('hidden', !isHidden);
+        if (chevron) {
+          chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+      }
+    },
+    updateAppCardVersionBadge(os, appId, ver) {
+      const badge = $(`appCardVer_${os}_${appId}`);
+      if (badge) {
+        const clean = (ver || '').trim().replace(/^v/i, '');
+        badge.textContent = clean ? `v${clean}` : '—';
+      }
+    },
     openCardTemplateModal() {
       const modal = $('cardTemplateModal');
       if (!modal) return;
@@ -910,16 +941,18 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const title = $('recommendedAppPickerTitle');
       if (!modal || !list) return;
 
-      const pickerRole = role === 'alternative' ? 'alternative' : 'recommended';
+      const pickerRole = (role === 'alternative' || role === 'third') ? role : 'recommended';
       const osNames = { ios: 'iOS', android: 'اندروید', windows: 'ویندوز', macos: 'مک', linux: 'لینوکس' };
-      const emptyLabel = pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی';
-      const roleIcon = pickerRole === 'alternative'
-        ? '<img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400 inline-block align-middle" width="16" height="16" alt="" />'
-        : '<img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400 inline-block align-middle" width="16" height="16" alt="" />';
-      const roleTitle = pickerRole === 'alternative' ? 'انتخاب برنامه جایگزین' : 'انتخاب برنامه پیشنهادی';
+      const emptyLabel = pickerRole === 'third' ? 'بدون برنامه رتبه سوم' : (pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی');
+      const roleIcon = pickerRole === 'third'
+        ? '<img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400 inline-block align-middle" width="16" height="16" alt="" />'
+        : (pickerRole === 'alternative'
+          ? '<img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400 inline-block align-middle" width="16" height="16" alt="" />'
+          : '<img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400 inline-block align-middle" width="16" height="16" alt="" />');
+      const roleTitle = pickerRole === 'third' ? 'انتخاب برنامه رتبه سوم' : (pickerRole === 'alternative' ? 'انتخاب برنامه جایگزین' : 'انتخاب برنامه پیشنهادی');
       if (title) title.innerHTML = `<span class="inline-flex items-center gap-1.5">${roleIcon}<span>${roleTitle} (${osNames[os] || os})</span></span>`;
 
-      const inputId = pickerRole === 'alternative' ? `appAlternative_${os}` : `appRecommended_${os}`;
+      const inputId = pickerRole === 'third' ? `appThird_${os}` : (pickerRole === 'alternative' ? `appAlternative_${os}` : `appRecommended_${os}`);
       const currentVal = $(inputId)?.value || '';
       const appIds = OS_APPS_MAP[os] || [];
       let html = `
@@ -953,8 +986,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
     },
 
     selectRecommendedApp(os, appId, appName, role = 'recommended') {
-      const pickerRole = role === 'alternative' ? 'alternative' : 'recommended';
-      const inp = $(pickerRole === 'alternative' ? `appAlternative_${os}` : `appRecommended_${os}`);
+      const pickerRole = (role === 'alternative' || role === 'third') ? role : 'recommended';
+      const inp = $(pickerRole === 'third' ? `appThird_${os}` : (pickerRole === 'alternative' ? `appAlternative_${os}` : `appRecommended_${os}`));
       if (inp) inp.value = appId;
       this.updateRecommendedAppButton(os, appId, pickerRole);
       this.closeRecommendedAppModal();
@@ -966,10 +999,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
     },
 
     updateRecommendedAppButton(os, appId, role = 'recommended') {
-      const pickerRole = role === 'alternative' ? 'alternative' : 'recommended';
-      const lbl = $(pickerRole === 'alternative' ? `appAlternativeLabel_${os}` : `appRecommendedLabel_${os}`);
+      const pickerRole = (role === 'alternative' || role === 'third') ? role : 'recommended';
+      const lbl = $(pickerRole === 'third' ? `appThirdLabel_${os}` : (pickerRole === 'alternative' ? `appAlternativeLabel_${os}` : `appRecommendedLabel_${os}`));
       if (lbl) {
-        const emptyLabel = pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی';
+        const emptyLabel = pickerRole === 'third' ? 'بدون برنامه رتبه سوم' : (pickerRole === 'alternative' ? 'بدون برنامه جایگزین' : 'بدون برنامه پیشنهادی');
         lbl.innerText = appId ? (CLIENT_APP_META[appId]?.name || appId) : emptyLabel;
       }
     }
@@ -1533,38 +1566,55 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
       renderAdminExtraAppCards();
 
+      let appOverrides = null;
       if (s.client_apps_json) {
         try {
-          const appOverrides = typeof s.client_apps_json === 'string' ? JSON.parse(s.client_apps_json) : s.client_apps_json;
-          if (appOverrides && typeof appOverrides === 'object') {
-            for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
-              const recSelect = $(`appRecommended_${os}`);
-              if (recSelect) {
-                const recVal = appOverrides.recommended?.[os] || (os === 'windows' ? appOverrides.recommended?.desktop : '') || '';
-                recSelect.value = recVal;
-                window.adminActions.updateRecommendedAppButton(os, recVal, 'recommended');
-              }
-              const altSelect = $(`appAlternative_${os}`);
-              if (altSelect) {
-                const altVal = appOverrides.alternative?.[os] || (os === 'windows' ? appOverrides.alternative?.desktop : '') || '';
-                altSelect.value = altVal;
-                window.adminActions.updateRecommendedAppButton(os, altVal, 'alternative');
-              }
-              const osSource = appOverrides[os] || (os === 'windows' ? appOverrides.desktop : null);
-              for (const appId of appIds) {
-                const item = osSource?.[appId] || (appOverrides[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
-                const downloadEl = $(`appDownload_${os}_${appId}`);
-                const downloadPortableEl = $(`appDownloadPortable_${os}_${appId}`);
-                const downloadExtraEl = $(`appDownloadExtra_${os}_${appId}`);
-                const versionEl = $(`appVersion_${os}_${appId}`);
-                if (downloadEl) downloadEl.value = item?.download_url || '';
-                if (downloadPortableEl) downloadPortableEl.value = item?.download_portable_url || '';
-                if (downloadExtraEl) downloadExtraEl.value = item?.download_extra_url || '';
-                if (versionEl) versionEl.value = item?.version || '';
-              }
+          appOverrides = typeof s.client_apps_json === 'string' ? JSON.parse(s.client_apps_json) : s.client_apps_json;
+        } catch (e) {}
+      }
+
+      for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
+        const recSelect = $(`appRecommended_${os}`);
+        if (recSelect) {
+          const recVal = appOverrides?.recommended?.[os] || (os === 'windows' ? appOverrides?.recommended?.desktop : '') || '';
+          recSelect.value = recVal;
+          window.adminActions.updateRecommendedAppButton(os, recVal, 'recommended');
+        }
+        const altSelect = $(`appAlternative_${os}`);
+        if (altSelect) {
+          const altVal = appOverrides?.alternative?.[os] || (os === 'windows' ? appOverrides?.alternative?.desktop : '') || '';
+          altSelect.value = altVal;
+          window.adminActions.updateRecommendedAppButton(os, altVal, 'alternative');
+        }
+        const thirdSelect = $(`appThird_${os}`);
+        if (thirdSelect) {
+          const thirdVal = appOverrides?.third?.[os] || (os === 'windows' ? appOverrides?.third?.desktop : '') || '';
+          thirdSelect.value = thirdVal;
+          window.adminActions.updateRecommendedAppButton(os, thirdVal, 'third');
+        }
+        const osSource = appOverrides ? (appOverrides[os] || (os === 'windows' ? appOverrides.desktop : null)) : null;
+        for (const appId of appIds) {
+          const item = osSource?.[appId] || (appOverrides?.[appId] ? { enabled: true, download_url: appOverrides[appId], tutorial_url: '' } : null);
+          const downloadEl = $(`appDownload_${os}_${appId}`);
+          const downloadPortableEl = $(`appDownloadPortable_${os}_${appId}`);
+          const downloadExtraEl = $(`appDownloadExtra_${os}_${appId}`);
+          const versionEl = $(`appVersion_${os}_${appId}`);
+          if (item) {
+            if (downloadEl) downloadEl.value = item.download_url || '';
+            if (downloadPortableEl) downloadPortableEl.value = item.download_portable_url || '';
+            if (downloadExtraEl) downloadExtraEl.value = item.download_extra_url || '';
+            if (versionEl && item.version) versionEl.value = item.version;
+          }
+          if (versionEl) {
+            window.adminActions.updateAppCardVersionBadge(os, appId, versionEl.value);
+            if (!versionEl._hasBadgeSync) {
+              versionEl.addEventListener('input', (e) => {
+                window.adminActions.updateAppCardVersionBadge(os, appId, e.target.value);
+              });
+              versionEl._hasBadgeSync = true;
             }
           }
-        } catch (e) {}
+        }
       }
 
       // Telegram Supergroup Forum Topics
@@ -1814,6 +1864,14 @@ openUserChat(telegram_id, name, tag, topup_id) {
             desktop: $('appAlternative_windows')?.value || '',
             macos: $('appAlternative_macos')?.value || '',
             linux: $('appAlternative_linux')?.value || ''
+          },
+          third: {
+            ios: $('appThird_ios')?.value || '',
+            android: $('appThird_android')?.value || '',
+            windows: $('appThird_windows')?.value || '',
+            desktop: $('appThird_windows')?.value || '',
+            macos: $('appThird_macos')?.value || '',
+            linux: $('appThird_linux')?.value || ''
           }
         };
         for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
@@ -2011,6 +2069,14 @@ openUserChat(telegram_id, name, tag, topup_id) {
     const dl = dlByOs?.[os];
     if (!dl || typeof dl !== 'object') return 0;
     let updated = 0;
+    if (dl.version) {
+      const verEl = $(`appVersion_${os}_${appId}`);
+      if (verEl) {
+        verEl.value = dl.version;
+        window.adminActions?.updateAppCardVersionBadge?.(os, appId, dl.version);
+        updated++;
+      }
+    }
     if (os === 'android' && dl.direct_url) {
       const extraEl = $(`appDownloadExtra_android_${appId}`);
       const mainEl = $(`appDownload_android_${appId}`);
@@ -2051,14 +2117,15 @@ openUserChat(telegram_id, name, tag, topup_id) {
     try {
       if (window.hapticFeedback) window.hapticFeedback('selection');
       const res = await window.api.getGithubReleases(appId);
-      const ver = res?.versions?.[appId];
       const dlByOs = res?.downloads?.[appId];
+      const ver = (os && dlByOs?.[os]?.version) ? dlByOs[os].version : res?.versions?.[appId];
       const dlUpdated = _applyGithubDownloadsForOs(appId, os, dlByOs);
       if (res && res.ok && (ver || dlUpdated > 0)) {
         if (ver) {
           const versionEl = $(`appVersion_${os}_${appId}`);
           if (versionEl) {
             versionEl.value = ver;
+            window.adminActions?.updateAppCardVersionBadge?.(os, appId, ver);
             versionEl.focus();
           }
         }
@@ -2128,7 +2195,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
     const origHtml = btn ? btn.innerHTML : '';
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = `<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block animate-spin" width="14" height="14" alt="" /><span>در حال استعلام...</span></span>`;
+      btn.innerHTML = `<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block animate-spin" width="14" height="14" alt="" /><span>در حال استعلام...</span></span>`;
     }
     try {
       modalGithubData.isLoading = true;
@@ -2159,7 +2226,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
     const origHtml = btn ? btn.innerHTML : '';
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = `<span class="inline-flex items-center gap-1"><img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0 inline-block animate-spin" width="12" height="12" alt="" /><span>...</span></span>`;
+      btn.innerHTML = `<img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block animate-spin" width="16" height="16" alt="" />`;
     }
     try {
       const res = await window.api.getGithubReleases(appId);
@@ -2191,10 +2258,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
     for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
       if (!appIds.includes(appId)) continue;
-      if (latestVer) {
+      const specificVer = modalGithubData.downloads[appId]?.[os]?.version || latestVer;
+      if (specificVer) {
         const verEl = $(`appVersion_${os}_${appId}`);
         if (verEl) {
-          verEl.value = latestVer;
+          verEl.value = specificVer;
+          window.adminActions?.updateAppCardVersionBadge?.(os, appId, specificVer);
           appliedCount++;
         }
       }
@@ -2254,12 +2323,20 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const dlInfo = modalGithubData.downloads[appId] || {};
       const directDlUrl = dlInfo.android?.direct_url || dlInfo.windows?.url || dlInfo.windows?.portable_url || '';
 
+      let displayLatestVer = latestVer || '—';
+      if (appId === 'happ' && dlInfo.android?.version && latestVer) {
+        displayLatestVer = `${latestVer} (دسکتاپ) / ${dlInfo.android.version} (اندروید)`;
+      }
+
       const supportedOses = Object.entries(OS_APPS_MAP).filter(([_, ids]) => ids.includes(appId)).map(([os]) => os);
       const osBadges = supportedOses.map(os => {
         const info = OS_ICON_MAP[os];
         if (!info) return '';
         return `<span class="w-6 h-6 rounded-lg card-inset border border-slate-700/50 flex items-center justify-center p-1" title="${info.title}" aria-label="${info.title}"><img src="${info.icon}" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="${info.title}" /></span>`;
       }).join(' ');
+
+      const isIosOnly = (supportedOses.length === 1 && supportedOses[0] === 'ios') || ['shadowrocket', 'streisand', 'onexray'].includes(appId);
+      const applyIcon = isIosOnly ? '/static/img/icons/ios.svg?v=fl2' : '/static/img/icons/github.svg?v=fl2';
 
       return `
         <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-2.5">
@@ -2286,19 +2363,18 @@ openUserChat(telegram_id, name, tag, topup_id) {
             </div>
             <div class="flex items-center justify-between px-1">
               <span class="t-muted text-[11px]">آخرین نسخه:</span>
-              <b class="font-sans ${latestVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${escapeHtml(latestVer || '—')}</b>
+              <b class="font-sans ${latestVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${escapeHtml(displayLatestVer)}</b>
             </div>
           </div>
 
-          <!-- Row 3: Action Buttons (Right-aligned in RTL) -->
-          <div class="flex items-center justify-start gap-2 pt-1 border-t border-[var(--card-border)]">
-            <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="استعلام نسخه">
-              <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-              <span>استعلام</span>
-            </button>
+          <!-- Row 3: Action Buttons (Right: اعمال, Left: استعلام) -->
+          <div dir="rtl" class="flex items-center justify-between pt-1 border-t border-[var(--card-border)]">
             <button type="button" onclick="window.applySingleAppGithubToForm('${appId}')" class="btn btn-primary text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95" title="اعمال به فرم تنظیمات">
-              <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <img src="${applyIcon}" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
               <span>اعمال</span>
+            </button>
+            <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-xs p-2 rounded-xl font-bold flex items-center justify-center shadow-sm transition active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام">
+              <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="استعلام" />
             </button>
           </div>
         </div>

@@ -1119,6 +1119,7 @@ function renderTutorialApps(osKey) {
 
   const recommendedAppId = overrides?.recommended?.[currentTutorialOS] || (currentTutorialOS === 'windows' ? overrides?.recommended?.desktop : '') || '';
   const alternativeAppId = overrides?.alternative?.[currentTutorialOS] || (currentTutorialOS === 'windows' ? overrides?.alternative?.desktop : '') || '';
+  const thirdAppId = overrides?.third?.[currentTutorialOS] || (currentTutorialOS === 'windows' ? overrides?.third?.desktop : '') || '';
 
   // Filter apps: only show if enabled and has a download URL set by admin
   const activeApps = allApps.map(app => {
@@ -1134,12 +1135,13 @@ function renderTutorialApps(osKey) {
     const version = (appCfg && appCfg.version) ? appCfg.version.trim() : app.version;
     const isRecommended = Boolean(recommendedAppId && recommendedAppId.toLowerCase() === app.id.toLowerCase());
     const isAlternative = Boolean(!isRecommended && alternativeAppId && alternativeAppId.toLowerCase() === app.id.toLowerCase());
-    return { ...app, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, version, isRecommended, isAlternative };
+    const isThird = Boolean(!isRecommended && !isAlternative && thirdAppId && thirdAppId.toLowerCase() === app.id.toLowerCase());
+    return { ...app, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, version, isRecommended, isAlternative, isThird };
   }).filter(app => app.isEnabled && (app.downloadUrl || app.downloadPortableUrl || app.downloadExtraUrl));
 
-  // Recommended app comes 1st, Alternative app comes 2nd
+  // Recommended app comes 1st, Alternative app comes 2nd, Third app comes 3rd
   activeApps.sort((a, b) => {
-    const rank = (x) => (x.isRecommended ? 2 : (x.isAlternative ? 1 : 0));
+    const rank = (x) => (x.isRecommended ? 3 : (x.isAlternative ? 2 : (x.isThird ? 1 : 0)));
     return rank(b) - rank(a);
   });
 
@@ -1222,7 +1224,11 @@ function renderTutorialApps(osKey) {
 
     const cardBorder = app.isRecommended
       ? 'border-amber-500/60 dark:border-amber-500/50 card-inset shadow-md ring-1 ring-amber-500/30'
-      : (app.isAlternative ? 'border-sky-500/50 dark:border-sky-500/40 card-inset shadow-sm ring-1 ring-sky-500/20' : 'card-inset');
+      : (app.isAlternative
+        ? 'border-sky-500/50 dark:border-sky-500/40 card-inset shadow-sm ring-1 ring-sky-500/20'
+        : (app.isThird
+          ? 'border-emerald-500/50 dark:border-emerald-500/40 card-inset shadow-sm ring-1 ring-emerald-500/20'
+          : 'card-inset'));
 
     return `
       <div class="tutorial-app-card rounded-2xl p-2.5 ${cardBorder} space-y-1.5 transition">
@@ -1240,10 +1246,11 @@ function renderTutorialApps(osKey) {
               </div>
             </div>
           </div>
-          <!-- Left side: Recommended/Alternative badge + Tutorial button -->
+          <!-- Left side: Recommended/Alternative/Third badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
             ${app.isRecommended ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇</span>' : ''}
             ${app.isAlternative ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="جایگزین">🥈</span>' : ''}
+            ${app.isThird ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="رتبه سوم">🥉</span>' : ''}
             ${tutorialBtnHtml}
           </div>
         </div>

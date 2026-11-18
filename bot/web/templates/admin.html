@@ -1607,133 +1607,184 @@
                     <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                 </div>
+                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
+                  </div>
+                  <input type="hidden" id="appThird_ios" value="">
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('ios', 'third')" id="appThirdBtn_ios" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <span id="appThirdLabel_ios">بدون برنامه رتبه سوم</span>
+                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                </div>
               </div>
 
               <!-- Shadowrocket -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/shadowrocket.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/shadowrocket.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Shadowrocket" loading="lazy" />
-                    <b class="text-white text-xs">Shadowrocket</b>
+                    <b class="text-white text-xs font-bold font-sans">Shadowrocket</b>
                   </div>
-                  
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_ios_shadowrocket" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض: 2.2.62" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_ios_shadowrocket" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک App Store:</label>
+                    <input type="text" id="appDownload_ios_shadowrocket" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_shadowrocket" dir="ltr" placeholder="پیش‌فرض: 2.2.62" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Streisand -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/streisand.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/streisand.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Streisand" loading="lazy" />
-                    <b class="text-white text-xs">Streisand</b>
+                    <b class="text-white text-xs font-bold font-sans">Streisand</b>
                   </div>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_ios_streisand" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_streisand" dir="ltr" placeholder="پیش‌فرض: 1.9.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_ios_streisand" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک App Store:</label>
+                    <input type="text" id="appDownload_ios_streisand" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_streisand" dir="ltr" placeholder="پیش‌فرض: 1.9.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- V2Box -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/v2box.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/v2box.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="V2Box" loading="lazy" />
-                    <b class="text-white text-xs">V2Box</b>
+                    <b class="text-white text-xs font-bold font-sans">V2Box</b>
                   </div>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_ios_v2box" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_ios_v2box" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک App Store:</label>
+                    <input type="text" id="appDownload_ios_v2box" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Incy -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/incy.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/incy.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Incy" loading="lazy" />
-                    <b class="text-white text-xs">Incy</b>
+                    <b class="text-white text-xs font-bold font-sans">Incy</b>
                   </div>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_ios_incy" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_ios_incy" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک App Store:</label>
+                    <input type="text" id="appDownload_ios_incy" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Happ -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/happ.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/happ.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Happ" loading="lazy" />
-                    <b class="text-white text-xs">Happ</b>
+                    <b class="text-white text-xs font-bold font-sans">Happ</b>
                   </div>
-                  
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_ios_happ" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_ios_happ" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک App Store:</label>
+                    <input type="text" id="appDownload_ios_happ" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- OneXray -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <img src="/static/img/apps/onexray.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/onexray.png?v=fl3';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="OneXray" loading="lazy" />
-                    <b class="text-white text-xs">OneXray</b>
+                    <b class="text-white text-xs font-bold font-sans">OneXray</b>
                   </div>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_ios_onexray" data-store-only="1" dir="ltr" placeholder="https://apps.apple.com/us/app/onexray/id6745748773" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_onexray" dir="ltr" placeholder="پیش‌فرض: 1.4.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_ios_onexray" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک App Store:</label>
+                    <input type="text" id="appDownload_ios_onexray" data-store-only="1" dir="ltr" placeholder="https://apps.apple.com/us/app/onexray/id6745748773" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_onexray" dir="ltr" placeholder="پیش‌فرض: 1.4.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Hiddify -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
-                    <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                    <b class="text-white text-xs">Hiddify</b>
+                    <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Hiddify</b>
                   </div>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_ios_hiddify" data-store-only="1" dir="ltr" placeholder="https://apps.apple.com/us/app/hiddify-next/id6593660983" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_ios_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_ios_hiddify" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک App Store:</label>
+                    <input type="text" id="appDownload_ios_hiddify" data-store-only="1" dir="ltr" placeholder="https://apps.apple.com/us/app/hiddify-next/id6593660983" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_ios_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
               <div id="adminExtraAppsContainer_ios" class="space-y-2.5"></div>
@@ -1765,100 +1816,143 @@
                     <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                 </div>
+                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
+                  </div>
+                  <input type="hidden" id="appThird_android" value="">
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('android', 'third')" id="appThirdBtn_android" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <span id="appThirdLabel_android">بدون برنامه رتبه سوم</span>
+                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                </div>
               </div>
 
               <!-- v2rayNG -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/v2rayng.webp" class="w-5 h-5 rounded-md object-contain" alt="v2rayNG" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">v2rayNG</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_android_v2rayng" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appDownloadExtra_android_v2rayng" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('v2rayng', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/v2rayng.webp" class="w-5 h-5 rounded-md object-contain" alt="v2rayNG" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">v2rayNG</b>
                   </div>
-                  <input type="text" id="appVersion_android_v2rayng" dir="ltr" placeholder="پیش‌فرض: 1.9.15" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_android_v2rayng" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک Play Store:</label>
+                    <input type="text" id="appDownload_android_v2rayng" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+                    <input type="text" id="appDownloadExtra_android_v2rayng" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('v2rayng', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_android_v2rayng" dir="ltr" placeholder="پیش‌فرض: 1.9.15" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Happ -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/happ.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">Happ</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_android_happ" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appDownloadExtra_android_happ" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('happ', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/happ.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Happ</b>
                   </div>
-                  <input type="text" id="appVersion_android_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_android_happ" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک Play Store:</label>
+                    <input type="text" id="appDownload_android_happ" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+                    <input type="text" id="appDownloadExtra_android_happ" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('happ', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_android_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Hiddify -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/hiddify.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">Hiddify</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_android_hiddify" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appDownloadExtra_android_hiddify" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/hiddify.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Hiddify</b>
                   </div>
-                  <input type="text" id="appVersion_android_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_android_hiddify" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک Play Store:</label>
+                    <input type="text" id="appDownload_android_hiddify" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+                    <input type="text" id="appDownloadExtra_android_hiddify" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_android_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Incy -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">Incy</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_android_incy" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appDownloadExtra_android_incy" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_android_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Incy</b>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_android_incy" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک Play Store:</label>
+                    <input type="text" id="appDownload_android_incy" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+                    <input type="text" id="appDownloadExtra_android_incy" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل apk" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_android_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
               <div id="adminExtraAppsContainer_android" class="space-y-2.5"></div>
@@ -1890,100 +1984,143 @@
                     <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                 </div>
+                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
+                  </div>
+                  <input type="hidden" id="appThird_windows" value="">
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('windows', 'third')" id="appThirdBtn_windows" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <span id="appThirdLabel_windows">بدون برنامه رتبه سوم</span>
+                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                </div>
               </div>
 
               <!-- v2rayN -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/v2rayn.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="v2rayN" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">v2rayN</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه نصبی (Setup):</label>
-                  <input type="text" id="appDownload_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
-                  <input type="text" id="appDownloadPortable_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://github.com/.../v2rayN-portable.zip" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('v2rayn', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/v2rayn.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="v2rayN" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">v2rayN</b>
                   </div>
-                  <input type="text" id="appVersion_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض: 7.1.4" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_windows_v2rayn" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه نصبی (Setup):</label>
+                    <input type="text" id="appDownload_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
+                    <input type="text" id="appDownloadPortable_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://github.com/.../v2rayN-portable.zip" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('v2rayn', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض: 7.1.4" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Hiddify -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/hiddify.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">Hiddify</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه نصبی (Setup):</label>
-                  <input type="text" id="appDownload_windows_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
-                  <input type="text" id="appDownloadPortable_windows_hiddify" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/hiddify.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Hiddify</b>
                   </div>
-                  <input type="text" id="appVersion_windows_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_windows_hiddify" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه نصبی (Setup):</label>
+                    <input type="text" id="appDownload_windows_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
+                    <input type="text" id="appDownloadPortable_windows_hiddify" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_windows_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Happ -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/happ.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">Happ</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه نصبی (Setup):</label>
-                  <input type="text" id="appDownload_windows_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
-                  <input type="text" id="appDownloadPortable_windows_happ" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('happ', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/happ.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Happ</b>
                   </div>
-                  <input type="text" id="appVersion_windows_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_windows_happ" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه نصبی (Setup):</label>
+                    <input type="text" id="appDownload_windows_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
+                    <input type="text" id="appDownloadPortable_windows_happ" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('happ', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_windows_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Incy -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/incy.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">Incy</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه نصبی (Setup):</label>
-                  <input type="text" id="appDownload_windows_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
-                  <input type="text" id="appDownloadPortable_windows_incy" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_windows_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/incy.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Incy</b>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_windows_incy" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه نصبی (Setup):</label>
+                    <input type="text" id="appDownload_windows_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
+                    <input type="text" id="appDownloadPortable_windows_incy" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_windows_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
               <div id="adminExtraAppsContainer_windows" class="space-y-2.5"></div>
@@ -2015,97 +2152,128 @@
                     <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                 </div>
+                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
+                  </div>
+                  <input type="hidden" id="appThird_macos" value="">
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('macos', 'third')" id="appThirdBtn_macos" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <span id="appThirdLabel_macos">بدون برنامه رتبه سوم</span>
+                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                </div>
               </div>
 
               <!-- Hiddify (macOS) -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
-                    <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                    <b class="text-white text-xs">Hiddify</b>
+                    <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Hiddify</b>
                   </div>
-                  
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_macos_hiddify" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appDownloadExtra_macos_hiddify" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل dmg" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_macos_hiddify" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
+                    <input type="text" id="appDownload_macos_hiddify" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+                    <input type="text" id="appDownloadExtra_macos_hiddify" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل dmg" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_macos_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Happ (macOS) -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
-                    <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                    <b class="text-white text-xs">Happ</b>
+                    <img src="/static/img/apps/happ.webp" class="w-5 h-5 rounded-md object-contain" alt="Happ" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Happ</b>
                   </div>
-                  
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_macos_happ" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appDownloadExtra_macos_happ" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل dmg" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_macos_happ" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
+                    <input type="text" id="appDownload_macos_happ" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+                    <input type="text" id="appDownloadExtra_macos_happ" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل dmg" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_macos_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Incy (macOS) -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
-                    <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                    <b class="text-white text-xs">Incy</b>
+                    <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Incy</b>
                   </div>
-                  
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_macos_incy" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appDownloadExtra_macos_incy" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل dmg" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_macos_incy" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
+                    <input type="text" id="appDownload_macos_incy" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+                    <input type="text" id="appDownloadExtra_macos_incy" dir="ltr" placeholder="مثلاً لینک گیت‌هاب یا فایل dmg" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_macos_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- V2Box (macOS) -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center justify-between">
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
                   <div class="flex items-center gap-2">
-                    <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                    <b class="text-white text-xs">V2Box</b>
+                    <img src="/static/img/apps/v2box.webp" class="w-5 h-5 rounded-md object-contain" alt="V2Box" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">V2Box</b>
                   </div>
-                  
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_macos_v2box" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appDownloadExtra_macos_v2box" dir="ltr" placeholder="مثلاً لینک مستقیم یا dmg (اختیاری)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_macos_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_macos_v2box" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
+                    <input type="text" id="appDownload_macos_v2box" data-store-only="1" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
+                    <input type="text" id="appDownloadExtra_macos_v2box" dir="ltr" placeholder="مثلاً لینک مستقیم یا dmg (اختیاری)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_macos_v2box" dir="ltr" placeholder="پیش‌فرض: 2.4.1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
               <div id="adminExtraAppsContainer_macos" class="space-y-2.5"></div>
@@ -2137,84 +2305,127 @@
                     <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                 </div>
+                <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-emerald-400" width="16" height="16" alt="رتبه سوم" />
+                    <span class="text-[11px] t-main font-medium">برنامه رتبه سوم:</span>
+                  </div>
+                  <input type="hidden" id="appThird_linux" value="">
+                  <button type="button" onclick="window.adminActions.openRecommendedAppModal('linux', 'third')" id="appThirdBtn_linux" class="btn btn-secondary text-emerald-700 dark:text-emerald-300 font-bold px-3 py-1.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <span id="appThirdLabel_linux">بدون برنامه رتبه سوم</span>
+                    <svg class="w-3.5 h-3.5 t-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                </div>
               </div>
 
               <!-- Hiddify (Linux) -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">Hiddify</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار (AppImage / DEB):</label>
-                  <input type="text" id="appDownload_linux_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/hiddify.webp" class="w-5 h-5 rounded-md object-contain" alt="Hiddify" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Hiddify</b>
                   </div>
-                  <input type="text" id="appVersion_linux_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_linux_hiddify" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار (AppImage / DEB):</label>
+                    <input type="text" id="appDownload_linux_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_linux_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- NekoRay (Linux) -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/nekoray.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="NekoRay" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">NekoRay</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار (گیت‌هاب):</label>
-                  <input type="text" id="appDownload_linux_nekoray" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('nekoray', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/nekoray.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="NekoRay" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">NekoRay</b>
                   </div>
-                  <input type="text" id="appVersion_linux_nekoray" dir="ltr" placeholder="پیش‌فرض: 4.0.1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_linux_nekoray" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار (گیت‌هاب):</label>
+                    <input type="text" id="appDownload_linux_nekoray" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('nekoray', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_linux_nekoray" dir="ltr" placeholder="پیش‌فرض: 4.0.1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- v2rayA (Linux) -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/v2raya.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="v2rayA" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">v2rayA</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود / مخزن بسته نرم‌افزار:</label>
-                  <input type="text" id="appDownload_linux_v2raya" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
-                    <button type="button" onclick="window.fetchGithubAppVersion('v2raya', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
-                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
-                    </button>
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/v2raya.webp?v=fl3" class="w-5 h-5 rounded-md object-contain" alt="v2rayA" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">v2rayA</b>
                   </div>
-                  <input type="text" id="appVersion_linux_v2raya" dir="ltr" placeholder="پیش‌فرض: 2.2.5" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_linux_v2raya" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود / مخزن بسته نرم‌افزار:</label>
+                    <input type="text" id="appDownload_linux_v2raya" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
+                      <button type="button" onclick="window.fetchGithubAppVersion('v2raya', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+                        <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="GitHub" />
+                      </button>
+                    </div>
+                    <input type="text" id="appVersion_linux_v2raya" dir="ltr" placeholder="پیش‌فرض: 2.2.5" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
 
               <!-- Incy (Linux) -->
-              <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
-                <div class="flex items-center gap-2">
-                  <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" / width="20" height="20">
-                  <b class="text-white text-xs">Incy</b>
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
-                  <input type="text" id="appDownload_linux_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
-                </div>
-                <div>
-                  <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
-                  <input type="text" id="appVersion_linux_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+              <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
+                <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-right p-0 bg-transparent border-0 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/img/apps/incy.webp" class="w-5 h-5 rounded-md object-contain" alt="Incy" onerror="this.style.display='none'" loading="lazy" width="20" height="20">
+                    <b class="text-white text-xs font-bold font-sans">Incy</b>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span id="appCardVer_linux_incy" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                    <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </button>
+                <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">لینک دانلود نرم‌افزار:</label>
+                    <input type="text" id="appDownload_linux_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] t-muted block mb-1">نسخه نرم‌افزار (Version):</label>
+                    <input type="text" id="appVersion_linux_incy" dir="ltr" placeholder="پیش‌فرض: 1.0.8" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                  </div>
                 </div>
               </div>
               <div id="adminExtraAppsContainer_linux" class="space-y-2.5"></div>
@@ -4551,21 +4762,17 @@
           <div class="p-8 text-center t-muted text-xs">در حال بارگذاری لیست برنامه‌ها...</div>
         </div>
 
-        <!-- Bottom Action Bar & Footer Notice -->
-        <div class="pt-2.5 border-t border-[var(--card-border)] space-y-2 shrink-0">
+        <!-- Bottom Action Bar -->
+        <div class="pt-2.5 border-t border-[var(--card-border)] shrink-0">
           <div class="flex items-center gap-2">
             <button type="button" id="githubAppModalApplyAllBtn" onclick="window.applyAllGithubSyncToForm()" class="flex-1 btn btn-primary text-xs py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
               <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
               <span>اعمال همه به تنظیمات</span>
             </button>
             <button type="button" id="githubAppModalFetchAllBtn" onclick="window.fetchAllGithubReleasesInModal()" class="flex-1 btn btn-secondary text-xs py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
-              <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
               <span>استعلام از GitHub</span>
             </button>
-          </div>
-          <div class="flex items-center justify-between text-[11px] t-muted">
-            <span class="text-[10px] sm:text-[11px]">برای ذخیره نهایی، دکمه «ذخیره تنظیمات» را در صفحه بزنید.</span>
-            <button type="button" onclick="window.closeGithubAppSyncModal()" class="btn btn-secondary text-xs py-1 px-3 rounded-lg font-bold">بستن</button>
           </div>
         </div>
       </div>
