@@ -349,6 +349,7 @@ GITHUB_REPOS: dict[str, str] = {
     "pattn": "patterniha/PattN",
     "pattng": "patterniha/PattNG",
     "zedsecure": "CluvexStudio/ZedSecure",
+    "blackwall": "ANODs/blackwall",
 }
 
 _ASSET_IGNORE_TOKENS = (
@@ -405,6 +406,7 @@ def _extract_github_downloads(app_id: str, assets_raw: Any) -> dict[str, dict[st
         lambda n: n.endswith(".apk") and ("arm64-v8a" in n or "arm64_v8a" in n),
         lambda n: n.endswith(".apk") and "arm64" in n and "x86" not in n,
         lambda n: n.endswith(".apk") and "universal" in n,
+        lambda n: n.endswith(".apk"),
     )
     if apk_arm64:
         downloads["android"] = {"direct_url": apk_arm64}

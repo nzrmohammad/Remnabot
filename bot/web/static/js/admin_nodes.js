@@ -110,18 +110,21 @@
 
   async function fetchAdminSslHealth() {
     const container = $('adminSslHealthList');
-    if (!container) return;
+    if (!container) return false;
     try {
       const res = await window.api.getSslHealth();
       if (res && res.ok && Array.isArray(res.data)) {
         cachedSslHealthItems = res.data;
         renderSslHealth(cachedSslHealthItems);
+        return true;
       } else {
         container.innerHTML = '<div class="p-3 text-center text-xs t-danger">خطا در دریافت وضعیت گواهی‌های SSL</div>';
+        return false;
       }
     } catch (err) {
       console.error('SSL Health fetch error:', err);
       container.innerHTML = '<div class="p-3 text-center text-xs t-danger">عدم برقراری ارتباط با سرور</div>';
+      return false;
     }
   }
 
@@ -885,9 +888,14 @@ openEditSslDomainModal(domain) {
     const icon = $('refreshSslHealthIcon');
     if (icon) icon.classList.add('animate-spin');
     try {
-      await fetchAdminSslHealth();
-      if (window.showToast) window.showToast('🔒 وضعیت گواهی‌های SSL به‌روزرسانی شد');
-      if (window.hapticFeedback) window.hapticFeedback('success');
+      const ok = await fetchAdminSslHealth();
+      if (ok) {
+        if (window.showToast) window.showToast('وضعیت گواهی‌های SSL به‌روزرسانی شد', 'success');
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      } else {
+        if (window.showToast) window.showToast('خطا در دریافت وضعیت گواهی‌های SSL', 'error');
+        if (window.hapticFeedback) window.hapticFeedback('error');
+      }
     } finally {
       setTimeout(() => {
         if (icon) icon.classList.remove('animate-spin');

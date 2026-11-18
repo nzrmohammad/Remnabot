@@ -31,10 +31,10 @@
 
   const OS_APPS_MAP = {
     ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify', 'karing', 'v2raytun'],
-    android: ['v2rayng', 'pattng', 'happ', 'hiddify', 'karing', 'zedsecure', 'incy', 'v2raytun'],
-    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy', 'v2raytun'],
-    macos: ['hiddify', 'karing', 'pattn', 'zedsecure', 'happ', 'incy', 'v2box', 'v2raytun'],
-    linux: ['hiddify', 'karing', 'pattn', 'zedsecure', 'incy', 'nekoray', 'v2raya'],
+    android: ['v2rayng', 'pattng', 'happ', 'hiddify', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall'],
+    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall'],
+    macos: ['hiddify', 'karing', 'pattn', 'zedsecure', 'happ', 'incy', 'v2box', 'v2raytun', 'blackwall'],
+    linux: ['hiddify', 'karing', 'pattn', 'zedsecure', 'incy', 'nekoray', 'v2raya', 'blackwall'],
   };
 
   const CLIENT_APP_META = {
@@ -54,15 +54,16 @@
     pattng: { name: 'PattNG', icon: '⚡️', version: '2.3.15', hasGithub: true },
     zedsecure: { name: 'Zedsecure', icon: '🛡️', version: '3.1.8', hasGithub: true, hasPortable: true },
     v2raytun: { name: 'v2RayTun', icon: '🛡️', version: '2.4.0', hasPortable: true, hasStoreOnMac: true },
+    blackwall: { name: 'Blackwall', icon: '🛡️', version: '0.2.5', hasGithub: true, hasPortable: true },
   };
 
   function renderAdminExtraAppCards() {
     const extraByOs = {
       ios: ['karing', 'v2raytun'],
-      android: ['pattng', 'karing', 'zedsecure', 'v2raytun'],
-      windows: ['pattn', 'karing', 'zedsecure', 'v2raytun'],
-      macos: ['karing', 'pattn', 'zedsecure', 'v2raytun'],
-      linux: ['karing', 'pattn', 'zedsecure'],
+      android: ['pattng', 'karing', 'zedsecure', 'v2raytun', 'blackwall'],
+      windows: ['pattn', 'karing', 'zedsecure', 'v2raytun', 'blackwall'],
+      macos: ['karing', 'pattn', 'zedsecure', 'v2raytun', 'blackwall'],
+      linux: ['karing', 'pattn', 'zedsecure', 'blackwall'],
     };
     for (const [os, appIds] of Object.entries(extraByOs)) {
       const container = $(`adminExtraAppsContainer_${os}`);
@@ -2072,33 +2073,60 @@ openUserChat(telegram_id, name, tag, topup_id) {
     }
   }
 
-  async function syncAllGithubVersions() {
-    const btn = $('syncAllGithubVersionsBtn');
+  const APP_STORE_PRESETS = {
+    v2rayng: { playStore: 'https://play.google.com/store/apps/details?id=com.v2ray.ang' },
+    hiddify: { playStore: 'https://play.google.com/store/apps/details?id=app.hiddify.com', appStore: 'https://apps.apple.com/app/hiddify-proxy-vpn/id6596777532' },
+    karing: { playStore: 'https://play.google.com/store/apps/details?id=com.nebula.karing', appStore: 'https://apps.apple.com/app/karing/id6472431552' },
+    streisand: { appStore: 'https://apps.apple.com/app/streisand/id6450534064' },
+    shadowrocket: { appStore: 'https://apps.apple.com/app/shadowrocket/id932747118' },
+    v2box: { appStore: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814043' },
+    happ: { playStore: 'https://play.google.com/store/apps/details?id=com.happproxy' },
+    v2raytun: { playStore: 'https://play.google.com/store/apps/details?id=com.v2raytun.android', appStore: 'https://apps.apple.com/app/v2raytun/id6476628114' },
+  };
+
+  let modalGithubData = {
+    versions: {},
+    downloads: {},
+    searchQuery: '',
+    isLoading: false,
+    appEdits: {}
+  };
+
+  function openGithubAppSyncModal() {
+    const modal = $('githubAppSyncModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    if (window.hapticFeedback) window.hapticFeedback('impact');
+    renderGithubAppSyncModalCards();
+    if (Object.keys(modalGithubData.versions).length === 0) {
+      fetchAllGithubReleasesInModal();
+    }
+  }
+
+  function closeGithubAppSyncModal() {
+    const modal = $('githubAppSyncModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function filterGithubAppSyncList(q) {
+    modalGithubData.searchQuery = (q || '').trim().toLowerCase();
+    renderGithubAppSyncModalCards();
+  }
+
+  async function fetchAllGithubReleasesInModal() {
+    const btn = $('githubAppModalFetchAllBtn');
     const origHtml = btn ? btn.innerHTML : '';
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 shrink-0 inline-block animate-spin')}<span>در حال دریافت نسخه‌ها از GitHub...</span></span>`;
+      btn.innerHTML = `<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block animate-spin" width="14" height="14" alt="" /><span>در حال استعلام...</span></span>`;
     }
     try {
-      if (window.hapticFeedback) window.hapticFeedback('impact');
+      modalGithubData.isLoading = true;
       const res = await window.api.getGithubReleases();
-      if (res && res.ok && res.versions) {
-        let count = 0;
-        let dlCount = 0;
-        for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
-          for (const appId of appIds) {
-            if (res.versions[appId]) {
-              const versionEl = $(`appVersion_${os}_${appId}`);
-              if (versionEl) {
-                versionEl.value = res.versions[appId];
-                count++;
-              }
-            }
-            dlCount += _applyGithubDownloadsForOs(appId, os, res.downloads?.[appId]);
-          }
-        }
-        const dlSuffix = dlCount > 0 ? ` و ${dlCount} لینک دانلود` : '';
-        if (window.showToast) window.showToast(`✅ تعداد ${count} نسخه${dlSuffix} از GitHub بروزرسانی شدند. برای اعمال «ذخیره تغییرات» را بزنید.`);
+      if (res && res.ok) {
+        if (res.versions) modalGithubData.versions = { ...modalGithubData.versions, ...res.versions };
+        if (res.downloads) modalGithubData.downloads = { ...modalGithubData.downloads, ...res.downloads };
+        if (window.showToast) window.showToast('✅ آخرین اطلاعات و نسخه‌ها از GitHub دریافت شد.');
         if (window.hapticFeedback) window.hapticFeedback('success');
       } else {
         if (window.showToast) window.showToast('⚠️ خطا در دریافت نسخه‌ها از گیت‌هاب.');
@@ -2106,15 +2134,194 @@ openUserChat(telegram_id, name, tag, topup_id) {
     } catch (e) {
       if (window.showToast) window.showToast('❌ خطا در ارتباط با گیت‌هاب.');
     } finally {
+      modalGithubData.isLoading = false;
       if (btn) {
         btn.disabled = false;
         btn.innerHTML = origHtml;
       }
+      renderGithubAppSyncModalCards();
     }
+  }
+
+  async function fetchSingleAppGithubInModal(appId) {
+    if (!appId) return;
+    const btn = $(`githubAppFetchBtn_${appId}`);
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-flex items-center gap-1"><img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0 inline-block animate-spin" width="12" height="12" alt="" /><span>...</span></span>`;
+    }
+    try {
+      const res = await window.api.getGithubReleases(appId);
+      if (res && res.ok) {
+        if (res.versions?.[appId]) modalGithubData.versions[appId] = res.versions[appId];
+        if (res.downloads?.[appId]) modalGithubData.downloads[appId] = res.downloads[appId];
+        if (window.showToast) window.showToast(`✅ نسخه ${res.versions?.[appId] || ''} برای ${CLIENT_APP_META[appId]?.name || appId} دریافت شد.`);
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      } else {
+        if (window.showToast) window.showToast('⚠️ نسخه‌ای برای این برنامه در گیت‌هاب یافت نشد.');
+      }
+    } catch (e) {
+      if (window.showToast) window.showToast('❌ خطا در دریافت اطلاعات برنامه.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+      renderGithubAppSyncModalCards();
+    }
+  }
+
+  function applySingleAppGithubToForm(appId) {
+    const meta = CLIENT_APP_META[appId];
+    if (!meta) return;
+    const appName = meta.name || appId;
+    const latestVer = modalGithubData.appEdits[`${appId}_ver`] ?? modalGithubData.versions[appId];
+    let appliedCount = 0;
+
+    for (const [os, appIds] of Object.entries(OS_APPS_MAP)) {
+      if (!appIds.includes(appId)) continue;
+      if (latestVer) {
+        const verEl = $(`appVersion_${os}_${appId}`);
+        if (verEl) {
+          verEl.value = latestVer;
+          appliedCount++;
+        }
+      }
+      appliedCount += _applyGithubDownloadsForOs(appId, os, modalGithubData.downloads[appId]);
+
+      const playLink = modalGithubData.appEdits[`${appId}_play`] ?? APP_STORE_PRESETS[appId]?.playStore;
+      if (os === 'android' && playLink) {
+        const mainEl = $(`appDownload_android_${appId}`);
+        if (mainEl && (!mainEl.value || mainEl.value.includes('play.google.com'))) {
+          mainEl.value = playLink;
+        }
+      }
+      const appStoreLink = modalGithubData.appEdits[`${appId}_appstore`] ?? APP_STORE_PRESETS[appId]?.appStore;
+      if ((os === 'ios' || os === 'macos') && appStoreLink) {
+        const mainEl = $(`appDownload_${os}_${appId}`);
+        if (mainEl && (!mainEl.value || mainEl.value.includes('apps.apple.com'))) {
+          mainEl.value = appStoreLink;
+        }
+      }
+    }
+
+    if (window.showToast) window.showToast(`✅ اطلاعات ${appName} با موفقیت به فرم تنظیمات اعمال شد.`);
+    if (window.hapticFeedback) window.hapticFeedback('success');
+  }
+
+  function applyAllGithubSyncToForm() {
+    let count = 0;
+    for (const appId of Object.keys(CLIENT_APP_META)) {
+      applySingleAppGithubToForm(appId);
+      count++;
+    }
+    closeGithubAppSyncModal();
+    if (window.showToast) window.showToast(`✅ تنظیمات ${count} برنامه با موفقیت بروز شد. برای ذخیره نهایی، دکمه «ذخیره تنظیمات» را بزنید.`);
+  }
+
+  function setGithubAppCustomField(appId, field, val) {
+    modalGithubData.appEdits[`${appId}_${field}`] = val;
+    applySingleAppGithubToForm(appId);
+  }
+
+  function renderGithubAppSyncModalCards() {
+    const container = $('githubAppSyncListContainer');
+    if (!container) return;
+    const query = modalGithubData.searchQuery;
+    const appIds = Object.keys(CLIENT_APP_META).filter(id => {
+      if (!query) return true;
+      const meta = CLIENT_APP_META[id] || {};
+      return id.toLowerCase().includes(query) || (meta.name && meta.name.toLowerCase().includes(query));
+    });
+
+    if (appIds.length === 0) {
+      container.innerHTML = `<div class="p-8 text-center t-muted text-xs">هیچ برنامه‌ای منطبق با جستجو یافت نشد.</div>`;
+      return;
+    }
+
+    container.innerHTML = appIds.map(appId => {
+      const meta = CLIENT_APP_META[appId] || { name: appId };
+      const appName = meta.name || appId;
+      const currentVer = $(`appVersion_android_${appId}`)?.value || $(`appVersion_windows_${appId}`)?.value || $(`appVersion_ios_${appId}`)?.value || meta.version || '';
+      const latestVer = modalGithubData.appEdits[`${appId}_ver`] ?? (modalGithubData.versions[appId] || '');
+      const presets = APP_STORE_PRESETS[appId] || {};
+      const dlInfo = modalGithubData.downloads[appId] || {};
+      const directDlUrl = dlInfo.android?.direct_url || dlInfo.windows?.url || dlInfo.windows?.portable_url || '';
+
+      const supportedOses = Object.entries(OS_APPS_MAP).filter(([_, ids]) => ids.includes(appId)).map(([os]) => os);
+      const osBadges = supportedOses.map(os => `<span class="px-1.5 py-0.5 rounded text-[10px] card-inset border border-slate-700/50 t-muted font-sans uppercase">${os}</span>`).join(' ');
+
+      const playPresetBtn = presets.playStore ? `
+        <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'play', '${presets.playStore}')" class="text-[10px] text-cyan-400 hover:underline">درج لینک Google Play</button>
+      ` : '';
+
+      const appStorePresetBtn = presets.appStore ? `
+        <button type="button" onclick="window.setGithubAppCustomField('${appId}', 'appstore', '${presets.appStore}')" class="text-[10px] text-blue-400 hover:underline">درج لینک App Store</button>
+      ` : '';
+
+      const directPresetBtn = directDlUrl ? `
+        <span class="text-[10px] text-emerald-400">لینک دانلود فایل آماده است</span>
+      ` : '';
+
+      return `
+        <div class="card-inset rounded-2xl p-3 border border-[var(--card-border)] space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-9 h-9 rounded-xl card-inset p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                <img src="/static/img/apps/${appId}.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-full h-full object-contain rounded-lg" alt="${escapeHtml(appName)}" loading="lazy" />
+                <span class="text-base hidden" style="display:none;">📱</span>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <b class="text-xs t-main font-bold truncate">${escapeHtml(appName)}</b>
+                  <div class="flex items-center gap-1">${osBadges}</div>
+                </div>
+                <div class="text-[11px] t-muted mt-0.5 flex items-center gap-2">
+                  <span>نسخه فعلی: <b class="font-sans t-main">${escapeHtml(currentVer || '—')}</b></span>
+                  ${latestVer ? `<span>آخرین گیت‌هاب: <b class="font-sans text-emerald-400">${escapeHtml(latestVer)}</b></span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" id="githubAppFetchBtn_${appId}" onclick="window.fetchSingleAppGithubInModal('${appId}')" class="btn btn-secondary text-[11px] py-1 px-2.5 rounded-xl font-bold flex items-center gap-1 shadow-sm transition active:scale-95" title="استعلام نسخه از GitHub">
+                <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0" width="12" height="12" alt="" />
+                <span>استعلام</span>
+              </button>
+              <button type="button" onclick="window.applySingleAppGithubToForm('${appId}')" class="btn btn-primary text-[11px] py-1 px-2.5 rounded-xl font-bold flex items-center gap-1 shadow-sm transition active:scale-95" title="اعمال به فرم تنظیمات">
+                <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0" width="12" height="12" alt="" />
+                <span>اعمال</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Shortcuts & Links Preview -->
+          <div class="pt-1 border-t border-slate-700/40 flex flex-wrap items-center justify-between gap-1.5 text-[10px]">
+            <div class="flex items-center gap-2">
+              ${playPresetBtn}
+              ${appStorePresetBtn}
+            </div>
+            <div>${directPresetBtn}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function syncAllGithubVersions() {
+    openGithubAppSyncModal();
   }
 
   window.fetchGithubAppVersion = fetchGithubAppVersion;
   window.syncAllGithubVersions = syncAllGithubVersions;
+  window.openGithubAppSyncModal = openGithubAppSyncModal;
+  window.closeGithubAppSyncModal = closeGithubAppSyncModal;
+  window.filterGithubAppSyncList = filterGithubAppSyncList;
+  window.fetchAllGithubReleasesInModal = fetchAllGithubReleasesInModal;
+  window.fetchSingleAppGithubInModal = fetchSingleAppGithubInModal;
+  window.applySingleAppGithubToForm = applySingleAppGithubToForm;
+  window.applyAllGithubSyncToForm = applyAllGithubSyncToForm;
+  window.setGithubAppCustomField = setGithubAppCustomField;
 
   // Explicit event listeners for Admin App Tabs and Due Date buttons
   document.querySelectorAll('.admin-app-os-tab').forEach(btn => {

@@ -55,9 +55,9 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- Top Admin Bar                                            -->
+    <!-- Top Admin Bar (Height & Padding Perfectly Aligned with User Panel) -->
     <!-- ======================================================== -->
-    <div id="adminTopBar" class="top-nav-bar px-4 pt-[max(0.75rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+4px))] pb-2 flex items-center justify-between z-20">
+    <div id="adminTopBar" class="top-nav-bar px-4 pt-[max(1.125rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+8px))] pb-1.5 flex items-center justify-between z-20 transition-all duration-200">
       <div class="flex items-center gap-2">
         <span class="t-warn text-xs font-bold flex items-center gap-1.5 select-none">
           <svg class="w-3.5 h-3.5 t-warn" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -66,7 +66,7 @@
       </div>
 
       <button id="adminThemeToggle" class="header-action-btn card-inset border border-slate-200 dark:border-[var(--card-border)] text-xs p-1.5 w-9 h-9 min-w-[36px] min-h-[36px] t-muted hover:t-main rounded-xl transition flex items-center justify-center active:scale-95 shadow-sm" title="تغییر تم" aria-label="تغییر تم پنل مدیریت">
-        <span id="adminThemeIcon">
+        <span id="adminThemeIcon" class="flex items-center justify-center">
           <img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
         </span>
       </button>
@@ -788,6 +788,9 @@
               <div id="asnResultsBox" class="hidden space-y-2 pt-2 w-full">
                 <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center shrink-0">
+                      <img src="/static/img/icons/route.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                    </div>
                     <span class="text-xs font-bold t-main">پیشوندهای اعلام‌شده:</span>
                     <span id="asnCountBadge" class="badge badge-info font-sans">0 رنج</span>
                     <button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary w-7 h-7 p-0 rounded-xl flex items-center justify-center transition active:scale-95 shadow-xs" title="کپی همه پیشوندها" aria-label="کپی همه">
@@ -825,8 +828,10 @@
         <!-- Subtab 1: Pending Topups & Support Desk -->
         <div id="subtabContentTopups" class="space-y-4">
           <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold t-main flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <h3 class="text-sm font-bold t-main flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+              </div>
               <span>فیش‌های واریزی در انتظار بررسی</span>
             </h3>
             <button id="refreshTopupsBtn" class="btn-icon w-8 h-8 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] t-main hover:text-[var(--c-accent)] transition flex items-center justify-center active:scale-95 shadow-xs" title="تازه‌سازی">
@@ -1060,7 +1065,7 @@
                 <input type="hidden" id="settingBluBankColor" value="red" />
                 <div role="button" tabindex="0" onclick="window.adminActions.openCardColorModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-[var(--card-border)] hover:border-blue-500/50 group">
                   <div class="flex items-center gap-2">
-                    <span id="settingBluBankColorIcon" class="text-sm">🔴</span>
+                    <span id="settingBluBankColorIcon" class="w-3.5 h-3.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
                     <span id="settingBluBankColorLabel" class="text-xs t-main font-bold">قرمز گیلاسی</span>
                   </div>
                   <div class="flex items-center t-muted group-hover:text-slate-200 text-xs">
@@ -1549,9 +1554,9 @@
             </div>
 
             <!-- Global GitHub Versions Sync Button -->
-            <button type="button" id="syncAllGithubVersionsBtn" onclick="window.syncAllGithubVersions()" class="w-full py-2 px-3 rounded-xl card-inset hover:border-cyan-500/50 t-accent text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
-              <span>🐙</span>
-              <span>بروزرسانی خودکار نسخه‌ها از GitHub</span>
+            <button type="button" id="syncAllGithubVersionsBtn" onclick="window.openGithubAppSyncModal()" class="w-full py-2.5 px-3 rounded-xl card-inset hover:border-cyan-500/50 t-accent text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
+              <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />
+              <span>بروزرسانی خودکار و مدیریت نسخه‌ها و لینک‌ها از GitHub</span>
             </button>
 
             <!-- OS Segmented Tabs: Unified 5-Column Grid -->
@@ -1579,7 +1584,7 @@
               <div class="space-y-2">
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥇</span>
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
                     <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
                   </div>
                   <input type="hidden" id="appRecommended_ios" value="">
@@ -1590,7 +1595,7 @@
                 </div>
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥈</span>
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
                     <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
                   </div>
                   <input type="hidden" id="appAlternative_ios" value="">
@@ -1605,7 +1610,7 @@
               <div class="p-3 rounded-2xl border border-[var(--card-border)] space-y-2 bg-transparent">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <span class="text-base">🚀</span>
+                    <img src="/static/img/apps/shadowrocket.webp" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/shadowrocket.png';}else{this.style.display='none';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="Shadowrocket" loading="lazy" />
                     <b class="text-white text-xs">Shadowrocket</b>
                   </div>
                   
@@ -1741,7 +1746,7 @@
               <div class="space-y-2">
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥇</span>
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
                     <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
                   </div>
                   <input type="hidden" id="appRecommended_android" value="">
@@ -1752,7 +1757,7 @@
                 </div>
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥈</span>
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
                     <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
                   </div>
                   <input type="hidden" id="appAlternative_android" value="">
@@ -1781,7 +1786,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('v2rayng', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_android_v2rayng" dir="ltr" placeholder="پیش‌فرض: 1.9.15" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -1806,7 +1811,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('happ', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_android_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -1831,7 +1836,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'android')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_android_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -1866,7 +1871,7 @@
               <div class="space-y-2">
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥇</span>
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
                     <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
                   </div>
                   <input type="hidden" id="appRecommended_windows" value="">
@@ -1877,7 +1882,7 @@
                 </div>
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥈</span>
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
                     <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
                   </div>
                   <input type="hidden" id="appAlternative_windows" value="">
@@ -1899,14 +1904,14 @@
                   <input type="text" id="appDownload_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه Portable:</label>
+                  <label class="text-[11px] text-amber-300 block mb-1"><span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/folder.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>لینک دانلود نسخه Portable:</span></span></label>
                   <input type="text" id="appDownloadPortable_windows_v2rayn" dir="ltr" placeholder="مثلاً: https://github.com/.../v2rayN-portable.zip" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('v2rayn', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_windows_v2rayn" dir="ltr" placeholder="پیش‌فرض: 7.1.4" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -1924,14 +1929,14 @@
                   <input type="text" id="appDownload_windows_hiddify" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه Portable:</label>
+                  <label class="text-[11px] text-amber-300 block mb-1"><span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/folder.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>لینک دانلود نسخه Portable:</span></span></label>
                   <input type="text" id="appDownloadPortable_windows_hiddify" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_windows_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -1949,14 +1954,14 @@
                   <input type="text" id="appDownload_windows_happ" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه Portable:</label>
+                  <label class="text-[11px] text-amber-300 block mb-1"><span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/folder.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>لینک دانلود نسخه Portable:</span></span></label>
                   <input type="text" id="appDownloadPortable_windows_happ" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('happ', 'windows')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_windows_happ" dir="ltr" placeholder="پیش‌فرض: 3.1.2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -1974,7 +1979,7 @@
                   <input type="text" id="appDownload_windows_incy" dir="ltr" placeholder="پیش‌فرض خالی (عدم نمایش)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label class="text-[11px] text-amber-300 block mb-1">💼 لینک دانلود نسخه Portable:</label>
+                  <label class="text-[11px] text-amber-300 block mb-1"><span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/folder.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>لینک دانلود نسخه Portable:</span></span></label>
                   <input type="text" id="appDownloadPortable_windows_incy" dir="ltr" placeholder="لینک نسخه بدون نصب" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
                 </div>
                 <div>
@@ -1991,7 +1996,7 @@
               <div class="space-y-2">
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥇</span>
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
                     <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
                   </div>
                   <input type="hidden" id="appRecommended_macos" value="">
@@ -2002,7 +2007,7 @@
                 </div>
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥈</span>
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
                     <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
                   </div>
                   <input type="hidden" id="appAlternative_macos" value="">
@@ -2113,7 +2118,7 @@
               <div class="space-y-2">
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥇</span>
+                    <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-amber-400" width="16" height="16" alt="پیشنهادی" />
                     <span class="text-[11px] t-main font-medium">برنامه پیشنهادی:</span>
                   </div>
                   <input type="hidden" id="appRecommended_linux" value="">
@@ -2124,7 +2129,7 @@
                 </div>
                 <div class="flex items-center justify-between p-2.5 card-inset rounded-2xl border border-[var(--card-border)]">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm">🥈</span>
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-sky-400" width="16" height="16" alt="جایگزین" />
                     <span class="text-[11px] t-main font-medium">برنامه جایگزین:</span>
                   </div>
                   <input type="hidden" id="appAlternative_linux" value="">
@@ -2149,7 +2154,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('hiddify', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_linux_hiddify" dir="ltr" placeholder="پیش‌فرض: 2.5.7" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -2170,7 +2175,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('nekoray', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_linux_nekoray" dir="ltr" placeholder="پیش‌فرض: 4.0.1" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -2191,7 +2196,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                     <button type="button" onclick="window.fetchGithubAppVersion('v2raya', 'linux')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center gap-1 active:scale-95" title="استعلام آخرین نسخه از گیت‌هاب">
-                      <span>🐙</span><span>گیت‌هاب</span>
+                      <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span>گیت‌هاب</span>
                     </button>
                   </div>
                   <input type="text" id="appVersion_linux_v2raya" dir="ltr" placeholder="پیش‌فرض: 2.2.5" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
@@ -2351,46 +2356,38 @@
               <div class="flex items-center justify-between">
                 <div>
                   <b class="text-xs t-main block">تخفیف‌های پلکانی حجم مصرفی</b>
-                  <span class="text-[11px] t-muted">اعمال تخفیف خودکار بر اساس حجم انتخابی کاربر</span>
                 </div>
-                
               </div>
 
-              <div class="space-y-2 pt-1">
+              <div class="grid grid-cols-2 gap-2.5 pt-1">
                 <!-- Tier 1 -->
-                <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
-                  <div>
-                    <label class="text-[11px] t-muted block mb-1">پله اول: از چند گیگابایت</label>
-                    <input type="number" id="settingCustomPlanTier1MinGb" dir="ltr" placeholder="51" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
-                  </div>
-                  <div>
-                    <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله اول (%)</label>
-                    <input type="number" id="settingCustomPlanTier1Discount" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
-                  </div>
+                <div>
+                  <label class="text-[11px] t-muted block mb-1">پله اول: از چند گیگابایت</label>
+                  <input type="number" id="settingCustomPlanTier1MinGb" dir="ltr" placeholder="51" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
+                </div>
+                <div>
+                  <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله اول (%)</label>
+                  <input type="number" id="settingCustomPlanTier1Discount" dir="ltr" placeholder="10" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
                 </div>
 
                 <!-- Tier 2 -->
-                <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
-                  <div>
-                    <label class="text-[11px] t-muted block mb-1">پله دوم: از چند گیگابایت</label>
-                    <input type="number" id="settingCustomPlanTier2MinGb" dir="ltr" placeholder="101" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
-                  </div>
-                  <div>
-                    <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله دوم (%)</label>
-                    <input type="number" id="settingCustomPlanTier2Discount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
-                  </div>
+                <div>
+                  <label class="text-[11px] t-muted block mb-1">پله دوم: از چند گیگابایت</label>
+                  <input type="number" id="settingCustomPlanTier2MinGb" dir="ltr" placeholder="101" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
+                </div>
+                <div>
+                  <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله دوم (%)</label>
+                  <input type="number" id="settingCustomPlanTier2Discount" dir="ltr" placeholder="20" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
                 </div>
 
                 <!-- Tier 3 -->
-                <div class="card-inset p-2.5 rounded-xl grid grid-cols-2 gap-2 border border-slate-750">
-                  <div>
-                    <label class="text-[11px] t-muted block mb-1">پله سوم: از چند گیگابایت</label>
-                    <input type="number" id="settingCustomPlanTier3MinGb" dir="ltr" placeholder="201" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
-                  </div>
-                  <div>
-                    <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله سوم (%)</label>
-                    <input type="number" id="settingCustomPlanTier3Discount" dir="ltr" placeholder="30" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
-                  </div>
+                <div>
+                  <label class="text-[11px] t-muted block mb-1">پله سوم: از چند گیگابایت</label>
+                  <input type="number" id="settingCustomPlanTier3MinGb" dir="ltr" placeholder="201" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi text-cyan-300 outline-none" />
+                </div>
+                <div>
+                  <label class="text-[11px] t-muted block mb-1">درصد تخفیف پله سوم (%)</label>
+                  <input type="number" id="settingCustomPlanTier3Discount" dir="ltr" placeholder="30" class="input-base w-full px-2.5 py-1.5 text-xs font-sans num-bidi t-success outline-none" />
                 </div>
               </div>
             </div>
@@ -2428,102 +2425,156 @@
             <p class="text-[11px] t-muted leading-relaxed">
               کاربران بر اساس مجموع خریدهای موفق قبلی به سطوح بالاتر ارتقا یافته و از تخفیف خودکار در فروشگاه بهره‌مند می‌شوند:
             </p>
-            <div class="space-y-2" id="adminLoyaltyTiersForm">
+            <div class="space-y-2.5" id="adminLoyaltyTiersForm">
               <!-- Tier 1: Bronze -->
-              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
+              <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-xl bg-slate-500/10 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                  </div>
                   <div>
                     <b class="text-xs t-main block">سطح برنزی (پایه)</b>
-                    <span class="text-[11px] t-muted">سطح پیش‌فرض اولیه</span>
+                    <span class="text-[11px] t-muted">سطح پیش‌فرض اولیه کاربران</span>
                   </div>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="text-[11px] t-muted">بدون تخفیف</span>
-                </div>
+                <span class="badge badge-neutral text-[11px] font-medium shrink-0">بدون تخفیف</span>
               </div>
 
               <!-- Tier 2: Silver -->
-              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
-                  <b class="text-xs t-main">نقره‌ای</b>
+              <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-slate-500/10 flex items-center justify-center shrink-0">
+                      <img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                    </div>
+                    <b class="text-xs t-main">سطح نقره‌ای</b>
+                  </div>
+                  <span class="text-[10px] t-muted">حداقل خرید و درصد تخفیف</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
-                  <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
+                <div class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-7 sm:col-span-8 relative">
+                    <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="input-base w-full h-9 pr-2 pl-12 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] t-muted pointer-events-none select-none">تومان</span>
+                  </div>
+                  <div class="col-span-5 sm:col-span-4 relative">
+                    <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="input-base w-full h-9 pr-2 pl-7 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف" autocomplete="off" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] t-muted font-bold pointer-events-none select-none">%</span>
+                  </div>
                 </div>
               </div>
 
               <!-- Tier 3: Gold -->
-              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
-                  <b class="text-xs t-warn">طلایی</b>
+              <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                      <img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                    </div>
+                    <b class="text-xs t-warn">سطح طلایی</b>
+                  </div>
+                  <span class="text-[10px] t-muted">حداقل خرید و درصد تخفیف</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
-                  <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
+                <div class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-7 sm:col-span-8 relative">
+                    <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="input-base w-full h-9 pr-2 pl-12 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] t-muted pointer-events-none select-none">تومان</span>
+                  </div>
+                  <div class="col-span-5 sm:col-span-4 relative">
+                    <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="input-base w-full h-9 pr-2 pl-7 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف" autocomplete="off" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] t-muted font-bold pointer-events-none select-none">%</span>
+                  </div>
                 </div>
               </div>
 
               <!-- Tier 4: Platinum -->
-              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/diamond.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
-                  <b class="text-xs text-cyan-500 dark:text-cyan-300">پلاتین</b>
+              <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+                      <img src="/static/img/icons/diamond.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                    </div>
+                    <b class="text-xs text-cyan-500 dark:text-cyan-300">سطح پلاتین</b>
+                  </div>
+                  <span class="text-[10px] t-muted">حداقل خرید و درصد تخفیف</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
-                  <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
+                <div class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-7 sm:col-span-8 relative">
+                    <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="input-base w-full h-9 pr-2 pl-12 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] t-muted pointer-events-none select-none">تومان</span>
+                  </div>
+                  <div class="col-span-5 sm:col-span-4 relative">
+                    <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="input-base w-full h-9 pr-2 pl-7 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف" autocomplete="off" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] t-muted font-bold pointer-events-none select-none">%</span>
+                  </div>
                 </div>
               </div>
 
               <!-- Tier 5: Ruby -->
-              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
-                  <b class="text-xs t-purple">یاقوت</b>
+              <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                      <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                    </div>
+                    <b class="text-xs t-purple">سطح یاقوت</b>
+                  </div>
+                  <span class="text-[10px] t-muted">حداقل خرید و درصد تخفیف</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
-                  <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
+                <div class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-7 sm:col-span-8 relative">
+                    <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="input-base w-full h-9 pr-2 pl-12 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] t-muted pointer-events-none select-none">تومان</span>
+                  </div>
+                  <div class="col-span-5 sm:col-span-4 relative">
+                    <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="input-base w-full h-9 pr-2 pl-7 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف" autocomplete="off" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] t-muted font-bold pointer-events-none select-none">%</span>
+                  </div>
                 </div>
               </div>
 
               <!-- Tier 6: Emerald -->
-              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
-                  <b class="text-xs t-success">زمرد</b>
+              <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                    </div>
+                    <b class="text-xs t-success">سطح زمرد</b>
+                  </div>
+                  <span class="text-[10px] t-muted">حداقل خرید و درصد تخفیف</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
-                  <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
+                <div class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-7 sm:col-span-8 relative">
+                    <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="input-base w-full h-9 pr-2 pl-12 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] t-muted pointer-events-none select-none">تومان</span>
+                  </div>
+                  <div class="col-span-5 sm:col-span-4 relative">
+                    <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="input-base w-full h-9 pr-2 pl-7 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف" autocomplete="off" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] t-muted font-bold pointer-events-none select-none">%</span>
+                  </div>
                 </div>
               </div>
 
               <!-- Tier 7: Diamond -->
-              <div class="card-inset p-2.5 rounded-xl flex items-center justify-between gap-2 border border-[var(--card-border)]">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-base flex items-center justify-center"><img src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
-                  <b class="text-xs text-amber-500 dark:text-amber-300">الماس</b>
+              <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                      <img src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                    </div>
+                    <b class="text-xs text-amber-500 dark:text-amber-300">سطح الماس</b>
+                  </div>
+                  <span class="text-[10px] t-muted">حداقل خرید و درصد تخفیف</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="w-24 input-base px-2 py-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 outline-none text-center" title="حداقل خرید (تومان)" />
-                  <span class="text-[11px] t-muted">تومان</span>
-                  <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="w-14 input-base px-2 py-1 text-xs font-sans num-bidi font-en num-bidi t-success outline-none text-center font-bold" title="درصد تخفیف" autocomplete="off" />
-                  <span class="text-[11px] t-muted font-sans num-bidi font-bold" dir="ltr">%</span>
+                <div class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-7 sm:col-span-8 relative">
+                    <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="input-base w-full h-9 pr-2 pl-12 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] t-muted pointer-events-none select-none">تومان</span>
+                  </div>
+                  <div class="col-span-5 sm:col-span-4 relative">
+                    <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="input-base w-full h-9 pr-2 pl-7 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف" autocomplete="off" />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] t-muted font-bold pointer-events-none select-none">%</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2771,12 +2822,12 @@
           </div>
 
           <p class="text-[11px] t-muted card-inset p-2.5 rounded-xl border border-card-border leading-relaxed">
-            💡 برای حذف تاریخ تولد کاربر، مقدار این فیلد را خالی بگذارید. کاربر امکان ویرایش تاریخ تولد ثبت‌شده را ندارد.
+            <img src="/static/img/icons/lightbulb.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block align-middle shrink-0" width="14" height="14" alt="" /> برای حذف تاریخ تولد کاربر، مقدار این فیلد را خالی بگذارید. کاربر امکان ویرایش تاریخ تولد ثبت‌شده را ندارد.
           </p>
 
           <div class="pt-1">
             <button id="userProfEditSaveBtn" type="button" onclick="window.adminActions.saveUserProfileEdit()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5">
-              <span>✅</span>
+              <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
               <span>ذخیره تغییرات</span>
             </button>
           </div>
@@ -3076,7 +3127,7 @@
           </div>
 
           <div class="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed">
-            ⚠️ در صورت ایجاد مجدد، لینک و کانفیگ‌های قبلی کاربر بلافاصله باطل شده و لینک جدید صادر و فعال خواهد شد.
+            <img src="/static/img/icons/alert.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block align-middle shrink-0" width="14" height="14" alt="" /> در صورت ایجاد مجدد، لینک و کانفیگ‌های قبلی کاربر بلافاصله باطل شده و لینک جدید صادر و فعال خواهد شد.
           </div>
         </div>
 
@@ -3830,22 +3881,22 @@
     </div>
 
     <!-- MODAL: Node Billing & Cost Settings Modal -->
-    <div id="nodeBillingModal" role="dialog" aria-modal="true" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[370px] space-y-3.5 shadow-2xl relative max-h-[92vh] flex flex-col overflow-hidden">
+    <div id="nodeBillingModal" role="dialog" aria-modal="true" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[420px] shadow-2xl relative max-h-[92vh] flex flex-col overflow-hidden">
         <div class="flex justify-between items-center border-b border-card-border pb-3 shrink-0">
           <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
               <span class="text-xl leading-none inline-flex items-center justify-center" id="nodeBillingModalFlag"><img src="/static/img/icons/desktop.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
             </div>
             <div>
-              <h4 id="nodeBillingModalTitle" class="text-xs font-bold t-main truncate max-w-[210px]">هزینه و تمدید سرور</h4>
+              <h4 id="nodeBillingModalTitle" class="text-xs font-bold t-main truncate max-w-[240px]">هزینه و تمدید سرور</h4>
               <span class="text-[11px] t-muted block mt-0.5">مدیریت هزینه ماهانه و تاریخ سررسید</span>
             </div>
           </div>
           <button type="button" onclick="window.adminActions.closeNodeBillingModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
 
-        <form id="nodeBillingForm" onsubmit="event.preventDefault(); window.adminActions.saveNodeBilling();" class="space-y-3 text-xs overflow-y-auto custom-scroll flex-1 py-1 px-1">
+        <form id="nodeBillingForm" onsubmit="event.preventDefault(); window.adminActions.saveNodeBilling();" class="space-y-3.5 text-xs overflow-y-auto custom-scroll flex-1 py-2 px-1">
           <input type="hidden" id="nodeBillingUuid" value="" />
           <input type="hidden" id="nodeBillingId" value="" />
           <input type="hidden" id="nodeBillingName" value="" />
@@ -3857,7 +3908,7 @@
           </div>
 
           <!-- Monthly Cost 3-Column Grid (Toman, Foreign Amount, Currency Unit) -->
-          <div class="card-inset border border-card-border rounded-2xl p-2.5 space-y-2">
+          <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
             <div class="flex items-center gap-1.5 pb-0.5">
               <img src="/static/img/icons/coins.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
               <span class="text-[11px] font-bold t-main">هزینه دوره ماهانه سرور</span>
@@ -3901,7 +3952,7 @@
           </div>
 
           <!-- Renewal Due Date (Polished HTML5 Datepicker) -->
-          <div class="card-inset border border-card-border rounded-2xl p-2.5 space-y-1.5">
+          <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
                 <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
@@ -3916,8 +3967,10 @@
                 </span>
                 <input type="date" id="nodeBillingDueDate" dir="ltr" class="node-date-input input-base w-full h-10 pr-9 pl-3 rounded-xl text-xs font-sans font-bold t-warn focus:border-amber-500 transition text-center cursor-pointer shadow-sm" onclick="this.showPicker && this.showPicker()" />
               </div>
-              <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(30)" class="h-10 px-2.5 rounded-xl card-inset border border-amber-500/30 hover:border-amber-400 t-warn font-bold text-[11px] font-sans whitespace-nowrap transition active:scale-95 leading-none" title="تنظیم سررسید برای 30 روز آینده">+30 روز</button>
-              <button type="button" onclick="window.adminActions.clearNodeBillingDueDate()" class="h-10 w-10 rounded-xl card-inset border border-card-border hover:border-rose-500/40 t-muted hover:text-rose-400 font-bold text-xs flex items-center justify-center transition active:scale-95 shrink-0" title="پاک کردن تاریخ سررسید" aria-label="پاک کردن تاریخ سررسید">✕</button>
+              <button type="button" onclick="window.adminActions.addDaysToNodeBillingDueDate(30)" class="h-10 px-3 rounded-xl card-inset border border-amber-500/30 hover:border-amber-400 t-warn font-bold text-[11px] font-sans whitespace-nowrap transition active:scale-95 leading-none" title="تنظیم سررسید برای 30 روز آینده">+30 روز</button>
+              <button type="button" onclick="window.adminActions.clearNodeBillingDueDate()" class="h-10 w-10 rounded-xl card-inset border border-card-border hover:border-rose-500/40 t-muted hover:text-rose-400 flex items-center justify-center transition active:scale-95 shrink-0" title="پاک کردن تاریخ سررسید" aria-label="پاک کردن تاریخ سررسید">
+                <img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              </button>
             </div>
             <span class="text-[10px] t-muted block">در صورت رسیدن به 3 روز باقی‌مانده، پیام هشدار در تلگرام ارسال می‌شود.</span>
           </div>
@@ -3939,19 +3992,13 @@
             </button>
           </div>
 
-          <!-- Submit & Cancel Buttons -->
-          <div class="flex items-center gap-2 pt-1 border-t border-card-border">
-            <button type="submit" id="saveNodeBillingBtn" class="flex-1 btn btn-primary text-xs py-2.5 rounded-xl font-bold transition shadow active:scale-95 flex items-center justify-center gap-1.5 leading-none">
+          <!-- Submit Button (Full Width, No Cancel Button) -->
+          <div class="pt-2 border-t border-card-border">
+            <button type="submit" id="saveNodeBillingBtn" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold transition shadow active:scale-95 flex items-center justify-center gap-1.5 leading-none">
               <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               <span>ذخیره اطلاعات سرور</span>
             </button>
-            <button type="button" onclick="window.adminActions.closeNodeBillingModal()" class="px-4 btn btn-secondary text-xs py-2.5 rounded-xl transition">
-              انصراف
-            </button>
           </div>
-        </form>
-      </div>
-    </div>
         </form>
       </div>
     </div>
@@ -4428,7 +4475,7 @@
 
     <!-- MODAL: Check-Host Max Nodes Picker -->
     <div id="checkHostNodesModal" role="dialog" aria-modal="true" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[340px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[420px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
             <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
@@ -4437,7 +4484,7 @@
           <button type="button" onclick="window.closeCheckHostNodesModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
         <div class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-1 py-1">
-          <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(6, '6 نود', '⚡️')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
+          <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(6, '6 نود', '')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
               <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
@@ -4448,7 +4495,7 @@
             <span class="text-blue-400 opacity-0 group-hover:opacity-100 transition text-sm">✓</span>
           </div>
 
-          <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(10, '10 نود (پیش‌فرض)', '🌐')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
+          <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(10, '10 نود (پیش‌فرض)', '')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
               <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
@@ -4459,7 +4506,7 @@
             <span class="text-blue-400 opacity-0 group-hover:opacity-100 transition text-sm">✓</span>
           </div>
 
-          <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(15, '15 نود', '📊')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
+          <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(15, '15 نود', '')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
               <img src="/static/img/icons/reports.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
@@ -4470,7 +4517,7 @@
             <span class="text-blue-400 opacity-0 group-hover:opacity-100 transition text-sm">✓</span>
           </div>
 
-          <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(20, '20 نود', '🌍')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
+          <div role="button" tabindex="0" onclick="window.selectCheckHostNodes(20, '20 نود', '')" class="card-inset p-3 rounded-2xl border border-[var(--card-border)] hover:border-blue-500 flex items-center justify-between cursor-pointer transition active:scale-95 group">
             <div class="flex items-center gap-2.5">
               <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
               <div>
@@ -4482,13 +4529,53 @@
           </div>
         </div>
       </div>
-              <div>
-                <b class="t-main block text-xs">20 نود</b>
-                <span class="text-[11px] t-muted block mt-0.5">تست جامع سراسری بین‌المللی</span>
-              </div>
+    </div>
+
+    <!-- MODAL: GitHub App Releases & Store Sync Modal -->
+    <div id="githubAppSyncModal" role="dialog" aria-modal="true" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[480px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-3 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center shrink-0">
+              <img src="/static/img/icons/cloud-download.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
             </div>
-            <span class="text-blue-400 opacity-0 group-hover:opacity-100 transition text-sm">✓</span>
+            <div>
+              <h4 class="text-xs font-bold t-main">همگام‌سازی نسخه‌ها و لینک‌های دانلود</h4>
+              <span class="text-[11px] t-muted block mt-0.5">دریافت آخرین ریلیزهای GitHub و مدیریت لینک‌های استورها</span>
+            </div>
           </div>
+          <button type="button" onclick="window.closeGithubAppSyncModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+
+        <!-- Search & Global Sync Action Bar -->
+        <div class="space-y-2 shrink-0">
+          <div class="relative">
+            <input type="text" id="githubAppSearchInput" oninput="window.filterGithubAppSyncList(this.value)" placeholder="جستجوی برنامه بر اساس نام..." class="input-base text-xs px-3 py-2 pl-8 rounded-xl w-full" />
+            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 t-muted pointer-events-none">
+              <img src="/static/img/icons/search.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" id="githubAppModalFetchAllBtn" onclick="window.fetchAllGithubReleasesInModal()" class="flex-1 btn btn-secondary text-xs py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
+              <img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span>استعلام زنده از GitHub</span>
+            </button>
+            <button type="button" id="githubAppModalApplyAllBtn" onclick="window.applyAllGithubSyncToForm()" class="flex-1 btn btn-primary text-xs py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
+              <img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span>اعمال همه به تنظیمات</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Apps Scrollable List -->
+        <div id="githubAppSyncListContainer" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 text-xs px-1 py-1 min-h-[220px]">
+          <div class="p-8 text-center t-muted text-xs">در حال بارگذاری لیست برنامه‌ها...</div>
+        </div>
+
+        <!-- Footer Notice -->
+        <div class="pt-2 border-t border-[var(--card-border)] flex items-center justify-between text-[11px] t-muted shrink-0">
+          <span class="text-[10px] sm:text-[11px]">برای ذخیره نهایی، دکمه «ذخیره تنظیمات» را در صفحه بزنید.</span>
+          <button type="button" onclick="window.closeGithubAppSyncModal()" class="btn btn-secondary text-xs py-1.5 px-3 rounded-xl transition">بستن</button>
         </div>
       </div>
     </div>

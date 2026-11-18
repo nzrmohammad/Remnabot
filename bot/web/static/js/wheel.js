@@ -179,20 +179,57 @@ function startWheelCountdown(sec) {
   const timerBox = document.getElementById('wheelTimerContainer');
   const timerText = document.getElementById('wheelCountdownText');
 
+  function updateDashboardWheelBadge(canSpin, nextSeconds, tickets, hasActiveSub) {
+    const badge = document.getElementById('luckyWheelBadge');
+    if (!badge) return;
+    badge.classList.remove('hidden');
+    if (hasActiveSub === false) {
+      badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-slate-500/30 bg-slate-500/10 text-slate-400 leading-none';
+      badge.innerText = 'نیاز به اشتراک';
+      return;
+    }
+    const rem = typeof nextSeconds === 'number' ? nextSeconds : wheelCooldownSeconds;
+    if (tickets > 0 && rem > 0) {
+      badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-none';
+      badge.innerText = `${tickets} تیکت`;
+    } else if (rem > 0) {
+      badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-none';
+      badge.innerText = formatCountdown(rem);
+    } else {
+      badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-none';
+      badge.innerText = 'آماده چرخش';
+    }
+  }
+
   if (s <= 0) {
     if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
     if (timerBox) timerBox.classList.add('hidden');
+    updateDashboardWheelBadge(true, 0, currentWheelTickets, true);
     return;
   }
 
   if (timerBox) timerBox.classList.remove('hidden');
   if (timerText) timerText.innerText = formatCountdown(wheelCooldownSeconds);
+  updateDashboardWheelBadge(false, wheelCooldownSeconds, currentWheelTickets, true);
 
   if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
   wheelCountdownInterval = setInterval(() => {
     const rem = checkAndUpdateWheelCooldown();
     if (rem > 0 && timerText) {
       timerText.innerText = formatCountdown(rem);
+    }
+    const badge = document.getElementById('luckyWheelBadge');
+    if (badge) {
+      if (currentWheelTickets > 0 && rem > 0) {
+        badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-none';
+        badge.innerText = `${currentWheelTickets} تیکت`;
+      } else if (rem > 0) {
+        badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-none';
+        badge.innerText = formatCountdown(rem);
+      } else {
+        badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-none';
+        badge.innerText = 'آماده چرخش';
+      }
     }
   }, 1000);
 }
@@ -245,6 +282,7 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
     if (warningBox) warningBox.classList.remove('hidden');
     if (timerBox) timerBox.classList.add('hidden');
     if (resultBox) resultBox.classList.add('hidden');
+    updateDashboardWheelBadge(false, 0, currentWheelTickets, false);
     return;
   }
   if (warningBox) warningBox.classList.add('hidden');
@@ -268,6 +306,7 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
     if (resultBox) resultBox.classList.remove('hidden');
     spinBtn.disabled = false;
     spinBtn.innerHTML = '<span class="text-[11px] font-extrabold tracking-tight">بچرخون!</span>';
+    updateDashboardWheelBadge(true, 0, currentWheelTickets, true);
   }
 }
 

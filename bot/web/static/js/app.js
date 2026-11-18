@@ -814,6 +814,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت پرسرعت اندروید مبتنی بر هسته Xray با پشتیبانی کامل از پروتکل‌های نوین',
       icon: '🛡️',
       scheme: (url) => `v2raytun://import/${url}`
+    },
+    {
+      id: 'blackwall',
+      name: 'Blackwall',
+      version: '0.2.5',
+      desc: 'کلاینت فوق سبک و بومی Zig با مسیریابی مجزای اپلیکیشن‌ها و عدم نشت IP',
+      icon: '🛡️',
+      scheme: null
     }
   ],
   windows: [
@@ -880,6 +888,14 @@ const CLIENT_APPS_DATA = {
       desc: 'نسخه دسکتاپ ویندوز کلاینت v2RayTun با اتصال سریع و پایدار',
       icon: '🛡️',
       scheme: (url) => `v2raytun://import/${url}`
+    },
+    {
+      id: 'blackwall',
+      name: 'Blackwall',
+      version: '0.2.5',
+      desc: 'کلاینت سبک دسکتاپ ویندوز با تفکیک ترافیک اپ‌ها و اتصال مستقیم پرسرعت',
+      icon: '🛡️',
+      scheme: null
     }
   ],
   macos: [
@@ -946,6 +962,14 @@ const CLIENT_APPS_DATA = {
       desc: 'نسخه macOS کلاینت v2RayTun مبتنی بر Xray برای اپل سیلیکون و اینتل',
       icon: '🛡️',
       scheme: (url) => `v2raytun://import/${url}`
+    },
+    {
+      id: 'blackwall',
+      name: 'Blackwall',
+      version: '0.2.5',
+      desc: 'کلاینت بومی macOS ویژه اپل سیلیکون بر پایه Zig با سرعت فوق‌العاده',
+      icon: '🛡️',
+      scheme: null
     }
   ],
   linux: [
@@ -1004,6 +1028,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت سبک و مدرن برای توزیع‌های مختلف لینوکس',
       icon: '⚡',
       scheme: (url) => `incy://import/${url}`
+    },
+    {
+      id: 'blackwall',
+      name: 'Blackwall',
+      version: '0.2.5',
+      desc: 'کلاینت بومی لینوکس نوشته‌شده با زبان Zig بدون نیاز به وابستگی‌های سنگین',
+      icon: '🛡️',
+      scheme: null
     }
   ]
 };
@@ -2175,13 +2207,13 @@ function setupThemeToggle() {
     if (isDark) {
       document.documentElement.classList.remove('theme-light');
       document.documentElement.classList.add('dark');
-      if (themeIcon) themeIcon.innerHTML = typeof uiIcon === 'function' ? uiIcon('moon', 'w-4 h-4') : '🌙';
+      if (themeIcon) themeIcon.innerHTML = `<img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 transition" alt="تم روشن" width="16" height="16" />`;
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#111a2e'); } catch(e) {}
       try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#0c1220'); } catch(e) {}
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('theme-light');
-      if (themeIcon) themeIcon.innerHTML = typeof uiIcon === 'function' ? uiIcon('sun', 'w-4 h-4') : '☀️';
+      if (themeIcon) themeIcon.innerHTML = `<img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 transition" alt="تم تاریک" width="16" height="16" />`;
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
       try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#f1f5f9'); } catch(e) {}
     }

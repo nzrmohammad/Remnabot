@@ -279,8 +279,10 @@
               <img src="/static/img/icons/wheel.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
               <span>گردونه شانس</span>
             </span>
-            <span class="hidden lucky-wheel-sub"></span>
-            <span class="text-xs t-muted group-hover:t-main transition">←</span>
+            <div class="flex items-center gap-1.5">
+              <span id="luckyWheelBadge" class="hidden text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border leading-none transition-all"></span>
+              <span class="text-xs t-muted group-hover:t-main transition">←</span>
+            </div>
           </button>
 
           <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="card tutorial-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
