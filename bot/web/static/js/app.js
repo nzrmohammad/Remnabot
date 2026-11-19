@@ -708,6 +708,7 @@ const CLIENT_APPS_DATA = {
       version: '1.0.8',
       desc: 'ظاهر زیبا و کاربری فوق‌العاده راحت با اتصال فوری یک‌کلیکه',
       icon: '⚡',
+      badges: ['📺 Apple TV'],
       scheme: (url) => `incy://import/${url}`
     },
     {
@@ -716,6 +717,7 @@ const CLIENT_APPS_DATA = {
       version: '3.1.2',
       desc: 'پشتیبانی از پروتکل‌های نوین با سرعت و پایداری فوق‌العاده',
       icon: '🚀',
+      badges: ['📺 Apple TV'],
       scheme: (url) => `happ://add/${url}`
     },
     {
@@ -732,6 +734,7 @@ const CLIENT_APPS_DATA = {
       version: '2.5.7',
       desc: 'کلاینت هوشمند چندپروتکله بر پایه هسته قدرتمند sing-box',
       icon: '🚀',
+      badges: ['📺 Apple TV'],
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`
     },
     {
@@ -775,6 +778,7 @@ const CLIENT_APPS_DATA = {
       version: '3.1.2',
       desc: 'کلاینت جدید و بسیار قدرتمند با طراحی مدرن و سرعت بالا',
       icon: '🚀',
+      badges: ['📺 Android TV'],
       scheme: (url) => `happ://add/${url}`
     },
     {
@@ -809,6 +813,7 @@ const CLIENT_APPS_DATA = {
       version: '1.0.8',
       desc: 'محیط خلوت و مینیمال با اتصال یک‌کلیکه و مصرف کم باتری',
       icon: '⚡',
+      badges: ['📺 Android TV'],
       scheme: (url) => `incy://import/${url}`
     },
     {
@@ -1153,9 +1158,104 @@ const DEFAULT_TV_DNS_LIST = [
   { name: 'Shecan', primary: '178.22.122.100', secondary: '185.51.200.2' },
   { name: 'Radar Plus', primary: '10.202.10.10', secondary: '10.202.10.11' },
   { name: 'Begzar', primary: '185.55.226.26', secondary: '185.55.225.25' },
+  { name: 'Shelter', primary: '87.107.206.15', secondary: '87.107.206.16' },
+  { name: 'XoDNS', primary: '85.208.255.71', secondary: '85.208.255.182' },
+  { name: 'TIC DNS', primary: '217.218.127.127', secondary: '217.218.155.155' },
+  { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1' },
+  { name: 'AdGuard', primary: '94.140.14.14', secondary: '94.140.15.15' },
   { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1' },
   { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4' }
 ];
+
+const PREREQUISITES_DATA = [
+  {
+    category: 'Visual C++ (بسته‌های ضروری و پایه‌ای سیستم)',
+    items: [
+      {
+        id: 'vcredist_all',
+        name: 'Visual C++ All-in-One Package',
+        version: '2026-10-14',
+        arch: 'x86 / x64',
+        desc: 'مجموعه جامع تمامی ران‌تایم‌های ویژوال سی‌پلاس‌پلاس (2005 تا 2026) جهت اجرای بدون خطای تمامی کلاینت‌ها و رفع ارورهای DLL',
+        url: 'https://dl2.soft98.ir/soft/m/Microsoft.Visual.C.All.Package.2026-10-14.rar'
+      }
+    ]
+  },
+  {
+    category: '.NET Desktop Runtime (مایکروسافت دات‌نت)',
+    items: [
+      {
+        id: 'dotnet10',
+        name: '.NET Desktop Runtime 10',
+        version: '10.0.14',
+        arch: 'x64',
+        desc: 'جدیدترین نسخه ران‌تایم دسکتاپ دات‌نت 10 مایکروسافت ویژه کلاینت‌ها و هسته‌های نسل جدید',
+        url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.10.0.14.x64.rar'
+      },
+      {
+        id: 'dotnet9',
+        name: '.NET Desktop Runtime 9',
+        version: '9.0.22',
+        arch: 'x64',
+        desc: 'نسخه مدرن ران‌تایم دسکتاپ دات‌نت 9 مایکروسافت جهت پایداری ابزارهای شبکه',
+        url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.9.0.22.x64.rar'
+      },
+      {
+        id: 'dotnet8',
+        name: '.NET Desktop Runtime 8',
+        version: '8.0.33',
+        arch: 'x64',
+        desc: 'حیاتی‌ترین پیش‌نیاز موردنیاز برای v2rayN نسخه 7، کلاینت‌های sing-box و هسته‌های اصلی ویندوز',
+        url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.8.0.33.x64.rar'
+      },
+      {
+        id: 'dotnet6',
+        name: '.NET Desktop Runtime 6',
+        version: '6.0.10',
+        arch: 'x64',
+        desc: 'پیش‌نیاز رسمی نسخه‌های پایدار v2rayN 6 و ابزارهای هسته‌ای ویندوز',
+        url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.6.0.10.rar'
+      },
+      {
+        id: 'dotnet5',
+        name: '.NET Desktop Runtime 5',
+        version: '5.0.11',
+        arch: 'x64',
+        desc: 'نسخه ران‌تایم دات‌نت 5 دسکتاپ برای ابزارها و کلاینت‌های کلاسیک',
+        url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.5.0.11.rar?1777793025'
+      }
+    ]
+  },
+  {
+    category: 'رابط کاربری و موتور وب (Web & UI Runtimes)',
+    items: [
+      {
+        id: 'webview2',
+        name: 'Microsoft Edge WebView2 Evergreen',
+        version: 'Evergreen',
+        arch: 'x86 / x64',
+        desc: 'پیش‌نیاز حیاتی باز شدن رابط گرافیکی کلاینت‌های مدرن ویندوز (مانند Hiddify، Karing و Flclash)',
+        url: 'https://go.microsoft.com/fwlink/p/?LinkId=2124703'
+      },
+      {
+        id: 'directx',
+        name: 'DirectX End-User Runtimes',
+        version: 'June 2010',
+        arch: 'All Windows',
+        desc: 'بسته‌های گرافیکی و سیستمی DirectX جهت رفع کامل ارورهای راه‌اندازی در انواع ویندوز',
+        url: 'https://download.microsoft.com/download/1/7/1/1718CCC4-6316-4480-95AA-914D0E342C3D/directx_Jun2010_redist.exe'
+      }
+    ]
+  }
+];
+
+const TV_COMPATIBLE_APPS = {
+  karing: { ios: ['📺 Apple TV'], android: ['📺 Android TV'], tv: ['📺 Apple TV', '📺 Android TV'] },
+  hiddify: { ios: ['📺 Apple TV'], android: ['📺 Android TV'], tv: ['📺 Android TV'] },
+  shadowrocket: { ios: ['📺 Apple TV'], tv: ['📺 Apple TV'] },
+  happ: { ios: ['📺 Apple TV'], android: ['📺 Android TV'], tv: ['📺 Apple TV', '📺 Android TV'] },
+  incy: { ios: ['📺 Apple TV'], android: ['📺 Android TV'], tv: ['📺 Android TV'] }
+};
 
 function renderTutorialApps(osKey) {
   currentTutorialOS = osKey || 'ios';
@@ -1182,7 +1282,62 @@ function renderTutorialApps(osKey) {
     } catch (e) {}
   }
 
-  // Dedicated DNS Tab Rendering (Clean, LTR, No Primary/Secondary labels, Icon-only copy)
+  // Dedicated Prerequisites Tab Rendering
+  if (currentTutorialOS === 'prerequisites') {
+    listContainer.innerHTML = PREREQUISITES_DATA.map(group => `
+      <div class="space-y-2">
+        <div class="flex items-center gap-1.5 px-1 pt-1">
+          <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
+          <b class="text-xs t-main font-bold">${escapeHtml(group.category)}</b>
+        </div>
+        <div class="space-y-2">
+          ${group.items.map(item => `
+            <div class="tutorial-app-card rounded-2xl p-2.5 card-inset border border-card-border space-y-2 transition" dir="ltr">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-9 h-9 rounded-xl card-inset p-1.5 flex items-center justify-center flex-shrink-0 shadow-inner">
+                    <img src="/static/img/icons/inbox.svg?v=fl2" class="ui-icon-img w-5 h-5 text-cyan-700 dark:text-cyan-400" width="20" height="20" alt="" />
+                  </div>
+                  <div class="min-w-0 flex-1 text-left">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <b class="text-xs t-main font-bold font-sans truncate">${escapeHtml(item.name)}</b>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-mono font-bold">${escapeHtml(item.version)}</span>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans font-bold">${escapeHtml(item.arch)}</span>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="btn-download-prereq shrink-0 py-1.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition flex items-center gap-1.5 active:scale-95 shadow-sm" data-url="${escapeHtml(item.url)}">
+                  <img src="/static/img/icons/inbox.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                  <span>دانلود</span>
+                </button>
+              </div>
+              <p class="text-[11px] t-muted leading-relaxed text-right font-medium" dir="rtl">${escapeHtml(item.desc)}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    listContainer.querySelectorAll('.btn-download-prereq').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.getAttribute('data-url');
+        if (!url) return;
+        try {
+          if (window.Telegram?.WebApp?.openLink) {
+            window.Telegram.WebApp.openLink(url);
+          } else {
+            window.open(url, '_blank');
+          }
+        } catch (e) {
+          window.open(url, '_blank');
+        }
+        hapticFeedback('impact');
+      });
+    });
+    return;
+  }
+
+  // Dedicated DNS Tab Rendering (Clean, LTR, High Contrast in Light Theme, Icon-only copy)
   if (currentTutorialOS === 'dns') {
     const tvDnsList = (Array.isArray(overrides?.tv_dns_list) && overrides.tv_dns_list.length > 0)
       ? overrides.tv_dns_list
@@ -1191,23 +1346,23 @@ function renderTutorialApps(osKey) {
     listContainer.innerHTML = tvDnsList.map((dns, idx) => {
       const cleanName = (dns.name || `DNS ${idx + 1}`).replace(/[\u0600-\u06FF\(\)]/g, '').trim() || (dns.name || `DNS ${idx + 1}`);
       return `
-        <div class="tutorial-app-card rounded-2xl p-3 card-inset space-y-2 transition" dir="ltr">
+        <div class="tutorial-app-card rounded-2xl p-3 card-inset border border-card-border space-y-2 transition" dir="ltr">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2.5 min-w-0">
               <div class="w-8 h-8 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner">
-                <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-400" width="16" height="16" alt="" />
+                <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-600 dark:text-cyan-400" width="16" height="16" alt="" />
               </div>
               <b class="text-xs t-main font-bold truncate font-sans">${escapeHtml(cleanName)}</b>
             </div>
-            <button type="button" class="btn-copy-dns-pair p-2 rounded-xl card-inset border border-cyan-500/30 text-cyan-400 hover:text-cyan-300 transition active:scale-95 shadow-sm" data-primary="${escapeHtml(dns.primary || '')}" data-secondary="${escapeHtml(dns.secondary || '')}" title="کپی هر دو DNS">
+            <button type="button" class="btn-copy-dns-pair p-2 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 transition active:scale-95 shadow-sm" data-primary="${escapeHtml(dns.primary || '')}" data-secondary="${escapeHtml(dns.secondary || '')}" title="کپی هر دو DNS">
               <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="Copy Both" />
             </button>
           </div>
           <div class="grid grid-cols-2 gap-2 text-xs" dir="ltr">
-            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-slate-700/60 flex items-center justify-center font-mono font-bold text-cyan-300 hover:border-cyan-500/50 transition active:scale-95 shadow-inner" data-ip="${escapeHtml(dns.primary || '')}">
+            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-card-border flex items-center justify-center font-mono font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 shadow-inner" data-ip="${escapeHtml(dns.primary || '')}">
               ${escapeHtml(dns.primary || '-')}
             </button>
-            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-slate-700/60 flex items-center justify-center font-mono font-bold text-cyan-300 hover:border-cyan-500/50 transition active:scale-95 shadow-inner" data-ip="${escapeHtml(dns.secondary || '')}">
+            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-card-border flex items-center justify-center font-mono font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 shadow-inner" data-ip="${escapeHtml(dns.secondary || '')}">
               ${escapeHtml(dns.secondary || '-')}
             </button>
           </div>
@@ -1289,7 +1444,9 @@ function renderTutorialApps(osKey) {
     const isRecommended = Boolean(recommendedAppId && recommendedAppId.toLowerCase() === app.id.toLowerCase());
     const isAlternative = Boolean(!isRecommended && alternativeAppId && alternativeAppId.toLowerCase() === app.id.toLowerCase());
     const isThird = Boolean(!isRecommended && !isAlternative && thirdAppId && thirdAppId.toLowerCase() === app.id.toLowerCase());
-    return { ...app, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, version, isRecommended, isAlternative, isThird };
+    const autoTvBadges = TV_COMPATIBLE_APPS[app.id]?.[currentTutorialOS] || [];
+    const combinedBadges = Array.from(new Set([...(app.badges || []), ...autoTvBadges]));
+    return { ...app, badges: combinedBadges, isEnabled, downloadUrl, downloadPortableUrl, downloadExtraUrl, tutorialUrl, version, isRecommended, isAlternative, isThird };
   }).filter(app => app.isEnabled && (app.downloadUrl || app.downloadPortableUrl || app.downloadExtraUrl));
 
   // Recommended app comes 1st, Alternative app comes 2nd, Third app comes 3rd
@@ -1399,7 +1556,7 @@ function renderTutorialApps(osKey) {
               </div>
               ${app.badges && app.badges.length > 0 ? `
                 <div class="flex items-center gap-1 flex-wrap mt-0.5">
-                  ${app.badges.map(b => `<span class="text-[9px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-400 font-medium inline-flex items-center gap-0.5">${escapeHtml(b)}</span>`).join('')}
+                  ${app.badges.map(b => `<span class="text-[9px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-medium inline-flex items-center gap-0.5">${escapeHtml(b)}</span>`).join('')}
                 </div>
               ` : ''}
             </div>

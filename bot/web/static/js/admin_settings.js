@@ -137,6 +137,11 @@
     { name: 'Shecan', primary: '178.22.122.100', secondary: '185.51.200.2' },
     { name: 'Radar Plus', primary: '10.202.10.10', secondary: '10.202.10.11' },
     { name: 'Begzar', primary: '185.55.226.26', secondary: '185.55.225.25' },
+    { name: 'Shelter', primary: '87.107.206.15', secondary: '87.107.206.16' },
+    { name: 'XoDNS', primary: '85.208.255.71', secondary: '85.208.255.182' },
+    { name: 'TIC DNS', primary: '217.218.127.127', secondary: '217.218.155.155' },
+    { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1' },
+    { name: 'AdGuard', primary: '94.140.14.14', secondary: '94.140.15.15' },
     { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1' },
     { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4' }
   ];
