@@ -138,28 +138,28 @@ Remnabot provides a production-grade Telegram client portal and administrative o
 
 Remnabot features a dynamic client app recommendation and sync engine. Administrators can set 🥇 **Recommended**, 🥈 **Alternative**, and 🥉 **3rd-Tier** applications per operating system, with automatic live version and download link extraction from official GitHub repositories and pre-linked Google Play and Apple App Store shortcuts.
 
-### جدول سیستم‌عامل‌های تحت پشتیبانی نرم‌افزارها
+### Supported Operating Systems & Client Applications Matrix
 
-| نام نرم‌افزار | هسته اصلی (Core) | Android | iOS | Windows | macOS | Linux | توضیحات و کاربری اصلی |
+| Client Application | Primary Core | Android | iOS | Windows | macOS | Linux | Highlights & Primary Use Case |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Hiddify** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | کلاینت چندسکویی کامل، رابط کاربری فوق‌العاده مدرن و ساده، پشتیبانی از تمامی پروتکل‌ها |
-| **Karing** | Sing-box | ✅ | ✅ | ✅ | ✅ | ❌ | کلاینت فوق‌العاده سریع و سبک با قابلیت مسیریابی هوشمند پیشرفته و رول‌بندی ترافیک |
-| **Happ** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | کلاینت نسل جدید، هماهنگ با شدیدترین محدودیت‌ها، پشتیبانی هم‌زمان دسکتاپ و موبایل |
-| **V2RayNG** | Xray-core | ✅ | ❌ | ❌ | ❌ | ❌ | کلاینت سنتی، بسیار پایدار و باسابقه برای سیستم‌عامل اندروید |
-| **v2rayN** | Xray / Sing-box | ❌ | ❌ | ✅ | ❌ | ❌ | شناخته‌شده‌ترین و پرامکانات‌ترین کلاینت ویندوز با پشتیبانی از هسته‌های چندگانه |
-| **Nekoray** | Xray / Sing-box | ❌ | ❌ | ✅ | ❌ | ✅ | کارایی بسیار بالا در حالت TUN و سیستم‌عامل لینوکس و ویندوز |
-| **Shadowrocket** | Custom / Xray | ❌ | ✅ | ❌ | ❌ | ❌ | قدرتمندترین کلاینت iOS با امکانات وسیع رول‌نویسی و بازنویسی پکت |
-| **Streisand** | Sing-box | ❌ | ✅ | ❌ | ❌ | ❌ | کلاینت سبک، ساده و کاربرپسند اختصاصی آیفون و آیپد |
-| **OneXray** | Xray-core | ❌ | ✅ | ❌ | ❌ | ❌ | کلاینت مدرن هسته Xray اختصاصی محیط‌های اپل |
-| **V2Box** | V2Ray / Xray | ✅ | ✅ | ❌ | ✅ | ❌ | رابط کاربری شیک، مخصوصاً محبوب روی سیستم‌عامل‌های iOS و macOS |
-| **Sing-box** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | کلاینت خالص رسمی هسته سینگ‌باکس با کمترین مصرف باتری و رم |
-| **Clash Meta / Verge** | Mihomo | ✅ | ❌ | ✅ | ✅ | ✅ | مدیریت و سوئیچ فوق‌العاده بر روی پروکسی‌ها با سیستم رول کلش |
-| **Flclash** | Mihomo | ✅ | ❌ | ✅ | ✅ | ✅ | رابط کاربری مدرن مبتنی بر فلاتر برای هسته میهومو (کلش) |
-| **v2rayTun** | Sing-box | ✅ | ✅ | ❌ | ❌ | ❌ | کلاینت ساده و روان موبایلی با اتصال سریع |
-| **Incy** | Sing-box | ✅ | ✅ | ❌ | ❌ | ❌ | کلاینت بهینه‌شده برای اتصال‌های تک‌کلیکه |
-| **Byp** | Xray-core | ❌ | ❌ | ✅ | ❌ | ❌ | کلاینت ویندوز فوق‌العاده سبک با تفکیک ترافیک پردازه‌ها (Split Tunneling)، بدون لگ و پینگ بسیار پایین برای بازی‌ها |
-| **Blackwall** | Sing-box | ❌ | ❌ | ✅ | ✅ | ✅ | کلاینت مدرن دسکتاپ چندسکویی |
-| **MahsaNG** | Xray-core | ✅ | ❌ | ❌ | ❌ | ❌ | نسخه سفارشی‌شده بر پایه V2RayNG برای دور زدن فیلترینگ شدید |
+| **Hiddify** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | Full cross-platform client with an ultra-modern UI, multi-protocol support, and automatic smart routing |
+| **Karing** | Sing-box | ✅ | ✅ | ✅ | ✅ | ❌ | High-speed, lightweight client with advanced routing rules, Apple TV & Android TV remote support |
+| **Happ** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | Next-generation client optimized for strict censorship environments with dual mobile & desktop releases |
+| **V2RayNG** | Xray-core | ✅ | ❌ | ❌ | ❌ | ❌ | Veteran, rock-solid Android client with proven stability across legacy and modern devices |
+| **v2rayN** | Xray / Sing-box | ❌ | ❌ | ✅ | ❌ | ❌ | The most popular and feature-packed Windows GUI client with multi-core support and setup/portable builds |
+| **Nekoray** | Xray / Sing-box | ❌ | ❌ | ✅ | ❌ | ✅ | High-performance TUN mode client for Windows and Linux power users |
+| **Shadowrocket** | Custom / Xray | ❌ | ✅ | ❌ | ❌ | ❌ | Comprehensive iOS & Apple TV rule-based proxy client with full packet rewriting and MITM capabilities |
+| **Streisand** | Sing-box | ❌ | ✅ | ❌ | ❌ | ❌ | Sleek, minimalist, and user-friendly client designed specifically for iPhone and iPad |
+| **OneXray** | Xray-core | ❌ | ✅ | ❌ | ❌ | ❌ | Modern Xray-core client crafted natively for Apple ecosystem devices |
+| **V2Box** | V2Ray / Xray | ✅ | ✅ | ❌ | ✅ | ❌ | Elegant user interface with native support for iOS, macOS, and Android |
+| **Sing-box** | Sing-box | ✅ | ✅ | ✅ | ✅ | ✅ | Official reference Sing-box client with minimal battery drain and maximum throughput |
+| **Clash Meta / Verge** | Mihomo | ✅ | ❌ | ✅ | ✅ | ✅ | Premier Clash rule-based proxy manager with seamless node grouping and switching |
+| **Flclash** | Mihomo | ✅ | ❌ | ✅ | ✅ | ✅ | Modern Flutter-based cross-platform UI for Mihomo (Clash Meta) core |
+| **v2rayTun** | Sing-box | ✅ | ✅ | ❌ | ❌ | ❌ | Smooth and intuitive mobile client with swift single-tap connectivity |
+| **Incy** | Sing-box | ✅ | ✅ | ❌ | ❌ | ❌ | Streamlined, user-friendly client optimized for fast single-click connections |
+| **Byp** | Xray-core | ❌ | ❌ | ✅ | ❌ | ❌ | Ultra-lightweight Windows client featuring per-process split tunneling and ultra-low gaming latency |
+| **Blackwall** | Sing-box | ❌ | ❌ | ✅ | ✅ | ✅ | Modern, minimalist desktop client for Windows, macOS, and Linux |
+| **MahsaNG** | Xray-core | ✅ | ❌ | ❌ | ❌ | ❌ | Specialized Android client engineered to circumvent severe censorship and traffic throttling |
 
 ---
 

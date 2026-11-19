@@ -163,6 +163,14 @@ PLATFORMS: dict[str, tuple[str, list[tuple[str, str]]]] = {
             ("OneXray", "https://apps.apple.com/us/app/onexray/id6745748773"),
         ],
     ),
+    "tv": (
+        "btn_platform_tv",
+        [
+            ("Karing", "https://github.com/KaringX/karing/releases/latest"),
+            ("Hiddify", "https://github.com/hiddify/hiddify-next/releases/latest"),
+            ("Shadowrocket", "https://apps.apple.com/app/shadowrocket/id932747118"),
+        ],
+    ),
 }
 
 
@@ -175,7 +183,7 @@ async def guide_entry(call: CallbackQuery, bot: Bot, user_repo: UserRepository):
     for key, (btn_key, _apps) in PLATFORMS.items():
         kb.button(text=t(lang, btn_key), callback_data=f"guide:{key}")
     kb.button(text=t(lang, "btn_back"), callback_data="nav:main_menu")
-    kb.adjust(2, 2, 1, 1)
+    kb.adjust(2, 2, 2, 1)
 
     text = f"{t(lang, 'guide_title')}\n{SEPARATOR}\n{t(lang, 'guide_pick')}"
     await render_menu(bot, user, user_repo, text, kb.as_markup())

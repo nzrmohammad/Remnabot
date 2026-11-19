@@ -135,10 +135,11 @@ EN_TEXTS: dict[str, str] = {
         ),
         "guide_your_link": "📥 Your subscription link (tap to copy):",
         "btn_platform_android": "🤖 Android",
-        "btn_platform_ios": "🍏 iPhone",
+        "btn_platform_ios": "🍏 iOS / iPad",
         "btn_platform_windows": "🖥 Windows",
         "btn_platform_macos": "💻 macOS",
         "btn_platform_linux": "🐧 Linux",
+        "btn_platform_tv": "📺 Smart TV",
         # --- settings ---
         "settings_title": "⚙️ <b>Settings</b>",
         "settings_traffic_label": "🔔 Volume alert",

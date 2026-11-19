@@ -914,20 +914,25 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
 
   const renderLabelWithIcon = (text, fallbackIcon) => {
     if (!text) return '';
-    const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
+    const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation}|\uFE0F)/gu;
     const match = text.match(emojiRegex);
     let icon = match ? match[0] : fallbackIcon;
-    let clean = text.replace(emojiRegex, '').trim();
+    let clean = text.replace(emojiRegex, '').replace(/^[\s\uFE0F]+|[\s\uFE0F]+$/g, '').trim();
     if (icon && typeof uiEmojiIcon === 'function') {
-      return `<span class="inline-flex items-center gap-1.5">${uiEmojiIcon(icon, 'w-3.5 h-3.5 shrink-0')}<span>${escapeHtml(clean)}</span></span>`;
+      return `<span class="inline-flex items-center gap-1.5">${uiEmojiIcon(icon, 'w-4 h-4 shrink-0')}<span>${escapeHtml(clean)}</span></span>`;
     }
     return escapeHtml(clean || text);
   };
 
   if (tEl) tEl.innerText = title || 'راهنمای انتخاب بسته';
   if (bEl) {
-    bEl.innerHTML = renderLabelWithIcon(badgeText || 'پیشنهاد هوشمند', 'zap');
-    bEl.className = badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border border-cyan-500/30';
+    const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation}|\uFE0F)/gu;
+    const rawBadge = badgeText || 'پیشنهاد هوشمند';
+    const match = rawBadge.match(emojiRegex);
+    const badgeIcon = match ? match[0] : (rawBadge.includes('تغییر') ? 'warning' : 'zap');
+    const cleanBadge = rawBadge.replace(emojiRegex, '').replace(/^[\s\uFE0F]+|[\s\uFE0F]+$/g, '').trim();
+    bEl.innerHTML = `${uiEmojiIcon(badgeIcon, 'w-4 h-4 shrink-0')}<span>${escapeHtml(cleanBadge)}</span>`;
+    bEl.className = `${badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border border-cyan-500/30'} inline-flex items-center gap-1.5 w-fit leading-none`;
   }
   if (txtEl) txtEl.innerHTML = message || '';
 
@@ -1073,7 +1078,7 @@ function setupBuyButtons() {
         if (isSwitch) {
           openShopGuidanceModal({
             title: 'هشدار مهم تغییر دسته سرور',
-            badgeText: 'تغییر دسته سرور',
+            badgeText: '⚠️ تغییر دسته سرور',
             badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
             message: `شما در حال تغییر سرویس اشتراک فعلی خود به «<b>${formatPlanTitle(planObj.name, { plainText: true, iconPosition: 'left' })}</b>» هستید.<br><br>
 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>

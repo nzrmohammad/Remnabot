@@ -132,6 +132,40 @@
   }
   renderAdminExtraAppCards();
 
+  const DEFAULT_TV_DNS_LIST = [
+    { name: 'الکترو (Electro)', primary: '78.157.42.101', secondary: '78.157.42.100' },
+    { name: 'شکن (Shecan)', primary: '178.22.122.100', secondary: '185.51.200.2' },
+    { name: 'رادار بازی (Radar Plus)', primary: '10.202.10.10', secondary: '10.202.10.11' },
+    { name: 'بگذر (Begzar)', primary: '185.55.226.26', secondary: '185.55.225.25' },
+    { name: 'کلودفلر (Cloudflare)', primary: '1.1.1.1', secondary: '1.0.0.1' },
+    { name: 'گوگل (Google)', primary: '8.8.8.8', secondary: '8.8.4.4' }
+  ];
+
+  function renderAdminTvDnsList(savedDnsList) {
+    const container = $('adminTvDnsList');
+    if (!container) return;
+    const list = Array.isArray(savedDnsList) && savedDnsList.length > 0 ? savedDnsList : DEFAULT_TV_DNS_LIST;
+    const rows = [];
+    for (let i = 0; i < 6; i++) {
+      const item = list[i] || DEFAULT_TV_DNS_LIST[i] || { name: '', primary: '', secondary: '' };
+      rows.push(`
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 p-2 rounded-xl card-inset items-center">
+          <div class="sm:col-span-4">
+            <input type="text" id="adminTvDnsName_${i}" value="${escapeHtml(item.name || '')}" placeholder="نام سرور (مثال: شکن)" class="input-base text-xs py-1.5 px-2.5 w-full font-medium" />
+          </div>
+          <div class="sm:col-span-4" dir="ltr">
+            <input type="text" id="adminTvDnsPrimary_${i}" value="${escapeHtml(item.primary || '')}" placeholder="Primary: 178.22.122.100" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center" />
+          </div>
+          <div class="sm:col-span-4" dir="ltr">
+            <input type="text" id="adminTvDnsSecondary_${i}" value="${escapeHtml(item.secondary || '')}" placeholder="Secondary: 185.51.200.2" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center" />
+          </div>
+        </div>
+      `);
+    }
+    container.innerHTML = rows.join('');
+  }
+  renderAdminTvDnsList(DEFAULT_TV_DNS_LIST);
+
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
     toggleAppCard(btn) {
@@ -205,7 +239,7 @@
               <span class="text-[10px] t-muted block">${c.desc}</span>
             </div>
           </div>
-          ${currentVal === c.id ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
+          ${currentVal === c.id ? '<span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-sm"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3 h-3" width="12" height="12" alt="" /></span>' : ''}
         </div>
       `).join('');
     },
@@ -1003,6 +1037,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const pickerRole = (role === 'alternative' || role === 'third') ? role : 'recommended';
       const lbl = $(pickerRole === 'third' ? `appThirdLabel_${os}` : (pickerRole === 'alternative' ? `appAlternativeLabel_${os}` : `appRecommendedLabel_${os}`));
       const btn = $(pickerRole === 'third' ? `appThirdBtn_${os}` : (pickerRole === 'alternative' ? `appAlternativeBtn_${os}` : `appRecommendedBtn_${os}`));
+      const iconImg = btn?.querySelector('img');
       if (lbl) {
         if (appId) {
           lbl.innerText = CLIENT_APP_META[appId]?.name || appId;
@@ -1013,10 +1048,26 @@ openUserChat(telegram_id, name, tag, topup_id) {
           btn?.classList.add(
             pickerRole === 'recommended' ? 'border-amber-500/50' : (pickerRole === 'alternative' ? 'border-sky-500/50' : 'border-emerald-500/50')
           );
+          if (iconImg) {
+            iconImg.src = `/static/img/apps/${appId}.webp?v=fl3`;
+            iconImg.className = 'w-4 h-4 rounded object-contain shrink-0';
+            iconImg.onerror = function() {
+              if (!this.dataset.triedPng) {
+                this.dataset.triedPng = '1';
+                this.src = `/static/img/apps/${appId}.png?v=fl3`;
+              } else {
+                this.src = pickerRole === 'recommended' ? '/static/img/icons/star.svg?v=fl2' : '/static/img/icons/sparkles.svg?v=fl2';
+              }
+            };
+          }
         } else {
           lbl.innerText = 'انتخاب کنید';
           lbl.className = 'text-xs font-sans font-medium truncate text-slate-400';
           btn?.classList.remove('border-amber-500/50', 'border-sky-500/50', 'border-emerald-500/50');
+          if (iconImg) {
+            iconImg.src = pickerRole === 'recommended' ? '/static/img/icons/star.svg?v=fl2' : '/static/img/icons/sparkles.svg?v=fl2';
+            iconImg.className = 'ui-icon-img w-4 h-4 shrink-0 ' + (pickerRole === 'recommended' ? 'text-amber-400' : (pickerRole === 'alternative' ? 'text-sky-400' : 'text-emerald-400'));
+          }
         }
       }
     }
@@ -1631,6 +1682,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
         }
       }
 
+      renderAdminTvDnsList(appOverrides?.tv_dns_list);
+
       // Telegram Supergroup Forum Topics
       const topicSettings = {
         settingTopicTopups: s.topic_topups,
@@ -1909,6 +1962,18 @@ openUserChat(telegram_id, name, tag, topup_id) {
           }
         }
         clientAppsObj.desktop = clientAppsObj.windows;
+
+        const tvDnsList = [];
+        for (let i = 0; i < 6; i++) {
+          const name = $(`adminTvDnsName_${i}`)?.value?.trim() || '';
+          const primary = $(`adminTvDnsPrimary_${i}`)?.value?.trim() || '';
+          const secondary = $(`adminTvDnsSecondary_${i}`)?.value?.trim() || '';
+          if (name || primary || secondary) {
+            tvDnsList.push({ name, primary, secondary });
+          }
+        }
+        clientAppsObj.tv_dns_list = tvDnsList;
+
         return JSON.stringify(clientAppsObj);
       })(),
     };

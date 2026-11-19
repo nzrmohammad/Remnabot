@@ -135,10 +135,11 @@ FA_TEXTS: dict[str, str] = {
         ),
         "guide_your_link": "📥 لینک اشتراک شما (برای کپی لمس کنید):",
         "btn_platform_android": "🤖 اندروید",
-        "btn_platform_ios": "🍏 آیفون",
+        "btn_platform_ios": "🍏 iOS / iPad",
         "btn_platform_windows": "🖥 ویندوز",
         "btn_platform_macos": "💻 مک",
         "btn_platform_linux": "🐧 لینوکس",
+        "btn_platform_tv": "📺 تلویزیون (TV)",
         # --- settings ---
         "settings_title": "⚙️ <b>تنظیمات</b>",
         "settings_traffic_label": "🔔 هشدار حجم",
