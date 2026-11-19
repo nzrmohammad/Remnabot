@@ -252,12 +252,10 @@ async def report_error(
     token = _is_reporting_var.set(True)
     try:
         thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
-        delivered = False
 
         if settings.ADMIN_CHAT_ID:
             try:
                 await bot.send_message(settings.ADMIN_CHAT_ID, text, **thread_kwargs)
-                delivered = True
             except Exception as send_exc:
                 logger.warning(
                     "Failed sending HTML error alert to admin chat %s (topic %s): %s",
@@ -268,7 +266,6 @@ async def report_error(
                 # Retry plain text with the exact same thread_kwargs (preserving topic)
                 try:
                     await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None, **thread_kwargs)
-                    delivered = True
                 except Exception as retry_exc:
                     logger.warning("Failed retry with thread to admin chat %s (topic %s): %s", settings.ADMIN_CHAT_ID, topic_id, retry_exc)
                     # NOTE: Do NOT retry without thread_kwargs if topic_id is set!
@@ -277,7 +274,6 @@ async def report_error(
                     if not topic_id:
                         try:
                             await bot.send_message(settings.ADMIN_CHAT_ID, plain_text, parse_mode=None)
-                            delivered = True
                         except Exception:
                             pass
 
@@ -287,11 +283,9 @@ async def report_error(
             for aid in settings.ADMIN_IDS:
                 try:
                     await bot.send_message(aid, text)
-                    delivered = True
                 except Exception:
                     try:
                         await bot.send_message(aid, plain_text, parse_mode=None)
-                        delivered = True
                     except Exception as exc_fallback:
                         logger.warning("Failed to send error fallback to admin %s: %s", aid, exc_fallback)
     finally:

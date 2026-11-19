@@ -815,8 +815,7 @@ async def notify_admin(
     """Notify admin chat/topic about a successful service purchase or renewal."""
     from html import escape
 
-    from bot.common import admin_thread_kwargs, fmt
-    from bot.config import get_settings
+    from bot.common import fmt
     from bot.locales.texts import t
 
     tg_username = f"\u200e@{escape(user.username)}\u200e" if getattr(user, "username", None) else "—"

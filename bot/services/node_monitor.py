@@ -14,9 +14,7 @@ from typing import Any
 
 from aiogram import Bot
 
-from bot.common import admin_thread_kwargs
 from bot.config import get_settings
-from bot.services.app_settings import get_store_settings
 from bot.services.formatting import country_flag, format_datetime, now_tz
 from bot.services.remnawave import RemnawaveClient
 

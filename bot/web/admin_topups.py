@@ -88,7 +88,9 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     topup_id = body.get("topup_id")
-    raw_approved = body.get("approved", True)
+    raw_approved = body.get("approved") if "approved" in body else body.get("approve")
+    if raw_approved is None:
+        return web.json_response({"ok": False, "error": "تعیین وضعیت تایید یا رد فیش الزامی است."}, status=400)
     if isinstance(raw_approved, bool):
         approved = raw_approved
     elif isinstance(raw_approved, str):

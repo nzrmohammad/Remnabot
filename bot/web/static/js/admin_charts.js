@@ -1206,7 +1206,7 @@ openHighRiskUsersModal() {
           const accountName = escapeHtml(u.name || u.username || `اکانت #${u.user_id}`);
           const tgId = u.telegram_id || u.user_id;
           const tgInfo = tgId ? `شناسه: ${tgId}` : '';
-          const devCount = u.device_count || 3;
+          const devCount = u.device_count ?? 0;
           const pUserId = u.user_id ? String(u.user_id) : '';
           return `
             <div class="p-3 card-inset border border-slate-700/60 rounded-2xl flex items-center justify-between gap-2.5 transition mx-0.5 hover:border-slate-500/50">

@@ -247,7 +247,7 @@ async def send_invoice_to_telegram(bot: Bot, telegram_id: int, invoice: dict[str
         f"💳 <b>اطلاعات پرداخت:</b>\n"
         f"• مبلغ پرداختی: <b>{pay['amount_toman_formatted']}</b>\n"
         f"• معادل ریالی: {pay['amount_rial_formatted']}\n"
-        f"• وضعیت: <b>{pay['status']} ✅</b>\n"
+        f"• وضعیت: <b>{pay['status']} {'✅' if pay.get('is_paid') else '❌'}</b>\n"
         f"• شناسه رهگیری: <code>{tracking}</code>\n\n"
         f"✨ این فاکتور دیجیتال سند رسمی خرید شما در سامانه می‌باشد."
     )

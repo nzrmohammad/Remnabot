@@ -168,7 +168,8 @@ async def run_reconcile(
                 logger.warning("Reconcile: auto-reverting orphaned gift card %s (id=%s) stuck since %s", gc.code, gc.id, gc.claimed_at)
                 gc.is_claimed = False
                 gc.claimed_at = None
-                gc.receiver_telegram_id = None
+                if getattr(gc, "delivery_type", "LINK") != "DIRECT":
+                    gc.receiver_telegram_id = None
                 closed += 1
 
         await session.commit()

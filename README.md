@@ -796,12 +796,12 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 
 | Task Name | Interval | Responsibility |
 | :--- | :---: | :--- |
-| `reconcile_loop` | **10 min** | Synchronizes panel subscribers with local database, links Telegram IDs, and reconciles state. |
+| `reconcile_loop` | **30 min** | Synchronizes panel subscribers with local database, links Telegram IDs, and reconciles state. |
 | `devices_loop` | **5 min** | Inspects active HWID connections and terminates sessions exceeding plan device limits. |
 | `expiry_loop` | **60 min** | Dispatches pre-expiry countdown warnings (3 days, 1 day, Day 0), enforces grace periods, and auto-disables expired panel subscriptions. |
 | `alerts_loop` | **180 min** | Evaluates bandwidth consumption thresholds (80%, 90%, 100%) and delivers proactive renewal alerts. |
-| `crypto_rates_loop` | **4x Daily (00:00, 06:00, 12:00, 18:00)** | Queries live TON market rates (Nobitex/Bitpin or Binance/TonAPI global fallback) and dispatches interactive price alerts to the crypto topic. |
-| `retention_loop` | **12 hours** | Identifies users whose services expired 7 days ago and sends personalized win-back discount promotions. |
+| `crypto_rates_loop` | **4x Daily (10:00, 14:00, 18:00, 22:00)** | Queries live TON market rates (Nobitex/Bitpin or Binance/TonAPI global fallback) and dispatches interactive price alerts to the crypto topic. |
+| `retention_loop` | **6 hours** | Identifies users whose services expired 7 days ago and sends personalized win-back discount promotions. |
 | `auto_backup_loop` | **Daily @ 01:30** | Generates an AES-encrypted database snapshot and dispatches the document to the Telegram admin chat. |
 | `nightly_report_loop`| **Daily @ 23:59** | Compiles panel status, node bandwidths by country flag, active users, and 3-day expirations. |
 | `weekly_report_loop` | **Fri @ 23:59** | Calculates top 20 weekly consumers and daily champions from Saturday to Friday. |
@@ -812,7 +812,7 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 
 ## 🧪 Testing & Quality Assurance
 
-Remnabot maintains a strict test-driven development workflow with **499 passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
+Remnabot maintains a strict test-driven development workflow with **515+ passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
 
 ```bash
 # Execute test suite

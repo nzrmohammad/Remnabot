@@ -134,3 +134,52 @@ def test_app_catalog_versions_synchronized():
     assert "version: '3.1.8'" in admin_js
     assert "version: '1.0.38'" not in app_js
     assert "version: '1.0.0'" not in app_js
+
+
+def test_serve_open_client_schemes():
+    """Verify safe_schemes includes modern clients (Karing, v2RayTun, Clash, Shadowrocket, Sub, FlClash)."""
+    server_py = Path("bot/web/server.py").read_text(encoding="utf-8")
+    for s in ("karing://", "v2raytun://", "clash://", "shadowrocket://", "sub://", "flclash://"):
+        assert f'"{s}"' in server_py
+
+
+def test_bulk_action_rate_limit_path():
+    """Verify admin sensitive rate limiting uses hyphenated bulk-action route."""
+    server_py = Path("bot/web/server.py").read_text(encoding="utf-8")
+    assert '"/api/admin/users/bulk-action"' in server_py
+    assert '"/api/admin/users/bulk_action"' not in server_py
+
+
+def test_admin_topup_fail_closed():
+    """Verify post_admin_topup_action requires approved flag."""
+    topup_py = Path("bot/web/admin_topups.py").read_text(encoding="utf-8")
+    assert 'raw_approved = body.get("approved")' in topup_py
+    assert 'if raw_approved is None:' in topup_py
+
+
+def test_invoice_service_status_icon():
+    """Verify invoice service only shows checkmark when is_paid is True."""
+    inv_py = Path("bot/services/invoice_service.py").read_text(encoding="utf-8")
+    assert "{'✅' if pay.get('is_paid') else '❌'}" in inv_py
+
+
+def test_wallet_card_admin_fallback():
+    """Verify wallet_card.py fallback to ADMIN_IDS executes even if ADMIN_CHAT_ID is set."""
+    wc_py = Path("bot/handlers/wallet_card.py").read_text(encoding="utf-8")
+    assert "if not delivered and settings.ADMIN_IDS:" in wc_py
+    assert "not settings.ADMIN_CHAT_ID and settings.ADMIN_IDS" not in wc_py
+
+
+def test_icons_js_trim_syntax():
+    """Verify icons.js uses trimmed class attribute without syntax leakage."""
+    icons_js = Path("bot/web/static/js/icons.js").read_text(encoding="utf-8")
+    assert 'class="${classes}"' in icons_js
+    assert '".trim()' not in icons_js
+
+
+def test_admin_html_warning_icon():
+    """Verify admin.html references existing warning.svg rather than broken alert.svg."""
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    assert "alert.svg" not in admin_html
+    assert "warning.svg" in admin_html
+

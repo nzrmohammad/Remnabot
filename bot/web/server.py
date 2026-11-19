@@ -130,7 +130,7 @@ async def api_rate_limit_middleware(request: web.Request, handler):
             "/api/admin/broadcast",
             "/api/admin/backup/create",
             "/api/admin/backup/restore",
-            "/api/admin/users/bulk_action",
+            "/api/admin/users/bulk-action",
         }
         is_sensitive = request.path in admin_sensitive_paths and request.method == "POST"
         max_reqs = 30 if is_sensitive else 150
@@ -401,7 +401,22 @@ async def serve_open_client(request: web.Request) -> web.Response:
     name = request.query.get("name", "نرم‌افزار").strip()
     sub_url = request.query.get("url", "").strip()
 
-    safe_schemes = ("v2rayng://", "hiddify://", "happ://", "incy://", "streisand://", "v2box://", "sing-box://", "onexray://")
+    safe_schemes = (
+        "v2rayng://",
+        "hiddify://",
+        "happ://",
+        "incy://",
+        "streisand://",
+        "v2box://",
+        "sing-box://",
+        "onexray://",
+        "karing://",
+        "v2raytun://",
+        "clash://",
+        "shadowrocket://",
+        "sub://",
+        "flclash://",
+    )
     if not any(scheme.lower().startswith(s) for s in safe_schemes):
         return web.Response(text="طرح‌واره نامعتبر است.", status=400)
 
@@ -514,7 +529,9 @@ async def global_error_middleware(request: web.Request, handler):
                 session_factory = request.app.get("session_factory")
                 if bot and session_factory:
                     user_id = None
-                    if "user_auth" in request and isinstance(request["user_auth"], dict):
+                    if "user" in request and isinstance(request["user"], dict):
+                        user_id = request["user"].get("id")
+                    elif "user_auth" in request and isinstance(request["user_auth"], dict):
                         user_id = request["user_auth"].get("id")
                     elif "user_id" in request:
                         user_id = request["user_id"]
@@ -537,7 +554,9 @@ async def global_error_middleware(request: web.Request, handler):
                 session_factory = request.app.get("session_factory")
                 if bot and session_factory:
                     user_id = None
-                    if "user_auth" in request and isinstance(request["user_auth"], dict):
+                    if "user" in request and isinstance(request["user"], dict):
+                        user_id = request["user"].get("id")
+                    elif "user_auth" in request and isinstance(request["user_auth"], dict):
                         user_id = request["user_auth"].get("id")
                     elif "user_id" in request:
                         user_id = request["user_id"]
@@ -560,7 +579,9 @@ async def global_error_middleware(request: web.Request, handler):
                 session_factory = request.app.get("session_factory")
                 if bot and session_factory:
                     user_id = None
-                    if "user_auth" in request and isinstance(request["user_auth"], dict):
+                    if "user" in request and isinstance(request["user"], dict):
+                        user_id = request["user"].get("id")
+                    elif "user_auth" in request and isinstance(request["user_auth"], dict):
                         user_id = request["user_auth"].get("id")
                     elif "user_id" in request:
                         user_id = request["user_id"]

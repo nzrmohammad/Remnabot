@@ -395,8 +395,12 @@ async def _render_topup_amount_prompt(
             else f"\n\n💎 <b>Conversion rate:</b> 1 TON = <b>{store.ton_rate_toman:,}</b> Toman"
         )
     elif method == "stars":
-        s_rate = getattr(store, "stars_rate_toman", 0) or 1500
-        hint_crypto = f"\n\n⭐️ <b>نرخ محاسبه:</b> هر استارز = <b>{s_rate:,}</b> تومان"
+        from bot.services.crypto.nobitex import resolve_stars_rate
+        s_rate = resolve_stars_rate(getattr(store, "stars_rate_toman", 0), getattr(store, "usdt_rate_toman", 0))
+        if s_rate > 0:
+            hint_crypto = f"\n\n⭐️ <b>نرخ محاسبه:</b> هر استارز = <b>{s_rate:,}</b> تومان"
+        else:
+            hint_crypto = "\n\n⭐️ <b>تلگرام استارز:</b> نرخ تبدیل در حال حاضر تنظیم نشده است."
     elif method == "trx":
         hint_crypto = "\n\n🔴 <b>شبکه ترون:</b> محاسبه نرخ لحظه‌ای معادل ریال / تتر"
     elif method == "pol":
@@ -416,7 +420,11 @@ async def _create_and_render_stars_invoice(
     amount: int,
 ) -> None:
     lang = user.language or "fa"
-    stars_rate = getattr(store, "stars_rate_toman", 0) or 1500
+    from bot.services.crypto.nobitex import resolve_stars_rate
+    stars_rate = resolve_stars_rate(getattr(store, "stars_rate_toman", 0), getattr(store, "usdt_rate_toman", 0))
+    if stars_rate <= 0:
+        await bot.send_message(user.telegram_id, "⚠️ نرخ تبدیل تلگرام استارز هنوز توسط مدیریت تنظیم نشده است.")
+        return
     stars_count = max(1, math.ceil(amount / stars_rate))
     import secrets
     import time
@@ -473,7 +481,8 @@ async def _create_and_render_trx_invoice(
     if trx_rate <= 0:
         trx_rate = await fetch_trx_rate(0)
     if trx_rate <= 0:
-        trx_rate = 15000
+        await bot.send_message(user.telegram_id, "⚠️ نرخ ترون در حال حاضر در دسترس نیست. لطفاً دقایقی دیگر تلاش کنید یا از روش‌های دیگر پرداخت استفاده نمایید.")
+        return
 
     base_sun = max(1_000_000, math.ceil((amount / trx_rate) * 100) * 10_000)
     sun = await crypto_repo.allocate_unique_crypto_units(base_sun, 10_000, "TRX", max_steps=99)
@@ -510,7 +519,8 @@ async def _create_and_render_pol_invoice(
     if pol_rate <= 0:
         pol_rate = await fetch_pol_rate(0)
     if pol_rate <= 0:
-        pol_rate = 25000
+        await bot.send_message(user.telegram_id, "⚠️ نرخ پلیگان در حال حاضر در دسترس نیست. لطفاً دقایقی دیگر تلاش کنید یا از روش‌های دیگر پرداخت استفاده نمایید.")
+        return
 
     base_wei = max(10_000_000_000_000_000, math.ceil((amount / pol_rate) * 1000) * 1_000_000_000_000_000)
     wei = await crypto_repo.allocate_unique_crypto_units(base_wei, 100_000_000_000_000, "POL", max_steps=99)

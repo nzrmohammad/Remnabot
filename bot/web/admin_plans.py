@@ -24,6 +24,16 @@ except ImportError:
     jdatetime = None
 
 
+def _parse_bool(val: object, default: bool = True) -> bool:
+    if val is None:
+        return default
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, (int, float)):
+        return bool(val)
+    return str(val).strip().lower() in {"1", "true", "yes", "on"}
+
+
 async def _invalidate_plans_cache(request: web.Request) -> None:
     """Clear node overview, squad, and user dashboard caches after plan mutations."""
     cache = request.app.get("cache")
@@ -128,7 +138,7 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
 
     description = str(body.get("description") or "").strip() or None
     badge = str(body.get("badge") or "").strip() or None
-    is_active = bool(body.get("is_active", True))
+    is_active = _parse_bool(body.get("is_active"), True)
     squad_uuid = str(body.get("squad_uuid") or "").strip() or None
     if not squad_uuid:
         return web.json_response({"ok": False, "error": "انتخاب اسکواد (دسته سرور) برای بسته الزامی است."}, status=400)
@@ -380,7 +390,7 @@ async def post_admin_coupon_save(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "درصد تخفیف یا مبلغ تخفیف باید مشخص باشد."}, status=400)
 
     expires_at = datetime.now(timezone.utc) + timedelta(days=expires_days) if expires_days > 0 else None
-    is_active = bool(body.get("is_active", True))
+    is_active = _parse_bool(body.get("is_active"), True)
 
     async with db_session(request) as session:
         existing = await session.execute(select(Coupon).where(Coupon.code == code))

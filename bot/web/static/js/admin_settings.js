@@ -1698,7 +1698,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (cardHolder) cardHolder.value = s.card_holder || '';
 
       const minTopup = $('settingMinTopup');
-      if (minTopup) minTopup.value = s.topup_min_amount ?? 20000;
+      if (minTopup) minTopup.value = s.topup_min_amount ?? 10000;
 
       const cardPhoneSwitch = $('settingCardRequirePhoneSwitch');
       if (cardPhoneSwitch) cardPhoneSwitch.checked = s.card_require_phone_verification ?? true;
@@ -1774,13 +1774,13 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (cpSwitch) cpSwitch.checked = s.custom_plan_enabled !== false;
 
       const cpPerGb = $('settingCustomPlanPricePerGb');
-      if (cpPerGb) cpPerGb.value = s.custom_plan_price_per_gb ?? 2500;
+      if (cpPerGb) cpPerGb.value = s.custom_plan_price_per_gb ?? 4500;
 
       const cpPerDay = $('settingCustomPlanPricePerDay');
-      if (cpPerDay) cpPerDay.value = s.custom_plan_price_per_day ?? 500;
+      if (cpPerDay) cpPerDay.value = s.custom_plan_price_per_day ?? 1000;
 
       const cpBase = $('settingCustomPlanBasePrice');
-      if (cpBase) cpBase.value = s.custom_plan_base_price ?? 10000;
+      if (cpBase) cpBase.value = s.custom_plan_base_price ?? 100000;
 
       const cpExtraDev = $('settingCustomPlanExtraDevicePercent');
       if (cpExtraDev) cpExtraDev.value = s.custom_plan_extra_device_percent ?? 15;

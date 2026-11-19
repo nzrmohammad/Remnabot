@@ -229,11 +229,11 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
         )
         usdt_rate_raw = getattr(store, "usdt_rate_toman", 0)
         try:
-            usdt_rate = int(usdt_rate_raw) if usdt_rate_raw is not None else 100_000
+            usdt_rate = int(usdt_rate_raw) if usdt_rate_raw is not None else 0
         except (ValueError, TypeError):
-            usdt_rate = 100_000
-        if usdt_rate <= 0:
-            usdt_rate = 100_000
+            usdt_rate = 0
+        if usdt_rate < 0:
+            usdt_rate = 0
 
         stars_rate_raw = getattr(store, "stars_rate_toman", 0)
         try:

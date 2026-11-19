@@ -3983,7 +3983,7 @@ function hydrateUserInterface(data) {
     if (refLinkInp) refLinkInp.value = referralLink;
 
     const refCount = Number(user.referrals_count || 0);
-    const refRewardGb = Number(data.referral_reward_gb || 1);
+    const refRewardGb = Number(data.referral_reward_gb ?? 5);
     if (refCountEl) refCountEl.innerHTML = `<span class="font-sans font-bold">${toEnglishDigits(refCount)}</span> <span class="font-sans">نفر</span>`;
     if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)}`;
     if (refRewardBadge) refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
@@ -5167,7 +5167,7 @@ async function syncUserDataWithApi(accountId) {
         }
       } else {
         if (typeof showBanner === 'function') {
-          showBanner(res.error || 'خطا در برقراری ارتباط با سرور. لطفاً مجدداً تلاش کنید.', 'warning', {
+          showBanner(res.error || res.message || 'خطا در برقراری ارتباط با سرور. لطفاً مجدداً تلاش کنید.', 'warning', {
             id: 'apiErrorBanner',
             actionText: 'تلاش مجدد',
             onAction: () => syncUserDataWithApi(accountId),

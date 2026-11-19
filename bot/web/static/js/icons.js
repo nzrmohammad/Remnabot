@@ -33,7 +33,8 @@
     const ariaHidden = options.ariaHidden !== false ? 'true' : 'false';
 
     const src = `${ICON_BASE_PATH}/${cleanName}.svg?v=${ICON_VERSION}`;
-    return `<img src="${src}" class="ui-icon ui-icon-img shrink-0 ${sizeClass} ${extraClass}".trim() alt="${alt}" aria-hidden="${ariaHidden}" loading="${loading}" />`;
+    const classes = `ui-icon ui-icon-img shrink-0 ${sizeClass} ${extraClass}`.trim();
+    return `<img src="${src}" class="${classes}" alt="${alt}" aria-hidden="${ariaHidden}" loading="${loading}" />`;
   }
 
   // Export to window
