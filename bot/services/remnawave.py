@@ -37,6 +37,8 @@ class RemnawaveClient(RemnawaveUsersMixin, RemnawaveHwidMixin, RemnawaveSystemMi
             },
             timeout=timeout,
         )
+        # Protect all HTTP calls across mixins with exponential backoff on transient errors
+        self._client.request = panel_retry(self._client.request)
 
     async def close(self) -> None:
         await self._client.aclose()

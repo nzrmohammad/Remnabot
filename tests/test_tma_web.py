@@ -427,6 +427,12 @@ async def test_user_topup_card_validation_and_duplicate_prevention():
         assert data2["ok"] is False
         assert "قبلاً ثبت شده است" in data2["message"]
 
+        # Clean up any test receipt artifact
+        from pathlib import Path
+        receipt_file = Path("data/receipts/receipt_999.jpg")
+        if receipt_file.exists():
+            receipt_file.unlink(missing_ok=True)
+
 
 @pytest.mark.anyio
 async def test_user_settings_persistence(session_factory):

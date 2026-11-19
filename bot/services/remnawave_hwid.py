@@ -44,7 +44,9 @@ class RemnawaveHwidMixin:
 
         # Fallback: scan panel devices if single endpoint is not supported on this panel version
         try:
-            all_devices = await self.get_all_hwid_devices(size=500) or []
+            all_devices = await self.get_all_hwid_devices(size=500)
+            if all_devices is None:
+                return None
             target_ids = {str(t).lower() for t in targets}
             filtered = [
                 d for d in all_devices
@@ -54,7 +56,7 @@ class RemnawaveHwidMixin:
             return filtered
         except Exception as exc:
             logger.warning("Remnawave hwid list warning (user_id=%s): %s", user_id, exc)
-            return []
+            return None
 
     async def delete_hwid_device(self, user_id: int, hwid: str) -> bool:
         """Remove one device from the user.

@@ -7,6 +7,7 @@ Supports Remnawave and standard v2ray subscription links:
 """
 import asyncio
 import base64
+import ipaddress
 import json
 import logging
 import urllib.parse
@@ -15,6 +16,37 @@ from typing import Any
 import httpx
 
 logger = logging.getLogger(__name__)
+
+
+def _mask_url(url: str) -> str:
+    """Mask sensitive token segments in subscription URLs for safe logging."""
+    if not url:
+        return ""
+    try:
+        parsed = urllib.parse.urlparse(url)
+        path = parsed.path
+        if len(path) > 12:
+            masked_path = path[:6] + "..." + path[-4:]
+        else:
+            masked_path = path
+        query = "***" if parsed.query else ""
+        return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, masked_path, "", query, ""))
+    except Exception:
+        return "https://***"
+
+
+def _is_internal_host(hostname: str | None) -> bool:
+    """Check if host is an internal docker or private network address."""
+    if not hostname:
+        return False
+    clean = hostname.strip().lower()
+    if clean in ("127.0.0.1", "localhost", "remnawave", "remnawave-subscription-page", "subscription-page"):
+        return True
+    try:
+        ip = ipaddress.ip_address(clean)
+        return ip.is_private or ip.is_loopback
+    except ValueError:
+        return False
 
 SUPPORTED_PROTOCOLS = (
     "vless://",
@@ -273,9 +305,7 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
 
     for target_url in deduped_candidates:
         parsed = urllib.parse.urlparse(target_url)
-        is_internal = parsed.hostname in ("127.0.0.1", "localhost", "remnawave", "remnawave-subscription-page", "subscription-page") or (
-            parsed.hostname and (parsed.hostname.startswith("172.") or parsed.hostname.startswith("192.168.") or parsed.hostname.startswith("10."))
-        )
+        is_internal = _is_internal_host(parsed.hostname)
 
         attempts = [None]
         if proxy and not is_internal:
@@ -290,8 +320,8 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                 except Exception as cert_err:
                     err_str = str(cert_err).lower()
                     if ("ssl" in err_str or "cert" in err_str) and is_internal:
-                        logger.debug("SSL verify=True failed for internal %s (%s), retrying with verify=False", target_url, cert_err)
-                        async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                        logger.debug("SSL verify=True failed for internal host (%s), retrying with verify=False", cert_err)
+                        async with httpx.AsyncClient(verify=False, follow_redirects=False, timeout=timeout, proxy=p) as client:
                             resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
                     else:
                         raise
@@ -301,7 +331,7 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                     if not text_body.lower().startswith(("<!doctype", "<html")):
                         configs = parse_subscription_text(text_body)
                         if configs:
-                            logger.info("Successfully fetched %d configs from %s", len(configs), target_url)
+                            logger.info("Successfully fetched %d configs from %s", len(configs), _mask_url(target_url))
                             return configs
                 elif resp is not None and resp.status_code in (403, 406):
                     for alt_ua in fallback_uas:
@@ -312,8 +342,8 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                         except Exception as cert_err:
                             err_str = str(cert_err).lower()
                             if ("ssl" in err_str or "cert" in err_str) and is_internal:
-                                logger.debug("SSL verify=True failed for internal %s (%s), retrying with verify=False", target_url, cert_err)
-                                async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, proxy=p) as client:
+                                logger.debug("SSL verify=True failed for internal host (%s), retrying with verify=False", cert_err)
+                                async with httpx.AsyncClient(verify=False, follow_redirects=False, timeout=timeout, proxy=p) as client:
                                     alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
                             else:
                                 alt_resp = None
@@ -324,6 +354,6 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                                 if configs:
                                     return configs
             except Exception as exc:
-                logger.warning("Subscription attempt failed for %s (proxy=%s): %s", target_url, p, exc)
+                logger.warning("Subscription attempt failed for %s (proxy=%s): %s", _mask_url(target_url), p, exc)
 
     return []

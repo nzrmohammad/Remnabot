@@ -352,8 +352,8 @@ async def get_user_gifts(
         created_at_jalali = ""
         if g.created_at:
             try:
-                import jdatetime
-                created_at_jalali = jdatetime.datetime.fromgregorian(datetime=g.created_at).strftime("%Y/%m/%d %H:%M")
+                from bot.services.formatting import format_datetime
+                created_at_jalali = format_datetime(g.created_at, "fa")
             except Exception:
                 created_at_jalali = g.created_at.strftime("%Y/%m/%d")
 
@@ -400,7 +400,12 @@ async def redeem_code_to_wallet(
     from bot.db.repositories.coupon_repo import CouponRepository
 
     clean_code = code.strip().upper()
-    if clean_code.startswith("GIFT-"):
+    if not clean_code:
+        return {"ok": False, "amount": 0, "message": "کد وارد شده خالی است."}
+
+    # 1. First check if it exists in GiftCard table (friend gift card for balance or service)
+    gift_res = await session.execute(select(GiftCard.id).where(GiftCard.code == clean_code))
+    if gift_res.scalar_one_or_none() is not None:
         return await claim_gift(
             session=session,
             code=clean_code,
@@ -411,23 +416,11 @@ async def redeem_code_to_wallet(
             session_factory=session_factory,
         )
 
+    # 2. Check if it's a credit voucher in Coupon table (including GIFT- or custom prefix vouchers)
     coupon_repo = CouponRepository(session)
     ok, amount, msg = await coupon_repo.redeem_credit_voucher(clean_code, telegram_id)
     if ok:
         await session.commit()
         return {"ok": True, "amount": amount, "message": msg}
 
-    # Check if the code belongs to a GiftCard without standard GIFT- prefix
-    gift_exists = await session.execute(select(GiftCard.id).where(GiftCard.code == clean_code))
-    if gift_exists.scalar_one_or_none() is not None:
-        return await claim_gift(
-            session=session,
-            code=clean_code,
-            claimer_telegram_id=telegram_id,
-            claimer_username=username,
-            remnawave=remnawave,
-            bot=bot,
-            session_factory=session_factory,
-        )
-
-    return {"ok": False, "amount": 0, "message": msg}
+    return {"ok": False, "amount": 0, "message": msg or "کد هدیه یا ووچر وارد شده نامعتبر است."}

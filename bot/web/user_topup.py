@@ -843,9 +843,9 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
         stars_count = max(1, math.ceil(amount / rate))
 
         bot = request.app["bot"]
-        from aiogram.types import LabeledPrice
-
         import secrets
+
+        from aiogram.types import LabeledPrice
         exp_ts = int(time.time()) + 3600
         nonce = secrets.token_hex(8)
         payload = f"stars_topup:{telegram_id}:{amount}:{stars_count}:{exp_ts}:{nonce}"

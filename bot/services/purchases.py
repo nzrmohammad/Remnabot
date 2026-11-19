@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import case, func, or_, select, text, update
+from sqlalchemy import case, select, text, update
 
 from bot.db.models import Service, Wallet
 from bot.db.repositories.order_repo import OrderRepository

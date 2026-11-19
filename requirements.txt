@@ -28,5 +28,5 @@ pytest==9.1.1
 anyio==4.15.0
 
 # Resilience & Archiving
-pyzipper>=0.4.0
-tenacity>=8.0.0
+pyzipper==0.3.6
+tenacity==9.2.1

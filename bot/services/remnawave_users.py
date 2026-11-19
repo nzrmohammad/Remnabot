@@ -149,19 +149,33 @@ class RemnawaveUsersMixin:
         return bool(users)
 
     async def get_all_panel_users(self, size: int = 1000) -> list[dict[str, Any]] | None:
-        """Return all panel users with transparent pagination support."""
+        """Return all panel users with transparent deduplication and pagination support."""
+        seen_keys: set[str] = set()
         all_users: list[dict[str, Any]] = []
+
+        def _add_users(users_chunk: list[dict[str, Any]]) -> None:
+            for u in users_chunk:
+                if not isinstance(u, dict):
+                    continue
+                ukey = str(u.get("id") or u.get("uuid") or "")
+                if ukey:
+                    if ukey not in seen_keys:
+                        seen_keys.add(ukey)
+                        all_users.append(u)
+                else:
+                    all_users.append(u)
+
         try:
             resp = await self._client.get("/api/users/stream", params={"size": size})
             if resp.status_code == 200:
                 data = resp.json().get("response") or {}
                 users = data if isinstance(data, list) else (data.get("users") or [])
-                all_users.extend(users)
+                _add_users(users)
                 if len(users) < size:
                     self._consecutive_panel_errors = 0
                     return all_users
 
-                page = 2
+                page = 1
                 while True:
                     p_resp = await self._client.get("/api/users", params={"page": page, "size": size})
                     if p_resp.status_code != 200:
@@ -170,7 +184,7 @@ class RemnawaveUsersMixin:
                     p_users = p_data if isinstance(p_data, list) else (p_data.get("users") or [])
                     if not p_users:
                         break
-                    all_users.extend(p_users)
+                    _add_users(p_users)
                     if len(p_users) < size:
                         break
                     page += 1
@@ -183,7 +197,7 @@ class RemnawaveUsersMixin:
                 resp.raise_for_status()
                 data = resp.json().get("response") or {}
                 users = data if isinstance(data, list) else (data.get("users") or [])
-                all_users.extend(users)
+                _add_users(users)
                 if len(users) < size:
                     break
                 page += 1
@@ -242,7 +256,6 @@ class RemnawaveUsersMixin:
             f"/api/users/{user_uuid}/actions/revoke" if user_uuid else None,
             f"/api/users/{user_id}/actions/revoke-sub",
             f"/api/users/{user_id}/actions/revoke-subscription",
-            f"/api/users/{user_id}/actions/reissue",
         ]
         payloads = [
             {"revokeOnlyPasswords": False},
@@ -255,8 +268,9 @@ class RemnawaveUsersMixin:
                 try:
                     resp = await self._client.post(ep, json=p)
                     if resp.status_code in (200, 201):
-                        return resp.json().get("response") or resp.json()
-                except httpx.HTTPError as exc:
+                        data = resp.json().get("response") or resp.json()
+                        return data if isinstance(data, dict) else {"success": True}
+                except (httpx.HTTPError, ValueError) as exc:
                     logger.debug("Remnawave revoke_user_subscription endpoint %s failed: %s", ep, exc)
                     continue
 
@@ -266,8 +280,9 @@ class RemnawaveUsersMixin:
                 bulk_payload = {"uuids": [str(user_uuid)]} if user_uuid else {"userIds": [int(user_id)]}
                 resp = await self._client.post("/api/users/bulk/revoke-subscription", json=bulk_payload)
                 if resp.status_code in (200, 201):
-                    return resp.json().get("response") or resp.json()
-            except httpx.HTTPError as exc:
+                    data = resp.json().get("response") or resp.json()
+                    return data if isinstance(data, dict) else {"success": True}
+            except (httpx.HTTPError, ValueError) as exc:
                 logger.debug("Remnawave bulk revoke-subscription failed: %s", exc)
 
         logger.warning("Remnawave revoke_user_subscription failed across all endpoints for user %s", user_id)

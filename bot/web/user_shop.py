@@ -701,7 +701,7 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
         discounted_traffic_price = int(raw_traffic_price * (100 - volume_pct) / 100)
         discounted_subtotal = discounted_traffic_price + time_price + base_fee
         hwid_cost = int(discounted_subtotal * extra_user_pct / 100)
-        volume_discount_amount = max(0, raw_traffic_price - discounted_traffic_price)
+        volume_discount_amount = max(0, raw_base - base_price)
 
         loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
         loyalty_pct = loyalty.get("discount_percent", 0)

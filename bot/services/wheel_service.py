@@ -262,12 +262,12 @@ async def execute_lucky_wheel_spin(
         {"id": "again", "name": "دوباره (شانس مجدد!)", "icon": "🔄", "type": "again", "value": 0},
     ]
 
-    w_1gb = max(8, int(10 * streak_multiplier))
-    w_500mb = max(12, int(15 * streak_multiplier))
-    w_disc = max(12, int(15 * streak_multiplier))
-    w_again = 10
-    w_blank1 = max(25, int(45 / streak_multiplier))
-    w_2gb = max(1, int(1.2 * streak_multiplier))
+    w_1gb = max(8.0, 10.0 * streak_multiplier)
+    w_500mb = max(12.0, 15.0 * streak_multiplier)
+    w_disc = max(12.0, 15.0 * streak_multiplier)
+    w_again = 10.0
+    w_blank1 = max(20.0, 45.0 / streak_multiplier)
+    w_2gb = max(1.0, round(1.5 * streak_multiplier, 2))
     weights = [w_1gb, w_blank1, w_disc, w_500mb, w_2gb, w_again]
     chosen = random.choices(prizes, weights=weights, k=1)[0]
 
@@ -356,8 +356,14 @@ async def execute_lucky_wheel_spin(
             except Exception as exc:
                 logger.warning("Failed to prepare coupon for wheel prize: %s", exc)
 
+    # Protect user against losing tickets/cooldown if prize delivery failed (e.g. panel outage or DB error)
+    prize_delivery_failed = (
+        (chosen["type"] in ("traffic", "days") and bool(panel_users) and not applied)
+        or (chosen["type"] == "coupon" and session is not None and not applied)
+    )
+
     # Record spin in DB report & update spin cooldown
-    if chosen["type"] != "again":
+    if chosen["type"] != "again" and not prize_delivery_failed:
         if cache and hasattr(cache, "delete"):
             await cache.delete(f"wheel:has_free_retry:{telegram_id}")
         if not using_ticket:
@@ -372,7 +378,7 @@ async def execute_lucky_wheel_spin(
             except Exception as exc:
                 logger.warning("Failed to record wheel spin in DB for %s: %s", telegram_id, exc)
     else:
-        # Free retry prize! Keep cooldown off and restore ticket if used
+        # Free retry prize or delivery failure! Keep cooldown off and restore ticket if used
         if cache and hasattr(cache, "set"):
             await cache.set(f"wheel:has_free_retry:{telegram_id}", 1, ttl_seconds=86400)
         if using_ticket and db_user:

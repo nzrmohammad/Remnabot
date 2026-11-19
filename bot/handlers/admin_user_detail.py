@@ -279,7 +279,7 @@ async def panel_user_callback_dispatch(
             return
 
         if sub_action == "revoke":
-            await remnawave.revoke_user_sub(p_id)
+            await remnawave.revoke_user_subscription(p_id)
             await AdminLogRepository(session).log(
                 call.from_user.id, "revoke_user_sub", detail=f"id={p_id}"
             )
