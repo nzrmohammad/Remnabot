@@ -226,13 +226,13 @@ class Order(Base):
         BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
     )
     service_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("services.id", ondelete="SET NULL"), nullable=True
+        Integer, ForeignKey("services.id", ondelete="SET NULL"), nullable=True, index=True
     )
     service_name: Mapped[str] = mapped_column(String(128))   # snapshot
     amount: Mapped[int] = mapped_column(BigInteger)          # Toman paid
     duration_days: Mapped[int] = mapped_column(Integer, default=0)
     traffic_gb: Mapped[int] = mapped_column(Integer, default=0)
-    panel_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    panel_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
     panel_username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     subscription_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     # paid = done, refunded = money returned, pending = panel call in-flight

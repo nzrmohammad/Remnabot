@@ -528,7 +528,7 @@ function setupLuckyWheel() {
             } catch(e) {}
           }
           if (wheelResultText) {
-            wheelResultText.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('trophy', 'w-4 h-4 shrink-0')}<span><b>تبریک!</b> شما برنده <b class="t-warn font-bold">${chosenPrize.name || chosenPrize.text}</b> شدید!</span></span><br/><span class="font-sans t-accent font-bold block mt-1 select-all" dir="ltr">کد: ${couponCode}</span><span class="text-[11px] text-amber-500/90 font-medium inline-flex items-center gap-1 mt-0.5">${uiIcon('clock', 'w-3 h-3 shrink-0')}<span>مهلت استفاده: 7 روز در تب فروشگاه</span></span>`;
+            wheelResultText.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('trophy', 'w-4 h-4 shrink-0')}<span><b>تبریک!</b> شما برنده <b class="t-warn font-bold">${escapeHtml(chosenPrize.name || chosenPrize.text)}</b> شدید!</span></span><br/><span class="font-sans t-accent font-bold block mt-1 select-all" dir="ltr">کد: ${escapeHtml(couponCode)}</span><span class="text-[11px] text-amber-500/90 font-medium inline-flex items-center gap-1 mt-0.5">${uiIcon('clock', 'w-3 h-3 shrink-0')}<span>مهلت استفاده: 7 روز در تب فروشگاه</span></span>`;
           }
           showWheelResultModal({
             icon: '🎟',

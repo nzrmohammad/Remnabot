@@ -13,7 +13,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, TelegramObject
+from aiogram.types import CallbackQuery, TelegramObject, Update
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +23,28 @@ WINDOW_SECONDS = 60.0
 _buckets: dict[int, deque[float]] = defaultdict(deque)
 
 
-def _user_id(event: TelegramObject) -> int | None:
-    user = getattr(event, "from_user", None)
-    return user.id if user is not None else None
+def _extract_user_and_inner(
+    event: TelegramObject, data: dict[str, Any]
+) -> tuple[int | None, Any, TelegramObject]:
+    inner = event
+    if isinstance(event, Update):
+        inner = (
+            event.message
+            or event.edited_message
+            or event.callback_query
+            or event.inline_query
+            or event.chosen_inline_result
+            or event.pre_checkout_query
+            or event.shipping_query
+            or event
+        )
+    user_obj = (
+        getattr(inner, "from_user", None)
+        or getattr(event, "from_user", None)
+        or data.get("event_from_user")
+    )
+    uid = user_obj.id if user_obj is not None else None
+    return uid, user_obj, inner
 
 
 class RateLimitMiddleware(BaseMiddleware):
@@ -35,7 +54,7 @@ class RateLimitMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        uid = _user_id(event)
+        uid, user_obj, inner = _extract_user_and_inner(event, data)
         if uid is None:
             return await handler(event, data)
         # Admins are exempt (broadcasts, approvals).
@@ -52,11 +71,11 @@ class RateLimitMiddleware(BaseMiddleware):
             bucket.popleft()
         if len(bucket) >= MAX_EVENTS:
             logger.warning("rate-limited user %s", uid)
-            if isinstance(event, CallbackQuery):
+            if isinstance(inner, CallbackQuery):
                 try:
-                    user_lang = getattr(getattr(event, "from_user", None), "language_code", "fa") or "fa"
+                    user_lang = getattr(user_obj, "language_code", "fa") or "fa"
                     toast = "⏳ Too fast — please wait a bit." if user_lang.startswith("en") else "⏳ لطفاً کمی صبور باشید..."
-                    await event.answer(toast, show_alert=False)
+                    await inner.answer(toast, show_alert=False)
                 except Exception:
                     pass
             return None

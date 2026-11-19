@@ -74,6 +74,8 @@ async def record_hourly_traffic_snapshot_once(
         except Exception as exc:
             logger.warning("Failed to cleanup older traffic snapshots: %s", exc)
 
+        await session.commit()
+
 
 async def traffic_monitor_loop(
     remnawave: RemnawaveClient,

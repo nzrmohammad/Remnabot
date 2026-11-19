@@ -2,6 +2,7 @@
 import logging
 
 from sqlalchemy import inspect, text
+from sqlalchemy.sql.elements import TextClause
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -62,8 +63,8 @@ def _migrate_db_schema(sync_conn) -> None:
                         default_str = f" DEFAULT {arg}"
                     else:
                         default_str = f" DEFAULT '{arg}'"
-                elif isinstance(arg, text):
-                    default_str = f" DEFAULT {arg.text}"
+                elif isinstance(arg, TextClause) or hasattr(arg, "text"):
+                    default_str = f" DEFAULT {getattr(arg, 'text', str(arg))}"
             elif col.default is not None and getattr(col.default, "is_scalar", False):
                 val = col.default.arg
                 if isinstance(val, bool):

@@ -33,7 +33,14 @@ async def apply_coupon_prompt(
 ):
 
     parts = call.data.split(":")
-    service_id = int(parts[2])
+    if len(parts) < 5:
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
+    try:
+        service_id = int(parts[2])
+    except (ValueError, TypeError):
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
     flow_type = parts[3]
     target_id = parts[4]
 
@@ -62,7 +69,14 @@ async def remove_coupon(
     cache=None,
 ):
     parts = call.data.split(":")
-    service_id = int(parts[2])
+    if len(parts) < 5:
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
+    try:
+        service_id = int(parts[2])
+    except (ValueError, TypeError):
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
     flow_type = parts[3]
     target_id = parts[4]
 
@@ -124,6 +138,7 @@ async def process_coupon_code(
         return
 
     await state.update_data(coupon_code=code, discount_amount=discount_amount, coupon_service_id=service.id)
+    await state.set_state(None)
 
     wallet = await WalletRepository(session).get_wallet(user.telegram_id)
     target_name = None

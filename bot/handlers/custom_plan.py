@@ -325,6 +325,9 @@ async def custom_plan_hwid_selected(
 ):
     """Handle device count selection and show full live preview and breakdown."""
     parts = call.data.split(":")
+    if len(parts) < 5:
+        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        return
     gb = parse_int(parts[2])
     days = parse_int(parts[3])
     hwid = parse_int(parts[4]) or 1

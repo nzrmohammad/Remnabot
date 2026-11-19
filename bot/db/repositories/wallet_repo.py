@@ -87,6 +87,8 @@ class WalletRepository:
         if claimed is None:
             return None
         topup = await self.get_topup(topup_id)
+        if topup:
+            await self.session.refresh(topup)
         if topup and not approved and topup.receipt_hash and not topup.receipt_hash.startswith("rej:"):
             # Release the unique raw fingerprint on rejection so rejected screenshots can be retried.
             topup.receipt_hash = f"rej:{topup.id}:{topup.receipt_hash}"[:128]

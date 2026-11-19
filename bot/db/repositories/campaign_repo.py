@@ -22,7 +22,7 @@ class CampaignRepository:
             cost=int(cost or 0),
         )
         self.session.add(campaign)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(campaign)
         return campaign
 
@@ -44,7 +44,7 @@ class CampaignRepository:
         if not item:
             return False
         await self.session.delete(item)
-        await self.session.commit()
+        await self.session.flush()
         return True
 
     async def get_campaigns_with_stats(self, bot_username: str = "") -> list[dict]:

@@ -36,7 +36,6 @@ class ServiceRepository:
             return list(result.scalars().all())
         except Exception as exc:
             logger.warning("Failed to query active services with purchase limits (%s), falling back to basic query", exc)
-            await self.session.rollback()
             try:
                 result = await self.session.execute(
                     select(Service).where(Service.is_active.is_(True)).order_by(*SERVICE_ORDER_BY)
@@ -44,7 +43,6 @@ class ServiceRepository:
                 return list(result.scalars().all())
             except Exception as exc2:
                 logger.exception("Failed fallback query for active services: %s", exc2)
-                await self.session.rollback()
                 raise
 
     async def get(self, service_id: int) -> Service | None:

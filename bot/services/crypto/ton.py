@@ -140,7 +140,7 @@ async def verify_and_credit_ton_invoice(
             continue
         if inv_exp_ts and tx_utime and tx_utime > (inv_exp_ts + 60):
             continue
-        tx_hash = tx.get("tx_hash", "")
+        tx_hash = (tx.get("tx_hash") or "").strip()
         # Prevent replay: verify tx_hash not claimed by another invoice
         if tx_hash:
             existing = await crypto_repo.get_by_tx_hash(tx_hash)
@@ -151,7 +151,7 @@ async def verify_and_credit_ton_invoice(
                 )
                 continue
 
-        paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=allow_expired, max_expired_grace_minutes=15)
+        paid_inv = await crypto_repo.mark_paid(inv.id, tx_hash, allow_expired=allow_expired, max_expired_grace_minutes=120)
         if not paid_inv:
             continue
 
@@ -191,7 +191,7 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
 
         now = datetime.now(timezone.utc)
         # Check and expire overdue invoices
-        active_invoices = []
+        active_invoice_ids: list[int] = []
         for inv in pending_invoices:
             if getattr(inv, "currency", "TON") != "TON":
                 continue
@@ -201,11 +201,11 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
             if exp and exp < now:
                 await crypto_repo.mark_expired(inv.id)
                 if (now - exp) <= timedelta(hours=2):
-                    active_invoices.append(inv)
+                    active_invoice_ids.append(inv.id)
             else:
-                active_invoices.append(inv)
+                active_invoice_ids.append(inv.id)
 
-        if not active_invoices:
+        if not active_invoice_ids:
             await session.commit()
             return 0
 
@@ -229,12 +229,13 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
         user_repo = UserRepository(session)
         store = await get_store_settings(session)
 
-        for inv in active_invoices:
-            live_inv = await crypto_repo.get_by_id(inv.id)
-            inv_to_process = live_inv or inv
+        for inv_id in active_invoice_ids:
+            live_inv = await crypto_repo.get_by_id(inv_id)
+            if not live_inv:
+                continue
             matched, new_balance, tx_hash = await verify_and_credit_ton_invoice(
                 session=session,
-                inv=inv_to_process,
+                inv=live_inv,
                 txs=transactions,
                 allow_expired=True,
                 bot=bot,

@@ -1,4 +1,5 @@
 """Repository for on-chain cryptocurrency (TON) invoices."""
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -7,6 +8,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import CryptoInvoice
+
+logger = logging.getLogger(__name__)
 
 
 class CryptoRepository:
@@ -143,41 +146,48 @@ class CryptoRepository:
                     await self.session.flush()
                 return invoice
             except IntegrityError:
+                self.session.expunge(invoice)
                 if attempt == 4:
                     raise
-        return invoice
+        raise RuntimeError("Failed to generate unique comment after 5 attempts")
 
     async def mark_paid(
         self,
         invoice_id: int,
-        tx_hash: str,
+        tx_hash: str | None,
         allow_expired: bool = False,
-        max_expired_grace_minutes: int = 15,
+        max_expired_grace_minutes: int = 120,
     ) -> CryptoInvoice | None:
         """Atomically transition invoice from pending (or recently expired within grace) -> paid.
         Prevents race-condition double-crediting if concurrent checks occur.
         """
         now = datetime.now(timezone.utc)
         cutoff = now - timedelta(minutes=max(0, int(max_expired_grace_minutes)))
-        if allow_expired:
-            row = await self.session.execute(
-                text(
-                    "UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
-                    "WHERE id = :i AND (status = 'pending' OR (status = 'expired' AND expires_at >= :cutoff)) "
-                    "RETURNING id"
-                ),
-                {"tx": tx_hash, "now": now, "cutoff": cutoff, "i": invoice_id},
-            )
-        else:
-            row = await self.session.execute(
-                text(
-                    "UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
-                    "WHERE id = :i AND status = 'pending' RETURNING id"
-                ),
-                {"tx": tx_hash, "now": now, "i": invoice_id},
-            )
-        claimed = row.scalar_one_or_none()
-        await self.session.flush()
+        tx_clean = (tx_hash or "").strip() or None
+        try:
+            async with self.session.begin_nested():
+                if allow_expired:
+                    row = await self.session.execute(
+                        text(
+                            "UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
+                            "WHERE id = :i AND (status = 'pending' OR (status = 'expired' AND expires_at >= :cutoff)) "
+                            "RETURNING id"
+                        ),
+                        {"tx": tx_clean, "now": now, "cutoff": cutoff, "i": invoice_id},
+                    )
+                else:
+                    row = await self.session.execute(
+                        text(
+                            "UPDATE crypto_invoices SET status = 'paid', tx_hash = :tx, paid_at = :now "
+                            "WHERE id = :i AND status = 'pending' RETURNING id"
+                        ),
+                        {"tx": tx_clean, "now": now, "i": invoice_id},
+                    )
+                claimed = row.scalar_one_or_none()
+                await self.session.flush()
+        except IntegrityError:
+            logger.warning("Duplicate tx_hash collision in mark_paid for invoice %s: %s", invoice_id, tx_clean)
+            return None
         if claimed is None:
             return None
         invoice = await self.get_by_id(invoice_id)

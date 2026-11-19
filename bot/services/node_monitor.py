@@ -72,8 +72,9 @@ async def check_nodes_health_once(
 
         # --- 1. Offline Check ---
         if not is_connected:
-            # If newly offline or cooldown expired
-            if not state["is_offline"] or (now_ts - state["last_alert_ts"] > COOLDOWN_SECONDS):
+            # If newly offline or cooldown expired (dampen flapping with minimum 5-min gap)
+            time_since_alert = now_ts - state["last_alert_ts"]
+            if (not state["is_offline"] and time_since_alert > min(300.0, COOLDOWN_SECONDS)) or (time_since_alert > COOLDOWN_SECONDS):
                 state["is_offline"] = True
                 state["last_alert_ts"] = now_ts
                 msg = (

@@ -83,7 +83,8 @@ async def _nightly_account_block(
     if expire_at is None:
         lines.append(f"{t(lang, 'stats_expire')} : {t(lang, 'stats_no_expire')}")
     else:
-        delta_days = (expire_at - now).days
+        diff_sec = (expire_at - now).total_seconds()
+        delta_days = int(diff_sec // 86400) if diff_sec >= 0 else int(diff_sec / 86400)
         date_str = format_date(expire_at.astimezone(now.tzinfo), lang)
         if delta_days >= 0:
             when = t(lang, "stats_days_left", days=delta_days)

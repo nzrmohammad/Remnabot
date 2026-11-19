@@ -75,17 +75,23 @@ async def _sweep(
         await session.commit()
 
 
-def _seconds_until(hour: int, minute: int, weekday: int | None = None) -> float:
+def _seconds_until(hour: int, minute: int, weekday: int | None = None, grace_seconds: int = 120) -> float:
     """Seconds until the next occurrence of HH:MM (optionally on a given
-    python weekday) in the configured timezone."""
+    python weekday) in the configured timezone.
+    If restarted within grace_seconds after trigger time, fires immediately.
+    """
     now = now_tz(get_settings().TIMEZONE)
     target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
     if weekday is None:
         if target <= now:
+            if (now - target).total_seconds() <= grace_seconds:
+                return 1.0
             target += timedelta(days=1)
     else:
         target += timedelta(days=(weekday - now.weekday()) % 7)
         if target <= now:
+            if (now - target).total_seconds() <= grace_seconds:
+                return 1.0
             target += timedelta(days=7)
     return max(1.0, (target - now).total_seconds())
 

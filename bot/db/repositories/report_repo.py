@@ -1,4 +1,5 @@
 """Repository for the per-user nightly/weekly/monthly report switches."""
+from datetime import datetime, timezone
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,10 +46,10 @@ class ReportRepository:
         settings.wheel_notify = not settings.wheel_notify
         return settings
 
-    async def record_wheel_spin(self, telegram_id: int) -> ReportSettings:
+    async def record_wheel_spin(self, telegram_id: int, now_utc: datetime | None = None) -> ReportSettings:
         from datetime import datetime, timezone
         settings = await self.get_settings(telegram_id)
-        settings.wheel_last_spin_at = datetime.now(timezone.utc)
+        settings.wheel_last_spin_at = now_utc or datetime.now(timezone.utc)
         settings.wheel_notified = False
         return settings
 

@@ -104,7 +104,8 @@ async def _check_user(
         # ---- expiry --------------------------------------------------- #
         expire_at = parse_iso(account.get("expireAt"))
         if prefs.expire_days > 0 and expire_at is not None:
-            days_left = (expire_at - now).days
+            diff_sec = (expire_at - now).total_seconds()
+            days_left = int(diff_sec // 86400) if diff_sec >= 0 else int(diff_sec / 86400)
             if days_left <= prefs.expire_days:
                 if not state.expire_alerted:
                     date_str = format_date(expire_at.astimezone(now.tzinfo), lang)

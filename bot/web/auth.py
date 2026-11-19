@@ -184,10 +184,19 @@ def get_client_ip(request: web.Request) -> str:
         for header in ("CF-Connecting-IP", "X-Real-IP"):
             val = request.headers.get(header)
             if val and val.strip():
-                return val.strip()
+                candidate = val.strip()
+                try:
+                    ipaddress.ip_address(candidate)
+                    return candidate
+                except ValueError:
+                    pass
         xff = request.headers.get("X-Forwarded-For")
         if xff:
             first_ip = xff.split(",")[0].strip()
             if first_ip:
-                return first_ip
+                try:
+                    ipaddress.ip_address(first_ip)
+                    return first_ip
+                except ValueError:
+                    pass
     return remote

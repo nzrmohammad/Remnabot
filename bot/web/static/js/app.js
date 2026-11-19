@@ -5723,7 +5723,7 @@ async function loadGiftsHistory() {
         : '<span class="text-amber-500 font-bold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />در انتظار دریافت</span>';
       const desc = g.gift_type === 'BALANCE'
         ? `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`
-        : `اشتراک ${g.service_name || 'سرویس'}`;
+        : `اشتراک ${escapeHtml(g.service_name || 'سرویس')}`;
       const rec = g.receiver_username
         ? `<span dir="ltr">@${escapeHtml(g.receiver_username)}</span>`
         : (g.receiver_telegram_id ? `<span dir="ltr">${escapeHtml(String(g.receiver_telegram_id))}</span>` : 'از طریق لینک هدیه');
@@ -6135,7 +6135,7 @@ function openLoyaltyModal() {
       if (!isMaxTier && nextTier && nextTier.name) {
         const needed = Number(nextTier.remaining_amount || loyalty.amount_to_next || 0).toLocaleString('en-US');
         const nextDisc = toEnglishDigits(nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0);
-        $('loyaltyModalProgressText').innerHTML = `با ${needed} تومان خرید دیگر، به سطح ${nextTier.name} ارتقا می‌یابید و از <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
+        $('loyaltyModalProgressText').innerHTML = `با ${needed} تومان خرید دیگر، به سطح ${escapeHtml(nextTier.name)} ارتقا می‌یابید و از <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
       } else if (isMaxTier) {
         $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس) دست یافته‌اید.';
       } else {

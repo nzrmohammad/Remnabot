@@ -215,7 +215,7 @@ async def gift_choose_service(
         await call.answer("در حال حاضر سرویسی برای هدیه موجود نیست.", show_alert=True)
         return
 
-    await state.set_state(GiftStates.waiting_for_receiver)
+    await state.set_state(None)
     await state.update_data(gift_type="SERVICE")
 
     lines = [

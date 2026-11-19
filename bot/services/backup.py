@@ -510,9 +510,9 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
 
 async def restore_database_backup(session: AsyncSession, file_path: str | Path) -> dict[str, int]:
     """Restore database records from a JSON backup file."""
-    path = Path(file_path)
-    if not path.is_file():
-        raise FileNotFoundError(f"Backup file not found: {path}")
+    path = Path(file_path).resolve()
+    if not path.is_file() or path.suffix.lower() not in (".json", ".dump"):
+        raise ValueError(f"Invalid backup file format or file not found: {path}")
 
     def _read_file():
         with open(path, encoding="utf-8") as f:

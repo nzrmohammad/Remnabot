@@ -859,7 +859,7 @@
 
     const hasSales = Boolean(planDist?.has_data ?? (planDist?.sales_count && planDist.sales_count.some(c => c > 0)));
     const labels = hasSales
-      ? (planDist.labels || []).map(l => formatPlanTitle(l, { plainText: true }))
+      ? (planDist.labels || []).map(l => formatPlanTitle(l, { plainText: true, raw: true }))
       : ['بدون سفارش ثبت‌شده'];
     const values = hasSales ? planDist.sales_count : [1];
     const bgColors = hasSales ? getDonutPalette(!isDark) : ['rgba(100, 116, 139, 0.4)'];

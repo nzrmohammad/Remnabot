@@ -10,6 +10,7 @@ import jdatetime
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from bot.config import get_settings
 from bot.db.models import Coupon, Order, User
 from bot.services.app_settings import get_store_settings
 from bot.services.remnawave import RemnawaveClient
@@ -30,8 +31,9 @@ async def birthday_sweep_loop(
                     await asyncio.sleep(3600)
                     continue
 
-                now_tehran = datetime.now(ZoneInfo("Asia/Tehran"))
-                today_j = jdatetime.date.fromgregorian(date=now_tehran.date())
+                tz_name = getattr(get_settings(), "TIMEZONE", "Asia/Tehran") or "Asia/Tehran"
+                now_tz_dt = datetime.now(ZoneInfo(tz_name))
+                today_j = jdatetime.date.fromgregorian(date=now_tz_dt.date())
                 jalali_year = today_j.year
                 m_str = f"{today_j.month:02d}"
                 d_str = f"{today_j.day:02d}"
@@ -73,12 +75,12 @@ async def birthday_sweep_loop(
                     if not paid_order:
                         continue
 
-                    # Persistent DB check: ensure birthday gift is awarded at most once per 360 days
+                    # Persistent DB check: ensure birthday gift is awarded at most once per 365 days
                     existing_bday = (
                         await session.execute(
                             select(Coupon.id).where(
                                 Coupon.code.like(f"BDAY_{user.telegram_id}_%"),
-                                Coupon.created_at >= datetime.now(timezone.utc) - timedelta(days=360),
+                                Coupon.created_at >= datetime.now(timezone.utc) - timedelta(days=365),
                             )
                         )
                     ).first()

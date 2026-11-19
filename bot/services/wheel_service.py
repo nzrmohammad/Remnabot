@@ -368,7 +368,7 @@ async def execute_lucky_wheel_spin(
         if session is not None:
             try:
                 rep_repo = ReportRepository(session)
-                await rep_repo.record_wheel_spin(telegram_id)
+                await rep_repo.record_wheel_spin(telegram_id, now_utc)
             except Exception as exc:
                 logger.warning("Failed to record wheel spin in DB for %s: %s", telegram_id, exc)
     else:

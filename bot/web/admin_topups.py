@@ -230,9 +230,11 @@ async def get_admin_topup_photo(request: web.Request) -> web.Response:
 
             photo_id = getattr(topup, "receipt_photo_id", None)
             if photo_id and photo_id.startswith("local:"):
-                target_name = photo_id.split("local:", 1)[1]
-                target_path = Path("data/receipts") / target_name
-                if target_path.exists():
+                raw_target = photo_id.split("local:", 1)[1]
+                target_name = Path(raw_target).name
+                base_dir = Path("data/receipts").resolve()
+                target_path = (base_dir / target_name).resolve()
+                if target_path.is_file() and target_path.is_relative_to(base_dir):
                     content = await asyncio.to_thread(target_path.read_bytes)
                     return web.Response(
                         body=content,

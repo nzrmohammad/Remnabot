@@ -780,7 +780,7 @@ function renderFilteredShopPlans() {
           </span>
           <span class="inline-flex items-center gap-1 text-xs tracking-wider" dir="ltr">${flagsList}</span>
         </div>
-        <button class="buy-plan-btn w-full ${btnClass} text-xs py-2 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${p.name}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${p.badge || ''}" data-squad="${p.squad_uuid || ''}">
+        <button class="buy-plan-btn w-full ${btnClass} text-xs py-2 rounded-xl transition shadow active:scale-[0.98]" data-id="${p.id}" data-price="${finalPrice}" data-name="${escapeHtml(p.name)}" data-traffic="${p.traffic_gb}" data-days="${p.duration_days}" data-badge="${escapeHtml(p.badge || '')}" data-squad="${escapeHtml(p.squad_uuid || '')}">
           🛒 ${buttonLabel}${buttonPriceText}
         </button>
       </div>

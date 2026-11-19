@@ -222,7 +222,20 @@ def _get_ctx_from_state(data: dict, prefix: str = "edit") -> tuple[int, str, int
     return int(data.get(f"{prefix}_p_id", 0)), data.get(f"{prefix}_cat", "all"), int(data.get(f"{prefix}_page", 0))
 
 
-@router.callback_query(F.data.startswith("adm:puser:"))
+_SUBROUTER_ACTIONS = frozenset({"squads", "tgsq", "hwidlim", "sethwid", "hwid", "delhwid"})
+
+
+def _is_panel_user_detail_callback(call: CallbackQuery) -> bool:
+    data = getattr(call, "data", None)
+    if not (data and data.startswith("adm:puser:")):
+        return False
+    parts = data.split(":")
+    if len(parts) < 3:
+        return False
+    return parts[2] not in _SUBROUTER_ACTIONS
+
+
+@router.callback_query(_is_panel_user_detail_callback)
 async def panel_user_callback_dispatch(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient, state: FSMContext,

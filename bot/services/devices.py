@@ -58,15 +58,6 @@ async def check_account_new_devices(
             continue
 
         # Found a NEW device!
-        await repo.add_device(
-            telegram_id=telegram_id,
-            account_id=account_id,
-            hwid=hwid,
-            platform=d.get("platform"),
-            device_model=d.get("deviceModel"),
-        )
-        new_devices.append(d)
-
         platform = escape(str(d.get("platform") or "—"))
         model = escape(str(d.get("deviceModel") or "—"))
         ip = escape(str(d.get("requestIp") or "—"))
@@ -88,6 +79,14 @@ async def check_account_new_devices(
 
         try:
             await bot.send_message(telegram_id, text, reply_markup=kb.as_markup())
+            await repo.add_device(
+                telegram_id=telegram_id,
+                account_id=account_id,
+                hwid=hwid,
+                platform=d.get("platform"),
+                device_model=d.get("deviceModel"),
+            )
+            new_devices.append(d)
             logger.info(
                 "New device alert sent to %s for account %s (hwid: %s)",
                 telegram_id,
@@ -96,7 +95,7 @@ async def check_account_new_devices(
             )
         except TelegramAPIError as exc:
             logger.warning(
-                "Failed to send new device notification to %s: %s", telegram_id, exc
+                "Failed to send new device notification to %s: %s (will retry on next cycle)", telegram_id, exc
             )
 
     return new_devices

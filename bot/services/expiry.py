@@ -69,6 +69,9 @@ async def _get_state(session, account_id: str, telegram_id: int) -> ExpiryState:
         )
         session.add(state)
         await session.flush()
+    elif state.telegram_id != telegram_id:
+        state.telegram_id = telegram_id
+        await session.flush()
     return state
 
 
@@ -110,7 +113,8 @@ async def run_expiry_check(
                     expire_at = parse_iso(account.get("expireAt"))
                     if expire_at is None:
                         continue  # unlimited — nothing to do
-                    days_left = (expire_at - now).days
+                    diff_sec = (expire_at - now).total_seconds()
+                    days_left = int(diff_sec // 86400) if diff_sec >= 0 else int(diff_sec / 86400)
                     username = str(account.get("username", "—"))
                     date_str = format_date(expire_at.astimezone(now.tzinfo), lang)
                     state = await _get_state(session, str(account_id), user.telegram_id)

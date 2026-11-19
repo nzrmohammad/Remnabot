@@ -717,10 +717,11 @@ function formatPlanTitle(name, options = {}) {
 
   if (options.plainText) {
     const icon = emojiStr || '💎';
+    const textOut = options.raw ? cleanText : escapeHtml(cleanText);
     if (options.iconPosition === 'left' || options.iconLeft) {
-      return cleanText ? `${cleanText} ${icon}` : icon;
+      return textOut ? `${textOut} ${icon}` : icon;
     }
-    return cleanText ? `${icon} ${cleanText}` : icon;
+    return textOut ? `${icon} ${textOut}` : icon;
   }
 
   if (!emojiStr) {

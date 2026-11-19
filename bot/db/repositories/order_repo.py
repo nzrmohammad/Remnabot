@@ -146,7 +146,10 @@ class OrderRepository:
         await self.session.flush()
         if claimed is None:
             return None
-        return await self.get(order_id)
+        order = await self.get(order_id)
+        if order:
+            await self.session.refresh(order)
+        return order
 
     async def list_filtered(
         self,

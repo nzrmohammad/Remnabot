@@ -241,9 +241,21 @@ async def process_incoming_sms(
                 parsed.reject_reason, has_amount_in_body, forapp_amount_toman,
             )
 
+    # Idempotency key deduplication
+    if idempotency_key and cache and hasattr(cache, "set_nx"):
+        claimed = await cache.set_nx(f"sms:idemp:{idempotency_key}", "1", ttl_seconds=86400)
+        if not claimed:
+            logger.warning("Duplicate idempotency key ignored: %s", idempotency_key)
+            return {
+                "ok": True,
+                "action": "duplicate_ignored",
+                "reason": "درخواست تکراری با کلید یکتا نادیده گرفته شد",
+            }
+
+    masked_preview = re.sub(r"\b(\d{4})\d{6,8}(\d{4})\b", r"\1******\2", raw_message[:80])
     logger.debug(
         "Bank SMS parsed result: sender=%r is_deposit=%s amount_rial=%s amount_toman=%s bank=%s raw_preview=%r",
-        sender, parsed.is_deposit, parsed.amount_rial, parsed.amount_toman, parsed.bank_name, raw_message[:80],
+        sender, parsed.is_deposit, parsed.amount_rial, parsed.amount_toman, parsed.bank_name, masked_preview,
     )
 
     # Log incoming SMS atomically with replay deduplication
@@ -265,7 +277,7 @@ async def process_incoming_sms(
         }
 
     if not parsed.is_deposit or not parsed.amount_toman:
-        logger.info("Ignored non-deposit or unparsed SMS from %s: %s", sender, raw_message[:60])
+        logger.info("Ignored non-deposit or unparsed SMS from %s: %s", sender, masked_preview[:60])
         reason = getattr(parsed, "reject_reason", None) or "تراکنش واریز بانکی تشخیص داده نشد"
         await notify_admin_sms_webhook_log(
             bot=bot, settings=settings, store=store, sender=sender,

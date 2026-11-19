@@ -393,7 +393,12 @@ async def admin_database_backup(
     await call.answer("در حال تهیه نسخه پشتیبان..." if lang == "fa" else "Creating backup...", show_alert=False)
 
     try:
-        backup_path = await create_database_backup(session)
+        from bot.config import get_settings
+        settings = get_settings()
+        backup_path = await create_database_backup(session, password=settings.BACKUP_PASSWORD)
+        if not backup_path or not backup_path.exists():
+            await call.answer("خطا در ایجاد فایل پشتیبان.", show_alert=True)
+            return
         doc = FSInputFile(backup_path, filename=backup_path.name)
         await bot.send_document(
             chat_id=call.from_user.id,

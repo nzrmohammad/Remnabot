@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import or_, select, text, update
+from sqlalchemy import case, func, or_, select, text, update
 
 from bot.db.models import Service, Wallet
 from bot.db.repositories.order_repo import OrderRepository
@@ -344,6 +344,60 @@ async def _execute_purchase_impl(
                 await session.commit()
                 return PurchaseResult(ok=False, kind="coupon_exhausted")
 
+    # Atomic service capacity reservation
+    service_reserved = False
+    max_p = getattr(service, "max_purchases", None)
+    if getattr(service, "id", None) and isinstance(service.id, int) and isinstance(max_p, int) and max_p > 0:
+        stmt = (
+            update(Service)
+            .where(
+                Service.id == service.id,
+                Service.purchases_count < Service.max_purchases,
+            )
+            .values(purchases_count=Service.purchases_count + 1)
+        )
+        upd_res = await session.execute(stmt)
+        if getattr(upd_res, "rowcount", 1) == 0:
+            if claimed_usage and coupon_obj:
+                try:
+                    await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
+                except Exception as c_err:
+                    logger.warning("Failed to release coupon usage: %s", c_err)
+            await order_repo.mark_failed(pending)
+            await session.commit()
+            return PurchaseResult(ok=False, kind="capacity_exhausted")
+        service_reserved = True
+        svc_current = await session.get(Service, service.id)
+        if (
+            svc_current
+            and isinstance(getattr(svc_current, "purchases_count", None), (int, float))
+            and isinstance(getattr(svc_current, "max_purchases", None), (int, float))
+            and svc_current.purchases_count >= svc_current.max_purchases
+        ):
+            svc_current.is_active = False
+            logger.info("Service %d (%s) reached max purchases (%d). Deactivated.", svc_current.id, getattr(svc_current, "name", ""), svc_current.max_purchases)
+
+    async def _cleanup_failure() -> None:
+        if claimed_usage and coupon_obj:
+            try:
+                await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
+            except Exception as c_err:
+                logger.warning("Failed to release coupon usage: %s", c_err)
+        if service_reserved:
+            try:
+                await session.execute(
+                    update(Service)
+                    .where(Service.id == service.id)
+                    .values(
+                        purchases_count=case(
+                            (Service.purchases_count > 0, Service.purchases_count - 1),
+                            else_=0,
+                        )
+                    )
+                )
+            except Exception as s_err:
+                logger.warning("Failed to release service capacity: %s", s_err)
+
     squads_changed = False
 
     if account is None:
@@ -368,11 +422,7 @@ async def _execute_purchase_impl(
             if user is not None:
                 break
         if user is None:
-            if claimed_usage and coupon_obj:
-                try:
-                    await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
-                except Exception as c_err:
-                    logger.warning("Failed to release coupon usage: %s", c_err)
+            await _cleanup_failure()
             await order_repo.mark_failed(pending)
             await session.commit()
             await _report_purchase_err("create_user_failed_4x", "Panel create_user failed 4 times")
@@ -402,11 +452,7 @@ async def _execute_purchase_impl(
 
         if (is_extra_traffic or is_extra_time) and service.squad_uuid:
             if not acc_squad_uuids or str(service.squad_uuid) not in acc_squad_uuids:
-                if claimed_usage and coupon_obj:
-                    try:
-                        await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
-                    except Exception as c_err:
-                        logger.warning("Failed to release coupon usage: %s", c_err)
+                await _cleanup_failure()
                 await order_repo.mark_failed(pending)
                 await session.commit()
                 return PurchaseResult(ok=False, kind="squad_mismatch")
@@ -427,11 +473,7 @@ async def _execute_purchase_impl(
                 squads_changed = True
             except Exception as sq_err:
                 logger.warning("Failed to update user squad on squad switch: %s", sq_err)
-                if claimed_usage and coupon_obj:
-                    try:
-                        await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
-                    except Exception as c_err:
-                        logger.warning("Failed to release coupon usage after squad error: %s", c_err)
+                await _cleanup_failure()
                 await order_repo.mark_failed(pending)
                 await session.commit()
                 await _report_purchase_err("squad_switch_failed", f"set_user_squads failed for acc={account.get('id')}: {sq_err}")
@@ -546,11 +588,7 @@ async def _execute_purchase_impl(
     new_balance = result.scalar_one_or_none()
     if new_balance is None:
         # Balance dropped mid-purchase (double-tap race).
-        if claimed_usage and coupon_obj:
-            try:
-                await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
-            except Exception as c_err:
-                logger.warning("Failed to release coupon usage during compensation: %s", c_err)
+        await _cleanup_failure()
 
         # Compensate: if a new user was created, delete it so no free service is given.
         if account is None and panel_user_id:
@@ -593,31 +631,14 @@ async def _execute_purchase_impl(
 
     await order_repo.mark_paid(pending, panel_user_id, panel_username, subscription_url)
 
-    if getattr(service, "id", None) and isinstance(service.id, int):
+    if getattr(service, "id", None) and isinstance(service.id, int) and not service_reserved:
         try:
             stmt = (
                 update(Service)
-                .where(
-                    Service.id == service.id,
-                    or_(
-                        Service.max_purchases.is_(None),
-                        Service.purchases_count < Service.max_purchases,
-                    ),
-                )
+                .where(Service.id == service.id)
                 .values(purchases_count=Service.purchases_count + 1)
             )
-            upd_res = await session.execute(stmt)
-            if upd_res.rowcount > 0:
-                svc_current = await session.get(Service, service.id)
-                if (
-                    svc_current
-                    and svc_current.max_purchases
-                    and svc_current.purchases_count >= svc_current.max_purchases
-                ):
-                    svc_current.is_active = False
-                    logger.info("Service %d (%s) reached max purchases (%d). Deactivated.", svc_current.id, getattr(svc_current, "name", ""), svc_current.max_purchases)
-            else:
-                logger.warning("Service %d exceeded max purchases during race check.", service.id)
+            await session.execute(stmt)
         except Exception as svc_err:
             logger.debug("Could not increment service purchases_count: %s", svc_err)
 

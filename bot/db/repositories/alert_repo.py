@@ -43,4 +43,7 @@ class AlertRepository:
             state = AlertState(account_id=account_id, telegram_id=telegram_id)
             self.session.add(state)
             await self.session.flush()
+        elif state.telegram_id != telegram_id:
+            state.telegram_id = telegram_id
+            await self.session.flush()
         return state

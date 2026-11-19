@@ -189,7 +189,7 @@ async def process_auto_renewals(
                     else:
                         # Insufficient balance notice
                         if cache:
-                            await cache.set(dedup_key, "1", ttl_seconds=43200)
+                            await cache.set(dedup_key, "1", ttl_seconds=3600)
                         if bot:
                             try:
                                 shortage = final_price - balance
