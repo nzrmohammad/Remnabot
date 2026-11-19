@@ -1562,25 +1562,31 @@
               <span>بروزرسانی خودکار و مدیریت نسخه‌ها و لینک‌ها از GitHub</span>
             </button>
 
-            <!-- OS Segmented Tabs: Unified 6-Column Grid -->
-            <div class="grid grid-cols-6 card-inset p-1 rounded-2xl gap-1" dir="rtl">
-              <button type="button" onclick="switchAdminAppsTab('ios')" id="adminAppTab_ios" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-bold text-[11px] sm:text-[11px] whitespace-nowrap transition flex items-center justify-center gap-0.5 sm:gap-1 bg-cyan-600 text-white shadow">
-                <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#f8fafc" stroke="#475569" stroke-width="1.1" d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83z"/><path fill="#22c55e" stroke="#15803d" stroke-width="0.6" d="M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg><span>iOS</span>
+            <!-- OS Segmented Tabs: Horizontal Scrollable Bar (iOS, Android, Windows, Mac, Linux, DNS, DNS Tools, Prerequisites) -->
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-1 card-inset rounded-2xl flex-shrink-0" dir="rtl">
+              <button type="button" onclick="switchAdminAppsTab('ios')" id="adminAppTab_ios" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap shrink-0 transition flex items-center justify-center gap-1.5 bg-cyan-600 text-white shadow">
+                <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#f8fafc" stroke="#475569" stroke-width="1.1" d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83z"/><path fill="#22c55e" stroke="#15803d" stroke-width="0.6" d="M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg><span>iOS / iPad</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('android')" id="adminAppTab_android" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[11px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+              <button type="button" onclick="switchAdminAppsTab('android')" id="adminAppTab_android" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#3ddc84" stroke="#065f46" stroke-width="0.6" d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.2439 13.8533 7.8508 12 7.8508s-3.5902.3931-5.1367 1.0989L4.841 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3435-4.1021-2.6892-7.5743-6.1185-9.4396"/></svg><span>اندروید</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('windows')" id="adminAppTab_windows" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[11px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+              <button type="button" onclick="switchAdminAppsTab('windows')" id="adminAppTab_windows" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#f25022" d="M0 3.449L9.75 2.1v9.451H0z"/><path fill="#7fba00" d="M10.949 1.949L24 0v11.4H10.949z"/><path fill="#60a5fa" d="M0 12.6h9.75v9.451L0 20.699z"/><path fill="#ffb900" d="M10.949 12.6H24V24l-12.949-1.801z"/></svg><span>ویندوز</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('macos')" id="adminAppTab_macos" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[11px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+              <button type="button" onclick="switchAdminAppsTab('macos')" id="adminAppTab_macos" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4.5" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2"/><path fill="#38bdf8" d="M6.5 2h6.8c-1.8 4.2-2.1 7.6-.2 10.6h-2.1c-.4 3.1.2 6.2 1.8 9.4H6.5A4.5 4.5 0 012 17.5v-11A4.5 4.5 0 016.5 2z"/><path fill="none" stroke="#0f172a" stroke-width="1.7" stroke-linecap="round" d="M7.5 7.5v2.3M16.5 7.5v2.3M7.2 15.2c1.4 1.6 3.1 2.3 4.8 2.3s3.4-.7 4.8-2.3"/></svg><span>مک</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('linux')" id="adminAppTab_linux" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[11px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+              <button type="button" onclick="switchAdminAppsTab('linux')" id="adminAppTab_linux" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1e293b" stroke="#94a3b8" stroke-width="1" d="M12 2c-3.1 0-5 2.2-5 5.4 0 1.7-.7 3.1-1.6 4.7-1.1 1.9-1.8 3.6-1.4 5.4.5 1.8 2.3 2.9 4.5 3.1h7c2.2-.2 4-1.3 4.5-3.1.4-1.8-.3-3.5-1.4-5.4-.9-1.6-1.6-3-1.6-4.7C17 4.2 15.1 2 12 2z"/><ellipse cx="12" cy="14.6" rx="4.2" ry="5" fill="#f8fafc"/><circle cx="9.8" cy="6.6" r="1.45" fill="#ffffff"/><circle cx="14.2" cy="6.6" r="1.45" fill="#ffffff"/><circle cx="10.1" cy="6.6" r="0.7" fill="#0f172a"/><circle cx="13.9" cy="6.6" r="0.7" fill="#0f172a"/><path fill="#f59e0b" d="M9.6 8.8c1.4-.6 3.4-.6 4.8 0-.4 1.2-1.5 2-2.4 2-.9 0-2-.8-2.4-2zM6.2 19.5c-.9.3-1.5 1-1.3 1.7.2.6 1.5.8 3.1.6 1-.1 1.7-.6 1.7-1.2 0-.6-1.9-1.4-3.5-1.1zM17.8 19.5c.9.3 1.5 1 1.3 1.7-.2.6-1.5.8-3.1.6-1-.1-1.7-.6-1.7-1.2 0-.6 1.9-1.4 3.5-1.1z"/></svg><span>لینوکس</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('dns')" id="adminAppTab_dns" class="admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[11px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1">
+              <button type="button" onclick="switchAdminAppsTab('dns')" id="adminAppTab_dns" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span>DNS</span>
+              </button>
+              <button type="button" onclick="switchAdminAppsTab('dns_tools')" id="adminAppTab_dns_tools" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
+                <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>برنامه‌های DNS</span>
+              </button>
+              <button type="button" onclick="switchAdminAppsTab('prerequisites')" id="adminAppTab_prerequisites" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
+                <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>پیش‌نیازها</span>
               </button>
             </div>
 
@@ -2378,22 +2384,38 @@
             <div id="adminAppsPane_dns" class="admin-apps-pane space-y-3 hidden">
               <div class="flex items-center justify-between p-2.5 rounded-2xl card-inset">
                 <div>
-                  <b class="text-xs t-main block">DNS‌های ضدتحریم (Smart TV، کنسول و شبکه)</b>
-                  <span class="text-[11px] t-muted block">مدیریت سرورهای DNS جهت دور زدن تحریم‌ها در تلویزیون هوشمند و کنسول بازی</span>
+                  <b class="text-xs t-main block">سرورهای DNS ضدتحریم (Smart TV، کنسول و شبکه)</b>
+                  <span class="text-[11px] t-muted block">تنظیم آدرس‌های Primary و Secondary سرورهای DNS در مینی‌اپ</span>
                 </div>
                 <button type="button" onclick="window.adminActions.addAdminTvDnsRow()" class="py-1.5 px-3 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm">
                   <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   <span>افزودن DNS</span>
                 </button>
               </div>
-              <div class="flex items-center justify-between px-3 text-[11px] t-muted font-semibold" dir="ltr">
-                <span class="flex-1">Server Name</span>
-                <span class="flex-1 text-center">Primary DNS</span>
-                <span class="flex-1 text-center">Secondary DNS</span>
-                <span class="w-8 shrink-0"></span>
-              </div>
-              <div id="adminTvDnsList" class="space-y-2">
+              <div id="adminTvDnsList" class="space-y-2.5">
                 <!-- Dynamically populated DNS rows with delete buttons -->
+              </div>
+            </div>
+
+            <!-- PANE: DNS Tools -->
+            <div id="adminAppsPane_dns_tools" class="admin-apps-pane space-y-3 hidden">
+              <div class="p-2.5 rounded-2xl card-inset">
+                <b class="text-xs t-main block">نرم‌افزارهای پیشنهادی تنظیم DNS</b>
+                <span class="text-[11px] t-muted block">مدیریت لینک‌های دانلود و نسخه‌های ابزارهای تغییر DNS در مینی‌اپ</span>
+              </div>
+              <div id="adminDnsToolsList" class="space-y-2.5">
+                <!-- Dynamically rendered DNS changer tools cards -->
+              </div>
+            </div>
+
+            <!-- PANE: Prerequisites -->
+            <div id="adminAppsPane_prerequisites" class="admin-apps-pane space-y-3 hidden">
+              <div class="p-2.5 rounded-2xl card-inset">
+                <b class="text-xs t-main block">بسته‌های پیش‌نیاز سیستم‌عامل (Prerequisites)</b>
+                <span class="text-[11px] t-muted block">مدیریت لینک‌های دانلود مستقیم ران‌تایم‌های Visual C++، دات‌نت و وب‌ویو</span>
+              </div>
+              <div id="adminPrerequisitesList" class="space-y-2.5">
+                <!-- Dynamically rendered Prerequisites cards -->
               </div>
             </div>
           </div>
@@ -2605,8 +2627,8 @@
               <div class="flex items-center justify-between px-3 text-[11px] t-muted font-semibold">
                 <span>نام و نشان</span>
                 <div class="flex items-center gap-2 shrink-0">
-                  <span class="w-28 sm:w-32 text-center">حداقل خرید (تومان)</span>
-                  <span class="w-11 sm:w-12 text-center">تخفیف (٪)</span>
+                  <span class="w-26 sm:w-28 text-center whitespace-nowrap">حداقل خرید (تومان)</span>
+                  <span class="w-16 sm:w-18 text-center whitespace-nowrap">تخفیف (٪)</span>
                 </div>
               </div>
 
@@ -2633,10 +2655,10 @@
                   <b class="text-xs t-main truncate">نقره‌ای</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-28 sm:w-32">
+                  <div class="w-26 sm:w-28">
                     <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-11 sm:w-12">
+                  <div class="w-16 sm:w-18">
                     <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2651,10 +2673,10 @@
                   <b class="text-xs t-warn truncate">طلایی</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-28 sm:w-32">
+                  <div class="w-26 sm:w-28">
                     <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-11 sm:w-12">
+                  <div class="w-16 sm:w-18">
                     <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2669,10 +2691,10 @@
                   <b class="text-xs text-cyan-500 dark:text-cyan-300 truncate">پلاتین</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-28 sm:w-32">
+                  <div class="w-26 sm:w-28">
                     <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-11 sm:w-12">
+                  <div class="w-16 sm:w-18">
                     <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2687,10 +2709,10 @@
                   <b class="text-xs t-purple truncate">یاقوت</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-28 sm:w-32">
+                  <div class="w-26 sm:w-28">
                     <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-11 sm:w-12">
+                  <div class="w-16 sm:w-18">
                     <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2705,10 +2727,10 @@
                   <b class="text-xs t-success truncate">زمرد</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-28 sm:w-32">
+                  <div class="w-26 sm:w-28">
                     <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-11 sm:w-12">
+                  <div class="w-16 sm:w-18">
                     <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2723,10 +2745,10 @@
                   <b class="text-xs text-amber-500 dark:text-amber-300 truncate">الماس</b>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-28 sm:w-32">
+                  <div class="w-26 sm:w-28">
                     <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-11 sm:w-12">
+                  <div class="w-16 sm:w-18">
                     <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>

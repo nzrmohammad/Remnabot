@@ -1320,15 +1320,6 @@ const DEFAULT_DNS_CHANGER_TOOLS = [
     desc: 'نرم‌افزار سبک و بسیار محبوب تغییر و تنظیم انواع سرورهای DNS در اندروید بدون نیاز به روت',
     icon: 'phone',
     url: 'https://play.google.com/store/apps/details?id=com.frostnerd.dnschanger'
-  },
-  {
-    id: 'cloudflare1111',
-    name: '1.1.1.1 Cloudflare',
-    version: 'Multiplatform',
-    platform: 'iOS / Android / دسکتاپ',
-    desc: 'اپلیکیشن رسمی کلودفلر برای اتصال خودکار و بهینه‌سازی سرعت DNS با پروتکل امن WARP',
-    icon: 'globe',
-    url: 'https://1.1.1.1/'
   }
 ];
 
@@ -1377,7 +1368,11 @@ function renderTutorialApps(osKey) {
           </b>
         </div>
         <div class="space-y-2">
-          ${group.items.map(item => `
+          ${group.items.map(item => {
+            const itemCfg = overrides?.prerequisites?.[item.id];
+            const itemUrl = itemCfg?.download_url?.trim() || item.url;
+            const itemVer = itemCfg?.version?.trim() || item.version;
+            return `
             <div class="tutorial-app-card rounded-2xl p-2.5 card-inset border border-card-border space-y-2 transition" dir="ltr">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2.5 min-w-0">
@@ -1387,18 +1382,19 @@ function renderTutorialApps(osKey) {
                   <div class="min-w-0 flex-1 text-left">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <b class="text-xs t-main font-bold font-sans truncate" dir="ltr">${escapeHtml(item.name)}</b>
-                      <span class="text-[10px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-mono font-bold">${escapeHtml(item.version)}</span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-mono font-bold">${escapeHtml(itemVer)}</span>
                       <span class="text-[9px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans font-bold">${escapeHtml(item.arch)}</span>
                     </div>
                   </div>
                 </div>
-                <button type="button" class="btn-download-prereq shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(item.url)}" title="دانلود">
+                <button type="button" class="btn-download-prereq shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(itemUrl)}" title="دانلود">
                   <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 brightness-0 invert" width="16" height="16" alt="دانلود" />
                 </button>
               </div>
               <p class="text-[11px] t-muted leading-relaxed text-right font-medium" dir="rtl">${escapeHtml(item.desc)}</p>
             </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       </div>
     `).join('');
@@ -1455,7 +1451,11 @@ function renderTutorialApps(osKey) {
       `;
     }).join('');
 
-    const dnsToolsHtml = DEFAULT_DNS_CHANGER_TOOLS.map(tool => `
+    const dnsToolsHtml = DEFAULT_DNS_CHANGER_TOOLS.map(tool => {
+      const toolCfg = overrides?.dns_tools?.[tool.id];
+      const toolUrl = toolCfg?.download_url?.trim() || tool.url;
+      const toolVer = toolCfg?.version?.trim() || tool.version;
+      return `
       <div class="tutorial-app-card rounded-2xl p-2.5 card-inset border border-card-border space-y-2 transition" dir="ltr">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
@@ -1465,18 +1465,19 @@ function renderTutorialApps(osKey) {
             <div class="min-w-0 flex-1 text-left">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <b class="text-xs t-main font-bold font-sans truncate" dir="ltr">${escapeHtml(tool.name)}</b>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-mono font-bold">${escapeHtml(tool.version)}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-mono font-bold">${escapeHtml(toolVer)}</span>
                 <span class="text-[9px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans font-bold" dir="rtl">${escapeHtml(tool.platform)}</span>
               </div>
             </div>
           </div>
-          <button type="button" class="btn-download-dnstool shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(tool.url)}" title="دریافت نرم‌افزار">
+          <button type="button" class="btn-download-dnstool shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(toolUrl)}" title="دریافت نرم‌افزار">
             <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 brightness-0 invert" width="16" height="16" alt="دانلود" />
           </button>
         </div>
         <p class="text-[11px] t-muted leading-relaxed text-right font-medium" dir="rtl">${escapeHtml(tool.desc)}</p>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     listContainer.innerHTML = `
       <div class="space-y-2">
@@ -1790,17 +1791,51 @@ function getAllAppVersionsMap() {
     for (const app of apps) {
       const appCfg = osOverrides?.[app.id];
       const ver = (appCfg && appCfg.version) ? appCfg.version.trim() : app.version;
-      if (app.id && ver) {
-        map[`${os}_${app.id}`] = ver;
+      const url = (appCfg && appCfg.download_url) ? appCfg.download_url.trim() : '';
+      if (app.id && (ver || url)) {
+        map[`${os}_${app.id}`] = `${ver}|${url}`;
       }
     }
+  }
+  if (Array.isArray(overrides?.tv_dns_list)) {
+    map['tv_dns_list'] = JSON.stringify(overrides.tv_dns_list);
+  }
+  if (overrides?.dns_tools) {
+    map['dns_tools'] = JSON.stringify(overrides.dns_tools);
+  }
+  if (overrides?.prerequisites) {
+    map['prerequisites'] = JSON.stringify(overrides.prerequisites);
   }
   return map;
 }
 
 function checkTutorialAppUpdates() {
   const badge = $('tutorialBadge');
-  if (badge) badge.classList.add('hidden');
+  if (!badge) return;
+  try {
+    const seenRaw = localStorage.getItem('seen_app_versions');
+    const currentMap = getAllAppVersionsMap();
+    if (!seenRaw) {
+      // First visit: show update badge
+      badge.classList.remove('hidden');
+      return;
+    }
+    const seenMap = JSON.parse(seenRaw);
+    let hasNewUpdate = false;
+    for (const [k, v] of Object.entries(currentMap)) {
+      if (seenMap[k] !== v) {
+        hasNewUpdate = true;
+        break;
+      }
+    }
+    if (hasNewUpdate) {
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  } catch (e) {
+    badge.classList.add('hidden');
+  }
 }
 
 function markTutorialAppsSeen() {

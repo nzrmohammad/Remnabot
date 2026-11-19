@@ -743,16 +743,16 @@ openEditSslDomainModal(domain) {
     },
 
     switchAdminAppsTab(osKey = 'ios') {
-      const osList = ['ios', 'android', 'windows', 'macos', 'linux', 'dns'];
+      const osList = ['ios', 'android', 'windows', 'macos', 'linux', 'dns', 'dns_tools', 'prerequisites'];
       osList.forEach(os => {
         const tabBtn = $(`adminAppTab_${os}`);
         const pane = $(`adminAppsPane_${os}`);
         const isTarget = os === osKey;
         if (tabBtn) {
           if (isTarget) {
-            tabBtn.className = 'admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-bold text-[11px] sm:text-[11px] whitespace-nowrap transition flex items-center justify-center gap-0.5 sm:gap-1 bg-cyan-600 text-white shadow';
+            tabBtn.className = 'admin-app-os-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap shrink-0 transition flex items-center justify-center gap-1.5 bg-cyan-600 text-white shadow';
           } else {
-            tabBtn.className = 'admin-app-os-tab w-full py-1.5 px-0.5 rounded-xl font-medium text-[11px] sm:text-[11px] whitespace-nowrap text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-0.5 sm:gap-1';
+            tabBtn.className = 'admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5';
           }
         }
         if (pane) {

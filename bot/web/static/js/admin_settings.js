@@ -148,6 +148,126 @@
   ];
   let currentAdminTvDnsList = DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
 
+  const DEFAULT_DNS_CHANGER_TOOLS = [
+    {
+      id: 'dnsjumper',
+      name: 'DNS Jumper',
+      version: '2.3',
+      platform: 'ویندوز (پرتابل)',
+      desc: 'محبوب‌ترین و سبک‌ترین ابزار تغییر سریع DNS در ویندوز بدون نیاز به نصب و کاملاً رایگان',
+      url: 'https://www.sordum.org/files/download/dns-jumper/dnsjumper.zip'
+    },
+    {
+      id: 'yogadns',
+      name: 'YogaDNS',
+      version: '1.43',
+      platform: 'ویندوز (DoH/DoT)',
+      desc: 'کلاینت پیشرفته DNS برای ویندوز با پشتیبانی از پروتکل‌های امن DoH، DoT و قوانین ترافیک',
+      url: 'https://yogadns.com/download/'
+    },
+    {
+      id: 'intra',
+      name: 'Intra',
+      version: 'Google Jigsaw',
+      platform: 'اندروید',
+      desc: 'برنامه رسمی شرکت گوگل/Jigsaw جهت اتصال مستقیم به DNSهای رمزنگاری‌شده (DNS over HTTPS)',
+      url: 'https://play.google.com/store/apps/details?id=app.intra'
+    },
+    {
+      id: 'dnschanger',
+      name: 'DNS Changer (Lilly)',
+      version: 'Android',
+      platform: 'اندروید (بدون روت)',
+      desc: 'نرم‌افزار سبک و بسیار محبوب تغییر و تنظیم انواع سرورهای DNS در اندروید بدون نیاز به روت',
+      url: 'https://play.google.com/store/apps/details?id=com.frostnerd.dnschanger'
+    }
+  ];
+
+  const PREREQUISITES_DATA = [
+    {
+      titleFa: 'بسته‌های ضروری و پایه‌ای سیستم',
+      titleEn: 'Visual C++',
+      items: [
+        {
+          id: 'vcredist_all',
+          name: 'Visual C++ All-in-One Package',
+          version: '2026-10-14',
+          arch: 'x86 / x64',
+          desc: 'مجموعه جامع تمامی ران‌تایم‌های ویژوال سی‌پلاس‌پلاس (2005 تا 2026) جهت اجرای بدون خطای تمامی کلاینت‌ها و رفع ارورهای DLL',
+          url: 'https://dl2.soft98.ir/soft/m/Microsoft.Visual.C.All.Package.2026-10-14.rar'
+        }
+      ]
+    },
+    {
+      titleFa: 'مایکروسافت دات‌نت',
+      titleEn: '.NET Desktop Runtime',
+      items: [
+        {
+          id: 'dotnet10',
+          name: '.NET Desktop Runtime 10',
+          version: '10.0.14',
+          arch: 'x64',
+          desc: 'جدیدترین نسخه ران‌تایم دسکتاپ دات‌نت 10 مایکروسافت ویژه کلاینت‌ها و هسته‌های نسل جدید',
+          url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.10.0.14.x64.rar'
+        },
+        {
+          id: 'dotnet9',
+          name: '.NET Desktop Runtime 9',
+          version: '9.0.22',
+          arch: 'x64',
+          desc: 'نسخه مدرن ران‌تایم دسکتاپ دات‌نت 9 مایکروسافت جهت پایداری ابزارهای شبکه',
+          url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.9.0.22.x64.rar'
+        },
+        {
+          id: 'dotnet8',
+          name: '.NET Desktop Runtime 8',
+          version: '8.0.33',
+          arch: 'x64',
+          desc: 'حیاتی‌ترین پیش‌نیاز موردنیاز برای v2rayN نسخه 7، کلاینت‌های sing-box و هسته‌های اصلی ویندوز',
+          url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.8.0.33.x64.rar'
+        },
+        {
+          id: 'dotnet6',
+          name: '.NET Desktop Runtime 6',
+          version: '6.0.10',
+          arch: 'x64',
+          desc: 'ران‌تایم پایدار (LTS) مایکروسافت جهت اجرای بدون خطای نرم‌افزارهای شبکه و کلاینت‌های دسکتاپ ویندوز',
+          url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.6.0.10.rar'
+        },
+        {
+          id: 'dotnet5',
+          name: '.NET Desktop Runtime 5',
+          version: '5.0.11',
+          arch: 'x64',
+          desc: 'نسخه ران‌تایم دات‌نت 5 دسکتاپ برای ابزارها و کلاینت‌های کلاسیک',
+          url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.5.0.11.rar?1777793025'
+        }
+      ]
+    },
+    {
+      titleFa: 'رابط کاربری و موتور وب',
+      titleEn: 'Web & UI Runtimes',
+      items: [
+        {
+          id: 'webview2',
+          name: 'Microsoft Edge WebView2 Evergreen',
+          version: 'Evergreen',
+          arch: 'x86 / x64',
+          desc: 'پیش‌نیاز حیاتی باز شدن رابط گرافیکی کلاینت‌های مدرن ویندوز (مانند Hiddify، Karing و FlClash)',
+          url: 'https://go.microsoft.com/fwlink/p/?LinkId=2124703'
+        },
+        {
+          id: 'directx',
+          name: 'DirectX End-User Runtimes',
+          version: 'June 2010',
+          arch: 'All Windows',
+          desc: 'بسته‌های گرافیکی و سیستمی DirectX جهت رفع کامل ارورهای راه‌اندازی در انواع ویندوز',
+          url: 'https://download.microsoft.com/download/1/7/1/1718CCC4-6316-4480-95AA-914D0E342C3D/directx_Jun2010_redist.exe'
+        }
+      ]
+    }
+  ];
+
   function syncAdminTvDnsFromDom() {
     const container = $('adminTvDnsList');
     if (!container) return;
@@ -171,28 +291,124 @@
     }
     const list = currentAdminTvDnsList;
     if (!list.length) {
-      container.innerHTML = '<div class="p-4 rounded-xl card-inset text-center text-xs t-muted">هیچ DNS ثبت نشده است. با دکمه بالا یک DNS جدید اضافه کنید.</div>';
+      container.innerHTML = '<div class="p-4 rounded-xl card-inset text-center text-xs t-muted font-medium">هیچ سرور DNS ثبت نشده است. با زدن دکمه «افزودن DNS» سرور جدید اضافه کنید.</div>';
       return;
     }
     const rows = list.map((item, i) => `
-      <div class="admin-tv-dns-row flex items-center gap-2 p-2 rounded-xl card-inset" dir="ltr">
-        <div class="flex-1 min-w-0">
-          <input type="text" value="${escapeHtml(item.name || '')}" placeholder="Server Name" class="dns-name-inp input-base text-xs py-1.5 px-2.5 w-full font-medium" />
+      <div class="admin-tv-dns-row card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2.5 transition">
+        <div class="flex items-center justify-between gap-2" dir="ltr">
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+              <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-500" width="16" height="16" alt="" />
+            </div>
+            <input type="text" value="${escapeHtml(item.name || '')}" placeholder="Server Name (مثلاً Shecan)" class="dns-name-inp input-base text-xs font-bold font-sans py-2 px-3 w-full" />
+          </div>
+          <button type="button" onclick="window.adminActions.deleteAdminTvDnsRow(${i})" class="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0 transition active:scale-95 border border-rose-500/20" title="حذف این DNS">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
         </div>
-        <div class="flex-1 min-w-0">
-          <input type="text" value="${escapeHtml(item.primary || '')}" placeholder="Primary: 178.22.122.100" class="dns-primary-inp input-base text-xs py-1.5 px-2.5 w-full font-mono text-center" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" dir="ltr">
+          <div class="space-y-1">
+            <span class="text-[10px] t-muted block font-sans">Primary DNS:</span>
+            <input type="text" value="${escapeHtml(item.primary || '')}" placeholder="178.22.122.100" class="dns-primary-inp input-base text-xs py-2 px-3 w-full font-mono text-cyan-600 dark:text-cyan-300 font-bold" />
+          </div>
+          <div class="space-y-1">
+            <span class="text-[10px] t-muted block font-sans">Secondary DNS:</span>
+            <input type="text" value="${escapeHtml(item.secondary || '')}" placeholder="185.51.200.2" class="dns-secondary-inp input-base text-xs py-2 px-3 w-full font-mono text-cyan-600 dark:text-cyan-300 font-bold" />
+          </div>
         </div>
-        <div class="flex-1 min-w-0">
-          <input type="text" value="${escapeHtml(item.secondary || '')}" placeholder="Secondary: 185.51.200.2" class="dns-secondary-inp input-base text-xs py-1.5 px-2.5 w-full font-mono text-center" />
-        </div>
-        <button type="button" onclick="window.adminActions.deleteAdminTvDnsRow(${i})" class="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0 transition" title="حذف DNS">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        </button>
       </div>
     `);
     container.innerHTML = rows.join('');
   }
+
+  function renderAdminDnsToolsList(dnsToolsOverrides) {
+    const container = $('adminDnsToolsList');
+    if (!container) return;
+    const overrides = dnsToolsOverrides || {};
+    const html = DEFAULT_DNS_CHANGER_TOOLS.map(tool => {
+      const cfg = overrides[tool.id] || {};
+      const url = cfg.url !== undefined ? cfg.url : tool.url;
+      const ver = cfg.version !== undefined ? cfg.version : tool.version;
+      return `
+        <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2.5 transition">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-500" width="16" height="16" alt="" />
+              </div>
+              <div class="min-w-0">
+                <b class="text-xs t-main block font-sans">${escapeHtml(tool.name)}</b>
+                <span class="text-[10px] t-muted block truncate">${escapeHtml(tool.platform)} - ${escapeHtml(tool.desc)}</span>
+              </div>
+            </div>
+            <span class="badge badge-cyan text-[10px] font-mono shrink-0">${escapeHtml(tool.platform)}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" dir="ltr">
+            <div class="sm:col-span-2 space-y-1">
+              <label class="text-[10px] t-muted block text-right font-sans">لینک دانلود مستقیم:</label>
+              <input type="text" id="appDnsToolUrl_${tool.id}" value="${escapeHtml(url)}" placeholder="${escapeHtml(tool.url)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-cyan-600 dark:text-cyan-300" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] t-muted block text-right font-sans">نسخه (Version):</label>
+              <input type="text" id="appDnsToolVersion_${tool.id}" value="${escapeHtml(ver)}" placeholder="${escapeHtml(tool.version)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center font-bold" />
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = html;
+  }
+
+  function renderAdminPrerequisitesList(prereqOverrides) {
+    const container = $('adminPrerequisitesList');
+    if (!container) return;
+    const overrides = prereqOverrides || {};
+    const html = PREREQUISITES_DATA.map(group => `
+      <div class="space-y-2">
+        <div class="text-[11px] font-bold text-cyan-500 flex items-center gap-1.5 pt-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span>${escapeHtml(group.titleFa)} (${escapeHtml(group.titleEn)})</span>
+        </div>
+        ${group.items.map(item => {
+          const cfg = overrides[item.id] || {};
+          const url = cfg.url !== undefined ? cfg.url : item.url;
+          const ver = cfg.version !== undefined ? cfg.version : item.version;
+          return `
+            <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2.5 transition">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-xl bg-slate-500/10 border border-slate-500/20 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 text-slate-400" width="16" height="16" alt="" />
+                  </div>
+                  <div class="min-w-0">
+                    <b class="text-xs t-main block font-sans">${escapeHtml(item.name)}</b>
+                    <span class="text-[10px] t-muted block truncate">${escapeHtml(item.desc)}</span>
+                  </div>
+                </div>
+                <span class="badge badge-neutral text-[10px] font-mono shrink-0">${escapeHtml(item.arch)}</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" dir="ltr">
+                <div class="sm:col-span-2 space-y-1">
+                  <label class="text-[10px] t-muted block text-right font-sans">لینک دانلود مستقیم:</label>
+                  <input type="text" id="appPrereqUrl_${item.id}" value="${escapeHtml(url)}" placeholder="${escapeHtml(item.url)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-cyan-600 dark:text-cyan-300" />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[10px] t-muted block text-right font-sans">نسخه (Version):</label>
+                  <input type="text" id="appPrereqVersion_${item.id}" value="${escapeHtml(ver)}" placeholder="${escapeHtml(item.version)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center font-bold" />
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `).join('');
+    container.innerHTML = html;
+  }
+
   renderAdminTvDnsList(DEFAULT_TV_DNS_LIST);
+  renderAdminDnsToolsList();
+  renderAdminPrerequisitesList();
 
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
@@ -1725,6 +1941,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
       }
 
       renderAdminTvDnsList(appOverrides?.tv_dns_list);
+      renderAdminDnsToolsList(appOverrides?.dns_tools);
+      renderAdminPrerequisitesList(appOverrides?.prerequisites);
 
       // Telegram Supergroup Forum Topics
       const topicSettings = {
@@ -2008,6 +2226,32 @@ openUserChat(telegram_id, name, tag, topup_id) {
         syncAdminTvDnsFromDom();
         const tvDnsList = currentAdminTvDnsList.filter(d => (d.name || d.primary || d.secondary));
         clientAppsObj.tv_dns_list = tvDnsList;
+
+        const dnsToolsObj = {};
+        DEFAULT_DNS_CHANGER_TOOLS.forEach(tool => {
+          const urlEl = $(`appDnsToolUrl_${tool.id}`);
+          const verEl = $(`appDnsToolVersion_${tool.id}`);
+          const url = urlEl?.value?.trim() || '';
+          const version = verEl?.value?.trim() || '';
+          if (url || version) {
+            dnsToolsObj[tool.id] = { url, version };
+          }
+        });
+        clientAppsObj.dns_tools = dnsToolsObj;
+
+        const prereqObj = {};
+        PREREQUISITES_DATA.forEach(group => {
+          group.items.forEach(item => {
+            const urlEl = $(`appPrereqUrl_${item.id}`);
+            const verEl = $(`appPrereqVersion_${item.id}`);
+            const url = urlEl?.value?.trim() || '';
+            const version = verEl?.value?.trim() || '';
+            if (url || version) {
+              prereqObj[item.id] = { url, version };
+            }
+          });
+        });
+        clientAppsObj.prerequisites = prereqObj;
 
         return JSON.stringify(clientAppsObj);
       })(),
