@@ -237,6 +237,11 @@ async def stars_successful_payment_handler(
         logger.warning("Duplicate Stars payment race condition caught for %s, rolled back credit.", receipt_hash)
         return
     except Exception as exc:
+        if nonce and cache and hasattr(cache, "delete"):
+            try:
+                await cache.delete(f"stars:nonce:{nonce}")
+            except Exception:
+                pass
         logger.error("Failed to credit wallet for Stars topup: user=%s, amount=%s: %s", user_tid, amount_toman, exc)
         try:
             from bot.services.error_reporter import report_error

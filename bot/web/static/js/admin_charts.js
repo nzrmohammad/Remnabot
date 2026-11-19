@@ -1441,7 +1441,7 @@ openHighRiskUsersModal() {
             <div class="flex items-center justify-between p-1.5 rounded-lg border border-slate-700/40 bg-transparent">
               <div class="flex items-center gap-1.5 min-w-0">
                 <span class="text-xs flex items-center justify-center">${medal}</span>
-                <span class="font-sans text-xs t-main font-semibold truncate max-w-[120px]" dir="ltr">${u.username}</span>
+                <span class="font-sans text-xs t-main font-semibold truncate max-w-[120px]" dir="ltr">${typeof escapeHtml === 'function' ? escapeHtml(u.username || '—') : (u.username || '—')}</span>
               </div>
               <span class="font-sans text-xs text-cyan-600 dark:text-cyan-400 font-bold" dir="ltr">${userTrafStr}</span>
             </div>

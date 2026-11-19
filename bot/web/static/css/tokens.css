@@ -13,6 +13,7 @@
   --card-bg: rgba(26, 36, 56, 0.9);
   --card-inner-bg: rgba(19, 28, 46, 0.78);
   --card-border: rgba(51, 65, 85, 0.8);
+  --c-border: var(--card-border);
   --modal-bg: #1c273c;
   --modal-border: rgba(51, 65, 85, 0.9);
   --inset-bg: rgba(20, 30, 48, 0.8);
@@ -21,6 +22,8 @@
   --gauge-track: rgba(148, 163, 184, 0.35);
 
   /* --- 2. Typography & Content --- */
+  --font-sans: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
+  --font-mono: 'Vazirmatn', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --text-main: #e2e8f0;
   --text-muted: #94a3b8;
   --text-subtle: #8b9bb4;
@@ -110,6 +113,7 @@ html.theme-light {
   --card-bg: #ffffff;
   --card-inner-bg: #f8fafc;
   --card-border: #cbd5e1;
+  --c-border: var(--card-border);
   --modal-bg: #ffffff;
   --modal-border: #cbd5e1;
   --inset-bg: #f1f5f9;

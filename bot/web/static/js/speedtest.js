@@ -10,6 +10,7 @@
 (function () {
   let isTesting = false;
   let abortController = null;
+  let currentSpeedRunId = 0;
   let animationFrameId = null;
   let currentSpeedMbps = 0;
   let targetSpeedMbps = 0;
@@ -571,7 +572,9 @@
     const uploadVal = getEl('speedUploadVal');
 
     isTesting = true;
+    const runId = ++currentSpeedRunId;
     abortController = new AbortController();
+    const ctrl = abortController;
     if (statusText) statusText.classList.remove('hidden');
 
     if (startBtn) {
@@ -594,19 +597,23 @@
 
     try {
       // Step 1: Detect Network IP
-      await detectEngineAndNetwork(abortController.signal);
+      await detectEngineAndNetwork(ctrl.signal);
+      if (runId !== currentSpeedRunId || ctrl.signal.aborted) return;
 
       // Step 2: Ping & Jitter Latency (RFC 3550 & Median Ping)
-      const { medianPing, jitter } = await measurePingAndJitter(abortController.signal);
+      const { medianPing, jitter } = await measurePingAndJitter(ctrl.signal);
+      if (runId !== currentSpeedRunId || ctrl.signal.aborted) return;
 
       // Step 3: Sustained Download Throughput (Sliding Window & EMA Smoothed)
-      const { finalDownloadMbps, totalReceivedBytes } = await measureDownloadThroughput(abortController.signal);
+      const { finalDownloadMbps, totalReceivedBytes } = await measureDownloadThroughput(ctrl.signal);
+      if (runId !== currentSpeedRunId || ctrl.signal.aborted) return;
 
       // Step 4: Sustained Upload Throughput (Non-compressible buffers)
       let finalUploadMbps = 0;
-      if (!abortController.signal.aborted) {
-        finalUploadMbps = await measureUploadThroughput(totalReceivedBytes, abortController.signal);
+      if (!ctrl.signal.aborted) {
+        finalUploadMbps = await measureUploadThroughput(totalReceivedBytes, ctrl.signal);
       }
+      if (runId !== currentSpeedRunId || ctrl.signal.aborted) return;
 
       // Step 5: Final Result Display
       targetSpeedMbps = finalDownloadMbps;
@@ -621,8 +628,9 @@
       if (window.hapticFeedback) window.hapticFeedback('success');
 
       // Step 6: Open summary results modal if test finished without abort
-      if (!abortController.signal.aborted) {
+      if (!ctrl.signal.aborted && runId === currentSpeedRunId) {
         setTimeout(() => {
+          if (runId !== currentSpeedRunId) return;
           openSpeedResultsModal({
             download: finalDownloadMbps,
             upload: finalUploadMbps,
@@ -634,8 +642,8 @@
         }, 350);
       }
     } catch (err) {
-      const isAborted = (err && (err.name === 'AbortError' || err.message === 'Aborted'));
-      if (!isAborted) {
+      const isAborted = (err && (err.name === 'AbortError' || err.message === 'Aborted')) || (ctrl && ctrl.signal.aborted);
+      if (!isAborted && runId === currentSpeedRunId) {
         console.warn('SpeedTest caught error:', err);
         if (statusText) {
           statusText.innerText = '⚠️ اختلال در دریافت اطلاعات؛ لطفاً دکمه شروع را مجدداً لمس فرمایید.';
@@ -643,19 +651,22 @@
         }
       }
     } finally {
-      isTesting = false;
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      updateGaugeVisual(targetSpeedMbps);
+      if (runId === currentSpeedRunId) {
+        isTesting = false;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        updateGaugeVisual(targetSpeedMbps);
 
-      if (startBtn) {
-        startBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
-        startBtn.classList.add('bg-gradient-to-r', 'from-emerald-500');
+        if (startBtn) {
+          startBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
+          startBtn.classList.add('bg-gradient-to-r', 'from-emerald-500');
+        }
+        if (startBtnText) startBtnText.innerText = 'شروع مجدد تست 🚀';
       }
-      if (startBtnText) startBtnText.innerText = 'شروع مجدد تست 🚀';
     }
   }
 
   function stopSpeedTest() {
+    currentSpeedRunId++;
     if (abortController) {
       try { abortController.abort(); } catch (e) {}
       abortController = null;

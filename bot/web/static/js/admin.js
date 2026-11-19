@@ -210,7 +210,7 @@
       } else if (targetId === 'tab-admin-plans') {
         if (window.fetchAdminPlans) window.fetchAdminPlans();
         if (window.fetchAdminCoupons) window.fetchAdminCoupons();
-      } else if (targetId === 'tab-admin-finance') {
+      } else if (targetId === 'tab-admin-finance' || targetId === 'tab-admin-tickets') {
         if (window.fetchAdminTopups) window.fetchAdminTopups();
       } else if (targetId === 'tab-admin-support') {
         if (window.fetchTicketThreads) window.fetchTicketThreads();

@@ -1642,7 +1642,11 @@ async applyUserModification() {
           if (window.showToast) window.showToast(res.message || 'کاربر با موفقیت ایجاد شد.', 'success');
           this.closeCreateUserModal();
           // Reload users list
-          if (this.loadUsers) this.loadUsers(1);
+          if (typeof fetchAdminUsers === 'function') {
+            fetchAdminUsers(1);
+          } else if (typeof window.fetchAdminUsers === 'function') {
+            window.fetchAdminUsers(1);
+          }
         } else {
           if (window.showToast) window.showToast((res && res.error) || 'خطا در ایجاد کاربر', 'error');
         }

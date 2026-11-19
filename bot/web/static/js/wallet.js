@@ -2064,7 +2064,15 @@ function setupWalletListeners() {
     }
   });
 
-  document.getElementById('cryptoCancelInvoiceBtn')?.addEventListener('click', () => {
+  document.getElementById('cryptoCancelInvoiceBtn')?.addEventListener('click', async () => {
+    const invId = currentTopupInvoice?.id;
+    if (invId && window.api?.cancelCryptoInvoice) {
+      try {
+        await window.api.cancelCryptoInvoice(invId);
+      } catch (err) {
+        console.warn('cancelCryptoInvoice error:', err);
+      }
+    }
     clearActiveCryptoInvoice();
     showToast('فاکتور قبلی لغو شد. می‌توانید فاکتور جدید صادر فرمایید.');
   });

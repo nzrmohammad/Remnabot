@@ -740,7 +740,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'karing',
       name: 'Karing',
-      version: '1.0.38',
+      version: '1.2.26',
       desc: 'کلاینت قدرتمند و سبک بر پایه هسته sing-box با پشتیبانی کامل از قوانین مسیریابی',
       icon: '🚗',
       badges: ['📺 Apple TV'],
@@ -793,7 +793,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'karing',
       name: 'Karing',
-      version: '1.0.38',
+      version: '1.2.26',
       desc: 'اپلیکیشن چندپروتکله مبتنی بر sing-box با رابط کاربری ساده و اتصال خودکار',
       icon: '🚗',
       badges: ['📺 Android TV'],
@@ -802,7 +802,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'zedsecure',
       name: 'Zedsecure',
-      version: '1.0.0',
+      version: '3.1.8',
       desc: 'کلاینت چندموتوره اندروید با پشتیبانی همزمان از Xray، sing-box و تانل‌های امن',
       icon: '🛡️',
       scheme: null
@@ -877,7 +877,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'karing',
       name: 'Karing',
-      version: '1.0.38',
+      version: '1.2.26',
       desc: 'کلاینت ویندوز بر پایه sing-box با پشتیبانی مستقیم از لینک اشتراک و قوانین مسیریابی',
       icon: '🚗',
       scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
@@ -885,7 +885,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'zedsecure',
       name: 'Zedsecure',
-      version: '1.0.0',
+      version: '3.1.8',
       desc: 'کلاینت چندموتوره ویندوز با پشتیبانی از Xray، sing-box و پروتکل‌های متعدد',
       icon: '🛡️',
       scheme: null
@@ -943,7 +943,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'karing',
       name: 'Karing',
-      version: '1.0.38',
+      version: '1.2.26',
       desc: 'نسخه مک کلاینت Karing بر پایه sing-box با اتصال سریع و قوانین هوشمند',
       icon: '🚗',
       scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
@@ -959,7 +959,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'zedsecure',
       name: 'Zedsecure',
-      version: '1.0.0',
+      version: '3.1.8',
       desc: 'نسخه macOS کلاینت چندموتوره Zedsecure با مسیریابی خودکار سریع‌ترین سرور',
       icon: '🛡️',
       scheme: null
@@ -1025,7 +1025,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'karing',
       name: 'Karing',
-      version: '1.0.38',
+      version: '1.2.26',
       desc: 'نسخه لینوکس کلاینت Karing در قالب deb و rpm بر پایه هسته sing-box',
       icon: '🚗',
       scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`
@@ -1041,7 +1041,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'zedsecure',
       name: 'Zedsecure',
-      version: '1.0.0',
+      version: '3.1.8',
       desc: 'کلاینت چندموتوره لینوکس با پشتیبانی از انواع پروتکل‌ها و هسته‌های تونل',
       icon: '🛡️',
       scheme: null
@@ -1091,7 +1091,7 @@ const CLIENT_APPS_DATA = {
     {
       id: 'karing',
       name: 'Karing',
-      version: '1.0.38',
+      version: '1.2.26',
       desc: 'پشتیبانی کامل از tvOS و Android TV با اتصال سریع و پایدار',
       icon: '🚗',
       scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`,
@@ -5740,15 +5740,32 @@ async function loadGiftsHistory() {
             <span dir="ltr" class="font-sans num-bidi">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[11px] border-t border-card-border pt-1">
-            ${!isClaimed ? `<button type="button" onclick="copyToClipboard('${shareUrl}'); showToast('لینک کپی شد!');" class="text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" alt="" /> کپی لینک</button>` : '<span></span>'}
+            ${!isClaimed ? `<button type="button" data-copy-link="${escapeHtml(shareUrl)}" class="btn-copy-gift-link text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" alt="" /> کپی لینک</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
-              <span class="font-sans num-bidi t-muted text-[11px] select-all">${g.code}</span>
-              <button type="button" onclick="copyToClipboard('${g.code}'); showToast('کد کپی شد!');" class="p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="کپی" /></button>
+              <span class="font-sans num-bidi t-muted text-[11px] select-all">${escapeHtml(g.code || '')}</span>
+              <button type="button" data-copy-code="${escapeHtml(g.code || '')}" class="btn-copy-gift-code p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="کپی" /></button>
             </div>
           </div>
         </div>
       `;
     }).join('');
+
+    container.querySelectorAll('.btn-copy-gift-link').forEach(btn => {
+      btn.onclick = () => {
+        if (btn.dataset.copyLink) {
+          copyToClipboard(btn.dataset.copyLink);
+          showToast('لینک کپی شد!');
+        }
+      };
+    });
+    container.querySelectorAll('.btn-copy-gift-code').forEach(btn => {
+      btn.onclick = () => {
+        if (btn.dataset.copyCode) {
+          copyToClipboard(btn.dataset.copyCode);
+          showToast('کد کپی شد!');
+        }
+      };
+    });
   } catch (err) {
     container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">خطا در بارگذاری تاریخچه.</div>';
   }

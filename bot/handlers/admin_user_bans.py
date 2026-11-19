@@ -52,7 +52,10 @@ async def telegram_user_detail(
     wallet = await WalletRepository(session).get_wallet(telegram_id)
     accounts = await remnawave.get_users_by_telegram_id(telegram_id) or []
 
-    ban_badge = "⛔️ مسدود" if target.is_banned else "✅ فعال" if lang == "fa" else ("⛔️ Banned" if target.is_banned else "✅ Active")
+    if target.is_banned:
+        ban_badge = "⛔️ مسدود" if lang == "fa" else "⛔️ Banned"
+    else:
+        ban_badge = "✅ فعال" if lang == "fa" else "✅ Active"
 
     lines = [
         t(lang, "user_detail_title"),

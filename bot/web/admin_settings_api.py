@@ -206,6 +206,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         if cache:
             await cache.delete("store_settings")
             await cache.delete("tma:admin:overview")
+            await cache.delete("tma:user")
 
         sensitive_keys = {"sms_webhook_secret", "ton_wallet_address", "trx_wallet_address", "pol_wallet_address"}
         safe_keys = [k for k in body.keys() if k not in sensitive_keys]

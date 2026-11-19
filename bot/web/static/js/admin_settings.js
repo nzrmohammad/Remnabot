@@ -2338,6 +2338,14 @@ openUserChat(telegram_id, name, tag, topup_id) {
   const closeBroadcastReportBtn = $('closeBroadcastReportBtn');
   const dismissReportModalBtn = $('dismissReportModalBtn');
 
+  let broadcastPollTimer = null;
+  function clearBroadcastPoll() {
+    if (broadcastPollTimer) {
+      clearInterval(broadcastPollTimer);
+      broadcastPollTimer = null;
+    }
+  }
+
   openBroadcastModalBtn?.addEventListener('click', () => {
     if (broadcastModal) broadcastModal.classList.remove('hidden');
     if (window.hapticFeedback) window.hapticFeedback('impact');
@@ -2348,9 +2356,11 @@ openUserChat(telegram_id, name, tag, topup_id) {
   });
 
   closeBroadcastReportBtn?.addEventListener('click', () => {
+    clearBroadcastPoll();
     broadcastReportModal?.classList.add('hidden');
   });
   dismissReportModalBtn?.addEventListener('click', () => {
+    clearBroadcastPoll();
     broadcastReportModal?.classList.add('hidden');
   });
 
@@ -2413,7 +2423,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
 
           // Poll progress
           const bId = res.broadcast_id;
-          const pollTimer = setInterval(async () => {
+          clearBroadcastPoll();
+          broadcastPollTimer = setInterval(async () => {
             try {
               const statusRes = await window.api.getBroadcastStatus(bId);
               if (statusRes && statusRes.ok && statusRes.stats) {
@@ -2429,13 +2440,13 @@ openUserChat(telegram_id, name, tag, topup_id) {
                 if (pText) pText.innerText = `${pct}%`;
 
                 if (s.is_completed) {
-                  clearInterval(pollTimer);
+                  clearBroadcastPoll();
                   if (statusEl) statusEl.innerText = '✅ ارسال پیام همگانی پایان یافت';
                   if (window.hapticFeedback) window.hapticFeedback('success');
                 }
               }
             } catch (err) {
-              clearInterval(pollTimer);
+              clearBroadcastPoll();
             }
           }, 600);
         }

@@ -825,14 +825,17 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         # Derive squad from payload if provided, else existing user account or fallback to default squad
         target_squad = data.get("squad_uuid")
         if target_squad:
-            # Validate target squad exists in Remnawave squads to prevent arbitrary squad assignment
+            # Validate target squad exists in Remnawave squads to prevent arbitrary squad assignment (Fail-Closed)
+            valid_squad = False
             try:
                 available_squads = await remnawave.get_internal_squads() or []
                 squad_uuids = {str(sq.get("uuid") or sq.get("id")) for sq in available_squads if isinstance(sq, dict)}
-                if squad_uuids and str(target_squad) not in squad_uuids:
-                    target_squad = store_settings.default_squad_uuid or None
-            except Exception:
-                pass
+                if str(target_squad) in squad_uuids:
+                    valid_squad = True
+            except Exception as e:
+                logger.warning("Could not validate squad_uuid against Remnawave: %s", e)
+            if not valid_squad:
+                target_squad = store_settings.default_squad_uuid or None
         elif chosen_acc and isinstance(chosen_acc, dict):
             raw_sqs = (
                 chosen_acc.get("activeInternalSquads")
@@ -869,43 +872,17 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         bot = request.app.get("bot")
         session_factory = request.app.get("session_factory")
 
-        try:
-            result = await execute_purchase(
-                remnawave=remnawave,
-                session=session,
-                service=custom_svc,
-                telegram_id=telegram_id,
-                chosen_account=chosen_acc,
-                discount_amount=disc_amt,
-                bot=bot,
-                session_factory=session_factory,
-                cache=cache,
-            )
-        except Exception as exc:
-            err_str = str(exc)
-            if "service_id" in err_str and ("not-null" in err_str.lower() or "not null" in err_str.lower()):
-                logger.warning("Detected legacy NOT NULL on orders.service_id, executing inline self-healing migration...")
-                try:
-                    from sqlalchemy import text
-                    await session.rollback()
-                    await session.execute(text("ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;"))
-                    await session.commit()
-                    result = await execute_purchase(
-                        remnawave=remnawave,
-                        session=session,
-                        service=custom_svc,
-                        telegram_id=telegram_id,
-                        chosen_account=chosen_acc,
-                        discount_amount=disc_amt,
-                        bot=bot,
-                        session_factory=session_factory,
-                        cache=cache,
-                    )
-                except Exception as retry_exc:
-                    logger.exception("Retry after schema migration failed: %s", retry_exc)
-                    raise retry_exc
-            else:
-                raise exc
+        result = await execute_purchase(
+            remnawave=remnawave,
+            session=session,
+            service=custom_svc,
+            telegram_id=telegram_id,
+            chosen_account=chosen_acc,
+            discount_amount=disc_amt,
+            bot=bot,
+            session_factory=session_factory,
+            cache=cache,
+        )
 
         if not result.ok:
             await session.rollback()

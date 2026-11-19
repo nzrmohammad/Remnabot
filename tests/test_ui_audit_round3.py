@@ -404,13 +404,12 @@ def test_client_importers_icon_only_grid():
 
 
 def test_orders_service_id_nullable_migration():
-    """Verify orders.service_id NOT NULL is dropped in base.py and self-heals in user_shop.py."""
+    """Verify orders.service_id NOT NULL is dropped cleanly in base.py and dangerous DDL is banned in user_shop.py."""
     base_py = Path("bot/db/base.py").read_text(encoding="utf-8")
     user_shop_py = Path("bot/web/user_shop.py").read_text(encoding="utf-8")
 
     assert "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;" in base_py
-    assert "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;" in user_shop_py
-    assert "Detected legacy NOT NULL on orders.service_id, executing inline self-healing migration..." in user_shop_py
+    assert "ALTER TABLE" not in user_shop_py
 
 
 def test_coupon_card_ltr_code_copy_status_order():

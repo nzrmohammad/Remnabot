@@ -641,7 +641,7 @@ function renderFlagHtml(countryCodeOrEmoji, className = 'w-4 h-3 inline-block ro
   if (cc && cc.length === 2) {
     const code = cc.toLowerCase();
     const fallback = getFlagEmoji(cc);
-    return `<img src="/static/img/flags/${code}.svg" class="${className}" alt="${cc}" title="${cc}" onerror="this.outerHTML='<span class=\'inline-block\'>${fallback}</span>'" loading="lazy" />`;
+    return `<img src="/static/img/flags/${code}.svg" class="${className}" alt="${cc}" title="${cc}" onerror="this.outerHTML='<span>${fallback}</span>'" loading="lazy" />`;
   }
   return `<span class="inline-block">${escapeHtml(str)}</span>`;
 }
