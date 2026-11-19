@@ -2379,16 +2379,14 @@
 
             <!-- PANE: Anti-Sanction DNS & Tools Combined -->
             <div id="adminAppsPane_dns" class="admin-apps-pane space-y-3 hidden">
-              <div class="flex items-center justify-between p-2 rounded-xl card-inset">
-                <b class="text-xs t-main font-bold">سرورهای DNS</b>
-                <button type="button" onclick="window.adminActions.addAdminTvDnsRow()" class="py-1 px-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border border-cyan-500/40 text-[11px] font-bold transition flex items-center gap-1 active:scale-95 shadow-sm">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                  <span>افزودن DNS</span>
-                </button>
-              </div>
               <div id="adminTvDnsList" class="space-y-2.5">
                 <!-- Dynamically populated DNS rows with delete buttons -->
               </div>
+
+              <button type="button" onclick="window.adminActions.addAdminTvDnsRow()" class="w-full py-2.5 px-3 rounded-2xl card-inset hover:border-cyan-500/50 text-cyan-600 dark:text-cyan-400 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm border border-[var(--card-border)]">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>افزودن سرور DNS جدید</span>
+              </button>
 
               <div class="pt-2 px-1">
                 <b class="text-xs t-main font-bold">برنامه‌های پیشنهادی تنظیم DNS</b>

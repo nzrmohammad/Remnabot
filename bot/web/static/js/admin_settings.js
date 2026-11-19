@@ -291,34 +291,45 @@
     }
     const list = currentAdminTvDnsList;
     if (!list.length) {
-      container.innerHTML = '<div class="p-4 rounded-xl card-inset text-center text-xs t-muted font-medium">هیچ سرور DNS ثبت نشده است. با زدن دکمه «افزودن DNS» سرور جدید اضافه کنید.</div>';
+      container.innerHTML = '<div class="p-4 rounded-xl card-inset text-center text-xs t-muted font-medium">هیچ سرور DNS ثبت نشده است. با زدن دکمه زیر یک سرور جدید اضافه کنید.</div>';
       return;
     }
-    const rows = list.map((item, i) => `
-      <div class="admin-tv-dns-row card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2.5 transition">
+    const rows = list.map((item, i) => {
+      const isNew = !item.name && !item.primary && !item.secondary;
+      return `
+      <div class="admin-tv-dns-row admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent space-y-2 transition">
         <div class="flex items-center justify-between gap-2" dir="ltr">
-          <div class="flex items-center gap-2 flex-1 min-w-0">
-            <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-              <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-500" width="16" height="16" alt="" />
+          <button type="button" onclick="window.adminActions.toggleAppCard(this)" class="flex items-center gap-2 flex-1 min-w-0 text-left bg-transparent border-0 cursor-pointer p-0">
+            <div class="w-7 h-7 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0 text-cyan-600 dark:text-cyan-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
             </div>
-            <input type="text" value="${escapeHtml(item.name || '')}" placeholder="Server Name (مثلاً Shecan)" class="dns-name-inp input-base text-xs font-bold font-sans py-2 px-3 w-full" />
-          </div>
-          <button type="button" onclick="window.adminActions.deleteAdminTvDnsRow(${i})" class="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0 transition active:scale-95 border border-rose-500/20" title="حذف این DNS">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <b class="t-main text-xs font-bold font-sans truncate">${escapeHtml(item.name || 'DNS Server')}</b>
+            <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">${escapeHtml(item.primary || '—')}</span>
+            <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" style="transform:${isNew ? 'rotate(180deg)' : 'rotate(0deg)'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <button type="button" onclick="window.adminActions.deleteAdminTvDnsRow(${i})" class="w-7 h-7 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0 transition active:scale-95 border border-rose-500/20" title="حذف این DNS">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           </button>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" dir="ltr">
-          <div class="space-y-1">
-            <span class="text-[10px] t-muted block font-sans">Primary DNS:</span>
-            <input type="text" value="${escapeHtml(item.primary || '')}" placeholder="178.22.122.100" class="dns-primary-inp input-base text-xs py-2 px-3 w-full font-mono text-cyan-600 dark:text-cyan-300 font-bold" />
+        <div class="admin-app-card-body space-y-2 pt-1 ${isNew ? '' : 'hidden'}" dir="rtl">
+          <div>
+            <label class="text-[11px] t-muted block mb-1 text-right">نام سرور DNS:</label>
+            <input type="text" value="${escapeHtml(item.name || '')}" placeholder="نام سرور (مثلاً Shecan)" class="dns-name-inp input-base text-xs font-bold font-sans py-1.5 px-2.5 w-full" />
           </div>
-          <div class="space-y-1">
-            <span class="text-[10px] t-muted block font-sans">Secondary DNS:</span>
-            <input type="text" value="${escapeHtml(item.secondary || '')}" placeholder="185.51.200.2" class="dns-secondary-inp input-base text-xs py-2 px-3 w-full font-mono text-cyan-600 dark:text-cyan-300 font-bold" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] t-muted block mb-1 text-right">آدرس Primary DNS:</label>
+              <input type="text" value="${escapeHtml(item.primary || '')}" dir="ltr" placeholder="178.22.122.100" class="dns-primary-inp input-base text-xs font-mono font-bold text-cyan-600 dark:text-cyan-300 py-1.5 px-2.5 w-full text-center" />
+            </div>
+            <div>
+              <label class="text-[11px] t-muted block mb-1 text-right">آدرس Secondary DNS:</label>
+              <input type="text" value="${escapeHtml(item.secondary || '')}" dir="ltr" placeholder="185.51.200.2" class="dns-secondary-inp input-base text-xs font-mono font-bold text-cyan-600 dark:text-cyan-300 py-1.5 px-2.5 w-full text-center" />
+            </div>
           </div>
         </div>
       </div>
-    `);
+      `;
+    });
     container.innerHTML = rows.join('');
   }
 
@@ -330,28 +341,38 @@
       const cfg = overrides[tool.id] || {};
       const url = cfg.url !== undefined ? cfg.url : tool.url;
       const ver = cfg.version !== undefined ? cfg.version : tool.version;
+      const isDesktop = tool.icon === 'desktop';
+      const iconSvg = isDesktop
+        ? `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`
+        : `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`;
+      const iconBoxColor = isDesktop
+        ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-600 dark:text-cyan-400'
+        : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400';
       return `
-        <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2.5 transition">
-          <div class="flex items-center justify-between gap-2" dir="ltr">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-500" width="16" height="16" alt="" />
+        <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent space-y-2 transition">
+          <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-xl ${iconBoxColor} border flex items-center justify-center shrink-0">
+                ${iconSvg}
               </div>
-              <div class="min-w-0 text-left">
-                <b class="text-xs t-main block font-sans">${escapeHtml(tool.name)}</b>
-                <span class="text-[10px] t-muted block truncate font-sans">${escapeHtml(tool.platform)} - ${escapeHtml(tool.desc)}</span>
+              <div>
+                <b class="t-main text-xs font-bold font-sans block">${escapeHtml(tool.name)}</b>
+                <span class="text-[10px] t-muted font-sans font-medium">${escapeHtml(tool.platform)}</span>
               </div>
             </div>
-            <span class="badge badge-cyan text-[10px] font-mono shrink-0">${escapeHtml(tool.platform)}</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" dir="ltr">
-            <div class="sm:col-span-2 space-y-1">
-              <label class="text-[10px] t-muted block text-left font-sans">لینک دانلود مستقیم:</label>
-              <input type="text" id="appDnsToolUrl_${tool.id}" value="${escapeHtml(url)}" placeholder="${escapeHtml(tool.url)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-cyan-600 dark:text-cyan-300" />
+            <div class="flex items-center gap-2">
+              <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi admin-app-card-ver-badge" dir="ltr">${escapeHtml(ver)}</span>
+              <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </div>
-            <div class="space-y-1">
-              <label class="text-[10px] t-muted block text-left font-sans">نسخه (Version):</label>
-              <input type="text" id="appDnsToolVersion_${tool.id}" value="${escapeHtml(ver)}" placeholder="${escapeHtml(tool.version)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center font-bold" />
+          </button>
+          <div class="admin-app-card-body space-y-2 pt-2.5 hidden" dir="rtl">
+            <div>
+              <label class="text-[11px] t-muted block mb-1 text-right">لینک دانلود مستقیم:</label>
+              <input type="text" id="appDnsToolUrl_${tool.id}" value="${escapeHtml(url)}" dir="ltr" placeholder="${escapeHtml(tool.url)}" class="input-base text-xs font-mono py-1.5 px-2.5 w-full text-cyan-600 dark:text-cyan-300 font-medium" />
+            </div>
+            <div>
+              <label class="text-[11px] t-muted block mb-1 text-right">نسخه نرم‌افزار (Version):</label>
+              <input type="text" id="appDnsToolVersion_${tool.id}" value="${escapeHtml(ver)}" dir="ltr" oninput="const b = this.closest('.admin-app-card')?.querySelector('.admin-app-card-ver-badge'); if(b) b.textContent = this.value.trim() || '—';" placeholder="${escapeHtml(tool.version)}" class="input-base text-xs font-mono py-1.5 px-2.5 w-full text-amber-600 dark:text-amber-300 font-bold" />
             </div>
           </div>
         </div>
@@ -375,27 +396,35 @@
           const url = cfg.url !== undefined ? cfg.url : item.url;
           const ver = cfg.version !== undefined ? cfg.version : item.version;
           return `
-            <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2.5 transition">
-              <div class="flex items-center justify-between gap-2" dir="ltr">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-slate-500/10 border border-slate-500/20 flex items-center justify-center shrink-0">
-                    <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 text-slate-400" width="16" height="16" alt="" />
+            <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent space-y-2 transition">
+              <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center shrink-0 text-purple-600 dark:text-purple-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                      <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
                   </div>
-                  <div class="min-w-0 text-left">
-                    <b class="text-xs t-main block font-sans">${escapeHtml(item.name)}</b>
-                    <span class="text-[10px] t-muted block truncate font-sans">${escapeHtml(item.desc)}</span>
+                  <div class="min-w-0">
+                    <b class="t-main text-xs font-bold font-sans block truncate">${escapeHtml(item.name)}</b>
+                    <span class="text-[10px] t-muted font-sans font-medium">${escapeHtml(item.arch)}</span>
                   </div>
                 </div>
-                <span class="badge badge-neutral text-[10px] font-mono shrink-0">${escapeHtml(item.arch)}</span>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" dir="ltr">
-                <div class="sm:col-span-2 space-y-1">
-                  <label class="text-[10px] t-muted block text-left font-sans">لینک دانلود مستقیم:</label>
-                  <input type="text" id="appPrereqUrl_${item.id}" value="${escapeHtml(url)}" placeholder="${escapeHtml(item.url)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-cyan-600 dark:text-cyan-300" />
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi admin-app-card-ver-badge" dir="ltr">${escapeHtml(ver)}</span>
+                  <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
-                <div class="space-y-1">
-                  <label class="text-[10px] t-muted block text-left font-sans">نسخه (Version):</label>
-                  <input type="text" id="appPrereqVersion_${item.id}" value="${escapeHtml(ver)}" placeholder="${escapeHtml(item.version)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center font-bold" />
+              </button>
+              <div class="admin-app-card-body space-y-2 pt-2.5 hidden" dir="rtl">
+                <div>
+                  <label class="text-[11px] t-muted block mb-1 text-right">لینک دانلود مستقیم:</label>
+                  <input type="text" id="appPrereqUrl_${item.id}" value="${escapeHtml(url)}" dir="ltr" placeholder="${escapeHtml(item.url)}" class="input-base text-xs font-mono py-1.5 px-2.5 w-full text-cyan-600 dark:text-cyan-300 font-medium" />
+                </div>
+                <div>
+                  <label class="text-[11px] t-muted block mb-1 text-right">نسخه نرم‌افزار (Version):</label>
+                  <input type="text" id="appPrereqVersion_${item.id}" value="${escapeHtml(ver)}" dir="ltr" oninput="const b = this.closest('.admin-app-card')?.querySelector('.admin-app-card-ver-badge'); if(b) b.textContent = this.value.trim() || '—';" placeholder="${escapeHtml(item.version)}" class="input-base text-xs font-mono py-1.5 px-2.5 w-full text-amber-600 dark:text-amber-300 font-bold" />
                 </div>
               </div>
             </div>
