@@ -281,7 +281,6 @@
             </span>
             <div class="flex items-center gap-1.5">
               <span id="luckyWheelBadge" class="hidden text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border leading-none transition-all"></span>
-              <span class="text-xs t-muted group-hover:t-main transition">←</span>
             </div>
           </button>
 
@@ -291,7 +290,6 @@
               <span>راهنمای اتصال</span>
             </span>
             <span class="hidden tutorial-sub"></span>
-            <span class="text-xs t-muted group-hover:t-main transition">←</span>
           </button>
         </div>
 
@@ -809,11 +807,6 @@
                   <b id="repBurnProjectedDays" class="font-sans t-success text-xs" dir="rtl">-- روز</b>
                 </div>
               </div>
-
-              <div id="repBurnAnalysisBox" class="p-2 rounded-xl text-xs t-muted flex items-start gap-2 bg-transparent border-0">
-                <span id="repBurnStatusIcon" class="text-base shrink-0">ℹ️</span>
-                <span id="repBurnAnalysisText" class="text-[11px] leading-relaxed t-main">در حال تحلیل الگوی مصرف...</span>
-              </div>
             </div>
           </div>
 
@@ -1277,7 +1270,7 @@
                 <span class="text-xs font-black text-amber-800 dark:text-amber-300">ارتقای امنیت حساب و جوایز ویژه</span>
                 <span class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30">سریع</span>
               </div>
-              <p class="text-[11px] text-slate-800 dark:text-slate-200 leading-relaxed font-semibold">
+              <p class="text-[11px] text-slate-800 dark:text-slate-200 leading-relaxed font-semibold text-justify">
                 با تأیید شماره تماس، حساب شما نشان رسمی اعتماد دریافت کرده و دسترسی به پرداخت کارت‌به‌کارت و جوایز دوره‌ای فعال می‌شود.
               </p>
               <div class="pt-1.5">
@@ -1914,7 +1907,7 @@
               <img src="/static/img/icons/lock-shield.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
             </div>
             <b class="text-xs text-amber-800 dark:text-amber-300 block font-extrabold">احراز هویت شماره تماس الزامی است</b>
-            <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-semibold">
+            <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-semibold text-justify">
               جهت استفاده از درگاه پرداخت کارت‌به‌کارت و جلوگیری از سوءاستفاده‌های بانکی (فیشینگ)، تأیید شماره همراه الزامی می‌باشد.
             </p>
             <button type="button" onclick="window.verifyPhoneNative()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
@@ -2518,7 +2511,7 @@
         <div id="checkoutShortageBox" class="hidden s-danger-soft border border-rose-500/30 rounded-xl p-2.5 text-xs text-rose-700 dark:text-rose-300 space-y-1">
           <div class="flex justify-between items-center font-extrabold">
             <span class="flex items-center gap-1"><img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" />کسری موجودی کیف پول:</span>
-            <span id="checkoutShortageAmount" class="font-sans font-bold num-bidi" dir="ltr">-- تومان</span>
+            <span id="checkoutShortageAmount" class="font-sans font-bold num-bidi">-- تومان</span>
           </div>
           <p class="text-[11px] font-medium text-rose-800 dark:text-rose-200 leading-relaxed">برای خرید این بسته ابتدا باید کیف پول خود را شارژ فرمایید.</p>
         </div>

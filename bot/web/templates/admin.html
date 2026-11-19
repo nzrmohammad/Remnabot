@@ -4500,7 +4500,7 @@
 
     <!-- MODAL: Card Template Picker (قالب کارت بانکی) -->
     <div id="cardTemplateModal" role="dialog" aria-modal="true" class="absolute inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[340px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[360px] sm:max-w-[380px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
             <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
@@ -4510,24 +4510,24 @@
         </div>
         <div id="cardTemplateList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-2.5 py-1.5">
           <div role="button" tabindex="0" id="cardTplOpt_blubank" onclick="window.adminActions.selectCardTemplate('blubank', 'بلوبانک')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 bg-blue-600/15 border-blue-500 shadow-sm">
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
               <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-              <div>
+              <div class="min-w-0">
                 <span class="text-xs font-bold t-info block">بلوبانک</span>
-                <span class="text-[11px] t-muted block">طراحی سه‌بعدی کارت با افکت چرخش و چیپ هوشمند</span>
+                <span class="text-[11px] t-muted block whitespace-nowrap truncate">طراحی سه‌بعدی کارت با چرخش و چیپ هوشمند</span>
               </div>
             </div>
-            <span class="text-xs text-blue-400 font-bold" id="cardTplCheck_blubank">✓</span>
+            <span class="flex items-center justify-center shrink-0" id="cardTplCheck_blubank"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-cyan-400" width="16" height="16" alt="✓" /></span>
           </div>
           <div role="button" tabindex="0" id="cardTplOpt_minimal" onclick="window.adminActions.selectCardTemplate('minimal', 'ساده')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 card-inset border-card-border hover:border-slate-500">
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
               <img src="/static/img/icons/receipt.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-              <div>
+              <div class="min-w-0">
                 <span class="text-xs font-bold t-main block">ساده</span>
-                <span class="text-[11px] t-muted block">کادر متنی ساده فقط با نمایش شماره کارت و کپی</span>
+                <span class="text-[11px] t-muted block whitespace-nowrap truncate">کادر متنی ساده فقط با نمایش شماره کارت و کپی</span>
               </div>
             </div>
-            <span class="text-xs text-blue-400 font-bold hidden" id="cardTplCheck_minimal">✓</span>
+            <span class="flex items-center justify-center shrink-0 hidden" id="cardTplCheck_minimal"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-cyan-400" width="16" height="16" alt="✓" /></span>
           </div>
         </div>
       </div>

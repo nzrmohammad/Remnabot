@@ -617,7 +617,7 @@ async def build_active_subscription(
         projected_days = round(traffic_remaining_gb / avg_3days_gb, 1)
         if days_left > 0 and projected_days < days_left:
             burn_status = "fast"
-            burn_text = f"با الگوی مصرف فعلی، حجم شما تا حدود {int(projected_days) if projected_days.is_integer() else projected_days} روز دیگر به پایان می‌رسد (پیش از موعد انقضا)."
+            burn_text = f"با الگوی مصرف فعلی، حجم شما تا حدود {int(projected_days) if projected_days.is_integer() else projected_days} روز دیگر به پایان می‌رسد."
         elif days_left > 0 and projected_days >= days_left:
             burn_status = "safe"
             burn_text = f"با الگوی مصرف فعلی، حجم شما تا {days_left} روز آینده (تا انقضای اشتراک) کاملاً پاسخگو است."

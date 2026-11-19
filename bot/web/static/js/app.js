@@ -1240,21 +1240,21 @@ function renderTutorialApps(osKey) {
 
     return `
       <div class="tutorial-app-card rounded-2xl p-2.5 ${cardBorder} space-y-1.5 transition">
-        <div class="flex items-center justify-between gap-2">
-          <!-- Right side: App Icon + Name -->
+        <div class="flex items-center justify-between gap-2" dir="ltr">
+          <!-- Left side: App Icon + Name -->
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-10 h-10 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
               <img src="/static/img/apps/${app.id}.webp?v=fl3" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${app.id}.png?v=fl3';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 text-left">
               <div class="flex items-center gap-1.5 min-w-0">
-                ${app.version ? `<span class="text-[11px] t-muted font-sans font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
                 <b class="text-xs t-main font-bold truncate">${escapeHtml(app.name)}</b>
+                ${app.version ? `<span class="text-[11px] t-muted font-sans font-medium flex-shrink-0">v${toEnglishDigits(app.version)}</span>` : ''}
               </div>
             </div>
           </div>
-          <!-- Left side: Recommended/Alternative/Third badge + Tutorial button -->
+          <!-- Right side: Recommended/Alternative/Third badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
             ${app.isRecommended ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇</span>' : ''}
             ${app.isAlternative ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="جایگزین">🥈</span>' : ''}

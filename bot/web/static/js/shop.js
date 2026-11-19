@@ -146,7 +146,7 @@ function renderWonCoupons(data) {
             <span class="text-xs">🎟</span>
             <span class="font-bold font-sans tracking-wider t-main text-xs select-all">${escapeHtml(c.code)}</span>
           </div>
-          <span class="text-[11px] t-success font-sans block mt-0.5"><span class="font-sans font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span> تخفیف</span>
+          <span class="text-[11px] t-success font-sans block mt-0.5">تخفیف <span class="font-sans font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span></span>
         </div>
         <button type="button" class="${btnClass}" data-code="${escapeHtml(c.code)}">
           ${btnInner}
@@ -815,7 +815,7 @@ function openCheckoutConfirmModal(plan) {
   const isExtraTraffic = (Number(plan.days) === 0 && Number(plan.traffic) > 0) || (plan.badge || '').toLowerCase() === 'traffic';
   const isTimeOnly = (Number(plan.traffic) === 0 && Number(plan.days) > 0) || (plan.badge || '').toLowerCase() === 'time';
 
-  if (nameEl) nameEl.innerHTML = formatPlanTitle(plan.name);
+  if (nameEl) nameEl.innerHTML = formatPlanTitle(plan.name, { iconPosition: 'left' });
   if (trafEl) {
     if (isTimeOnly) {
       trafEl.innerText = 'بدون تغییر حجم فعلی';
