@@ -1582,9 +1582,6 @@
               <button type="button" onclick="switchAdminAppsTab('dns')" id="adminAppTab_dns" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span>DNS</span>
               </button>
-              <button type="button" onclick="switchAdminAppsTab('dns_tools')" id="adminAppTab_dns_tools" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
-                <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>برنامه‌های DNS</span>
-              </button>
               <button type="button" onclick="switchAdminAppsTab('prerequisites')" id="adminAppTab_prerequisites" class="admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>پیش‌نیازها</span>
               </button>
@@ -2380,14 +2377,11 @@
               <div id="adminExtraAppsContainer_linux" class="space-y-2.5"></div>
             </div>
 
-            <!-- PANE: Anti-Sanction DNS -->
+            <!-- PANE: Anti-Sanction DNS & Tools Combined -->
             <div id="adminAppsPane_dns" class="admin-apps-pane space-y-3 hidden">
-              <div class="flex items-center justify-between p-2.5 rounded-2xl card-inset">
-                <div>
-                  <b class="text-xs t-main block">سرورهای DNS ضدتحریم (Smart TV، کنسول و شبکه)</b>
-                  <span class="text-[11px] t-muted block">تنظیم آدرس‌های Primary و Secondary سرورهای DNS در مینی‌اپ</span>
-                </div>
-                <button type="button" onclick="window.adminActions.addAdminTvDnsRow()" class="py-1.5 px-3 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm">
+              <div class="flex items-center justify-between p-2 rounded-xl card-inset">
+                <b class="text-xs t-main font-bold">سرورهای DNS</b>
+                <button type="button" onclick="window.adminActions.addAdminTvDnsRow()" class="py-1 px-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border border-cyan-500/40 text-[11px] font-bold transition flex items-center gap-1 active:scale-95 shadow-sm">
                   <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   <span>افزودن DNS</span>
                 </button>
@@ -2395,13 +2389,9 @@
               <div id="adminTvDnsList" class="space-y-2.5">
                 <!-- Dynamically populated DNS rows with delete buttons -->
               </div>
-            </div>
 
-            <!-- PANE: DNS Tools -->
-            <div id="adminAppsPane_dns_tools" class="admin-apps-pane space-y-3 hidden">
-              <div class="p-2.5 rounded-2xl card-inset">
-                <b class="text-xs t-main block">نرم‌افزارهای پیشنهادی تنظیم DNS</b>
-                <span class="text-[11px] t-muted block">مدیریت لینک‌های دانلود و نسخه‌های ابزارهای تغییر DNS در مینی‌اپ</span>
+              <div class="pt-2 px-1">
+                <b class="text-xs t-main font-bold">برنامه‌های پیشنهادی تنظیم DNS</b>
               </div>
               <div id="adminDnsToolsList" class="space-y-2.5">
                 <!-- Dynamically rendered DNS changer tools cards -->
@@ -2410,10 +2400,6 @@
 
             <!-- PANE: Prerequisites -->
             <div id="adminAppsPane_prerequisites" class="admin-apps-pane space-y-3 hidden">
-              <div class="p-2.5 rounded-2xl card-inset">
-                <b class="text-xs t-main block">بسته‌های پیش‌نیاز سیستم‌عامل (Prerequisites)</b>
-                <span class="text-[11px] t-muted block">مدیریت لینک‌های دانلود مستقیم ران‌تایم‌های Visual C++، دات‌نت و وب‌ویو</span>
-              </div>
               <div id="adminPrerequisitesList" class="space-y-2.5">
                 <!-- Dynamically rendered Prerequisites cards -->
               </div>
@@ -2626,21 +2612,21 @@
             <div class="space-y-2" id="adminLoyaltyTiersForm">
               <div class="flex items-center justify-between px-3 text-[11px] t-muted font-semibold">
                 <span>نام و نشان</span>
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="w-26 sm:w-28 text-center whitespace-nowrap">حداقل خرید (تومان)</span>
-                  <span class="w-16 sm:w-18 text-center whitespace-nowrap">تخفیف (٪)</span>
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <span class="w-24 text-center whitespace-nowrap text-[10px] sm:text-[11px]">حداقل خرید (تومان)</span>
+                  <span class="w-14 text-center whitespace-nowrap text-[10px] sm:text-[11px]">تخفیف (٪)</span>
                 </div>
               </div>
 
               <!-- Tier 1: Bronze -->
               <div class="card-inset p-2.5 sm:p-3 rounded-2xl border border-[var(--card-border)] flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-slate-500/10 flex items-center justify-center shrink-0">
-                    <img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-500/10 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-4 h-4 sm:w-5 sm:h-5 shrink-0" width="20" height="20" alt="" />
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <b class="text-xs t-main block">برنزی</b>
-                    <span class="text-[10px] t-muted">سطح پیش‌فرض اولیه کاربران</span>
+                    <span class="text-[10px] t-muted block truncate">سطح پیش‌فرض اولیه</span>
                   </div>
                 </div>
                 <span class="badge badge-neutral text-[11px] font-medium shrink-0">بدون تخفیف</span>
@@ -2648,17 +2634,17 @@
 
               <!-- Tier 2: Silver -->
               <div class="card-inset p-2.5 sm:p-3 rounded-2xl border border-[var(--card-border)] flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-slate-500/10 flex items-center justify-center shrink-0">
-                    <img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-500/10 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-4 h-4 sm:w-5 sm:h-5 shrink-0" width="20" height="20" alt="" />
                   </div>
                   <b class="text-xs t-main truncate">نقره‌ای</b>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-26 sm:w-28">
-                    <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div class="w-24 shrink-0">
+                    <input type="number" id="loyalty_silver_spent" dir="ltr" placeholder="1000000" class="input-base w-full h-8 px-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-16 sm:w-18">
+                  <div class="w-14 shrink-0">
                     <input type="number" id="loyalty_silver_pct" dir="ltr" placeholder="3" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2666,17 +2652,17 @@
 
               <!-- Tier 3: Gold -->
               <div class="card-inset p-2.5 sm:p-3 rounded-2xl border border-[var(--card-border)] flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
-                    <img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-4 h-4 sm:w-5 sm:h-5 shrink-0" width="20" height="20" alt="" />
                   </div>
                   <b class="text-xs t-warn truncate">طلایی</b>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-26 sm:w-28">
-                    <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div class="w-24 shrink-0">
+                    <input type="number" id="loyalty_gold_spent" dir="ltr" placeholder="2500000" class="input-base w-full h-8 px-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-16 sm:w-18">
+                  <div class="w-14 shrink-0">
                     <input type="number" id="loyalty_gold_pct" dir="ltr" placeholder="5" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2684,17 +2670,17 @@
 
               <!-- Tier 4: Platinum -->
               <div class="card-inset p-2.5 sm:p-3 rounded-2xl border border-[var(--card-border)] flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
-                    <img src="/static/img/icons/diamond.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/diamond.svg?v=fl2" class="ui-icon-img w-4 h-4 sm:w-5 sm:h-5 shrink-0" width="20" height="20" alt="" />
                   </div>
                   <b class="text-xs text-cyan-500 dark:text-cyan-300 truncate">پلاتین</b>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-26 sm:w-28">
-                    <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div class="w-24 shrink-0">
+                    <input type="number" id="loyalty_platinum_spent" dir="ltr" placeholder="5000000" class="input-base w-full h-8 px-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-16 sm:w-18">
+                  <div class="w-14 shrink-0">
                     <input type="number" id="loyalty_platinum_pct" dir="ltr" placeholder="8" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2702,17 +2688,17 @@
 
               <!-- Tier 5: Ruby -->
               <div class="card-inset p-2.5 sm:p-3 rounded-2xl border border-[var(--card-border)] flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
-                    <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 sm:w-5 sm:h-5 shrink-0" width="20" height="20" alt="" />
                   </div>
                   <b class="text-xs t-purple truncate">یاقوت</b>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-26 sm:w-28">
-                    <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div class="w-24 shrink-0">
+                    <input type="number" id="loyalty_ruby_spent" dir="ltr" placeholder="8000000" class="input-base w-full h-8 px-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-16 sm:w-18">
+                  <div class="w-14 shrink-0">
                     <input type="number" id="loyalty_ruby_pct" dir="ltr" placeholder="10" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2720,17 +2706,17 @@
 
               <!-- Tier 6: Emerald -->
               <div class="card-inset p-2.5 sm:p-3 rounded-2xl border border-[var(--card-border)] flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 sm:w-5 sm:h-5 shrink-0" width="20" height="20" alt="" />
                   </div>
                   <b class="text-xs t-success truncate">زمرد</b>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-26 sm:w-28">
-                    <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div class="w-24 shrink-0">
+                    <input type="number" id="loyalty_emerald_spent" dir="ltr" placeholder="12000000" class="input-base w-full h-8 px-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-16 sm:w-18">
+                  <div class="w-14 shrink-0">
                     <input type="number" id="loyalty_emerald_pct" dir="ltr" placeholder="12" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>
@@ -2738,17 +2724,17 @@
 
               <!-- Tier 7: Diamond -->
               <div class="card-inset p-2.5 sm:p-3 rounded-2xl border border-[var(--card-border)] flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
-                    <img src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                    <img src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-4 h-4 sm:w-5 sm:h-5 shrink-0" width="20" height="20" alt="" />
                   </div>
                   <b class="text-xs text-amber-500 dark:text-amber-300 truncate">الماس</b>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-26 sm:w-28">
-                    <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="input-base w-full h-8 px-2 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div class="w-24 shrink-0">
+                    <input type="number" id="loyalty_diamond_spent" dir="ltr" placeholder="20000000" class="input-base w-full h-8 px-1 text-xs font-sans num-bidi text-cyan-600 dark:text-cyan-300 text-center font-bold" title="حداقل خرید (تومان)" />
                   </div>
-                  <div class="w-16 sm:w-18">
+                  <div class="w-14 shrink-0">
                     <input type="number" id="loyalty_diamond_pct" dir="ltr" placeholder="15" class="input-base w-full h-8 px-1 text-xs font-sans font-en num-bidi t-success text-center font-bold" title="درصد تخفیف (٪)" autocomplete="off" />
                   </div>
                 </div>

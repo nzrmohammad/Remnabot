@@ -332,25 +332,25 @@
       const ver = cfg.version !== undefined ? cfg.version : tool.version;
       return `
         <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2.5 transition">
-          <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center justify-between gap-2" dir="ltr">
             <div class="flex items-center gap-2.5 min-w-0">
               <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
                 <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-500" width="16" height="16" alt="" />
               </div>
-              <div class="min-w-0">
+              <div class="min-w-0 text-left">
                 <b class="text-xs t-main block font-sans">${escapeHtml(tool.name)}</b>
-                <span class="text-[10px] t-muted block truncate">${escapeHtml(tool.platform)} - ${escapeHtml(tool.desc)}</span>
+                <span class="text-[10px] t-muted block truncate font-sans">${escapeHtml(tool.platform)} - ${escapeHtml(tool.desc)}</span>
               </div>
             </div>
             <span class="badge badge-cyan text-[10px] font-mono shrink-0">${escapeHtml(tool.platform)}</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" dir="ltr">
             <div class="sm:col-span-2 space-y-1">
-              <label class="text-[10px] t-muted block text-right font-sans">لینک دانلود مستقیم:</label>
+              <label class="text-[10px] t-muted block text-left font-sans">لینک دانلود مستقیم:</label>
               <input type="text" id="appDnsToolUrl_${tool.id}" value="${escapeHtml(url)}" placeholder="${escapeHtml(tool.url)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-cyan-600 dark:text-cyan-300" />
             </div>
             <div class="space-y-1">
-              <label class="text-[10px] t-muted block text-right font-sans">نسخه (Version):</label>
+              <label class="text-[10px] t-muted block text-left font-sans">نسخه (Version):</label>
               <input type="text" id="appDnsToolVersion_${tool.id}" value="${escapeHtml(ver)}" placeholder="${escapeHtml(tool.version)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center font-bold" />
             </div>
           </div>
@@ -376,25 +376,25 @@
           const ver = cfg.version !== undefined ? cfg.version : item.version;
           return `
             <div class="card-inset p-3 rounded-2xl border border-[var(--card-border)] space-y-2.5 transition">
-              <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center justify-between gap-2" dir="ltr">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div class="w-8 h-8 rounded-xl bg-slate-500/10 border border-slate-500/20 flex items-center justify-center shrink-0">
                     <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 text-slate-400" width="16" height="16" alt="" />
                   </div>
-                  <div class="min-w-0">
+                  <div class="min-w-0 text-left">
                     <b class="text-xs t-main block font-sans">${escapeHtml(item.name)}</b>
-                    <span class="text-[10px] t-muted block truncate">${escapeHtml(item.desc)}</span>
+                    <span class="text-[10px] t-muted block truncate font-sans">${escapeHtml(item.desc)}</span>
                   </div>
                 </div>
                 <span class="badge badge-neutral text-[10px] font-mono shrink-0">${escapeHtml(item.arch)}</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" dir="ltr">
                 <div class="sm:col-span-2 space-y-1">
-                  <label class="text-[10px] t-muted block text-right font-sans">لینک دانلود مستقیم:</label>
+                  <label class="text-[10px] t-muted block text-left font-sans">لینک دانلود مستقیم:</label>
                   <input type="text" id="appPrereqUrl_${item.id}" value="${escapeHtml(url)}" placeholder="${escapeHtml(item.url)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-cyan-600 dark:text-cyan-300" />
                 </div>
                 <div class="space-y-1">
-                  <label class="text-[10px] t-muted block text-right font-sans">نسخه (Version):</label>
+                  <label class="text-[10px] t-muted block text-left font-sans">نسخه (Version):</label>
                   <input type="text" id="appPrereqVersion_${item.id}" value="${escapeHtml(ver)}" placeholder="${escapeHtml(item.version)}" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center font-bold" />
                 </div>
               </div>

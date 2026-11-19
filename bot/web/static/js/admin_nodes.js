@@ -743,7 +743,7 @@ openEditSslDomainModal(domain) {
     },
 
     switchAdminAppsTab(osKey = 'ios') {
-      const osList = ['ios', 'android', 'windows', 'macos', 'linux', 'dns', 'dns_tools', 'prerequisites'];
+      const osList = ['ios', 'android', 'windows', 'macos', 'linux', 'dns', 'prerequisites'];
       osList.forEach(os => {
         const tabBtn = $(`adminAppTab_${os}`);
         const pane = $(`adminAppsPane_${os}`);
