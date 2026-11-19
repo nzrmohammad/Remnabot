@@ -831,6 +831,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت فوق سبک و بومی Zig با مسیریابی مجزای اپلیکیشن‌ها و عدم نشت IP',
       icon: '🛡️',
       scheme: null
+    },
+    {
+      id: 'flclash',
+      name: 'FlClash',
+      version: '0.8.72',
+      desc: 'کلاینت مدرن اندروید بر پایه کلش متا (Mihomo) و فلاتر با طراحی چشم‌نواز',
+      icon: '⚡',
+      scheme: (url) => `clash://install-config?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
     }
   ],
   windows: [
@@ -913,6 +921,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت سبک ویندوز با تفکیک ترافیک پردازه‌ها (Split Tunneling) و پینگ عالی برای بازی‌ها',
       icon: '⚡',
       scheme: null
+    },
+    {
+      id: 'flclash',
+      name: 'FlClash',
+      version: '0.8.72',
+      desc: 'کلاینت چندسکویی فوق‌العاده مدرن و زیبا بر پایه کلش متا (Mihomo) و فلاتر',
+      icon: '⚡',
+      scheme: (url) => `clash://install-config?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
     }
   ],
   macos: [
@@ -987,6 +1003,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت بومی macOS ویژه اپل سیلیکون بر پایه Zig با سرعت فوق‌العاده',
       icon: '🛡️',
       scheme: null
+    },
+    {
+      id: 'flclash',
+      name: 'FlClash',
+      version: '0.8.72',
+      desc: 'نسخه مک کلاینت مدرن FlClash برای پردازنده‌های Apple Silicon و اینتل',
+      icon: '⚡',
+      scheme: (url) => `clash://install-config?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
     }
   ],
   linux: [
@@ -1053,6 +1077,14 @@ const CLIENT_APPS_DATA = {
       desc: 'کلاینت بومی لینوکس نوشته‌شده با زبان Zig بدون نیاز به وابستگی‌های سنگین',
       icon: '🛡️',
       scheme: null
+    },
+    {
+      id: 'flclash',
+      name: 'FlClash',
+      version: '0.8.72',
+      desc: 'کلاینت چندسکویی FlClash در قالب بسته‌های AppImage و deb برای انواع توزیع‌های لینوکس',
+      icon: '⚡',
+      scheme: (url) => `clash://install-config?url=${encodeURIComponent(url)}&name=${encodeURIComponent(window.lastUserData?.bot_username || 'Subscription')}`
     }
   ],
   tv: [
@@ -1169,7 +1201,8 @@ const DEFAULT_TV_DNS_LIST = [
 
 const PREREQUISITES_DATA = [
   {
-    category: 'Visual C++ (بسته‌های ضروری و پایه‌ای سیستم)',
+    titleFa: 'بسته‌های ضروری و پایه‌ای سیستم',
+    titleEn: 'Visual C++',
     items: [
       {
         id: 'vcredist_all',
@@ -1182,7 +1215,8 @@ const PREREQUISITES_DATA = [
     ]
   },
   {
-    category: '.NET Desktop Runtime (مایکروسافت دات‌نت)',
+    titleFa: 'مایکروسافت دات‌نت',
+    titleEn: '.NET Desktop Runtime',
     items: [
       {
         id: 'dotnet10',
@@ -1213,7 +1247,7 @@ const PREREQUISITES_DATA = [
         name: '.NET Desktop Runtime 6',
         version: '6.0.10',
         arch: 'x64',
-        desc: 'پیش‌نیاز رسمی نسخه‌های پایدار v2rayN 6 و ابزارهای هسته‌ای ویندوز',
+        desc: 'ران‌تایم پایدار (LTS) مایکروسافت جهت اجرای بدون خطای نرم‌افزارهای شبکه و کلاینت‌های دسکتاپ ویندوز',
         url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.6.0.10.rar'
       },
       {
@@ -1227,14 +1261,15 @@ const PREREQUISITES_DATA = [
     ]
   },
   {
-    category: 'رابط کاربری و موتور وب (Web & UI Runtimes)',
+    titleFa: 'رابط کاربری و موتور وب',
+    titleEn: 'Web & UI Runtimes',
     items: [
       {
         id: 'webview2',
         name: 'Microsoft Edge WebView2 Evergreen',
         version: 'Evergreen',
         arch: 'x86 / x64',
-        desc: 'پیش‌نیاز حیاتی باز شدن رابط گرافیکی کلاینت‌های مدرن ویندوز (مانند Hiddify، Karing و Flclash)',
+        desc: 'پیش‌نیاز حیاتی باز شدن رابط گرافیکی کلاینت‌های مدرن ویندوز (مانند Hiddify، Karing و FlClash)',
         url: 'https://go.microsoft.com/fwlink/p/?LinkId=2124703'
       },
       {
@@ -1246,6 +1281,54 @@ const PREREQUISITES_DATA = [
         url: 'https://download.microsoft.com/download/1/7/1/1718CCC4-6316-4480-95AA-914D0E342C3D/directx_Jun2010_redist.exe'
       }
     ]
+  }
+];
+
+const DEFAULT_DNS_CHANGER_TOOLS = [
+  {
+    id: 'dnsjumper',
+    name: 'DNS Jumper',
+    version: '2.3',
+    platform: 'ویندوز (پرتابل)',
+    desc: 'محبوب‌ترین و سبک‌ترین ابزار تغییر سریع DNS در ویندوز بدون نیاز به نصب و کاملاً رایگان',
+    icon: 'desktop',
+    url: 'https://www.sordum.org/files/download/dns-jumper/dnsjumper.zip'
+  },
+  {
+    id: 'yogadns',
+    name: 'YogaDNS',
+    version: '1.43',
+    platform: 'ویندوز (DoH/DoT)',
+    desc: 'کلاینت پیشرفته DNS برای ویندوز با پشتیبانی از پروتکل‌های امن DoH، DoT و قوانین ترافیک',
+    icon: 'desktop',
+    url: 'https://yogadns.com/download/'
+  },
+  {
+    id: 'intra',
+    name: 'Intra',
+    version: 'Google Jigsaw',
+    platform: 'اندروید',
+    desc: 'برنامه رسمی شرکت گوگل/Jigsaw جهت اتصال مستقیم به DNSهای رمزنگاری‌شده (DNS over HTTPS)',
+    icon: 'phone',
+    url: 'https://play.google.com/store/apps/details?id=app.intra'
+  },
+  {
+    id: 'dnschanger',
+    name: 'DNS Changer (Lilly)',
+    version: 'Android',
+    platform: 'اندروید (بدون روت)',
+    desc: 'نرم‌افزار سبک و بسیار محبوب تغییر و تنظیم انواع سرورهای DNS در اندروید بدون نیاز به روت',
+    icon: 'phone',
+    url: 'https://play.google.com/store/apps/details?id=com.frostnerd.dnschanger'
+  },
+  {
+    id: 'cloudflare1111',
+    name: '1.1.1.1 Cloudflare',
+    version: 'Multiplatform',
+    platform: 'iOS / Android / دسکتاپ',
+    desc: 'اپلیکیشن رسمی کلودفلر برای اتصال خودکار و بهینه‌سازی سرعت DNS با پروتکل امن WARP',
+    icon: 'globe',
+    url: 'https://1.1.1.1/'
   }
 ];
 
@@ -1288,7 +1371,10 @@ function renderTutorialApps(osKey) {
       <div class="space-y-2">
         <div class="flex items-center gap-1.5 px-1 pt-1">
           <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
-          <b class="text-xs t-main font-bold">${escapeHtml(group.category)}</b>
+          <b class="text-xs t-main font-bold">
+            <span>${escapeHtml(group.titleFa)}</span>
+            <span dir="ltr" class="inline-block text-[11px] t-muted font-sans font-medium">(${escapeHtml(group.titleEn)})</span>
+          </b>
         </div>
         <div class="space-y-2">
           ${group.items.map(item => `
@@ -1296,19 +1382,18 @@ function renderTutorialApps(osKey) {
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div class="w-9 h-9 rounded-xl card-inset p-1.5 flex items-center justify-center flex-shrink-0 shadow-inner">
-                    <img src="/static/img/icons/inbox.svg?v=fl2" class="ui-icon-img w-5 h-5 text-cyan-700 dark:text-cyan-400" width="20" height="20" alt="" />
+                    <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-5 h-5 text-cyan-700 dark:text-cyan-400" width="20" height="20" alt="" />
                   </div>
                   <div class="min-w-0 flex-1 text-left">
                     <div class="flex items-center gap-1.5 flex-wrap">
-                      <b class="text-xs t-main font-bold font-sans truncate">${escapeHtml(item.name)}</b>
+                      <b class="text-xs t-main font-bold font-sans truncate" dir="ltr">${escapeHtml(item.name)}</b>
                       <span class="text-[10px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-mono font-bold">${escapeHtml(item.version)}</span>
                       <span class="text-[9px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans font-bold">${escapeHtml(item.arch)}</span>
                     </div>
                   </div>
                 </div>
-                <button type="button" class="btn-download-prereq shrink-0 py-1.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition flex items-center gap-1.5 active:scale-95 shadow-sm" data-url="${escapeHtml(item.url)}">
-                  <img src="/static/img/icons/inbox.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-                  <span>دانلود</span>
+                <button type="button" class="btn-download-prereq shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(item.url)}" title="دانلود">
+                  <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 brightness-0 invert" width="16" height="16" alt="دانلود" />
                 </button>
               </div>
               <p class="text-[11px] t-muted leading-relaxed text-right font-medium" dir="rtl">${escapeHtml(item.desc)}</p>
@@ -1343,7 +1428,7 @@ function renderTutorialApps(osKey) {
       ? overrides.tv_dns_list
       : DEFAULT_TV_DNS_LIST;
 
-    listContainer.innerHTML = tvDnsList.map((dns, idx) => {
+    const dnsCardsHtml = tvDnsList.map((dns, idx) => {
       const cleanName = (dns.name || `DNS ${idx + 1}`).replace(/[\u0600-\u06FF\(\)]/g, '').trim() || (dns.name || `DNS ${idx + 1}`);
       return `
         <div class="tutorial-app-card rounded-2xl p-3 card-inset border border-card-border space-y-2 transition" dir="ltr">
@@ -1370,11 +1455,56 @@ function renderTutorialApps(osKey) {
       `;
     }).join('');
 
+    const dnsToolsHtml = DEFAULT_DNS_CHANGER_TOOLS.map(tool => `
+      <div class="tutorial-app-card rounded-2xl p-2.5 card-inset border border-card-border space-y-2 transition" dir="ltr">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-xl card-inset p-1.5 flex items-center justify-center flex-shrink-0 shadow-inner">
+              <img src="/static/img/icons/${tool.icon}.svg?v=fl2" class="ui-icon-img w-5 h-5 text-cyan-700 dark:text-cyan-400" width="20" height="20" alt="" />
+            </div>
+            <div class="min-w-0 flex-1 text-left">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <b class="text-xs t-main font-bold font-sans truncate" dir="ltr">${escapeHtml(tool.name)}</b>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-mono font-bold">${escapeHtml(tool.version)}</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans font-bold" dir="rtl">${escapeHtml(tool.platform)}</span>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-download-dnstool shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(tool.url)}" title="دریافت نرم‌افزار">
+            <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 brightness-0 invert" width="16" height="16" alt="دانلود" />
+          </button>
+        </div>
+        <p class="text-[11px] t-muted leading-relaxed text-right font-medium" dir="rtl">${escapeHtml(tool.desc)}</p>
+      </div>
+    `).join('');
+
+    listContainer.innerHTML = `
+      <div class="space-y-2">
+        <div class="flex items-center gap-1.5 px-1 pt-1">
+          <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
+          <b class="text-xs t-main font-bold">آدرس سرورهای DNS</b>
+        </div>
+        <div class="space-y-2">
+          ${dnsCardsHtml}
+        </div>
+      </div>
+
+      <div class="space-y-2 pt-2 border-t border-card-border mt-3">
+        <div class="flex items-center gap-1.5 px-1 pt-1">
+          <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
+          <b class="text-xs t-main font-bold">نرم‌افزارهای پیشنهادی تنظیم DNS</b>
+        </div>
+        <div class="space-y-2">
+          ${dnsToolsHtml}
+        </div>
+      </div>
+    `;
+
     listContainer.querySelectorAll('.btn-copy-dns').forEach(btn => {
       btn.addEventListener('click', () => {
         const ip = btn.getAttribute('data-ip');
         if (ip && ip !== '-') {
-          copyToClipboard(ip, `📋 آدرس DNS (${ip}) با موفقیت کپی شد.`);
+          copyToClipboard(ip, `آدرس DNS (${ip}) با موفقیت کپی شد.`, 'success');
           hapticFeedback('success');
         }
       });
@@ -1386,9 +1516,26 @@ function renderTutorialApps(osKey) {
         const s = btn.getAttribute('data-secondary');
         if (p || s) {
           const text = [p, s].filter(Boolean).join('\n');
-          copyToClipboard(text, '📋 هر دو آدرس DNS با موفقیت کپی شدند.');
+          copyToClipboard(text, 'هر دو آدرس DNS با موفقیت کپی شدند.', 'success');
           hapticFeedback('success');
         }
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-download-dnstool').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.getAttribute('data-url');
+        if (!url) return;
+        try {
+          if (window.Telegram?.WebApp?.openLink) {
+            window.Telegram.WebApp.openLink(url);
+          } else {
+            window.open(url, '_blank');
+          }
+        } catch (e) {
+          window.open(url, '_blank');
+        }
+        hapticFeedback('impact');
       });
     });
     return;

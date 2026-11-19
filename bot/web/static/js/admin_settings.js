@@ -31,10 +31,10 @@
 
   const OS_APPS_MAP = {
     ios: ['shadowrocket', 'streisand', 'v2box', 'incy', 'happ', 'onexray', 'hiddify', 'karing', 'v2raytun'],
-    android: ['v2rayng', 'pattng', 'happ', 'hiddify', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall'],
-    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall', 'byp'],
-    macos: ['hiddify', 'karing', 'pattn', 'zedsecure', 'happ', 'incy', 'v2box', 'v2raytun', 'blackwall'],
-    linux: ['hiddify', 'karing', 'pattn', 'zedsecure', 'incy', 'nekoray', 'v2raya', 'blackwall'],
+    android: ['v2rayng', 'pattng', 'happ', 'hiddify', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall', 'flclash'],
+    windows: ['v2rayn', 'pattn', 'hiddify', 'happ', 'karing', 'zedsecure', 'incy', 'v2raytun', 'blackwall', 'byp', 'flclash'],
+    macos: ['hiddify', 'karing', 'pattn', 'zedsecure', 'happ', 'incy', 'v2box', 'v2raytun', 'blackwall', 'flclash'],
+    linux: ['hiddify', 'karing', 'pattn', 'zedsecure', 'incy', 'nekoray', 'v2raya', 'blackwall', 'flclash'],
   };
 
   const CLIENT_APP_META = {
@@ -50,6 +50,7 @@
     nekoray: { name: 'NekoRay' },
     v2raya: { name: 'v2rayA' },
     byp: { name: 'Byp', icon: '⚡', version: '1.1.0', hasGithub: true, hasPortable: true },
+    flclash: { name: 'FlClash', icon: '⚡', version: '0.8.72', hasGithub: true, hasPortable: true },
     karing: { name: 'Karing', icon: '🚗', version: '1.2.26', hasGithub: true, hasPortable: true, hasStoreOnMac: true },
     pattn: { name: 'PattN', icon: '⚡️', version: '7.25.6', hasGithub: true, hasPortable: true },
     pattng: { name: 'PattNG', icon: '⚡️', version: '2.3.15', hasGithub: true },
@@ -61,10 +62,10 @@
   function renderAdminExtraAppCards() {
     const extraByOs = {
       ios: ['karing', 'v2raytun'],
-      android: ['pattng', 'karing', 'zedsecure', 'v2raytun', 'blackwall'],
-      windows: ['pattn', 'karing', 'zedsecure', 'v2raytun', 'blackwall', 'byp'],
-      macos: ['karing', 'pattn', 'zedsecure', 'v2raytun', 'blackwall'],
-      linux: ['karing', 'pattn', 'zedsecure', 'blackwall'],
+      android: ['pattng', 'karing', 'zedsecure', 'v2raytun', 'blackwall', 'flclash'],
+      windows: ['pattn', 'karing', 'zedsecure', 'v2raytun', 'blackwall', 'byp', 'flclash'],
+      macos: ['karing', 'pattn', 'zedsecure', 'v2raytun', 'blackwall', 'flclash'],
+      linux: ['karing', 'pattn', 'zedsecure', 'blackwall', 'flclash'],
     };
     for (const [os, appIds] of Object.entries(extraByOs)) {
       const container = $(`adminExtraAppsContainer_${os}`);

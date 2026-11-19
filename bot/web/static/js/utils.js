@@ -46,29 +46,32 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
 
   // Clean Code & DRY: Auto-detect toast type from leading emoji prefixes and strip them
   if (!type) {
-    if (/^[✅✔]/.test(text)) {
+    if (/^[✅✔]/u.test(text)) {
       type = 'success';
-      text = text.replace(/^[✅✔]\s*/, '');
-    } else if (/^[❌✖🚫]/.test(text)) {
+      text = text.replace(/^[✅✔]\s*/u, '');
+    } else if (/^[❌✖🚫]/u.test(text)) {
       type = 'error';
-      text = text.replace(/^[❌✖🚫]\s*/, '');
-    } else if (/^[⚠️⚡]/.test(text)) {
+      text = text.replace(/^[❌✖🚫]\s*/u, '');
+    } else if (/^[⚠️⚡]/u.test(text)) {
       type = 'warning';
-      text = text.replace(/^[⚠️⚡]\s*/, '');
-    } else if (/^[📋]/.test(text)) {
+      text = text.replace(/^[⚠️⚡]\s*/u, '');
+    } else if (/^[📋]/u.test(text)) {
       type = 'copy';
-      text = text.replace(/^[📋]\s*/, '');
-    } else if (/^[🔄⏳]/.test(text)) {
+      text = text.replace(/^[📋]\s*/u, '');
+    } else if (/^[🔄⏳]/u.test(text)) {
       type = 'sync';
-      text = text.replace(/^[🔄⏳]\s*/, '');
-    } else if (/^[🔒🔐]/.test(text)) {
+      text = text.replace(/^[🔄⏳]\s*/u, '');
+    } else if (/^[🔒🔐]/u.test(text)) {
       type = 'lock';
-      text = text.replace(/^[🔒🔐]\s*/, '');
-    } else if (/^[📢🔔]/.test(text)) {
+      text = text.replace(/^[🔒🔐]\s*/u, '');
+    } else if (/^[📢🔔]/u.test(text)) {
       type = 'info';
-      text = text.replace(/^[📢🔔]\s*/, '');
+      text = text.replace(/^[📢🔔]\s*/u, '');
     }
   }
+
+  // Strip any orphan broken surrogates to prevent rendering missing glyph/tofu boxes
+  text = text.replace(/[\uD800-\uDFFF]/g, '').trim();
 
   const iconNameMap = {
     success: 'check',
@@ -291,7 +294,7 @@ function fallbackCopy(text) {
   return ok;
 }
 
-async function copyToClipboard(text, successToast = null) {
+async function copyToClipboard(text, successToast = null, toastType = 'success') {
   if (!text) return false;
   let copied = false;
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -308,10 +311,10 @@ async function copyToClipboard(text, successToast = null) {
   if (copied) {
     hapticFeedback('success');
     if (successToast) {
-      showToast(successToast);
+      showToast(successToast, toastType);
     }
   } else {
-    showToast('خطا در کپی خودکار؛ لطفاً متن را دستی انتخاب و کپی فرمایید.');
+    showToast('خطا در کپی خودکار؛ لطفاً متن را دستی انتخاب و کپی فرمایید.', 'error');
   }
   return copied;
 }

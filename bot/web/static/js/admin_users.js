@@ -195,7 +195,7 @@
             </div>
 
             <!-- Dual Metric Grid (گرید دوقلو بدون پس‌زمینه) -->
-            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80 text-[11px]">
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
               <!-- Column 1: Remaining Volume -->
               <div class="bg-transparent rounded-lg p-1.5 border border-slate-700/60 flex items-center gap-2">
                 <div class="w-7 h-7 rounded-md bg-transparent border border-cyan-500/30 flex items-center justify-center text-cyan-500 dark:text-cyan-400 text-xs shrink-0">
@@ -968,10 +968,10 @@ async applyUserModification() {
                     </button>
                   </div>
                   <div class="flex items-center justify-between gap-2 font-sans min-w-0" dir="ltr">
-                    <span class="inline-flex items-center gap-1.5 font-bold t-main num-bidi truncate" title="${escapeHtml(r.request_at || r.relative_time || '')}">
-                      <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
-                      <span>${tsText}</span>
-                    </span>
+                    <div class="flex items-center gap-1.5 font-bold t-main min-w-0 shrink-0 whitespace-nowrap" title="${escapeHtml(r.request_at || r.relative_time || '')}">
+                      <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+                      <span class="num-bidi whitespace-nowrap">${tsText}</span>
+                    </div>
                     ${relHtml}
                   </div>
                 </div>
