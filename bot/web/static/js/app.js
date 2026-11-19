@@ -1053,30 +1053,48 @@ const CLIENT_APPS_DATA = {
   tv: [
     {
       id: 'karing',
-      name: 'Karing (Apple TV & Android TV)',
+      name: 'Karing',
       version: '1.0.38',
-      desc: 'سازگار با کنترل تلویزیون (Remote)، پشتیبانی کامل از tvOS و Android TV با اتصال سریع',
-      icon: '📺',
+      desc: 'پشتیبانی کامل از tvOS و Android TV با اتصال سریع و پایدار',
+      icon: '🚗',
       scheme: (url) => `karing://install-config?url=${encodeURIComponent(url)}`,
-      badges: ['📺 Apple TV', '📺 Android TV', '🎮 ریموت']
+      badges: ['📺 Apple TV', '📺 Android TV']
     },
     {
       id: 'hiddify',
-      name: 'Hiddify (Android TV)',
+      name: 'Hiddify',
       version: '2.5.7',
-      desc: 'دارای رابط کاربری اختصاصی تلویزیون (Leanback UI) و سازگار با ریموت کنترل انواع اندروید تی‌وی و تی‌وی‌باکس',
-      icon: '📺',
+      desc: 'دارای رابط کاربری اختصاصی تلویزیون (Leanback UI) و سازگار با انواع اندروید تی‌وی',
+      icon: '🚀',
       scheme: (url) => `hiddify://install-sub?url=${encodeURIComponent(url)}`,
-      badges: ['📺 Android TV', '🎮 ریموت']
+      badges: ['📺 Android TV']
     },
     {
       id: 'shadowrocket',
-      name: 'Shadowrocket (Apple TV)',
+      name: 'Shadowrocket',
       version: '2.2.62',
-      desc: 'کلاینت پیشرفته و بسیار قدرتمند tvOS برای اپل تی‌وی با مسیریابی هوشمند و پشتیبانی کامل از ریموت',
-      icon: '📺',
+      desc: 'کلاینت پیشرفته و بسیار قدرتمند tvOS برای اپل تی‌وی با مسیریابی هوشمند',
+      icon: '🚀',
       scheme: (url) => `sub://${btoa(url)}`,
-      badges: ['📺 Apple TV', '🎮 ریموت']
+      badges: ['📺 Apple TV']
+    },
+    {
+      id: 'happ',
+      name: 'Happ',
+      version: '3.1.2',
+      desc: 'کلاینت پرسرعت و مدرن با پشتیبانی از تلویزیون‌های هوشمند و اپل تی‌وی',
+      icon: '🚀',
+      scheme: (url) => `happ://add/${url}`,
+      badges: ['📺 Apple TV', '📺 Android TV']
+    },
+    {
+      id: 'incy',
+      name: 'Incy',
+      version: '1.0.8',
+      desc: 'رابط کاربری خلوت با اتصال یک‌کلیکه و سازگار با اندروید تی‌وی',
+      icon: '⚡',
+      scheme: (url) => `incy://import/${url}`,
+      badges: ['📺 Android TV']
     }
   ]
 };
@@ -1131,12 +1149,12 @@ function getDownloadButtonInfo(url, defaultLabel = 'دانلود مستقیم', 
 }
 
 const DEFAULT_TV_DNS_LIST = [
-  { name: 'الکترو (Electro)', primary: '78.157.42.101', secondary: '78.157.42.100' },
-  { name: 'شکن (Shecan)', primary: '178.22.122.100', secondary: '185.51.200.2' },
-  { name: 'رادار بازی (Radar Plus)', primary: '10.202.10.10', secondary: '10.202.10.11' },
-  { name: 'بگذر (Begzar)', primary: '185.55.226.26', secondary: '185.55.225.25' },
-  { name: 'کلودفلر (Cloudflare)', primary: '1.1.1.1', secondary: '1.0.0.1' },
-  { name: 'گوگل (Google)', primary: '8.8.8.8', secondary: '8.8.4.4' }
+  { name: 'Electro', primary: '78.157.42.101', secondary: '78.157.42.100' },
+  { name: 'Shecan', primary: '178.22.122.100', secondary: '185.51.200.2' },
+  { name: 'Radar Plus', primary: '10.202.10.10', secondary: '10.202.10.11' },
+  { name: 'Begzar', primary: '185.55.226.26', secondary: '185.55.225.25' },
+  { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1' },
+  { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4' }
 ];
 
 function renderTutorialApps(osKey) {
@@ -1155,9 +1173,6 @@ function renderTutorialApps(osKey) {
     }
   });
 
-  // OS Apps Rendering
-  const allApps = CLIENT_APPS_DATA[currentTutorialOS] || CLIENT_APPS_DATA.windows || [];
-
   let overrides = {};
   if (window.lastUserData?.client_apps_override) {
     try {
@@ -1166,6 +1181,66 @@ function renderTutorialApps(osKey) {
         : window.lastUserData.client_apps_override;
     } catch (e) {}
   }
+
+  // Dedicated DNS Tab Rendering (Clean, LTR, No Primary/Secondary labels, Icon-only copy)
+  if (currentTutorialOS === 'dns') {
+    const tvDnsList = (Array.isArray(overrides?.tv_dns_list) && overrides.tv_dns_list.length > 0)
+      ? overrides.tv_dns_list
+      : DEFAULT_TV_DNS_LIST;
+
+    listContainer.innerHTML = tvDnsList.map((dns, idx) => {
+      const cleanName = (dns.name || `DNS ${idx + 1}`).replace(/[\u0600-\u06FF\(\)]/g, '').trim() || (dns.name || `DNS ${idx + 1}`);
+      return `
+        <div class="tutorial-app-card rounded-2xl p-3 card-inset space-y-2 transition" dir="ltr">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner">
+                <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-400" width="16" height="16" alt="" />
+              </div>
+              <b class="text-xs t-main font-bold truncate font-sans">${escapeHtml(cleanName)}</b>
+            </div>
+            <button type="button" class="btn-copy-dns-pair p-2 rounded-xl card-inset border border-cyan-500/30 text-cyan-400 hover:text-cyan-300 transition active:scale-95 shadow-sm" data-primary="${escapeHtml(dns.primary || '')}" data-secondary="${escapeHtml(dns.secondary || '')}" title="کپی هر دو DNS">
+              <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="Copy Both" />
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs" dir="ltr">
+            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-slate-700/60 flex items-center justify-center font-mono font-bold text-cyan-300 hover:border-cyan-500/50 transition active:scale-95 shadow-inner" data-ip="${escapeHtml(dns.primary || '')}">
+              ${escapeHtml(dns.primary || '-')}
+            </button>
+            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-slate-700/60 flex items-center justify-center font-mono font-bold text-cyan-300 hover:border-cyan-500/50 transition active:scale-95 shadow-inner" data-ip="${escapeHtml(dns.secondary || '')}">
+              ${escapeHtml(dns.secondary || '-')}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listContainer.querySelectorAll('.btn-copy-dns').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ip = btn.getAttribute('data-ip');
+        if (ip && ip !== '-') {
+          copyToClipboard(ip, `📋 آدرس DNS (${ip}) با موفقیت کپی شد.`);
+          hapticFeedback('success');
+        }
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-copy-dns-pair').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = btn.getAttribute('data-primary');
+        const s = btn.getAttribute('data-secondary');
+        if (p || s) {
+          const text = [p, s].filter(Boolean).join('\n');
+          copyToClipboard(text, '📋 هر دو آدرس DNS با موفقیت کپی شدند.');
+          hapticFeedback('success');
+        }
+      });
+    });
+    return;
+  }
+
+  // OS Apps Rendering
+  const allApps = CLIENT_APPS_DATA[currentTutorialOS] || CLIENT_APPS_DATA.windows || [];
 
   const recommendedAppId = overrides?.recommended?.[currentTutorialOS] || (currentTutorialOS === 'windows' ? overrides?.recommended?.desktop : '') || '';
   const alternativeAppId = overrides?.alternative?.[currentTutorialOS] || (currentTutorialOS === 'windows' ? overrides?.alternative?.desktop : '') || '';
@@ -1190,7 +1265,9 @@ function renderTutorialApps(osKey) {
         const defaultUrls = {
           karing: 'https://github.com/KaringX/karing/releases',
           hiddify: 'https://github.com/hiddify/hiddify-next/releases',
-          shadowrocket: 'https://apps.apple.com/app/shadowrocket/id932747118'
+          shadowrocket: 'https://apps.apple.com/app/shadowrocket/id932747118',
+          happ: 'https://github.com/Happ-proxy/happ-desktop/releases/latest',
+          incy: 'https://play.google.com/store/apps/details?id=llc.itdev.incy'
         };
         appCfg = {
           enabled: true,
@@ -1340,118 +1417,7 @@ function renderTutorialApps(osKey) {
     `;
   }).join('');
 
-  if (currentTutorialOS === 'tv') {
-    const tvDnsList = (Array.isArray(overrides?.tv_dns_list) && overrides.tv_dns_list.length > 0)
-      ? overrides.tv_dns_list
-      : DEFAULT_TV_DNS_LIST;
-
-    appsHtml += `
-      <div class="rounded-2xl p-3 card-inset space-y-2.5 mt-3 border border-cyan-500/30">
-        <div class="flex items-center gap-2">
-          <span class="text-base">📺</span>
-          <b class="text-xs t-main">آموزش اتصال سریع در تلویزیون</b>
-        </div>
-        <div class="space-y-2 text-[11px] t-muted leading-relaxed">
-          <div class="flex items-start gap-2">
-            <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 font-bold text-[10px]">1</span>
-            <div class="space-y-1">
-              <b class="text-white block">اسکن بارکد QR با دوربین یا داخل اپ تلویزیون:</b>
-              <p>در نرم‌افزارهای Karing یا Hiddify تلویزیون، گزینه Scan QR را بزنید و بارکد اشتراک را اسکن نمایید:</p>
-              <button type="button" id="btnOpenTvQrModal" class="mt-1 px-3 py-1.5 rounded-xl s-accent-soft border border-cyan-500/30 text-[11px] font-bold inline-flex items-center gap-1.5 transition active:scale-95 text-cyan-300">
-                <img src="/static/img/icons/qr-code.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
-                <span>نمایش بارکد QR اشتراک</span>
-              </button>
-            </div>
-          </div>
-          <div class="flex items-start gap-2">
-            <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 font-bold text-[10px]">2</span>
-            <div>
-              <b class="text-white block">انتقال از طریق مرورگر یا شبکه لوکال:</b>
-              <p class="mt-0.5">در نرم‌افزارهای Karing یا Shadowrocket گزینه Local Web Share را فعال کرده و آدرس IP محلی را در مرورگر گوشی باز کنید تا اشتراک فوراً انتقال یابد.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="rounded-2xl p-3 card-inset space-y-2 mt-3 border border-slate-750">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-base">🌐</span>
-            <b class="text-xs t-main">DNSهای ضدتحریم تلویزیون و کنسول</b>
-          </div>
-          <span class="text-[10px] t-muted">بدون نیاز به نرم‌افزار</span>
-        </div>
-        <p class="text-[11px] t-muted leading-relaxed">
-          این آدرس‌ها را در تنظیمات شبکه (Network / DNS Settings) تلویزیون هوشمند یا کنسول خود تنظیم نمایید:
-        </p>
-        <div class="space-y-1.5 pt-1">
-          ${tvDnsList.map((dns, idx) => `
-            <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-white">${escapeHtml(dns.name || `DNS ${idx + 1}`)}</span>
-                <button type="button" class="btn-copy-dns-pair text-[10px] text-cyan-400 hover:text-cyan-300 font-medium inline-flex items-center gap-1 active:scale-95" data-primary="${escapeHtml(dns.primary || '')}" data-secondary="${escapeHtml(dns.secondary || '')}">
-                  <span>📋</span> کپی هر دو DNS
-                </button>
-              </div>
-              <div class="grid grid-cols-2 gap-2 text-[11px]" dir="ltr">
-                <button type="button" class="btn-copy-dns px-2 py-1.5 rounded-lg card-inset border flex items-center justify-between font-mono hover:border-cyan-500/50 transition active:scale-95" data-ip="${escapeHtml(dns.primary || '')}">
-                  <span class="text-slate-400 text-[10px]">Primary:</span>
-                  <span class="text-cyan-300 font-bold">${escapeHtml(dns.primary || '-')}</span>
-                </button>
-                <button type="button" class="btn-copy-dns px-2 py-1.5 rounded-lg card-inset border flex items-center justify-between font-mono hover:border-cyan-500/50 transition active:scale-95" data-ip="${escapeHtml(dns.secondary || '')}">
-                  <span class="text-slate-400 text-[10px]">Secondary:</span>
-                  <span class="text-cyan-300 font-bold">${escapeHtml(dns.secondary || '-')}</span>
-                </button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }
-
   listContainer.innerHTML = appsHtml;
-
-  const tvQrBtn = listContainer.querySelector('#btnOpenTvQrModal');
-  if (tvQrBtn) {
-    tvQrBtn.addEventListener('click', () => {
-      const uri = getSubUrl();
-      if (!uri) {
-        showToast('⚠️ لینک اشتراک یافت نشد.');
-        return;
-      }
-      window.currentModalQrUri = uri;
-      const modalQrImg = $('modalQrImage');
-      if (modalQrImg) {
-        modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
-      }
-      openModal('qrModal');
-      syncTelegramBackButton();
-      hapticFeedback('impact');
-    });
-  }
-
-  listContainer.querySelectorAll('.btn-copy-dns').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const ip = btn.getAttribute('data-ip');
-      if (ip && ip !== '-') {
-        copyToClipboard(ip, `📋 آدرس DNS (${ip}) با موفقیت کپی شد.`);
-        hapticFeedback('success');
-      }
-    });
-  });
-
-  listContainer.querySelectorAll('.btn-copy-dns-pair').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const p = btn.getAttribute('data-primary');
-      const s = btn.getAttribute('data-secondary');
-      if (p || s) {
-        const text = [p, s].filter(Boolean).join('\n');
-        copyToClipboard(text, '📋 هر دو آدرس DNS با موفقیت کپی شدند.');
-        hapticFeedback('success');
-      }
-    });
-  });
 
   listContainer.querySelectorAll('.btn-download-app').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -5135,16 +5101,16 @@ function renderGiftServiceSelectModalList() {
     }
 
     return `
-      <div onclick="window.selectGiftService(${p.id})" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between transition">
-        <div class="text-right font-sans num-bidi shrink-0 pr-1">
-          <span class="text-xs font-black t-pink block">${priceStr}</span>
-          <span class="text-[11px] t-muted font-sans block">تومان</span>
-        </div>
-        <div class="space-y-1 min-w-0 text-left">
+      <div onclick="window.selectGiftService(${p.id})" dir="ltr" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between gap-2.5 transition">
+        <div class="space-y-1 min-w-0 text-left flex-1">
           <b class="text-xs t-main block truncate">${formatPlanTitle(p.name, { iconPosition: 'left' })}</b>
           <div class="flex items-center justify-start gap-2 text-[11px] t-muted" dir="ltr">
             ${specsHtml}
           </div>
+        </div>
+        <div class="text-right font-sans num-bidi shrink-0 pl-1">
+          <span class="text-xs font-black t-pink block">${priceStr}</span>
+          <span class="text-[11px] t-muted font-sans block">تومان</span>
         </div>
       </div>
     `;

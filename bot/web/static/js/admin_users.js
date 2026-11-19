@@ -1419,13 +1419,13 @@ async applyUserModification() {
       };
 
       let html = `
-        <div onclick="window.adminActions.selectCreateUserPlan('custom')" dir="rtl" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-          <div class="min-w-0 flex-1 text-right">
+        <div onclick="window.adminActions.selectCreateUserPlan('custom')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div class="min-w-0 flex-1 text-left">
             <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
             <span class="text-[11px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
           </div>
-          <div class="shrink-0 flex items-center gap-2.5 text-left" dir="ltr">
-            <span class="w-5 h-5 rounded-full ${selectedId === 'custom' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 font-black' : 'border border-slate-700/60'} flex items-center justify-center text-xs shrink-0">${selectedId === 'custom' ? '✓' : ''}</span>
+          <div class="shrink-0 flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-full ${selectedId === 'custom' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'border border-slate-700/60'} flex items-center justify-center shrink-0">${selectedId === 'custom' ? '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}</span>
           </div>
         </div>
       `;
@@ -1450,21 +1450,21 @@ async applyUserModification() {
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
 
           return `
-            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" dir="rtl" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-              <div class="min-w-0 flex-1 text-right space-y-1">
+            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+              <div class="min-w-0 flex-1 text-left space-y-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-bold t-main text-xs">${escapeHtml(p.name)}</span>
                   ${badgeHtml}
                 </div>
                 <div class="flex items-center gap-2 text-[11px] t-muted font-sans flex-wrap">
-                  <span class="text-cyan-600 dark:text-cyan-300 font-bold inline-flex items-center gap-0.5" dir="ltr"><span class="font-sans font-bold">${toEnglishDigits(p.traffic_gb)}</span><span>GB</span></span>
+                  <span class="text-cyan-600 dark:text-cyan-300 font-bold inline-flex items-center gap-0.5"><span class="font-sans font-bold">${toEnglishDigits(p.traffic_gb)}</span><span>GB</span></span>
                   <span>•</span>
                   <span class="text-amber-600 dark:text-amber-300 font-bold">${p.duration_days} روز</span>
                 </div>
               </div>
-              <div class="shrink-0 flex items-center gap-2.5 text-left" dir="ltr">
+              <div class="shrink-0 flex items-center gap-2.5 text-right font-sans">
                 ${priceLabel ? `<span class="font-bold text-xs t-main font-sans" dir="rtl">${escapeHtml(priceLabel)}</span>` : ''}
-                <span class="w-5 h-5 rounded-full ${isSelected ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 font-black' : 'border border-slate-700/60'} flex items-center justify-center text-xs shrink-0">${isSelected ? '✓' : ''}</span>
+                <span class="w-5 h-5 rounded-full ${isSelected ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'border border-slate-700/60'} flex items-center justify-center shrink-0">${isSelected ? '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}</span>
               </div>
             </div>
           `;
@@ -1516,7 +1516,7 @@ async applyUserModification() {
         html += `
           <div onclick="window.adminActions.selectCreateUserSquad('${escapeHtml(sqId)}', '${escapeHtml(sqName)}', '🧩')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
             <span class="text-xs font-bold truncate text-left min-w-0 flex-1 ${isSelected ? 't-info' : 't-main'}">${escapeHtml(sqName)}</span>
-            ${isSelected ? '<span class="text-xs font-bold t-info shrink-0">✓</span>' : ''}
+            ${isSelected ? '<span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </div>
         `;
       });
@@ -1791,7 +1791,7 @@ async applyUserModification() {
                 <span class="text-[11px] t-muted block mt-0.5 leading-snug">${opt.desc}</span>
               </div>
             </div>
-            <span class="text-xs font-bold t-accent shrink-0">${isSelected ? '✓' : ''}</span>
+            ${isSelected ? '<span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </div>
         `;
       }).join('');

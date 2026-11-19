@@ -549,7 +549,7 @@
         return `
           <div onclick="window.adminActions.selectPlanBadge('${key}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
             <span class="text-xs font-bold ${isSelected ? 't-info' : 't-main'}">${escapeHtml(label)}</span>
-            <span class="text-xs font-bold t-info">${isSelected ? (typeof uiIcon === 'function' ? uiIcon('check', 'w-4 h-4') : '✓') : ''}</span>
+            ${isSelected ? '<span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </div>
         `;
       }).join('');
@@ -585,7 +585,7 @@
             <div onclick="window.adminActions.selectPlanSquad('${escapeHtml(s.uuid)}', '${escapeHtml(s.name)}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
               <span class="text-xs font-bold truncate text-left min-w-0 flex-1 ${isSelected ? 't-info' : 't-main'}">${escapeHtml(s.name)}</span>
               <div class="flex items-center gap-2 shrink-0">
-                ${isSelected ? '<span class="text-xs font-bold t-info">✓</span>' : ''}
+                ${isSelected ? '<span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
                 <span class="text-base leading-none">🧩</span>
               </div>
             </div>

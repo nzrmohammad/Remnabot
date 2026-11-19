@@ -931,8 +931,8 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
     const match = rawBadge.match(emojiRegex);
     const badgeIcon = match ? match[0] : (rawBadge.includes('تغییر') ? 'warning' : 'zap');
     const cleanBadge = rawBadge.replace(emojiRegex, '').replace(/^[\s\uFE0F]+|[\s\uFE0F]+$/g, '').trim();
-    bEl.innerHTML = `${uiEmojiIcon(badgeIcon, 'w-4 h-4 shrink-0')}<span>${escapeHtml(cleanBadge)}</span>`;
-    bEl.className = `${badgeClass || 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border border-cyan-500/30'} inline-flex items-center gap-1.5 w-fit leading-none`;
+    bEl.innerHTML = `${uiEmojiIcon(badgeIcon, 'w-3.5 h-3.5 shrink-0')}<span>${escapeHtml(cleanBadge)}</span>`;
+    bEl.className = `${badgeClass || 'px-2 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border border-cyan-500/30'} inline-flex items-center gap-1 w-fit leading-none`;
   }
   if (txtEl) txtEl.innerHTML = message || '';
 
@@ -1100,10 +1100,10 @@ function setupBuyButtons() {
           if (pctRemaining <= 25) {
             openShopGuidanceModal({
               title: 'پیشنهاد هوشمند خرید حجم',
-              badgeText: '⚡️ صرفه‌جویی در هزینه',
-              badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
+              badgeText: '⚡ صرفه‌جویی در هزینه',
+              badgeClass: 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
               message: `شما هنوز <b>${daysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
-              actionText: '⚡️ رفتن به بسته‌های افزایش حجم',
+              actionText: '⚡ رفتن به بسته‌های افزایش حجم',
               onAction: () => switchShopCategory('traffic'),
               secondaryText: 'انصراف',
               onSecondary: () => closeModal('shopGuidanceModal'),

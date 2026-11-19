@@ -133,41 +133,77 @@
   renderAdminExtraAppCards();
 
   const DEFAULT_TV_DNS_LIST = [
-    { name: 'الکترو (Electro)', primary: '78.157.42.101', secondary: '78.157.42.100' },
-    { name: 'شکن (Shecan)', primary: '178.22.122.100', secondary: '185.51.200.2' },
-    { name: 'رادار بازی (Radar Plus)', primary: '10.202.10.10', secondary: '10.202.10.11' },
-    { name: 'بگذر (Begzar)', primary: '185.55.226.26', secondary: '185.55.225.25' },
-    { name: 'کلودفلر (Cloudflare)', primary: '1.1.1.1', secondary: '1.0.0.1' },
-    { name: 'گوگل (Google)', primary: '8.8.8.8', secondary: '8.8.4.4' }
+    { name: 'Electro', primary: '78.157.42.101', secondary: '78.157.42.100' },
+    { name: 'Shecan', primary: '178.22.122.100', secondary: '185.51.200.2' },
+    { name: 'Radar Plus', primary: '10.202.10.10', secondary: '10.202.10.11' },
+    { name: 'Begzar', primary: '185.55.226.26', secondary: '185.55.225.25' },
+    { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1' },
+    { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4' }
   ];
+  let currentAdminTvDnsList = DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
+
+  function syncAdminTvDnsFromDom() {
+    const container = $('adminTvDnsList');
+    if (!container) return;
+    const rows = container.querySelectorAll('.admin-tv-dns-row');
+    if (!rows.length) return;
+    const newList = [];
+    rows.forEach(row => {
+      const name = row.querySelector('.dns-name-inp')?.value?.trim() || '';
+      const primary = row.querySelector('.dns-primary-inp')?.value?.trim() || '';
+      const secondary = row.querySelector('.dns-secondary-inp')?.value?.trim() || '';
+      newList.push({ name, primary, secondary });
+    });
+    currentAdminTvDnsList = newList;
+  }
 
   function renderAdminTvDnsList(savedDnsList) {
     const container = $('adminTvDnsList');
     if (!container) return;
-    const list = Array.isArray(savedDnsList) && savedDnsList.length > 0 ? savedDnsList : DEFAULT_TV_DNS_LIST;
-    const rows = [];
-    for (let i = 0; i < 6; i++) {
-      const item = list[i] || DEFAULT_TV_DNS_LIST[i] || { name: '', primary: '', secondary: '' };
-      rows.push(`
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 p-2 rounded-xl card-inset items-center">
-          <div class="sm:col-span-4">
-            <input type="text" id="adminTvDnsName_${i}" value="${escapeHtml(item.name || '')}" placeholder="نام سرور (مثال: شکن)" class="input-base text-xs py-1.5 px-2.5 w-full font-medium" />
-          </div>
-          <div class="sm:col-span-4" dir="ltr">
-            <input type="text" id="adminTvDnsPrimary_${i}" value="${escapeHtml(item.primary || '')}" placeholder="Primary: 178.22.122.100" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center" />
-          </div>
-          <div class="sm:col-span-4" dir="ltr">
-            <input type="text" id="adminTvDnsSecondary_${i}" value="${escapeHtml(item.secondary || '')}" placeholder="Secondary: 185.51.200.2" class="input-base text-xs py-1.5 px-2.5 w-full font-mono text-center" />
-          </div>
-        </div>
-      `);
+    if (Array.isArray(savedDnsList)) {
+      currentAdminTvDnsList = savedDnsList.length > 0 ? savedDnsList.map(x => ({ ...x })) : DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
     }
+    const list = currentAdminTvDnsList;
+    if (!list.length) {
+      container.innerHTML = '<div class="p-4 rounded-xl card-inset text-center text-xs t-muted">هیچ DNS ثبت نشده است. با دکمه بالا یک DNS جدید اضافه کنید.</div>';
+      return;
+    }
+    const rows = list.map((item, i) => `
+      <div class="admin-tv-dns-row flex items-center gap-2 p-2 rounded-xl card-inset" dir="ltr">
+        <div class="flex-1 min-w-0">
+          <input type="text" value="${escapeHtml(item.name || '')}" placeholder="Server Name" class="dns-name-inp input-base text-xs py-1.5 px-2.5 w-full font-medium" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <input type="text" value="${escapeHtml(item.primary || '')}" placeholder="Primary: 178.22.122.100" class="dns-primary-inp input-base text-xs py-1.5 px-2.5 w-full font-mono text-center" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <input type="text" value="${escapeHtml(item.secondary || '')}" placeholder="Secondary: 185.51.200.2" class="dns-secondary-inp input-base text-xs py-1.5 px-2.5 w-full font-mono text-center" />
+        </div>
+        <button type="button" onclick="window.adminActions.deleteAdminTvDnsRow(${i})" class="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0 transition" title="حذف DNS">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    `);
     container.innerHTML = rows.join('');
   }
   renderAdminTvDnsList(DEFAULT_TV_DNS_LIST);
 
   // Support Chat, Campaigns, App Recommendations & Settings Actions
   Object.assign(window.adminActions, {
+    addAdminTvDnsRow() {
+      syncAdminTvDnsFromDom();
+      currentAdminTvDnsList.push({ name: '', primary: '', secondary: '' });
+      renderAdminTvDnsList();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+    deleteAdminTvDnsRow(idx) {
+      syncAdminTvDnsFromDom();
+      if (idx >= 0 && idx < currentAdminTvDnsList.length) {
+        currentAdminTvDnsList.splice(idx, 1);
+        renderAdminTvDnsList();
+        if (window.hapticFeedback) window.hapticFeedback('selection');
+      }
+    },
     toggleAppCard(btn) {
       const card = btn.closest('.admin-app-card') || btn.parentElement;
       const body = card?.querySelector('.admin-app-card-body');
@@ -284,7 +320,7 @@
               <span class="text-base">${typeof renderFlagHtml === 'function' ? renderFlagHtml(z.flag, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover align-middle') : z.flag}</span>
               <span class="text-xs font-sans num-bidi font-bold ${isSelected ? 'text-blue-600 dark:text-blue-400 font-black' : 't-main'}">${z.name}</span>
             </div>
-            ${isSelected ? '<span class="text-[11px] text-blue-600 dark:text-blue-400 font-bold bg-blue-500/15 px-2 py-0.5 rounded-md">✓</span>' : ''}
+            ${isSelected ? '<span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </div>
         `;
       }).join('');
@@ -333,7 +369,7 @@
               <span class="text-[10px] t-muted block">بدون تعیین اسکواد اختصاصی پیش‌فرض</span>
             </div>
           </div>
-          ${currentVal === '' ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
+          ${currentVal === '' ? '<span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
         </div>
       `;
 
@@ -347,7 +383,7 @@
               <img src="/static/img/icons/nodes.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-cyan-400" width="16" height="16" alt="" />
               <span class="text-xs font-sans font-bold ${isSelected ? 't-info' : 't-main'} truncate block">${escapeHtml(name)}</span>
             </div>
-            ${isSelected ? '<span class="text-xs text-blue-400 font-bold">✓</span>' : ''}
+            ${isSelected ? '<span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </div>
         `;
       });
@@ -996,7 +1032,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
             <img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 opacity-60" width="16" height="16" alt="" />
             <span class="text-xs font-sans font-medium">${emptyLabel}</span>
           </div>
-          ${!currentVal ? '<span class="t-accent font-bold">✓</span>' : ''}
+          ${!currentVal ? '<span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
         </button>
       `;
 
@@ -1009,7 +1045,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
               <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';}" class="w-6 h-6 rounded-lg object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
               <span class="font-sans font-bold text-xs">${escapeHtml(appName)}</span>
             </div>
-            ${isSelected ? '<span class="t-accent font-bold">✓</span>' : ''}
+            ${isSelected ? '<span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </button>
         `;
       });
@@ -1963,15 +1999,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
         }
         clientAppsObj.desktop = clientAppsObj.windows;
 
-        const tvDnsList = [];
-        for (let i = 0; i < 6; i++) {
-          const name = $(`adminTvDnsName_${i}`)?.value?.trim() || '';
-          const primary = $(`adminTvDnsPrimary_${i}`)?.value?.trim() || '';
-          const secondary = $(`adminTvDnsSecondary_${i}`)?.value?.trim() || '';
-          if (name || primary || secondary) {
-            tvDnsList.push({ name, primary, secondary });
-          }
-        }
+        syncAdminTvDnsFromDom();
+        const tvDnsList = currentAdminTvDnsList.filter(d => (d.name || d.primary || d.secondary));
         clientAppsObj.tv_dns_list = tvDnsList;
 
         return JSON.stringify(clientAppsObj);
