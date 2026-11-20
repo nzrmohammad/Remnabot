@@ -729,10 +729,13 @@ function formatPlanTitle(name, options = {}) {
     else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = '👑';
   }
 
+  // Universal Rule: In HTML UI, icons default to the visual left of the plan name across the entire app
+  const isIconLeft = (options.iconPosition === 'left' || options.iconLeft) ? true : (options.iconPosition === 'right' ? false : !options.plainText);
+
   if (options.plainText) {
     const icon = emojiStr || '💎';
     const textOut = options.raw ? cleanText : escapeHtml(cleanText);
-    if (options.iconPosition === 'left' || options.iconLeft) {
+    if (isIconLeft) {
       return textOut ? `${textOut} ${icon}` : icon;
     }
     return textOut ? `${icon} ${textOut}` : icon;
@@ -744,7 +747,7 @@ function formatPlanTitle(name, options = {}) {
   if (!cleanText) {
     return `<span class="inline-block text-base">${emojiStr}</span>`;
   }
-  if (options.iconPosition === 'left' || options.iconLeft) {
+  if (isIconLeft) {
     return `<span class="inline-flex items-center gap-1.5"><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi><span class="shrink-0 text-base">${emojiStr}</span></span>`;
   }
   return `<span class="inline-flex items-center gap-1.5"><span class="shrink-0 text-base">${emojiStr}</span><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;

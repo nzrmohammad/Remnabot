@@ -363,7 +363,8 @@ window.validateTopupAmount = validateTopupAmount;
 function updateTopupDisplays(amt) {
   const cardAmountDisplay = document.getElementById('topupCardAmountDisplay');
   if (cardAmountDisplay) {
-    cardAmountDisplay.innerText = `${Number(amt || 0).toLocaleString('en-US')} تومان`;
+    const formattedAmt = Number(amt || 0).toLocaleString('en-US');
+    cardAmountDisplay.innerHTML = `<span class="font-sans font-bold">${formattedAmt}</span> <span class="text-xs font-medium">تومان</span>`;
   }
   if (window.storeSettings?.ton_rate_toman && window.storeSettings.ton_rate_toman > 0) {
     const tonAmt = ((amt || 0) / window.storeSettings.ton_rate_toman).toFixed(4);
@@ -864,8 +865,14 @@ function renderCardAutoInvoice(inv) {
   const numToDisplay = inv.card_number || window.storeSettings?.card_number || '----';
   const holderToDisplay = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
 
-  if (exactTomanEl) exactTomanEl.innerText = `${Number(inv.exact_amount || 0).toLocaleString('en-US')} تومان`;
-  if (exactRialEl) exactRialEl.innerText = `${Number(inv.exact_rial || (inv.exact_amount * 10) || 0).toLocaleString('en-US')} ریال`;
+  if (exactTomanEl) {
+    const tomanVal = Number(inv.exact_amount || 0).toLocaleString('en-US');
+    exactTomanEl.innerHTML = `<span class="font-sans font-bold">${tomanVal}</span> <span class="text-xs font-medium">تومان</span>`;
+  }
+  if (exactRialEl) {
+    const rialVal = Number(inv.exact_rial || (inv.exact_amount * 10) || 0).toLocaleString('en-US');
+    exactRialEl.innerHTML = `<span class="font-sans font-bold">${rialVal}</span> <span class="text-xs font-medium">ریال</span>`;
+  }
   if (cardNumEl) renderBluCardNumber(cardNumEl, numToDisplay);
   if (cardHolderEl) cardHolderEl.innerText = holderToDisplay;
   if (graphicNum) renderBluCardNumber(graphicNum, numToDisplay);

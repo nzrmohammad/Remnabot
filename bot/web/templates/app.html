@@ -272,28 +272,30 @@
       <!-- ===================================================== -->
       <div id="tab-dashboard" class="tab-pane space-y-4">
 
-        <!-- Quick Interactive Action Cards (گردونه شانس و کارت استوری) -->
+        <!-- Quick Interactive Action Cards (گردونه شانس و راهنمای اتصال) -->
         <div class="grid grid-cols-2 gap-2.5">
-          <button id="openLuckyWheelBtn" type="button" onclick="window.openLuckyWheel && window.openLuckyWheel()" class="card lucky-wheel-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
-            <span class="text-xs font-bold t-main flex items-center gap-1.5 lucky-wheel-title shrink-0">
+          <button id="openLuckyWheelBtn" type="button" onclick="window.openLuckyWheel && window.openLuckyWheel()" class="card lucky-wheel-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex flex-col justify-between gap-2 transition shadow-sm group active:scale-95 min-h-[72px]">
+            <div class="flex items-center gap-1.5 lucky-wheel-title">
               <img src="/static/img/icons/wheel.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
-              <span>گردونه شانس</span>
-            </span>
-            <div class="flex items-center justify-end gap-1.5 min-w-0">
-              <span id="luckyWheelBadge" class="hidden text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border leading-none transition-all whitespace-nowrap shrink-0 inline-flex items-center justify-center"></span>
+              <span class="text-xs font-bold t-main">گردونه شانس</span>
+            </div>
+            <div class="flex items-center justify-start min-w-0">
+              <span id="luckyWheelBadge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-lg border leading-tight transition-all whitespace-nowrap inline-flex items-center justify-center"></span>
             </div>
           </button>
 
-          <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="card tutorial-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
-            <span class="text-xs font-bold t-main flex items-center gap-1.5 tutorial-title">
+          <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="card tutorial-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex flex-col justify-between gap-2 transition shadow-sm group active:scale-95 min-h-[72px]">
+            <div class="flex items-center gap-1.5 tutorial-title">
               <img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
-              <span>راهنمای اتصال</span>
-              <span id="tutorialBadge" class="hidden inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-700 dark:text-cyan-300">
+              <span class="text-xs font-bold t-main">راهنمای اتصال</span>
+            </div>
+            <div class="flex items-center justify-start min-w-0">
+              <span id="tutorialBadge" class="hidden inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 whitespace-nowrap">
                 <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping"></span>
                 <span>آپدیت شد</span>
               </span>
-            </span>
-            <span class="hidden tutorial-sub"></span>
+              <span class="tutorial-sub text-[10px] t-muted block truncate">دانلود نرم‌افزارها</span>
+            </div>
           </button>
         </div>
 
@@ -1866,20 +1868,20 @@
         </div>
 
         <!-- Method Tabs -->
-        <div id="topupMethodTabs" class="flex card-inset p-1 rounded-xl gap-1 overflow-x-auto no-scrollbar">
-          <button id="topupMethodCardBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-bold text-xs bg-blue-600 text-white transition flex items-center justify-center gap-1">
+        <div id="topupMethodTabs" class="flex card-inset p-1 rounded-2xl gap-1 overflow-x-auto no-scrollbar">
+          <button id="topupMethodCardBtn" type="button" class="flex-1 min-w-[65px] py-2 px-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white transition flex items-center justify-center gap-1">
             <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" aria-hidden="true" /><span>کارت</span>
           </button>
-          <button id="topupMethodCryptoBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
+          <button id="topupMethodCryptoBtn" type="button" class="flex-1 min-w-[65px] py-2 px-2.5 rounded-xl font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
             <img src="/static/img/icons/ton.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>TON</span>
           </button>
-          <button id="topupMethodTrxBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
+          <button id="topupMethodTrxBtn" type="button" class="flex-1 min-w-[65px] py-2 px-2.5 rounded-xl font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
             <img src="/static/img/icons/tron.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /> <span>ترون</span>
           </button>
-          <button id="topupMethodPolBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
+          <button id="topupMethodPolBtn" type="button" class="flex-1 min-w-[65px] py-2 px-2.5 rounded-xl font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
             <img src="/static/img/icons/polygon.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /> <span>پلیگان</span>
           </button>
-          <button id="topupMethodStarsBtn" type="button" class="flex-1 min-w-[65px] py-1.5 rounded-lg font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
+          <button id="topupMethodStarsBtn" type="button" class="flex-1 min-w-[65px] py-2 px-2.5 rounded-xl font-medium text-xs t-muted hover:t-main transition flex items-center justify-center gap-1">
             <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>استارز</span>
           </button>
         </div>
@@ -1982,7 +1984,7 @@
                       <button type="button" onclick="window.copyCardAutoAmount('rial')" class="p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-accent transition active:scale-95 flex items-center justify-center shrink-0" title="کپی مبلغ به ریال" aria-label="کپی مبلغ به ریال">
                         <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                       </button>
-                      <b id="cardAutoExactRial" class="t-accent text-sm sm:text-base font-sans font-bold" dir="ltr">-- ریال</b>
+                      <b id="cardAutoExactRial" class="t-accent text-sm sm:text-base font-bold inline-flex items-center gap-1.5" dir="rtl"><span class="font-sans font-bold">--</span> <span class="text-xs font-medium">ریال</span></b>
                     </div>
                   </div>
 
@@ -1993,7 +1995,7 @@
                       <button type="button" onclick="window.copyCardAutoAmount('toman')" class="p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-success transition active:scale-95 flex items-center justify-center shrink-0" title="کپی مبلغ به تومان" aria-label="کپی مبلغ به تومان">
                         <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                       </button>
-                      <b id="cardAutoExactToman" class="t-success text-sm sm:text-base font-sans font-bold" dir="ltr">-- تومان</b>
+                      <b id="cardAutoExactToman" class="t-success text-sm sm:text-base font-bold inline-flex items-center gap-1.5" dir="rtl"><span class="font-sans font-bold">--</span> <span class="text-xs font-medium">تومان</span></b>
                     </div>
                   </div>
                 </div>
@@ -2126,7 +2128,7 @@
                   <button id="copyTopupCardAmountBtn" type="button" class="p-1 rounded-lg bg-transparent border-0 shadow-none hover:bg-transparent t-success transition active:scale-95 flex items-center justify-center shrink-0" title="کپی مبلغ واریزی" aria-label="کپی مبلغ واریزی">
                     <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                   </button>
-                  <b id="topupCardAmountDisplay" class="t-success font-sans num-bidi text-sm sm:text-base font-bold block" dir="ltr">-- تومان</b>
+                  <b id="topupCardAmountDisplay" class="t-success text-sm sm:text-base font-bold inline-flex items-center gap-1.5" dir="rtl"><span class="font-sans font-bold">--</span> <span class="text-xs font-medium">تومان</span></b>
                 </div>
               </div>
 
@@ -3685,15 +3687,17 @@
           <!-- Service Specific Visual Card (Opens dedicated selection modal) -->
           <div id="giftServiceSection" class="space-y-1.5 hidden">
             <span class="text-[11px] t-muted block">بسته اشتراک هدیه:</span>
-            <div role="button" tabindex="0" id="giftSelectedServiceCard" onclick="window.openGiftServiceSelectModal && window.openGiftServiceSelectModal()" class="card-inset p-3 rounded-2xl border border-pink-500/30 flex items-center justify-between cursor-pointer hover:border-pink-500 transition">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <span class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
-                <div class="min-w-0">
-                  <b id="giftSelectedServiceTitle" class="text-xs t-main block truncate">انتخاب بسته اشتراک...</b>
+            <div role="button" tabindex="0" id="giftSelectedServiceCard" onclick="window.openGiftServiceSelectModal && window.openGiftServiceSelectModal()" class="card-inset p-3 rounded-2xl border border-pink-500/30 flex items-center justify-between cursor-pointer hover:border-pink-500 transition" dir="rtl">
+              <span class="text-xs text-pink-500 font-bold px-2.5 py-1 rounded-lg card-inset border border-pink-500/30 shrink-0">انتخاب</span>
+              <div class="flex items-center gap-2 min-w-0 flex-1 justify-start">
+                <div class="min-w-0 text-right">
+                  <div class="flex items-center gap-1.5">
+                    <b id="giftSelectedServiceTitle" class="text-xs t-main block truncate">انتخاب بسته اشتراک...</b>
+                    <span id="giftSelectedServiceIcon" class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
+                  </div>
                   <span id="giftSelectedServiceSpecs" class="text-[11px] t-muted block truncate">جهت انتخاب بسته دلخواه برای هدیه کلیک فرمایید</span>
                 </div>
               </div>
-              <span class="text-xs text-pink-500 font-bold px-2.5 py-1 rounded-lg card-inset border border-pink-500/30 shrink-0">انتخاب</span>
             </div>
             <input type="hidden" id="giftServiceSelect" value="" />
           </div>

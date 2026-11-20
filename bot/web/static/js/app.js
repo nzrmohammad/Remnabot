@@ -5478,7 +5478,10 @@ function selectGiftService(serviceId) {
   const specsEl = $('giftSelectedServiceSpecs');
   const hiddenInp = $('giftServiceSelect');
 
+  const iconEl = $('giftSelectedServiceIcon');
+
   if (titleEl) titleEl.innerHTML = formatPlanTitle(chosen.name);
+  if (iconEl) iconEl.classList.add('hidden');
   if (specsEl) {
     const isTimeOnly = chosen.plan_type === 'time' || (chosen.duration_days > 0 && (!chosen.traffic_gb || chosen.traffic_gb <= 0));
     const isTrafficOnly = chosen.plan_type === 'traffic' || (chosen.traffic_gb > 0 && (!chosen.duration_days || chosen.duration_days <= 0));
