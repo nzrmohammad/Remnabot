@@ -15,19 +15,29 @@ async def resolve_broadcast_recipients(
     target: str,
 ) -> list[int]:
     """Resolve list of recipient telegram IDs based on broadcast target filter."""
+    # Exclude banned users from all broadcasts
+    user_repo = UserRepository(session)
+    banned_tids: set[int] = set()
+    try:
+        banned_users = await user_repo.list_banned()
+        if isinstance(banned_users, (list, tuple, set)):
+            banned_tids = {u.telegram_id for u in banned_users if hasattr(u, "telegram_id")}
+    except Exception:
+        pass
+
     if target == "all":
         users = await UserRepository(session).all_users()
-        return [u.telegram_id for u in users]
+        return [u.telegram_id for u in users if u.telegram_id not in banned_tids]
 
     if target == "balance":
         stmt = select(Wallet.telegram_id).where(Wallet.balance > 0)
         res = await session.execute(stmt)
-        return [row[0] for row in res.fetchall()]
+        return [row[0] for row in res.fetchall() if row[0] not in banned_tids]
 
     if target == "buyers":
         stmt = select(distinct(Order.telegram_id)).where(Order.status == "paid")
         res = await session.execute(stmt)
-        return [row[0] for row in res.fetchall()]
+        return [row[0] for row in res.fetchall() if row[0] not in banned_tids]
 
     # Targets requiring Remnawave
     panel_users = await remnawave.get_all_panel_users() or []
@@ -47,15 +57,15 @@ async def resolve_broadcast_recipients(
                     pass
 
     if target == "active":
-        return list(active_tids)
+        return list(active_tids - banned_tids)
 
     if target == "expired":
         all_users = await UserRepository(session).all_users()
-        all_tids = {u.telegram_id for u in all_users}
+        all_tids = {u.telegram_id for u in all_users if u.telegram_id not in banned_tids}
         return list(all_tids - active_tids)
 
     users = await UserRepository(session).all_users()
-    return [u.telegram_id for u in users]
+    return [u.telegram_id for u in users if u.telegram_id not in banned_tids]
 
 
 _resolve_broadcast_recipients = resolve_broadcast_recipients

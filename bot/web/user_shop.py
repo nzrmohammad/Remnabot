@@ -182,6 +182,8 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
         data = await request.json()
     except Exception:
         pass
+    if not isinstance(data, dict):
+        data = {}
 
     remnawave = request.app["remnawave"]
     panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
@@ -338,7 +340,12 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         if inv_err:
             return inv_err
 
-        service = await session.get(Service, int(service_id))
+        try:
+            s_id = int(service_id)
+        except (ValueError, TypeError):
+            return web.json_response({"ok": False, "message": "شناسه بسته نامعتبر است."}, status=400)
+
+        service = await session.get(Service, s_id)
         if not service or not service.is_active or (service.max_purchases and (service.purchases_count or 0) >= service.max_purchases):
             return web.json_response({"ok": False, "message": "بسته مورد نظر یافت نشد، منقضی شده یا سقف فروش آن تکمیل شده است."}, status=404)
 
@@ -519,6 +526,8 @@ async def post_user_create_gift(request: web.Request) -> web.Response:
         data = await request.json()
     except Exception:
         return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+    if not isinstance(data, dict):
+        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
     delivery_type = data.get("delivery_type", "LINK")
     gift_type = data.get("gift_type", "BALANCE")
     try:
@@ -573,6 +582,8 @@ async def post_user_claim_gift(request: web.Request) -> web.Response:
     try:
         data = await request.json()
     except Exception:
+        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+    if not isinstance(data, dict):
         return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
     code = (data.get("code") or "").strip()
     if not code:
@@ -680,9 +691,19 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
         data = await request.json()
     except Exception:
         data = {}
-    traffic_gb = max(1, int(data.get("traffic_gb", 10) or 10))
-    duration_days = max(1, int(data.get("duration_days", 30) or 30))
-    hwid_limit = max(1, min(10, int(data.get("hwid_limit", 2) or 2)))
+    if not isinstance(data, dict):
+        data = {}
+
+    def _safe_pos_int(val: object, default: int) -> int:
+        try:
+            res = int(val)
+            return res if res > 0 else default
+        except (ValueError, TypeError):
+            return default
+
+    traffic_gb = _safe_pos_int(data.get("traffic_gb"), 10)
+    duration_days = _safe_pos_int(data.get("duration_days"), 30)
+    hwid_limit = max(1, min(10, _safe_pos_int(data.get("hwid_limit"), 2)))
     cache = request.app.get("cache")
 
     async with db_session(request) as session:

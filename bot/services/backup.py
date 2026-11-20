@@ -74,7 +74,11 @@ async def _stream_all(session: AsyncSession, statement, yield_per: int = 500) ->
     return list(res.scalars().all())
 
 
-async def create_database_backup(session: AsyncSession, out_dir: str | Path | None = None) -> Path:
+async def create_database_backup(
+    session: AsyncSession,
+    out_dir: str | Path | None = None,
+    password: str | None = None,
+) -> Path:
     """Export all primary database tables to a JSON backup file."""
     now = datetime.now(timezone.utc)
     timestamp = now.strftime("%Y%m%d_%H%M%S")
@@ -503,6 +507,12 @@ async def create_database_backup(session: AsyncSession, out_dir: str | Path | No
             json.dump(data, f, ensure_ascii=False, indent=2, default=_json_serializer)
 
     await asyncio.to_thread(_write_file)
+
+    if password:
+        zip_path = await asyncio.to_thread(create_encrypted_backup_archive, file_path, password)
+        if zip_path:
+            logger.info("Encrypted database backup created at %s", zip_path)
+            return zip_path
 
     logger.info("Database backup created at %s", file_path)
     return file_path

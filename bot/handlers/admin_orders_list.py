@@ -97,7 +97,8 @@ async def _render_orders_list(
         kb.button(text=_fmt_filter_btn("pending"), callback_data="adm:orders:pending:0")
         kb.button(text=_fmt_filter_btn("failed"), callback_data="adm:orders:failed:0")
         kb.button(text=_fmt_filter_btn("refunded"), callback_data="adm:orders:refunded:0")
-    kb.adjust(3, 2)
+
+    adjust_sizes = [3, 2, 2 if query else 1]
 
     # Search Row
     if query:
@@ -107,10 +108,8 @@ async def _render_orders_list(
         else:
             kb.button(text=t(lang, "btn_order_search"), callback_data="adm:orders:search")
             kb.button(text=t(lang, "btn_order_clear_search"), callback_data=f"adm:orders:clear:{status}")
-        kb.adjust(2)
     else:
         kb.button(text=t(lang, "btn_order_search"), callback_data="adm:orders:search")
-        kb.adjust(1)
 
     # Order item buttons
     for order in orders:
@@ -125,7 +124,7 @@ async def _render_orders_list(
             text=btn_title,
             callback_data=f"adm:ord:{order.id}:{status}:{page}",
         )
-        kb.adjust(1)
+        adjust_sizes.append(1)
 
     # Pagination controls
     if total_pages > 1:
@@ -153,12 +152,13 @@ async def _render_orders_list(
                 kb.button(text="Next ➡️", callback_data=f"adm:orders:{status}:{page + 1}")
             else:
                 kb.button(text=" ", callback_data="adm:noop")
-        kb.adjust(3)
+        adjust_sizes.append(3)
 
     kb.button(text="🔙 بازگشت به گزارشات" if lang == "fa" else "🔙 Back to Reports", callback_data="adm:sales")
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb.adjust(1, 1)
+    adjust_sizes.extend([1, 1])
 
+    kb.adjust(*adjust_sizes)
     await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
 
@@ -202,7 +202,7 @@ async def orders_clear_search(
         return
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     status = call.data.rsplit(":", 1)[1]
-    await state.update_data(order_search_query=None)
+    await state.clear()
     await _render_orders_list(bot, user, user_repo, session, status=status, page=0, query=None)
     await call.answer()
 
@@ -219,6 +219,10 @@ async def orders_filtered_view(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+
+    cur_state = await state.get_state()
+    if cur_state == OrderManagementStates.waiting_search:
+        await state.clear()
 
     parts = call.data.split(":")
     status = parts[2] if len(parts) > 2 else "all"

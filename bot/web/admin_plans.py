@@ -528,16 +528,27 @@ async def post_admin_batch_vouchers(request: web.Request) -> web.Response:
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
-    amount = int(body.get("amount") or 0)
-    count = int(body.get("count") or 1)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "فرمت داده نامعتبر است."}, status=400)
+
+    try:
+        amount = int(body.get("amount") or 0)
+        count = int(body.get("count") or 1)
+        max_uses = int(body.get("max_uses") or 1)
+        expire_days = int(body.get("expire_days") or 0)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "مقادیر عددی ارسالی نامعتبر است."}, status=400)
+
     prefix = str(body.get("prefix") or "GIFT-").strip().upper()
-    max_uses = int(body.get("max_uses") or 1)
-    expire_days = int(body.get("expire_days") or 0)
 
     if amount <= 0:
         return web.json_response({"ok": False, "error": "مبلغ اعتبار کارت شارژ باید بیشتر از صفر باشد."}, status=400)
     if count <= 0 or count > 500:
         return web.json_response({"ok": False, "error": "تعداد کدهای درخواستی باید بین 1 تا 500 باشد."}, status=400)
+    if max_uses <= 0:
+        return web.json_response({"ok": False, "error": "سقف استفاده از هر کد باید حداقل 1 باشد."}, status=400)
+    if expire_days < 0:
+        expire_days = 0
 
     expires_at = None
     if expire_days > 0:

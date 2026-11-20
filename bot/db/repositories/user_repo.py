@@ -22,7 +22,7 @@ class UserRepository:
         return result.scalar_one_or_none()
 
     async def get_or_create(
-        self, telegram_id: int, username: str | None, full_name: str | None = None
+        self, telegram_id: int, username: str | None = None, full_name: str | None = None
     ) -> User:
         user = await self.get_by_telegram_id(telegram_id)
         if user is None:

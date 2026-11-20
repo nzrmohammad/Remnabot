@@ -197,7 +197,8 @@
 
       // Lazy load tab data
       if (targetId === 'tab-admin-nodes') {
-        if ($('adminOverviewNodesList')?.children.length <= 1) {
+        const nodesListEl = $('adminOverviewNodesList') || $('adminNodesFullList');
+        if (nodesListEl?.children.length <= 1) {
           if (window.syncAdminOverview) window.syncAdminOverview(false);
         }
         if ($('adminSslHealthList')?.children.length <= 1) {

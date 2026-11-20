@@ -20,6 +20,7 @@ from bot.keyboards.inline import (
 from bot.locales.texts import CHOOSE_LANGUAGE, INVITE_ONLY_NOTICE, MAINTENANCE_NOTICE, t
 from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.menu import render_menu, reset_menu
+from bot.web.user_common import format_support_link
 
 router = Router(name="start")
 
@@ -75,16 +76,7 @@ async def cmd_start(
                 from aiogram.utils.keyboard import InlineKeyboardBuilder
                 kb = InlineKeyboardBuilder()
                 raw_contact = (getattr(store_settings, "support_contact", "") or "").strip()
-                support_url = ""
-                if raw_contact and raw_contact not in ("—", "-"):
-                    if raw_contact.startswith(("http://", "https://")):
-                        support_url = raw_contact
-                    elif raw_contact.startswith("t.me/"):
-                        support_url = f"https://{raw_contact}"
-                    elif raw_contact.startswith("@"):
-                        support_url = f"https://t.me/{raw_contact[1:]}"
-                    else:
-                        support_url = f"https://t.me/{raw_contact}"
+                support_url = format_support_link(raw_contact)
                 if support_url:
                     kb.button(text="🎧 ارتباط با پشتیبانی", url=support_url)
                 await message.answer(INVITE_ONLY_NOTICE, reply_markup=kb.as_markup() if support_url else None)

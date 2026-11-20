@@ -147,17 +147,9 @@ async def get_admin_ticket_messages(request: web.Request) -> web.Response:
     except Exception as exc:
         logger.error("Error in get_admin_ticket_messages for user %s: %s", target_id, exc, exc_info=True)
         return web.json_response({
-            "ok": True,
-            "user": {
-                "telegram_id": target_id,
-                "full_name": f"کاربر {target_id}",
-                "username": None,
-                "wallet_balance": 0,
-                "pending_topup_id": None,
-                "pending_amount": None,
-            },
-            "messages": [],
-        })
+            "ok": False,
+            "error": "خطا در دریافت پیام‌های تیکت پشتیبانی.",
+        }, status=500)
 
     if not chat_msgs and pending_topup:
         time_str = pending_topup.created_at.strftime("%H:%M") if pending_topup.created_at else "—"

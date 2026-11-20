@@ -151,7 +151,7 @@ async def order_view_or_refund(
     lang = user.language
 
     parts = call.data.split(":")
-    if len(parts) >= 3 and parts[2] in ("ref", "refyes"):
+    if len(parts) >= 4 and parts[2] in ("ref", "refyes"):
         action = parts[2]
         order_id = _safe_int(parts[3])
         status = parts[4] if len(parts) > 4 else "all"

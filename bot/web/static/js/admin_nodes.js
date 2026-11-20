@@ -19,7 +19,7 @@
 
   // Collapsible Accordion Node Card Renderer
   function renderOverviewNodes(nodes) {
-    const container = $('adminOverviewNodesList');
+    const container = $('adminOverviewNodesList') || $('adminNodesFullList');
     if (!container) return;
     if (!nodes || nodes.length === 0) {
       container.innerHTML = `

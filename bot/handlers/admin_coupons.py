@@ -130,7 +130,11 @@ async def admin_coupon_toggle(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    coupon_id = int(call.data.rsplit(":", 1)[1])
+    raw_id = call.data.rsplit(":", 1)[1] if ":" in call.data else ""
+    coupon_id = _parse_int(raw_id)
+    if not coupon_id:
+        await call.answer(t("fa", "acc_error"), show_alert=True)
+        return
     coupon_repo = CouponRepository(session)
     await coupon_repo.toggle_active(coupon_id)
     await admin_coupon_detail(call, bot, user_repo, session, coupon_id=coupon_id)
@@ -143,7 +147,11 @@ async def admin_coupon_delete(
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
-    coupon_id = int(call.data.rsplit(":", 1)[1])
+    raw_id = call.data.rsplit(":", 1)[1] if ":" in call.data else ""
+    coupon_id = _parse_int(raw_id)
+    if not coupon_id:
+        await call.answer(t("fa", "acc_error"), show_alert=True)
+        return
     coupon_repo = CouponRepository(session)
     await coupon_repo.delete(coupon_id)
     await call.answer("کد تخفیف حذف شد." if call.from_user.language_code == "fa" else "Coupon deleted.")
@@ -174,6 +182,8 @@ async def admin_coupon_add_start(
 async def admin_coupon_add_code(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext,
 ):
+    if not _is_admin(message.from_user.id):
+        return
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language or "fa"
     await delete_message_silently(bot, message.chat.id, message.message_id)
@@ -207,6 +217,8 @@ async def admin_coupon_add_code(
 async def admin_coupon_add_discount(
     message: Message, bot: Bot, user_repo: UserRepository, state: FSMContext,
 ):
+    if not _is_admin(message.from_user.id):
+        return
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language or "fa"
     await delete_message_silently(bot, message.chat.id, message.message_id)
@@ -245,6 +257,8 @@ async def admin_coupon_add_discount(
 async def admin_coupon_add_max_uses(
     message: Message, bot: Bot, user_repo: UserRepository, session: AsyncSession, state: FSMContext,
 ):
+    if not _is_admin(message.from_user.id):
+        return
     user = await user_repo.get_or_create(message.from_user.id, message.from_user.username)
     lang = user.language or "fa"
     await delete_message_silently(bot, message.chat.id, message.message_id)
@@ -262,16 +276,36 @@ async def admin_coupon_add_max_uses(
     discount_amount = data.get("discount_amount") or 0
 
     coupon_repo = CouponRepository(session)
-    await coupon_repo.create(
-        code=code,
-        discount_percent=discount_percent,
-        discount_amount=discount_amount,
-        max_uses=max_uses,
-    )
-    await AdminLogRepository(session).log(
-        message.from_user.id, "setting", detail=f"create_coupon={code}"
-    )
-    await state.clear()
+    existing_coupon = await coupon_repo.get_by_code(code) if code else None
+    if existing_coupon is not None:
+        await state.clear()
+        kb = InlineKeyboardBuilder()
+        kb.button(text="➕ ساخت کد دیگر", callback_data="adm:cpn:add")
+        kb.button(text="🔙 بازگشت به لیست کدها", callback_data="adm:coupons")
+        kb.adjust(1)
+        err_msg = f"❌ <b>خطا:</b> کد تخفیف <code>{code}</code> قبلاً ثبت شده است و تکراری می‌باشد."
+        await render_menu(bot, user, user_repo, err_msg, kb.as_markup())
+        return
+
+    try:
+        await coupon_repo.create(
+            code=code,
+            discount_percent=discount_percent,
+            discount_amount=discount_amount,
+            max_uses=max_uses,
+        )
+        await AdminLogRepository(session).log(
+            message.from_user.id, "setting", detail=f"create_coupon={code}"
+        )
+    except Exception as exc:
+        logger.error("Failed to create coupon %s: %s", code, exc)
+        kb = InlineKeyboardBuilder()
+        kb.button(text="🔙 بازگشت به لیست کدها", callback_data="adm:coupons")
+        kb.adjust(1)
+        await render_menu(bot, user, user_repo, "❌ خطا در ثبت کد تخفیف در پایگاه داده.", kb.as_markup())
+        return
+    finally:
+        await state.clear()
 
     coupons = await coupon_repo.list_all()
     lines = [

@@ -225,8 +225,9 @@ async def apply_nobitex_rate(
 
     await call.answer(f"✅ {kind_title} فروشگاه روی {price:,} تومان تنظیم شد.", show_alert=True)
     try:
+        base_text = (call.message.html_text or "").split("\n\n✅ <b>")[0]
         await call.message.edit_text(
-            f"{call.message.html_text}\n\n✅ <b>{kind_title} فروشگاه با موفقیت روی {price:,} تومان تنظیم شد.</b>",
+            f"{base_text}\n\n✅ <b>{kind_title} فروشگاه با موفقیت روی {price:,} تومان تنظیم شد.</b>",
             reply_markup=kb.as_markup(),
         )
     except Exception:

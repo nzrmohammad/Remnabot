@@ -5669,7 +5669,7 @@ function copyGiftCode() {
 }
 
 async function submitClaimVoucher() {
-  const inp = $('claimVoucherInput');
+  const inp = $('claimVoucherInput') || $('voucherCodeInput');
   const code = inp?.value.trim().toUpperCase();
   if (!code) {
     showToast('⚠️ لطفاً کد هدیه را وارد فرمایید.');
