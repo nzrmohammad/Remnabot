@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import secrets
 from html import escape
 
 from aiogram import Bot, F, Router
@@ -115,10 +116,11 @@ async def wheel_spin_action(
     tz = get_settings().TIMEZONE
     use_ticket = (call.data == "wheel:spin_ticket")
 
-    # Check lock to prevent simultaneous clicks
+    # Check lock to prevent simultaneous clicks (consistent with web tokenized lock)
     spin_lock_key = f"lock:user:{call.from_user.id}:spin"
+    spin_token = secrets.token_hex(16)
     if cache and hasattr(cache, "set_nx"):
-        lock_ok = await cache.set_nx(spin_lock_key, "1", ttl_seconds=5)
+        lock_ok = await cache.set_nx(spin_lock_key, spin_token, ttl_seconds=30)
         if not lock_ok:
             await call.answer("درخواست قبلی در حال پردازش است...", show_alert=True)
             return
@@ -215,8 +217,11 @@ async def wheel_spin_action(
         await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
 
     finally:
-        if cache and hasattr(cache, "delete"):
-            await cache.delete(spin_lock_key)
+        if cache:
+            if hasattr(cache, "release_lock"):
+                await cache.release_lock(spin_lock_key, spin_token)
+            elif hasattr(cache, "delete"):
+                await cache.delete(spin_lock_key)
 
 
 @router.callback_query(F.data == "wheel:prizes")

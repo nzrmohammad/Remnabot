@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import case, select, text, update
+from sqlalchemy import case, func, select, text, update
 
 from bot.db.models import Service, Wallet
 from bot.db.repositories.order_repo import OrderRepository
@@ -795,10 +795,15 @@ async def maybe_reward_referrer(
         else:
             reward.applied = False
 
+    from bot.db.models import User
     from bot.db.repositories.user_repo import UserRepository
     inviter_user = await UserRepository(session).get_by_telegram_id(user.referred_by_id)
     if inviter_user:
-        inviter_user.spin_tickets = (getattr(inviter_user, "spin_tickets", 0) or 0) + 1
+        await session.execute(
+            update(User)
+            .where(User.telegram_id == user.referred_by_id)
+            .values(spin_tickets=func.coalesce(User.spin_tickets, 0) + 1)
+        )
     await session.commit()
     inv_lang = (inviter_user.language if inviter_user else None) or "fa"
     try:

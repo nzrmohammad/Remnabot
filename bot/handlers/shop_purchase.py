@@ -133,6 +133,7 @@ async def confirm_new_account(
             create_new=True, discount_amount=total_discount,
             coupon_code=coupon_code,
             bot=bot,
+            cache=cache,
         )
         await finalize_purchase(
             bot=bot,
@@ -308,6 +309,7 @@ async def service_confirm(
             remnawave, session, service, user.telegram_id, discount_amount=total_discount,
             coupon_code=coupon_code,
             bot=bot,
+            cache=cache,
         )
 
         if result.kind == "needs_account":

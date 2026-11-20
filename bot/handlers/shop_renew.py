@@ -250,6 +250,7 @@ async def confirm_for_account(
             chosen_account=chosen, discount_amount=total_discount,
             coupon_code=coupon_code,
             bot=bot,
+            cache=cache,
         )
         await finalize_purchase(
             bot=bot,
@@ -322,6 +323,7 @@ async def service_choose_account(
             chosen_account=chosen, discount_amount=total_discount,
             coupon_code=coupon_code,
             bot=bot,
+            cache=cache,
         )
         await finalize_purchase(
             bot=bot,

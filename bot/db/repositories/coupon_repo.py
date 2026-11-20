@@ -2,7 +2,7 @@
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy import case, delete, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -263,17 +263,46 @@ class CouponRepository:
         if credit_amount <= 0 or (coupon.discount_percent or 0) > 0:
             return False, 0, "این کد تخفیف خرید است و اعتباری نمی‌باشد."
 
-        coupon.used_count += 1
-        if coupon.max_uses > 0 and coupon.used_count >= coupon.max_uses:
-            coupon.is_active = False
+        # Atomic usage count update to protect against concurrent redemptions across all dialects (including SQLite)
+        if coupon.max_uses and coupon.max_uses > 0:
+            upd_stmt = (
+                update(Coupon)
+                .where(
+                    Coupon.id == coupon.id,
+                    Coupon.used_count < coupon.max_uses,
+                )
+                .values(
+                    used_count=Coupon.used_count + 1,
+                    is_active=case(
+                        (Coupon.used_count + 1 >= coupon.max_uses, False),
+                        else_=Coupon.is_active,
+                    ),
+                )
+                .execution_options(synchronize_session="fetch")
+            )
+            upd_res = await self.session.execute(upd_stmt)
+            if upd_res.rowcount == 0:
+                return False, 0, "سقف مجاز استفاده از این کد شارژ تکمیل شده است."
+        else:
+            upd_stmt = (
+                update(Coupon)
+                .where(Coupon.id == coupon.id)
+                .values(used_count=Coupon.used_count + 1)
+                .execution_options(synchronize_session="fetch")
+            )
+            await self.session.execute(upd_stmt)
 
-        usage = CouponUsage(
-            coupon_id=coupon.id,
-            telegram_id=telegram_id,
-            order_id=None,
-            discount_applied=credit_amount,
-        )
-        self.session.add(usage)
+        try:
+            usage = CouponUsage(
+                coupon_id=coupon.id,
+                telegram_id=telegram_id,
+                order_id=None,
+                discount_applied=credit_amount,
+            )
+            self.session.add(usage)
+            await self.session.flush()
+        except IntegrityError:
+            return False, 0, "شما قبلاً از این کد شارژ استفاده کرده‌اید."
 
         from bot.db.repositories.wallet_repo import WalletRepository
         wallet_repo = WalletRepository(self.session)

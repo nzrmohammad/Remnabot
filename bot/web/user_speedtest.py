@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Lazy-allocated 1 MB non-compressible random buffer
 _SPEEDTEST_CHUNK: bytes | None = None
+_MAX_ISP_CACHE = 500
 _ISP_CACHE: dict[str, str] = {}
 
 
@@ -26,7 +27,7 @@ def _get_speedtest_chunk() -> bytes:
 
 
 async def _lookup_isp(client_ip: str) -> str:
-    """Resolve ISP / organization for a client IP with in-memory caching."""
+    """Resolve ISP / organization for a client IP with bounded in-memory caching."""
     if not client_ip or client_ip.startswith(("127.", "10.", "192.168.", "172.16.", "::1")):
         return "شبکه محلی (Local)"
     if client_ip in _ISP_CACHE:
@@ -40,6 +41,8 @@ async def _lookup_isp(client_ip: str) -> str:
                     if data.get("status") == "success":
                         isp_name = str(data.get("isp") or data.get("org") or "").strip()
                         if isp_name:
+                            if len(_ISP_CACHE) >= _MAX_ISP_CACHE:
+                                _ISP_CACHE.pop(next(iter(_ISP_CACHE)))
                             _ISP_CACHE[client_ip] = isp_name
                             return isp_name
     except Exception:
@@ -48,15 +51,45 @@ async def _lookup_isp(client_ip: str) -> str:
 
 
 async def get_user_speedtest_ping(request: web.Request) -> web.Response:
-    """Lightweight ping probe returning server timestamp, server info, and client IP."""
+    """Lightweight ping probe returning server timestamp, server info, and client IP with rate limiting."""
     user_auth, err = require_user(request)
     if err:
         return err
 
+    user_id = user_auth.get("id")
+    client_ip = get_client_ip(request)
+
+    cache = request.app.get("cache") if hasattr(request.app, "get") else None
+    if cache:
+        try:
+            rl_key = f"tma:speedtest:limit:ping:{user_id or client_ip}"
+            if hasattr(cache, "incr"):
+                count = await cache.incr(rl_key, ttl_seconds=30)
+                if count > 40:
+                    return web.json_response(
+                        {"ok": False, "error": "محدودیت تعداد درخواست تست پینگ. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
+                        status=429,
+                        headers={"Retry-After": "30"},
+                    )
+            elif hasattr(cache, "get"):
+                req_count = await cache.get(rl_key) if inspect.iscoroutinefunction(cache.get) else cache.get(rl_key)
+                if isinstance(req_count, (int, float)) and req_count >= 40:
+                    return web.json_response(
+                        {"ok": False, "error": "محدودیت تعداد درخواست تست پینگ. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
+                        status=429,
+                        headers={"Retry-After": "30"},
+                    )
+                if hasattr(cache, "set"):
+                    if inspect.iscoroutinefunction(cache.set):
+                        await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                    else:
+                        cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+        except Exception:
+            pass
+
     server_name = "سرور اختصاصی"
     server_ip = "Anycast Edge"
 
-    client_ip = get_client_ip(request)
     isp = await _lookup_isp(client_ip)
 
     return web.json_response(
@@ -86,29 +119,38 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
     client_ip = get_client_ip(request)
 
     cache = request.app.get("cache") if hasattr(request.app, "get") else None
-    if cache and hasattr(cache, "get"):
+    if cache:
         try:
             rl_key = f"tma:speedtest:limit:{user_id or client_ip}"
-            if inspect.iscoroutinefunction(cache.get):
-                req_count = await cache.get(rl_key)
-            else:
-                res = cache.get(rl_key)
-                req_count = (await res) if asyncio.iscoroutine(res) else res
-
-            if isinstance(req_count, (int, float)) and req_count >= 10:
-                return web.json_response(
-                    {"ok": False, "error": "محدودیت تعداد درخواست تست سرعت. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
-                    status=429,
-                    headers={"Retry-After": "30"},
-                )
-
-            if hasattr(cache, "set"):
-                if inspect.iscoroutinefunction(cache.set):
-                    await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+            if hasattr(cache, "incr"):
+                count = await cache.incr(rl_key, ttl_seconds=30)
+                if count > 10:
+                    return web.json_response(
+                        {"ok": False, "error": "محدودیت تعداد درخواست تست سرعت. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
+                        status=429,
+                        headers={"Retry-After": "30"},
+                    )
+            elif hasattr(cache, "get"):
+                if inspect.iscoroutinefunction(cache.get):
+                    req_count = await cache.get(rl_key)
                 else:
-                    set_res = cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
-                    if asyncio.iscoroutine(set_res):
-                        await set_res
+                    res = cache.get(rl_key)
+                    req_count = (await res) if asyncio.iscoroutine(res) else res
+
+                if isinstance(req_count, (int, float)) and req_count >= 10:
+                    return web.json_response(
+                        {"ok": False, "error": "محدودیت تعداد درخواست تست سرعت. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
+                        status=429,
+                        headers={"Retry-After": "30"},
+                    )
+
+                if hasattr(cache, "set"):
+                    if inspect.iscoroutinefunction(cache.set):
+                        await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                    else:
+                        set_res = cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                        if asyncio.iscoroutine(set_res):
+                            await set_res
         except Exception:
             pass
 
@@ -158,29 +200,38 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
     client_ip = get_client_ip(request)
 
     cache = request.app.get("cache") if hasattr(request.app, "get") else None
-    if cache and hasattr(cache, "get"):
+    if cache:
         try:
             rl_key = f"tma:speedtest:limit:upload:{user_id or client_ip}"
-            if inspect.iscoroutinefunction(cache.get):
-                req_count = await cache.get(rl_key)
-            else:
-                res = cache.get(rl_key)
-                req_count = (await res) if asyncio.iscoroutine(res) else res
-
-            if isinstance(req_count, (int, float)) and req_count >= 30:
-                return web.json_response(
-                    {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
-                    status=429,
-                    headers={"Retry-After": "30"},
-                )
-
-            if hasattr(cache, "set"):
-                if inspect.iscoroutinefunction(cache.set):
-                    await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+            if hasattr(cache, "incr"):
+                count = await cache.incr(rl_key, ttl_seconds=30)
+                if count > 30:
+                    return web.json_response(
+                        {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
+                        status=429,
+                        headers={"Retry-After": "30"},
+                    )
+            elif hasattr(cache, "get"):
+                if inspect.iscoroutinefunction(cache.get):
+                    req_count = await cache.get(rl_key)
                 else:
-                    set_res = cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
-                    if asyncio.iscoroutine(set_res):
-                        await set_res
+                    res = cache.get(rl_key)
+                    req_count = (await res) if asyncio.iscoroutine(res) else res
+
+                if isinstance(req_count, (int, float)) and req_count >= 30:
+                    return web.json_response(
+                        {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
+                        status=429,
+                        headers={"Retry-After": "30"},
+                    )
+
+                if hasattr(cache, "set"):
+                    if inspect.iscoroutinefunction(cache.set):
+                        await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                    else:
+                        set_res = cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=30)
+                        if asyncio.iscoroutine(set_res):
+                            await set_res
         except Exception:
             pass
 

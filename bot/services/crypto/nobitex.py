@@ -74,7 +74,7 @@ async def get_crypto_rates_summary(force_refresh: bool = False) -> dict:
         return summary
     except Exception as exc:
         logger.warning("Error fetching live crypto rates: %s", exc)
-        if _rates_cache:
+        if _rates_cache and (now - _rates_cache_time < 300):
             return _rates_cache
         return {"ok": False, "error": "خطا در برقراری ارتباط با صرافی‌ها یا تایم‌اوت شبکه"}
 

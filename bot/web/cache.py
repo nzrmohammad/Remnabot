@@ -41,11 +41,12 @@ class FastCache:
                 raw = await self._redis.get(key)
                 if raw:
                     data = json.loads(raw)
-                    # Backfill memory for next hits with LRU eviction
-                    self._memory[key] = (now + 5.0, data)
-                    self._memory.move_to_end(key)
-                    if len(self._memory) > self._maxsize:
-                        self._memory.popitem(last=False)
+                    # Backfill memory for next hits with LRU eviction only if no newer entry in L1
+                    if key not in self._memory or self._memory[key][0] <= now:
+                        self._memory[key] = (now + 5.0, data)
+                        self._memory.move_to_end(key)
+                        if len(self._memory) > self._maxsize:
+                            self._memory.popitem(last=False)
                     return data
             except Exception as exc:
                 logger.debug("Redis cache get error for %s: %s", key, exc)
@@ -67,6 +68,27 @@ class FastCache:
                 await self._redis.set(key, raw, ex=ttl_seconds)
             except Exception as exc:
                 logger.debug("Redis cache set error for %s: %s", key, exc)
+
+    async def incr(self, key: str, ttl_seconds: int = 30) -> int:
+        """Atomically increment a counter in Redis / memory with TTL."""
+        now = time.time()
+        if self._redis:
+            try:
+                val = await self._redis.incr(key)
+                if val == 1:
+                    await self._redis.expire(key, ttl_seconds)
+                self._memory[key] = (now + ttl_seconds, val)
+                return int(val)
+            except Exception as exc:
+                logger.debug("Redis incr error for %s: %s", key, exc)
+
+        async with self._lock:
+            expire_at, cur = self._memory.get(key, (0, 0))
+            if expire_at <= now or not isinstance(cur, int):
+                cur = 0
+            new_val = cur + 1
+            self._memory[key] = (now + ttl_seconds, new_val)
+            return new_val
 
     async def set_nx(self, key: str, value: Any, ttl_seconds: int = 15) -> bool:
         """Store item if not exists (atomic distributed lock)."""

@@ -471,6 +471,16 @@ class CryptoInvoice(Base):
     """Invoice for on-chain cryptocurrency (TON, TRX, POL) wallet top-up."""
 
     __tablename__ = "crypto_invoices"
+    __table_args__ = (
+        Index(
+            "uq_crypto_pending_currency_nanotons",
+            "currency",
+            "nanotons",
+            unique=True,
+            postgresql_where=(text("status = 'pending' AND nanotons > 0")),
+            sqlite_where=(text("status = 'pending' AND nanotons > 0")),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)

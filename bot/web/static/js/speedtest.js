@@ -308,24 +308,27 @@
       }
     }
 
-    async function downloadStreamWithFallback(bytes, nonce, onChunk, signal, limitMs, startTime) {
+    async function downloadStreamWithFallback(bytes, nonce, onChunk, signal, limitMs) {
       const cfUrl = `https://speed.cloudflare.com/__down?bytes=${bytes}&_t=${Date.now()}_${nonce}`;
       let gotData = false;
+      const startMs = performance.now();
       try {
-        await streamDownload(cfUrl, (b) => { gotData = true; onChunk(b); }, signal, limitMs, startTime);
+        await streamDownload(cfUrl, (b) => { gotData = true; onChunk(b); }, signal, limitMs, startMs);
       } catch (e) {}
       if (!gotData && (!signal || !signal.aborted)) {
+        const elapsed = performance.now() - startMs;
+        const remainingForFallback = Math.max(500, limitMs - elapsed);
         const localUrl = `/api/user/speedtest/payload?bytes=${bytes}&_t=${Date.now()}_${nonce}`;
-        await streamDownload(localUrl, onChunk, signal, limitMs, startTime);
+        await streamDownload(localUrl, onChunk, signal, remainingForFallback, performance.now());
       }
     }
 
     // Step 1: Ramp-up probe (1.5MB)
-    await downloadStreamWithFallback(1572864, 'probe', onChunk, signal, 1500, testStartTime);
+    await downloadStreamWithFallback(1572864, 'probe', onChunk, signal, 1500);
 
     // Step 2: Main measurement payload (10MB)
     const remainingTimeMs = Math.max(1000, DOWNLOAD_DURATION_MS - (performance.now() - testStartTime));
-    await downloadStreamWithFallback(10485760, 'main', onChunk, signal, remainingTimeMs, testStartTime);
+    await downloadStreamWithFallback(10485760, 'main', onChunk, signal, remainingTimeMs);
 
     // Precise steady-state bandwidth: total steady bytes / steady duration
     let finalDownloadMbps = 0;
@@ -506,7 +509,7 @@
         rating: '❌ قطع ارتباط',
       };
     }
-    if (dlSpeed >= 25 && ping <= 90) {
+    if (dlSpeed >= 25 && ping > 0 && ping <= 90) {
       return {
         text: '🚀 کیفیت فوق‌العاده؛ عالی برای استریم 4K، بازی آنلاین و وب‌گردی پرسرعت',
         cls: 's-success-soft border',

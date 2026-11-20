@@ -1003,8 +1003,12 @@ async def get_user_invoice(request: web.Request) -> web.Response:
     order_id = int(order_id_str)
     telegram_id = int(user_auth["id"])
 
+    inv_type = request.query.get("type", "").lower() or None
     cache = request.app.get("cache")
-    cache_key = f"inv:ord:{telegram_id}:{order_id}"
+    if inv_type:
+        cache_key = f"inv:{inv_type}:{telegram_id}:{order_id}"
+    else:
+        cache_key = f"inv:ord:{telegram_id}:{order_id}"
     if cache and hasattr(cache, "get"):
         cached_inv = await cache.get(cache_key)
         if cached_inv:
@@ -1023,6 +1027,7 @@ async def get_user_invoice(request: web.Request) -> web.Response:
             store_name=store_name,
             support_contact=support_contact,
             store_logo_url=store_logo_url,
+            invoice_type=inv_type,
         )
         if not inv_data:
             return web.json_response({"ok": False, "message": "فاکتور مورد نظر یافت نشد."}, status=404)
@@ -1050,6 +1055,7 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
     if not bot:
         return web.json_response({"ok": False, "message": "ربات در دسترس نیست."}, status=503)
 
+    inv_type = request.query.get("type", "").lower() or None
     async with db_session(request) as session:
         store_settings = await get_store_settings(session)
         store_name = getattr(store_settings, "invoice_company_name", "") or getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
@@ -1063,6 +1069,7 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
             store_name=store_name,
             support_contact=support_contact,
             store_logo_url=store_logo_url,
+            invoice_type=inv_type,
         )
         if not inv_data:
             return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)

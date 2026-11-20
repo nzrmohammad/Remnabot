@@ -163,7 +163,8 @@ async def broadcast_send(
 
     _prune_active_broadcasts(max_keep=5)
     import time
-    bcast_id = f"bc_{int(time.time())}_{call.from_user.id}"
+    import uuid
+    bcast_id = f"bc_{int(time.time())}_{call.from_user.id}_{uuid.uuid4().hex[:6]}"
     ACTIVE_BROADCASTS[bcast_id] = {
         "status": "running",
         "sent": [],  # list of (chat_id, message_id)

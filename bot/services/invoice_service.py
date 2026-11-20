@@ -29,16 +29,23 @@ async def get_order_invoice_data(
     support_contact: str = "",
     store_logo_url: str = "",
     tz_name: str = "Asia/Tehran",
+    invoice_type: str | None = None,
 ) -> dict[str, Any] | None:
-    """Fetch order and compile complete official digital invoice data dictionary."""
-    stmt = (
-        select(Order, User)
-        .outerjoin(User, Order.telegram_id == User.telegram_id)
-        .where(Order.id == order_id, Order.telegram_id == telegram_id)
-    )
-    res = await session.execute(stmt)
-    row = res.first()
-    if not row:
+    """Fetch order or wallet topup and compile complete official digital invoice data dictionary."""
+    is_topup_requested = invoice_type == "topup"
+    is_order_requested = invoice_type == "order"
+
+    row = None
+    if not is_topup_requested:
+        stmt = (
+            select(Order, User)
+            .outerjoin(User, Order.telegram_id == User.telegram_id)
+            .where(Order.id == order_id, Order.telegram_id == telegram_id)
+        )
+        res = await session.execute(stmt)
+        row = res.first()
+
+    if not row and not is_order_requested:
         from bot.db.models import Topup
         t_stmt = (
             select(Topup, User)
@@ -87,7 +94,7 @@ async def get_order_invoice_data(
 
         amount_toman = int(topup.amount or 0)
         amount_rial = amount_toman * 10
-        tracking_code = f"TRX-{(topup.id * 7919) % 100000000:08d}"
+        tracking_code = f"TRX-TOP-{(topup.id * 7919) % 100000000:08d}"
 
         return {
             "order_id": topup.id,
@@ -228,26 +235,36 @@ async def get_order_invoice_data(
 
 async def send_invoice_to_telegram(bot: Bot, telegram_id: int, invoice: dict[str, Any], web_app_url: str = "") -> bool:
     """Send a beautifully formatted digital invoice directly to the user's Telegram chat."""
-    inv_num = invoice["invoice_number"]
-    date_str = f"{invoice['date_jalali']} ساعت {invoice['time_jalali']}"
-    buyer = invoice["buyer"]
-    item = invoice["item"]
-    pay = invoice["payment"]
-    tracking = pay["tracking_code"]
+    import html
+    inv_num = html.escape(str(invoice.get("invoice_number", "")))
+    date_str = html.escape(f"{invoice.get('date_jalali', '')} ساعت {invoice.get('time_jalali', '')}")
+    buyer = invoice.get("buyer") or {}
+    item = invoice.get("item") or {}
+    pay = invoice.get("payment") or {}
+    tracking = html.escape(str(pay.get("tracking_code", "")))
+    buyer_name = html.escape(str(buyer.get("name", "")))
+    buyer_id = html.escape(str(buyer.get("telegram_id", "")))
+    item_title = html.escape(str(item.get("title", "")))
+    traffic_text = html.escape(str(item.get("traffic_text", "")))
+    duration_text = html.escape(str(item.get("duration_text", "")))
+    toman_fmt = html.escape(str(pay.get("amount_toman_formatted", "")))
+    rial_fmt = html.escape(str(pay.get("amount_rial_formatted", "")))
+    status_str = html.escape(str(pay.get("status", "")))
+    is_renewal = bool(item.get("is_renewal"))
 
     msg = (
         f"🧾 <b>صورت‌حساب و فاکتور رسمی خدمات دیجیتال</b>\n\n"
         f"📋 <b>شماره فاکتور:</b> <code>{inv_num}</code>\n"
         f"📅 <b>تاریخ و زمان:</b> {date_str}\n"
-        f"👤 <b>خریدار:</b> {buyer['name']} (شناسه: <code>{buyer['telegram_id']}</code>)\n\n"
+        f"👤 <b>خریدار:</b> {buyer_name} (شناسه: <code>{buyer_id}</code>)\n\n"
         f"📦 <b>شرح خدمات:</b>\n"
-        f"• سرویس: <b>{item['title']}</b>\n"
-        f"• مشخصات: {item['traffic_text']} | {item['duration_text']}\n"
-        f"• نوع تراکنش: {'تمدید اشتراک' if item['is_renewal'] else 'خرید اشتراک جدید'}\n\n"
+        f"• سرویس: <b>{item_title}</b>\n"
+        f"• مشخصات: {traffic_text} | {duration_text}\n"
+        f"• نوع تراکنش: {'تمدید اشتراک' if is_renewal else 'خرید اشتراک جدید'}\n\n"
         f"💳 <b>اطلاعات پرداخت:</b>\n"
-        f"• مبلغ پرداختی: <b>{pay['amount_toman_formatted']}</b>\n"
-        f"• معادل ریالی: {pay['amount_rial_formatted']}\n"
-        f"• وضعیت: <b>{pay['status']} {'✅' if pay.get('is_paid') else '❌'}</b>\n"
+        f"• مبلغ پرداختی: <b>{toman_fmt}</b>\n"
+        f"• معادل ریالی: {rial_fmt}\n"
+        f"• وضعیت: <b>{status_str} {'✅' if pay.get('is_paid') else '❌'}</b>\n"
         f"• شناسه رهگیری: <code>{tracking}</code>\n\n"
         f"✨ این فاکتور دیجیتال سند رسمی خرید شما در سامانه می‌باشد."
     )

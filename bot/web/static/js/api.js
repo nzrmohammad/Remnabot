@@ -200,12 +200,14 @@ const api = {
     return this.get('/api/user/gifts');
   },
 
-  async getInvoice(orderId) {
-    return this.get(`/api/user/invoice/${orderId}`);
+  async getInvoice(orderId, type = '') {
+    const q = type ? `?type=${encodeURIComponent(type)}` : '';
+    return this.get(`/api/user/invoice/${orderId}${q}`);
   },
 
-  async sendInvoiceToTelegram(orderId) {
-    return this.post(`/api/user/invoice/${orderId}/send-telegram`, {});
+  async sendInvoiceToTelegram(orderId, type = '') {
+    const q = type ? `?type=${encodeURIComponent(type)}` : '';
+    return this.post(`/api/user/invoice/${orderId}/send-telegram${q}`, {});
   },
 
   async calculateCustomPlan(traffic_gb, duration_days, hwid_limit = 2) {

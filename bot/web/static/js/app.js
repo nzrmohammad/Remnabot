@@ -5836,7 +5836,7 @@ function renderInvoiceModalFields(inv, orderId) {
 
   const statusEl = $('invPaymentStatus');
   if (statusEl) {
-    let statusText = inv.payment?.status || 'پرداخت شده';
+    let statusText = inv.payment?.status || inv.payment?.status_label || 'پرداخت شده';
     if (statusText === 'پرداخت شده و فعال') statusText = 'پرداخت شده';
     let iconSvg = '<img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
     let badgeClass = 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400';
@@ -5904,9 +5904,12 @@ async function openInvoiceModal(orderId) {
         amount_rial: (tx.amount || 0) * 10
       },
       payment: {
-        is_paid: tx.status === 'موفق' || tx.status === 'تایید شده',
+        is_paid: tx.status === 'موفق' || tx.status === 'تایید شده' || tx.status === 'approved' || tx.status === 'paid',
+        status: tx.status || (tx.type === 'topup' ? 'تایید و شارژ شده' : 'پرداخت شده'),
         status_label: tx.status || 'موفق',
-        tracking_code: `TRX-${String(((Number(tx.id) || 1) * 7919) % 100000000).padStart(8, '0')}`,
+        tracking_code: tx.type === 'topup'
+          ? `TRX-TOP-${String(((Number(tx.id) || 1) * 7919) % 100000000).padStart(8, '0')}`
+          : `TRX-${String(((Number(tx.id) || 1) * 7919) % 100000000).padStart(8, '0')}`,
         deduction_note: tx.type === 'topup' ? 'واریز به موجودی کیف پول' : 'کسر شده از موجودی کیف پول'
       }
     };
@@ -5914,7 +5917,7 @@ async function openInvoiceModal(orderId) {
     renderInvoiceModalFields(fallbackInv, orderId);
     modal.classList.remove('hidden');
 
-    window.api.getInvoice(orderId).then(res => {
+    window.api.getInvoice(orderId, tx.type || '').then(res => {
       if (res && res.ok && res.data) {
         invoiceClientCache.set(orderId, res.data);
         renderInvoiceModalFields(res.data, orderId);
@@ -6064,12 +6067,14 @@ function printCurrentInvoice() {
       ctx.fillText(`${Number(finalAmount).toLocaleString('en-US')} تومان`, 50, 280);
 
       // Status Box
+      const isPaid = Boolean(currentInvoiceData.payment?.is_paid);
+      const statusTitle = currentInvoiceData.payment?.status || (isPaid ? 'پرداخت موفق' : 'در انتظار بررسی');
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#064e3b';
+      ctx.fillStyle = isPaid ? '#064e3b' : '#451a03';
       ctx.fillRect(30, 370, 540, 50);
-      ctx.fillStyle = '#34d399';
+      ctx.fillStyle = isPaid ? '#34d399' : '#fbbf24';
       ctx.font = 'bold 16px Vazirmatn, sans-serif';
-      ctx.fillText('✅ پرداخت موفق و فعال‌سازی سرویس انجام شد', 300, 402);
+      ctx.fillText(isPaid ? `✅ ${statusTitle}` : `⏳ ${statusTitle}`, 300, 402);
 
       // Tracking code
       const trackingCode = currentInvoiceData.payment?.tracking_code || `TRX-${currentInvoiceData.order_id || 'SUCCESS'}`;
