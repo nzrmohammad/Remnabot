@@ -113,19 +113,32 @@ button, a, .tab-btn, .nav-item, [role="button"] {
   }
 }
 
-/* Background scroll lock when modals are open */
-body.modal-open {
-  overflow: hidden;
+/* Smooth Scrolling & Cross-Browser Scrollbars */
+html {
+  scroll-behavior: smooth;
+}
+
+*, ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb, var(--slate-750)) transparent;
 }
 
 /* Accessibility: keyboard focus-visible indicator */
 :focus-visible {
-  outline: 2px solid var(--c-accent);
+  outline: 2px solid var(--c-accent-solid);
   outline-offset: 2px;
 }
 
 /* Accessibility: respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *, *::before, *::after {
     animation-duration: 0.01ms;
     animation-iteration-count: 1;

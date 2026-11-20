@@ -245,6 +245,7 @@ function switchTab(targetId) {
   if (typeof syncTelegramBackButton === 'function') {
     syncTelegramBackButton();
   }
+  document.getElementById('contentArea')?.scrollTo({ top: 0, behavior: 'instant' });
 }
 window.switchTab = switchTab;
 
@@ -1923,10 +1924,8 @@ function switchBdayPickerTab(tab) {
       const curYear = $('birthdayYearSelect')?.value || '1375';
       const activeYearBtn = yPane?.querySelector('.active-bday-item') || yPane?.querySelector(`[data-val="${curYear}"]`);
       if (yPane && activeYearBtn) {
-        const topPos = activeYearBtn.offsetTop - yPane.offsetTop - (yPane.clientHeight / 2) + (activeYearBtn.clientHeight / 2);
-        yPane.scrollTop = Math.max(0, topPos);
         if (typeof activeYearBtn.scrollIntoView === 'function') {
-          activeYearBtn.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          activeYearBtn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         }
       }
     }, 40);
@@ -2950,18 +2949,22 @@ const APP_MODAL_IDS = [
 ];
 
 function updateTopPadding() {
-  const topBar = $('topHeaderBar');
-  if (!topBar) return;
-  let padTop = 10;
-  if (tg) {
-    const safeTop = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
-    if (safeTop > 0) {
-      padTop = safeTop + 4;
-      document.documentElement.style.setProperty('--tg-content-safe-area-inset-top', safeTop + 'px');
-      document.documentElement.style.setProperty('--tg-safe-area-inset-top', safeTop + 'px');
+  if (typeof window.updateTopPadding === 'function') {
+    window.updateTopPadding('topHeaderBar');
+  } else {
+    const topBar = $('topHeaderBar');
+    if (!topBar) return;
+    let padTop = 18;
+    if (tg) {
+      const safeTop = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
+      if (safeTop > 0) {
+        padTop = safeTop + 8;
+        document.documentElement.style.setProperty('--tg-content-safe-area-inset-top', safeTop + 'px');
+        document.documentElement.style.setProperty('--tg-safe-area-inset-top', safeTop + 'px');
+      }
     }
+    topBar.style.paddingTop = padTop + 'px';
   }
-  topBar.style.paddingTop = padTop + 'px';
 }
 
 function syncTelegramBackButton() {

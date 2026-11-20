@@ -42,18 +42,22 @@
   const tg = window.Telegram?.WebApp;
 
   function updateAdminTopPadding() {
-    const topBar = $('adminTopBar');
-    if (!topBar) return;
-    let padTop = 18;
-    if (tg) {
-      const safeTop = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
-      if (safeTop > 0) {
-        padTop = safeTop + 8;
-        document.documentElement.style.setProperty('--tg-content-safe-area-inset-top', safeTop + 'px');
-        document.documentElement.style.setProperty('--tg-safe-area-inset-top', safeTop + 'px');
+    if (typeof window.updateTopPadding === 'function') {
+      window.updateTopPadding('adminTopBar');
+    } else {
+      const topBar = $('adminTopBar');
+      if (!topBar) return;
+      let padTop = 18;
+      if (tg) {
+        const safeTop = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
+        if (safeTop > 0) {
+          padTop = safeTop + 8;
+          document.documentElement.style.setProperty('--tg-content-safe-area-inset-top', safeTop + 'px');
+          document.documentElement.style.setProperty('--tg-safe-area-inset-top', safeTop + 'px');
+        }
       }
+      topBar.style.paddingTop = padTop + 'px';
     }
-    topBar.style.paddingTop = padTop + 'px';
   }
 
   if (tg) {
@@ -188,6 +192,8 @@
         b.classList.toggle('is-active', isTarget);
         b.setAttribute('aria-selected', isTarget ? 'true' : 'false');
       });
+
+      document.getElementById('adminContentArea')?.scrollTo({ top: 0, behavior: 'instant' });
 
       if (window.hapticFeedback) window.hapticFeedback('impact');
 

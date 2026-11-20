@@ -1142,8 +1142,28 @@ if (typeof window !== 'undefined') {
   }
 }
 
+function updateTopPadding(topBarId) {
+  const topBar = typeof topBarId === 'string' ? document.getElementById(topBarId) : topBarId;
+  if (!topBar) return;
+  const tg = window.Telegram?.WebApp;
+  let padTop = 18;
+  if (tg) {
+    const safeTop = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
+    if (safeTop > 0) {
+      padTop = safeTop + 8;
+      document.documentElement.style.setProperty('--tg-content-safe-area-inset-top', safeTop + 'px');
+      document.documentElement.style.setProperty('--tg-safe-area-inset-top', safeTop + 'px');
+    }
+  }
+  topBar.style.paddingTop = padTop + 'px';
+}
+if (typeof window !== 'undefined') {
+  window.updateTopPadding = updateTopPadding;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    updateTopPadding,
     uiIcon,
     renderFlagHtml,
     getCountryCodeFromEmoji,

@@ -23,7 +23,7 @@
 
   /* --- 2. Typography & Content --- */
   --font-sans: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
-  --font-mono: 'Vazirmatn', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --text-main: #e2e8f0;
   --text-muted: #94a3b8;
   --text-subtle: #8b9bb4;
@@ -35,6 +35,7 @@
   --c-accent-soft: rgba(56, 189, 248, 0.12);
   --c-accent-border: rgba(56, 189, 248, 0.28);
   --c-accent-solid: #0369a1;
+  --c-accent-solid-hover: #0284c7;
 
   /* --- 4. Semantic Status Tokens (Dark Mode) --- */
   --c-success: #34d399;                /* emerald-400 */
@@ -79,19 +80,36 @@
 
   /* --- 6. Semantic Surfaces & High-Contrast CTA Plan Gradients --- */
   --on-accent: #ffffff;
-  --on-surface-dark: #f8fafc;
   --plan-featured-bg: linear-gradient(135deg, #0369a1, #075985);
   --plan-premium-bg: linear-gradient(135deg, #0f172a, #1e293b);
-  --plan-featured-fg: #ffffff;
   --shadow-accent: 0 4px 12px rgba(3, 105, 161, 0.22);
 
-  /* --- 7. Standardized Physical Scales (Apple HIG & TMA) --- */
-  --touch-target-min: 44px;
-  --control-h-sm: 32px;
-  --control-h-md: 36px;
-  --control-h-lg: 44px;
+  /* --- 7. Lucky Wheel Badges: Streak & Tickets (Dark Mode) --- */
+  --c-streak: #fdba74;
+  --c-streak-border: rgba(249, 115, 22, 0.4);
+  --c-streak-boost: #fcd34d;
+  --c-streak-boost-border: rgba(245, 158, 11, 0.5);
+  --c-ticket: rgba(216, 180, 254, 0.9);
+  --c-ticket-border: rgba(168, 85, 247, 0.4);
+  --c-ticket-active: #e9d5ff;
+  --c-ticket-active-border: rgba(192, 132, 252, 0.6);
 
-  --radius-xs: 6px;
+  /* --- 8. Z-Index Scale --- */
+  --z-nav: 20;
+  --z-sticky: 30;
+  --z-drawer: 60;
+  --z-modal: 80;
+  --z-toast: 100;
+
+  /* --- 9. Scrollbar & Safe Area Tokens --- */
+  --scrollbar-thumb: var(--slate-750);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* --- 10. Standardized Physical Scales (Apple HIG & TMA) --- */
+  --touch-target-min: 44px;
+  --control-h-md: 36px;
+
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 18px;
@@ -133,6 +151,7 @@ html.theme-light {
   --c-accent-soft: rgba(3, 105, 161, 0.08);
   --c-accent-border: rgba(3, 105, 161, 0.25);
   --c-accent-solid: #0369a1;
+  --c-accent-solid-hover: #075985;
 
   /* Semantic Status Tokens (Light Mode Contrast) */
   --c-success: #047857;                /* emerald-700 */
@@ -161,6 +180,18 @@ html.theme-light {
 
   --c-neutral-soft: rgba(71, 85, 105, 0.09);
   --c-neutral-border: rgba(71, 85, 105, 0.24);
+
+  /* Lucky Wheel Badges: Streak & Tickets (Light Mode WCAG AA) */
+  --c-streak: #c2410c;
+  --c-streak-border: #fed7aa;
+  --c-streak-boost: #b45309;
+  --c-streak-boost-border: #fde68a;
+  --c-ticket: #7e22ce;
+  --c-ticket-border: #e9d5ff;
+  --c-ticket-active: #6b21a8;
+  --c-ticket-active-border: #d8b4fe;
+
+  --scrollbar-thumb: var(--card-border);
 
   /* Semantic Surfaces & High-Contrast CTA Plan Gradients */
   --on-accent: #ffffff;

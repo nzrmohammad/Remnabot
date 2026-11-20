@@ -729,11 +729,11 @@ openCryptoRatesModal() {
               <div class="flex items-center gap-1.5">
                 ${hasPhoto ? `
                   <button type="button" onclick="window.adminActions.openReceiptImageModal('${photoUrl}', ${t.id})" class="w-8 h-8 rounded-xl bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/40 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده تصویر فیش">
-                    <img src="/static/img/icons/photo.svg?v=fl2" class="ui-icon-img w-4.5 h-4.5 shrink-0" width="18" height="18" alt="تصویر فیش" />
+                    <img src="/static/img/icons/photo.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="تصویر فیش" />
                   </button>
                 ` : `
                   <button type="button" data-action="receipt-info" data-topupid="${t.id}" data-hash="${escapeHtml(t.receipt_hash || '')}" data-amount="${formatNumber(t.amount || 0)}" onclick="window.adminActions.showReceiptInfoModal(this.dataset.topupid, this.dataset.hash, this.dataset.amount)" class="w-8 h-8 rounded-xl bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/40 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده مشخصات رسید / کد پیگیری">
-                    <img src="/static/img/icons/receipt.svg?v=fl2" class="ui-icon-img w-4.5 h-4.5 shrink-0" width="18" height="18" alt="مشخصات فیش" />
+                    <img src="/static/img/icons/receipt.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="مشخصات فیش" />
                   </button>
                 `}
                 <button type="button" onclick="window.adminActions.handleTopup(${t.id}, false)" class="w-8 h-8 rounded-xl bg-transparent hover:bg-rose-500/10 text-rose-500 hover:t-danger border border-rose-500/40 flex items-center justify-center transition active:scale-95 font-bold text-sm shadow-sm" title="رد فیش">

@@ -189,30 +189,30 @@ html.theme-light #closeSpeedTestModalBtn:hover {
   color: var(--text-main);
 }
 html.theme-light #startSpeedTestBtn {
-  color: #ffffff;
-  background: var(--plan-featured-bg, linear-gradient(135deg, #0369a1, #075985));
+  color: var(--text-inverse);
+  background: var(--plan-featured-bg);
   box-shadow: var(--shadow-accent);
 }
 
-/* Lucky Wheel Badges: Streak & Tickets */
+/* Lucky Wheel Badges: Streak & Tickets (Fully Tokenized) */
 .badge-streak {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-size: 10px;
   font-weight: 700;
   transition: all 0.2s ease;
   background-color: transparent;
-  color: #fdba74;
-  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: var(--c-streak);
+  border: 1px solid var(--c-streak-border);
 }
 
 .badge-streak.streak-boost {
   background-color: transparent;
-  color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: var(--c-streak-boost);
+  border: 1px solid var(--c-streak-boost-border);
   box-shadow: none;
 }
 
@@ -221,54 +221,30 @@ html.theme-light #startSpeedTestBtn {
   align-items: center;
   gap: 0.25rem;
   padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-size: 10px;
   font-weight: 700;
   transition: all 0.2s ease;
   background-color: transparent;
-  color: rgba(216, 180, 254, 0.9);
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: var(--c-ticket);
+  border: 1px solid var(--c-ticket-border);
 }
 
 .badge-ticket.has-tickets {
   background-color: transparent;
-  color: #e9d5ff;
-  border: 1px solid rgba(192, 132, 252, 0.6);
+  color: var(--c-ticket-active);
+  border: 1px solid var(--c-ticket-active-border);
   box-shadow: none;
 }
 
 /* Light Theme Overrides for Badges & Accents */
-html.theme-light .badge-streak {
-  background-color: transparent;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
-}
-
-html.theme-light .badge-streak.streak-boost {
-  background-color: transparent;
-  color: #b45309;
-  border: 1px solid #fde68a;
-}
-
-html.theme-light .badge-ticket {
-  background-color: transparent;
-  color: #7e22ce;
-  border: 1px solid #e9d5ff;
-}
-
-html.theme-light .badge-ticket.has-tickets {
-  background-color: transparent;
-  color: #6b21a8;
-  border: 1px solid #d8b4fe;
-}
-
 html.theme-light .text-orange-300,
 html.theme-light .text-orange-400 {
-  color: #c2410c;
+  color: var(--c-streak);
 }
 html.theme-light .bg-orange-500\/15 {
-  background-color: #fff7ed;
-  border-color: #fed7aa;
+  background-color: var(--card-inner-bg);
+  border-color: var(--c-streak-border);
 }
 
 /* TMA Bottom Navigation Clearance & Scroll Safety */
@@ -377,29 +353,6 @@ html.theme-light #expireDaysDisplay {
   color: var(--c-warn);
 }
 
-/* ========================================================================== */
-/* P1 & P3: Native Mobile UX, Overscroll containment, iOS Zoom Prevention     */
-/* ========================================================================== */
-html, body, #phoneFrame, main, .modal-card, .overflow-y-auto {
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
-button, a, .tab-btn, .nav-item, [role="button"] {
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Prevent iOS Safari 16px auto-zoom on input focus (excluding readonly/display inputs) */
-@media screen and (max-width: 768px) {
-  html body input:not([type="checkbox"]):not([type="radio"]):not([readonly]),
-  html body select,
-  html body textarea {
-    font-size: 16px;
-  }
-}
-
 /* Standardized Plan Action Buttons (Dark & Light) */
 .btn-plan-vip {
   background: var(--plan-premium-bg, linear-gradient(135deg, #be123c, #86198f));
@@ -458,8 +411,8 @@ html.theme-light #topupMethodTabs button {
   color: var(--text-muted);
 }
 html.theme-light #topupMethodTabs button.bg-blue-600 {
-  background-color: var(--c-accent-solid, #2563eb);
-  color: #ffffff;
+  background-color: var(--c-accent-solid);
+  color: var(--text-inverse);
 }
 html.theme-light #topupCardDetailsBox > div {
   background-color: var(--card-inner-bg);
@@ -485,9 +438,8 @@ html.theme-light #topupCardDetailsBox #topupCardHolder {
   touch-action: pan-y;
 }
 html.theme-light .wheel-streak-note {
-  color: #b45309;
-  background-color: rgba(245, 158, 11, 0.12);
-  border-color: rgba(217, 119, 6, 0.3);
+  color: var(--c-streak);
+  border-color: var(--c-streak-border);
 }
 
 /* Unified System Screens (Maintenance, Invite-Only & Banned) */
@@ -537,7 +489,7 @@ html.theme-light .system-status-card .status-pill-invite {
 /* Toast Container Floating Fixed Position */
 #toastContainer {
   position: fixed;
-  z-index: 10000;
+  z-index: var(--z-toast, 100);
 }
 
 /* Print Media Styles for Official Digital Invoice */
