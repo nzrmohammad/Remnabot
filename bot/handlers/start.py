@@ -28,7 +28,7 @@ router = Router(name="start")
 @router.message(CommandStart())
 async def cmd_start(
     message: Message, bot: Bot, user_repo: UserRepository,
-    session, state: FSMContext, remnawave=None,
+    session, state: FSMContext, remnawave=None, cache=None,
 ):
     await state.clear()
 
@@ -113,7 +113,7 @@ async def cmd_start(
             gift_code = param.removeprefix("gift_").strip().upper()
             from bot.services.gift_service import claim_gift
             session_factory = getattr(bot, "session_factory", None)
-            cache = getattr(bot, "cache", None)
+            cache_obj = cache or getattr(bot, "cache", None)
             res = await claim_gift(
                 session=session,
                 code=gift_code,
@@ -122,7 +122,7 @@ async def cmd_start(
                 remnawave=remnawave,
                 bot=bot,
                 session_factory=session_factory,
-                cache=cache,
+                cache=cache_obj,
             )
             if res.get("ok"):
                 sub_url = res.get("subscription_url")

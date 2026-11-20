@@ -188,6 +188,8 @@ async def post_admin_reply_ticket(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     target_id_raw = body.get("telegram_id")
     reply_text = str(body.get("reply_text") or "").strip()

@@ -40,7 +40,12 @@ class FastCache:
             try:
                 raw = await self._redis.get(key)
                 if raw:
-                    data = json.loads(raw)
+                    if isinstance(raw, (bytes, bytearray)) and raw.startswith(b"__BIN__"):
+                        data = bytes(raw[7:])
+                    elif isinstance(raw, str) and raw.startswith("__BIN__"):
+                        data = raw[7:].encode("latin1")
+                    else:
+                        data = json.loads(raw)
                     # Backfill memory for next hits with LRU eviction only if no newer entry in L1
                     if key not in self._memory or self._memory[key][0] <= now:
                         self._memory[key] = (now + 5.0, data)
@@ -64,7 +69,10 @@ class FastCache:
 
         if self._redis:
             try:
-                raw = json.dumps(value, ensure_ascii=False)
+                if isinstance(value, (bytes, bytearray)):
+                    raw = b"__BIN__" + bytes(value)
+                else:
+                    raw = json.dumps(value, ensure_ascii=False)
                 await self._redis.set(key, raw, ex=ttl_seconds)
             except Exception as exc:
                 logger.debug("Redis cache set error for %s: %s", key, exc)

@@ -291,6 +291,7 @@ async def voucher_redeem_message(
         remnawave=remnawave,
         bot=bot,
         session_factory=getattr(bot, "session_factory", None),
+        cache=cache,
     )
     if not res.get("ok"):
         kb = InlineKeyboardBuilder()

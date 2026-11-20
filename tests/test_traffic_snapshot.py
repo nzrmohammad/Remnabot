@@ -106,6 +106,7 @@ async def test_admin_overview_uses_real_hourly_snapshots(session_factory):
             total_bytes=100 * (1024**3),
             delta_bytes=15 * (1024**3),  # 15 GB delta
         )
+        await session.commit()
 
     mock_remnawave = AsyncMock()
     mock_remnawave.get_all_panel_users.return_value = []

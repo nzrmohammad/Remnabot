@@ -333,11 +333,21 @@ async def _execute_purchase_impl(
     if coupon_code and discount_amount > 0:
         coupon_obj = await coupon_repo.get_by_code(coupon_code)
         if coupon_obj:
+            if coupon_discount_amount is not None:
+                actual_coupon_discount = coupon_discount_amount
+            elif coupon_obj.discount_percent > 0:
+                actual_coupon_discount = int(service.price * coupon_obj.discount_percent / 100)
+            elif coupon_obj.discount_amount > 0:
+                actual_coupon_discount = min(service.price, coupon_obj.discount_amount)
+            else:
+                actual_coupon_discount = discount_amount
+            actual_coupon_discount = max(0, min(actual_coupon_discount, discount_amount))
+
             claimed_usage = await coupon_repo.record_usage(
                 coupon_obj.id,
                 telegram_id,
                 order_id=pending.id,
-                discount_applied=(coupon_discount_amount if coupon_discount_amount is not None else discount_amount),
+                discount_applied=actual_coupon_discount,
             )
             if claimed_usage is None:
                 await order_repo.mark_failed(pending)
@@ -346,6 +356,7 @@ async def _execute_purchase_impl(
 
     # Atomic service capacity reservation
     service_reserved = False
+    was_originally_active = bool(getattr(service, "is_active", True))
     max_p = getattr(service, "max_purchases", None)
     if getattr(service, "id", None) and isinstance(service.id, int) and isinstance(max_p, int) and max_p > 0:
         stmt = (
@@ -385,16 +396,18 @@ async def _execute_purchase_impl(
                 logger.warning("Failed to release coupon usage: %s", c_err)
         if service_reserved:
             try:
+                upd_vals = {
+                    "purchases_count": case(
+                        (Service.purchases_count > 0, Service.purchases_count - 1),
+                        else_=0,
+                    )
+                }
+                if was_originally_active:
+                    upd_vals["is_active"] = True
                 await session.execute(
                     update(Service)
                     .where(Service.id == service.id)
-                    .values(
-                        purchases_count=case(
-                            (Service.purchases_count > 0, Service.purchases_count - 1),
-                            else_=0,
-                        ),
-                        is_active=True,
-                    )
+                    .values(**upd_vals)
                 )
             except Exception as s_err:
                 logger.warning("Failed to release service capacity: %s", s_err)

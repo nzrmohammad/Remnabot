@@ -455,7 +455,7 @@ function setupConfigsModal() {
           window.currentModalQrUri = uri;
           const modalQrImg = $('modalQrImage');
           if (modalQrImg) {
-            modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
+            modalQrImg.src = `/api/user/qr?text=${encodeURIComponent(uri)}`;
           }
           openModal('qrModal');
           syncTelegramBackButton();
@@ -4208,11 +4208,11 @@ function hydrateUserInterface(data) {
       if (subDisplayEl && sub.subscription_url) subDisplayEl.innerText = sub.subscription_url;
       const qrImg = $('qrImage');
       if (qrImg && sub.subscription_url) {
-        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sub.subscription_url)}`;
+        qrImg.src = `/api/user/qr?text=${encodeURIComponent(sub.subscription_url)}`;
       }
       const modalQrImg = $('modalQrImage');
       if (modalQrImg && sub.subscription_url) {
-        modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(sub.subscription_url)}`;
+        modalQrImg.src = `/api/user/qr?text=${encodeURIComponent(sub.subscription_url)}`;
       }
     } else {
       // User has no active subscription -> Show Empty State!
@@ -4427,8 +4427,7 @@ function hydrateUserInterface(data) {
     const refLink = typeof window.buildRefLink === 'function' ? window.buildRefLink(botUsername, user.id) : '';
     window.currentReferralLink = refLink;
     if (storyQr && refLink) {
-      storyQr.crossOrigin = 'anonymous';
-      storyQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(refLink)}`;
+      storyQr.src = `/api/user/qr?text=${encodeURIComponent(refLink)}`;
     }
   });
 
@@ -5094,9 +5093,12 @@ function loadUserCache() {
 }
 
 // 17. Stale-While-Revalidate API Sync
+let _syncUserSeq = 0;
 async function syncUserDataWithApi(accountId) {
+  const currentSeq = ++_syncUserSeq;
   try {
     const res = await window.api.getMe(accountId);
+    if (currentSeq !== _syncUserSeq) return;
     if (res && res.ok && res.data) {
       if (typeof hideBanner === 'function') {
         hideBanner('authErrorBanner');
@@ -5879,6 +5881,7 @@ async function openInvoiceModal(orderId, itemType = '') {
   if (!orderId) return;
   const modal = $('invoiceModal');
   if (!modal) return;
+  window.activeInvoiceModalOrderId = String(orderId);
 
   let effectiveType = itemType || '';
   if (!effectiveType) {
@@ -5901,7 +5904,9 @@ async function openInvoiceModal(orderId, itemType = '') {
     window.api.getInvoice(orderId, effectiveType).then(res => {
       if (res && res.ok && res.data) {
         invoiceClientCache.set(clientKey, res.data);
-        renderInvoiceModalFields(res.data, orderId);
+        if (window.activeInvoiceModalOrderId === String(orderId)) {
+          renderInvoiceModalFields(res.data, orderId);
+        }
       }
     }).catch(() => {});
     return;
@@ -5946,7 +5951,9 @@ async function openInvoiceModal(orderId, itemType = '') {
     window.api.getInvoice(orderId, effectiveType).then(res => {
       if (res && res.ok && res.data) {
         invoiceClientCache.set(clientKey, res.data);
-        renderInvoiceModalFields(res.data, orderId);
+        if (window.activeInvoiceModalOrderId === String(orderId)) {
+          renderInvoiceModalFields(res.data, orderId);
+        }
       }
     }).catch(() => {});
     return;

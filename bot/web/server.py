@@ -71,7 +71,7 @@ async def api_ban_check_middleware(request: web.Request, handler):
                     is_banned = bool(db_user and getattr(db_user, "is_banned", False))
             except Exception as exc:
                 logger.warning("Ban check DB lookup failed for user %s: %s", user_id, exc)
-                is_banned = True
+                is_banned = False
                 db_error = True
 
         if cache and hasattr(cache, "set") and is_banned is not None and not db_error:
@@ -261,9 +261,15 @@ async def cors_and_security_middleware(request: web.Request, handler):
     response.headers["Access-Control-Allow-Headers"] = (
         "Content-Type, Authorization, X-Telegram-Init-Data, X-Dev-Mode"
     )
-    # Telegram Mini Apps run inside iframe in web.telegram.org
+    # Telegram Mini Apps run inside iframe in web.telegram.org with hardened CSP
     response.headers["Content-Security-Policy"] = (
-        "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org"
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://telegram.org; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https://t.me https://*.telegram.org; "
+        "font-src 'self' data:; "
+        "connect-src 'self' https://api.telegram.org https://*.telegram.org; "
+        "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org;"
     )
     response.headers["X-Content-Type-Options"] = "nosniff" 
 
@@ -643,6 +649,8 @@ def create_web_app(
     # User APIs
     app.router.add_get("/api/user/me", routes_user.get_user_me)
     app.router.add_get("/api/user/avatar", routes_user.get_user_avatar)
+    app.router.add_get("/api/user/qr", routes_user.get_qr_code)
+    app.router.add_get("/api/qr", routes_user.get_qr_code)
     app.router.add_get("/api/user/topup_info", routes_user.get_user_topup_info)
     app.router.add_post("/api/user/topup/card", routes_user.post_user_topup_card)
     app.router.add_post("/api/user/topup/card-auto/create", routes_user.post_user_topup_card_auto_create)

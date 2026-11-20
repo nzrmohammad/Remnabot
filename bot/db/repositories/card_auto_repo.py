@@ -145,8 +145,23 @@ class CardAutoRepository:
         res = await self.session.execute(stmt)
         return res.scalar_one_or_none()
 
+    async def expire_overdue_invoices(self) -> int:
+        """Atomically mark overdue pending card auto invoices as expired to release unique amount slots."""
+        now = datetime.now(timezone.utc)
+        stmt = (
+            update(CardAutoInvoice)
+            .where(
+                CardAutoInvoice.status == "pending",
+                CardAutoInvoice.expires_at <= now,
+            )
+            .values(status="expired")
+        )
+        res = await self.session.execute(stmt)
+        return getattr(res, "rowcount", 0) or 0
+
     async def get_pending_amounts_in_range(self, min_amount: int, max_amount: int) -> set[int]:
         """Fetch all exact amounts currently in 'pending' status within range."""
+        await self.expire_overdue_invoices()
         now = datetime.now(timezone.utc)
         stmt = select(CardAutoInvoice.exact_amount).where(
             and_(
@@ -195,6 +210,7 @@ class CardAutoRepository:
         sms_log_id: int | None = None,
     ) -> CardAutoInvoice | None:
         """Atomically find the pending invoice matching exact_amount and mark paid."""
+        await self.expire_overdue_invoices()
         now = datetime.now(timezone.utc)
         # Find matching pending invoice with row lock if possible
         stmt = (
@@ -216,6 +232,23 @@ class CardAutoRepository:
         res = await self.session.execute(stmt)
         invoice = res.scalar_one_or_none()
         if not invoice:
+            return None
+
+        # Double check atomic update to prevent race conditions on SQLite
+        upd = (
+            update(CardAutoInvoice)
+            .where(
+                CardAutoInvoice.id == invoice.id,
+                CardAutoInvoice.status == "pending",
+            )
+            .values(
+                status="paid",
+                paid_at=now,
+                sms_log_id=sms_log_id,
+            )
+        )
+        upd_res = await self.session.execute(upd)
+        if getattr(upd_res, "rowcount", 0) == 0:
             return None
 
         invoice.status = "paid"

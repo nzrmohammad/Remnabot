@@ -2,7 +2,7 @@
 from functools import lru_cache
 from typing import Any
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -144,6 +144,16 @@ class Settings(BaseSettings):
         except Exception as err:
             raise ValueError(f"Invalid TIMEZONE: {v!r} (e.g. Asia/Tehran)") from err
         return v
+
+    @model_validator(mode="after")
+    def validate_cross_field_settings(self) -> "Settings":
+        if self.CARD_AUTO_ENABLED and not (self.CARD_NUMBER and self.CARD_NUMBER.strip()):
+            import logging
+            logging.getLogger(__name__).warning(
+                "CARD_AUTO_ENABLED is True but CARD_NUMBER is empty. Auto card-to-card top-up disabled."
+            )
+            self.CARD_AUTO_ENABLED = False
+        return self
 
 
 @lru_cache

@@ -1068,6 +1068,8 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     birth_date = str(body.get("birth_date") or "").strip()
     clean_bdate = birth_date.replace("-", "/")

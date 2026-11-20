@@ -154,6 +154,8 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     node_uuid = str(body.get("node_uuid") or body.get("uuid") or "").strip()
     if not node_uuid:
@@ -282,6 +284,8 @@ async def post_admin_ssl_check(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     domain = str(body.get("domain") or "").strip()
     if not domain:
@@ -302,6 +306,8 @@ async def post_admin_add_ssl_domain(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     domain = str(body.get("domain") or "").strip()
@@ -326,6 +332,8 @@ async def post_admin_delete_ssl_domain(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     domain = str(body.get("domain") or "").strip()

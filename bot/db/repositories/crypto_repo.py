@@ -52,8 +52,25 @@ class CryptoRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def expire_overdue_invoices(self, currency: str | None = None) -> int:
+        """Atomically mark overdue pending crypto invoices as expired to release unique slots."""
+        now = datetime.now(timezone.utc)
+        stmt = (
+            update(CryptoInvoice)
+            .where(
+                CryptoInvoice.status == "pending",
+                CryptoInvoice.expires_at <= now,
+            )
+            .values(status="expired")
+        )
+        if currency:
+            stmt = stmt.where(CryptoInvoice.currency == currency)
+        res = await self.session.execute(stmt)
+        return getattr(res, "rowcount", 0) or 0
+
     async def get_pending_nanotons(self, currency: str) -> set[int]:
         """Return active non-expired exact smallest-unit amounts (SUN/Wei/nanoton) for a currency."""
+        await self.expire_overdue_invoices(currency)
         now = datetime.now(timezone.utc)
         stmt = select(CryptoInvoice.nanotons).where(
             and_(

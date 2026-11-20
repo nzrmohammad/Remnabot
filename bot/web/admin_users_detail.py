@@ -225,6 +225,8 @@ async def post_admin_user_delete_hwid(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     target_id = body.get("telegram_id") or body.get("id") or body.get("target_id")
     hwid = body.get("hwid")

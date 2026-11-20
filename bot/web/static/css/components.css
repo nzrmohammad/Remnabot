@@ -485,9 +485,67 @@ html.theme-light .code-chip:hover {
   white-space: nowrap;
 }
 
+/* Universal Input Placeholder Rules (RTL for Persian, LTR for English/Codes) */
+input::placeholder,
+textarea::placeholder {
+  direction: rtl;
+  text-align: right;
+}
+
+input[dir="ltr"]::placeholder,
+textarea[dir="ltr"]::placeholder,
+input.text-left::placeholder,
+input.font-mono::placeholder,
+input.font-en::placeholder,
+input.ltr-input::placeholder {
+  direction: ltr;
+  text-align: left;
+}
+
 input.num-bidi::placeholder {
   direction: rtl;
-  text-align: start;
+  text-align: right;
+}
+
+input.num-bidi:placeholder-shown {
+  text-align: right;
+}
+
+/* Page Scrollbar on the Right in RTL Layout */
+html[dir="rtl"] #contentArea,
+html[dir="rtl"] #adminContentArea {
+  direction: ltr;
+}
+html[dir="rtl"] #contentArea > *,
+html[dir="rtl"] #adminContentArea > * {
+  direction: rtl;
+}
+
+/* Button SVG Icon Color Inheritance (Never diverge from text) */
+button svg,
+[class*="btn"] svg {
+  color: inherit;
+}
+
+/* Smooth Accordion Expansion Animation */
+@keyframes accordionExpand {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-box-body:not(.hidden),
+.node-card-body:not(.hidden),
+.accordion-animated:not(.hidden),
+#countryBreakdownBody:not(.hidden),
+#sessionsAccordionBody:not(.hidden),
+#subAccordionBody:not(.hidden) {
+  animation: accordionExpand 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 input.font-en,
@@ -1290,12 +1348,12 @@ html.theme-light #customPlanDiscountDisplay {
 
 /* Lucky Wheel Center Spin Button (Guaranteed Circular Hub) */
 .wheel-center-btn {
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
-  min-height: 56px;
-  max-width: 56px;
-  max-height: 56px;
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  max-width: 64px;
+  max-height: 64px;
   border-radius: var(--radius-full);
   aspect-ratio: 1 / 1;
   display: flex;
@@ -1303,4 +1361,5 @@ html.theme-light #customPlanDiscountDisplay {
   align-items: center;
   justify-content: center;
   text-align: center;
+  white-space: nowrap;
 }

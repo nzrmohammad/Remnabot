@@ -146,6 +146,8 @@ async def post_user_settings(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     telegram_id = int(user_auth["id"])
     language = body.get("language")
@@ -347,3 +349,43 @@ async def get_user_avatar(request: web.Request) -> web.Response:
             logger.warning("Failed to proxy fallback avatar for %s: %s", telegram_id or 'unknown', exc)
 
     return web.Response(status=404)
+
+
+async def get_qr_code(request: web.Request) -> web.Response:
+    """Generate self-hosted QR code image on-the-fly to prevent leaking VPN credentials to 3rd-party APIs."""
+    text = (request.query.get("text") or "").strip()
+    if not text or len(text) > 4096:
+        return web.Response(status=400, text="Invalid or missing text parameter")
+
+    try:
+        import asyncio
+        from io import BytesIO
+
+        import qrcode
+
+        def _render_qr():
+            qr = qrcode.QRCode(
+                version=None,
+                error_correction=qrcode.constants.ERROR_CORRECT_M,
+                box_size=6,
+                border=2,
+            )
+            qr.add_data(text)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="#000000", back_color="#ffffff")
+            buf = BytesIO()
+            img.save(buf, format="PNG")
+            return buf.getvalue()
+
+        img_bytes = await asyncio.to_thread(_render_qr)
+        return web.Response(
+            body=img_bytes,
+            content_type="image/png",
+            headers={
+                "Cache-Control": "public, max-age=86400, immutable",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
+    except Exception as exc:
+        logger.warning("QR generation error: %s", exc)
+        return web.Response(status=500, text="QR generation failed")

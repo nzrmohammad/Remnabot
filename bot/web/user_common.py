@@ -7,6 +7,17 @@ from bot.web.auth import get_authenticated_user, get_client_ip, require_auth, re
 from bot.web.db import db_session
 
 
+async def parse_json_dict(request: web.Request) -> tuple[dict[str, Any] | None, web.Response | None]:
+    """Safely parse request body as a JSON dict. Returns (data, None) or (None, 400 response)."""
+    try:
+        data = await request.json()
+        if not isinstance(data, dict):
+            return None, web.json_response({"ok": False, "message": "فرمت JSON نامعتبر است."}, status=400)
+        return data, None
+    except Exception:
+        return None, web.json_response({"ok": False, "message": "داده‌های ارسالی JSON نامعتبر است."}, status=400)
+
+
 def format_support_link(raw_contact: str) -> str:
     """Normalize Telegram username/URL into a clickable https support URL."""
     raw = (raw_contact or "").strip()

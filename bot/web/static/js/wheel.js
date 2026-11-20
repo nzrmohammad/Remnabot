@@ -177,19 +177,19 @@ function updateDashboardWheelBadge(canSpin, nextSeconds, tickets, hasActiveSub) 
   if (!badge) return;
   badge.classList.remove('hidden');
   if (hasActiveSub === false) {
-    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-slate-500/30 bg-slate-500/10 text-slate-400 leading-none';
+    badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-slate-500/30 bg-slate-500/10 text-slate-400 leading-none whitespace-nowrap inline-flex items-center justify-center';
     badge.innerText = 'نیاز به اشتراک';
     return;
   }
   const rem = typeof nextSeconds === 'number' ? nextSeconds : wheelCooldownSeconds;
   if (tickets > 0 && rem > 0) {
-    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-none';
+    badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-none whitespace-nowrap inline-flex items-center justify-center';
     badge.innerText = `${tickets} تیکت`;
   } else if (rem > 0) {
-    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-none';
+    badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-none whitespace-nowrap inline-flex items-center justify-center';
     badge.innerText = formatCountdown(rem);
   } else {
-    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-none';
+    badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-none whitespace-nowrap inline-flex items-center justify-center';
     badge.innerText = 'آماده چرخش';
   }
 }
@@ -221,13 +221,13 @@ function startWheelCountdown(sec) {
     const badge = document.getElementById('luckyWheelBadge');
     if (badge) {
       if (currentWheelTickets > 0 && rem > 0) {
-        badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-none';
+        badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-none whitespace-nowrap inline-flex items-center justify-center';
         badge.innerText = `${currentWheelTickets} تیکت`;
       } else if (rem > 0) {
-        badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-none';
+        badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-none whitespace-nowrap inline-flex items-center justify-center';
         badge.innerText = formatCountdown(rem);
       } else {
-        badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-none';
+        badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-none whitespace-nowrap inline-flex items-center justify-center';
         badge.innerText = 'آماده چرخش';
       }
     }

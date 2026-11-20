@@ -133,6 +133,8 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     async with db_session(request) as session:
         app_repo = AppSettingRepository(session)
@@ -252,6 +254,8 @@ async def post_admin_upload_store_logo(request: web.Request) -> web.Response:
     if request.content_type.startswith("application/json"):
         try:
             body = await request.json()
+            if not isinstance(body, dict):
+                body = {}
             logo_data = body.get("logo_image") or ""
             if "base64," in logo_data:
                 header, b64_data = logo_data.split("base64,", 1)

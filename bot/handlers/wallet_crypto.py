@@ -52,7 +52,7 @@ async def _render_ton_invoice(
             f"⚠️ <b>بسیار مهم — شناسه پرداخت (Comment / Memo):</b>\n"
             f"<code>{invoice.comment}</code>\n"
             f"حتماً در بخش Comment یا پیام والت خود این شناسه را وارد کنید تا شارژ به‌طور خودکار انجام شود.\n\n"
-            f"⏳ مهلت پرداخت : <b>30 دقیقه</b>\n\n"
+            f"⏳ مهلت پرداخت : <b>60 دقیقه</b>\n\n"
             f"💡 در صورت داشتن تونکیپر یا والت تلگرام، کافیست روی دکمه «پرداخت با Tonkeeper» کلیک کنید تا تمام فیلدها خودبه‌خود پر شوند."
         )
     else:
@@ -66,7 +66,7 @@ async def _render_ton_invoice(
             f"⚠️ <b>Important — Payment Memo / Comment:</b>\n"
             f"<code>{invoice.comment}</code>\n"
             f"You must include this comment in your transfer so your wallet is credited automatically.\n\n"
-            f"⏳ Valid for : <b>30 minutes</b>"
+            f"⏳ Valid for : <b>60 minutes</b>"
         )
 
     await render_menu(bot, user, user_repo, text, kb.as_markup())

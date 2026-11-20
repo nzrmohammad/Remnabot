@@ -40,6 +40,9 @@ async def generate_card_auto_invoice(
     card_number = getattr(store, "card_number", "") or ""
     card_holder = getattr(store, "card_holder", "") or ""
 
+    if not card_number or not card_number.strip():
+        raise ValueError("شماره کارت مقصد تنظیم نشده است. امکان ایجاد فاکتور کارت به کارت وجود ندارد.")
+
     # 1. If user already has an active pending invoice for the exact same base_amount AND current card, reuse it
     active_inv = await repo.get_active_invoice_by_user(telegram_id)
     if active_inv and active_inv.base_amount == base_amount:

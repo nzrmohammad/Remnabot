@@ -275,12 +275,12 @@
         <!-- Quick Interactive Action Cards (گردونه شانس و کارت استوری) -->
         <div class="grid grid-cols-2 gap-2.5">
           <button id="openLuckyWheelBtn" type="button" onclick="window.openLuckyWheel && window.openLuckyWheel()" class="card lucky-wheel-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95">
-            <span class="text-xs font-bold t-main flex items-center gap-1.5 lucky-wheel-title">
+            <span class="text-xs font-bold t-main flex items-center gap-1.5 lucky-wheel-title shrink-0">
               <img src="/static/img/icons/wheel.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
               <span>گردونه شانس</span>
             </span>
-            <div class="flex items-center gap-1.5">
-              <span id="luckyWheelBadge" class="hidden text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border leading-none transition-all"></span>
+            <div class="flex items-center justify-end gap-1.5 min-w-0">
+              <span id="luckyWheelBadge" class="hidden text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border leading-none transition-all whitespace-nowrap shrink-0 inline-flex items-center justify-center"></span>
             </div>
           </button>
 
@@ -409,7 +409,7 @@
           </div>
 
           <!-- Expiry & Today's Metric Chips -->
-          <div class="grid grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-card-border text-center">
+          <div class="grid grid-cols-2 gap-2 mt-3.5 text-center">
             <div role="button" tabindex="0" onclick="window.openExpiryCountdownModal()" class="bg-transparent rounded-2xl p-2.5 border border-card-border cursor-pointer hover:border-amber-500/50 hover:bg-slate-500/10 transition active:scale-95 group" title="مشاهده تایمر شمارش معکوس زنده">
               <div class="text-[11px] t-muted group-hover:t-warn flex items-center justify-center gap-1 font-medium transition">
                 <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" aria-hidden="true" /> <span>انقضای سرویس</span>
@@ -2594,7 +2594,7 @@
         </div>
 
         <!-- SVG Lucky Wheel Visual -->
-        <div class="relative w-56 h-56 sm:w-60 sm:h-60 mx-auto flex items-center justify-center my-auto select-none flex-shrink-0">
+        <div class="relative w-[280px] h-[280px] sm:w-[310px] sm:h-[310px] mx-auto flex items-center justify-center my-auto select-none flex-shrink-0">
           <!-- Top Indicator Needle (Sleek Modern Pointer at 12 o'clock) -->
           <div class="absolute -top-3 z-30 filter drop-shadow-md pointer-events-none">
             <svg width="22" height="24" viewBox="0 0 22 24" fill="none">

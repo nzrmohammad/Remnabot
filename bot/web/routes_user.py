@@ -12,6 +12,7 @@ Modularized into domain-specific modules:
 from bot.db.repositories.user_repo import UserRepository as UserRepository
 from bot.web.user_common import require_user as require_user
 from bot.web.user_nodes import (
+    get_qr_code,
     get_user_avatar,
     get_user_ip_info,
     get_user_nodes,
@@ -112,4 +113,5 @@ __all__ = [
     "post_user_custom_plan_purchase",
     "get_user_invoice",
     "post_user_send_invoice_telegram",
+    "get_qr_code",
 ]

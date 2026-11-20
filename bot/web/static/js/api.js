@@ -108,7 +108,7 @@ const api = {
   async get(url, queryParams = {}, options = {}) {
     const searchParams = new URLSearchParams(queryParams);
     const locParams = new URLSearchParams(window.location.search);
-    for (const key of ['dev_id', 'user_id', 'initData']) {
+    for (const key of ['dev_id', 'user_id']) {
       if (locParams.has(key) && !searchParams.has(key)) {
         searchParams.set(key, locParams.get(key));
       }
@@ -126,7 +126,7 @@ const api = {
     let fullUrl = url;
     const locParams = new URLSearchParams(window.location.search);
     const forwardParams = new URLSearchParams();
-    for (const key of ['dev_id', 'user_id', 'initData']) {
+    for (const key of ['dev_id', 'user_id']) {
       if (locParams.has(key)) {
         forwardParams.set(key, locParams.get(key));
       }

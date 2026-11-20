@@ -199,7 +199,14 @@ def get_client_ip(request: web.Request) -> str:
     """Extract public client IP prioritizing Cloudflare, X-Real-IP, X-Forwarded-For when behind a trusted proxy."""
     remote = request.remote or "127.0.0.1"
     if _is_trusted_proxy(remote):
-        for header in ("CF-Connecting-IP", "X-Real-IP"):
+        try:
+            remote_ip = ipaddress.ip_address(remote)
+            is_cf = any(remote_ip in net for net in CLOUDFLARE_IPV4_NETWORKS)
+        except ValueError:
+            is_cf = False
+
+        headers_order = ("CF-Connecting-IP", "X-Real-IP") if is_cf else ("X-Real-IP", "CF-Connecting-IP")
+        for header in headers_order:
             val = request.headers.get(header)
             if val and val.strip():
                 candidate = val.strip()

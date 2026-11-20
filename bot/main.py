@@ -3,6 +3,7 @@ import asyncio
 import hashlib
 import logging
 import os
+import sys
 import tempfile
 import time
 import uuid
@@ -190,7 +191,7 @@ async def main() -> None:
         await remnawave.close()
         await bot.session.close()
         await engine.dispose()
-        return
+        sys.exit(1)
 
     # 2. Redis Distributed Lock (Prevents multiple containers/nodes with same token)
     if redis_client:
@@ -211,7 +212,7 @@ async def main() -> None:
                 await remnawave.close()
                 await bot.session.close()
                 await engine.dispose()
-                return
+                sys.exit(1)
 
             async def _refresh_instance_lock():
                 try:

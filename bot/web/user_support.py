@@ -40,6 +40,8 @@ async def post_user_support_message(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     text = str(body.get("text") or "").strip()
     if not text:

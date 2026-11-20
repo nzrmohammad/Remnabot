@@ -28,6 +28,8 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     text = body.get("message")
     if not text:
@@ -187,6 +189,8 @@ async def post_admin_campaign_create(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     name = str(body.get("name") or "").strip()
     code = str(body.get("code") or "").strip().lower()
@@ -244,6 +248,8 @@ async def post_admin_campaign_delete(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     cid = body.get("id")

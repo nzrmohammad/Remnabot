@@ -61,6 +61,7 @@ async def record_hourly_traffic_snapshot_once(
             total_bytes=current_total_bytes,
             delta_bytes=delta_bytes,
         )
+        await session.commit()
         logger.info(
             "📊 Recorded hourly traffic snapshot for %s: Total=%d B, Delta=%d B",
             current_hour_dt.strftime("%Y-%m-%d %H:00"),

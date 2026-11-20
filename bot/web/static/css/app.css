@@ -194,25 +194,25 @@ html.theme-light #startSpeedTestBtn {
   box-shadow: var(--shadow-accent);
 }
 
-/* Lucky Wheel Badges: Streak & Tickets (Fully Tokenized) */
+/* Lucky Wheel Badges: Streak & Tickets (Fully Tokenized, Borderless) */
 .badge-streak {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.125rem 0.625rem;
+  padding: 0.125rem 0.375rem;
   border-radius: var(--radius-full);
   font-size: 10px;
   font-weight: 700;
   transition: all 0.2s ease;
   background-color: transparent;
   color: var(--c-streak);
-  border: 1px solid var(--c-streak-border);
+  border: none;
 }
 
 .badge-streak.streak-boost {
   background-color: transparent;
   color: var(--c-streak-boost);
-  border: 1px solid var(--c-streak-boost-border);
+  border: none;
   box-shadow: none;
 }
 
@@ -220,20 +220,20 @@ html.theme-light #startSpeedTestBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.125rem 0.625rem;
+  padding: 0.125rem 0.375rem;
   border-radius: var(--radius-full);
   font-size: 10px;
   font-weight: 700;
   transition: all 0.2s ease;
   background-color: transparent;
   color: var(--c-ticket);
-  border: 1px solid var(--c-ticket-border);
+  border: none;
 }
 
 .badge-ticket.has-tickets {
   background-color: transparent;
   color: var(--c-ticket-active);
-  border: 1px solid var(--c-ticket-active-border);
+  border: none;
   box-shadow: none;
 }
 

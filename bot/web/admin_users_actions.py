@@ -54,6 +54,8 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
     if err_resp:
@@ -151,6 +153,8 @@ async def post_admin_kill_sessions(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
     if err_resp:
@@ -182,6 +186,8 @@ async def post_admin_toggle_ban(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     tid, err_resp = _parse_telegram_id(body.get("telegram_id"))
@@ -230,6 +236,8 @@ async def post_admin_reset_trial(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
     if err_resp:
@@ -258,6 +266,8 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
@@ -328,6 +338,8 @@ async def post_admin_user_revoke_sub(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
     if err_resp:
@@ -375,6 +387,8 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        return web.json_response({"ok": False, "error": "فرمت داده نامعتبر است."}, status=400)
+    if not isinstance(body, dict):
         return web.json_response({"ok": False, "error": "فرمت داده نامعتبر است."}, status=400)
 
     telegram_id, err_resp = _parse_telegram_id(body.get("telegram_id"))
@@ -524,6 +538,8 @@ async def post_admin_update_user_profile(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     target_id, err_resp = _parse_telegram_id(body.get("telegram_id"))

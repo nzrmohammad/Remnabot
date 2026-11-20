@@ -370,6 +370,9 @@ class KnownDevice(Base):
     """Tracks known HWID devices per panel account to notify user on new device connection."""
 
     __tablename__ = "known_devices"
+    __table_args__ = (
+        UniqueConstraint("account_id", "hwid", name="uq_known_devices_account_hwid"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
@@ -419,7 +422,9 @@ class CouponUsage(Base):
         Integer, ForeignKey("coupons.id", ondelete="CASCADE"), index=True
     )
     telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
-    order_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    order_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("orders.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     discount_applied: Mapped[int] = mapped_column(BigInteger, default=0)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -525,7 +530,9 @@ class CardAutoInvoice(Base):
     card_number: Mapped[str] = mapped_column(String(32))
     card_holder: Mapped[str] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)  # pending / paid / expired / cancelled
-    sms_log_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    sms_log_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("bank_sms_logs.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -547,7 +554,9 @@ class BankSmsLog(Base):
     sms_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
     amount_toman: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
     bank_detected: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    matched_invoice_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    matched_invoice_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("card_auto_invoices.id", use_alter=True, name="fk_bank_sms_matched_invoice", ondelete="SET NULL"), nullable=True, index=True
+    )
     processed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

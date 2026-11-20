@@ -326,6 +326,8 @@ async def post_admin_users_bulk_action(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "فرمت داده نامعتبر است."}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "فرمت داده نامعتبر است."}, status=400)
 
     action_type = body.get("action_type")
     try:

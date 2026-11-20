@@ -61,4 +61,5 @@ networks:
   default:
   remnawave-network:
     name: ${REMNAWAVE_DOCKER_NETWORK:-remnawave-network}
+    # Pre-create with: docker network create remnawave-network (or set external: false if standalone)
     external: true

@@ -81,6 +81,8 @@ async def _do_user_spin(
         body = await request.json()
     except Exception:
         pass
+    if not isinstance(body, dict):
+        body = {}
     use_ticket_req = bool(body.get("use_ticket") or request.query.get("use_ticket") in ("1", "true", "True"))
 
     settings = request.app.get("settings")
@@ -239,6 +241,8 @@ async def post_user_kill_device(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     hwid = body.get("hwid")
     if not hwid:
@@ -269,6 +273,8 @@ async def post_user_validate_coupon(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     code = (body.get("code") or "").strip()
@@ -320,6 +326,8 @@ async def post_user_purchase(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     service_id = body.get("service_id")
@@ -694,6 +702,8 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
         data = {}
     if not isinstance(data, dict):
         data = {}
+    if not isinstance(data, dict):
+        data = {}
 
     def _safe_pos_int(val: object, default: int) -> int:
         try:
@@ -759,6 +769,8 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
     try:
         data = await request.json()
     except Exception:
+        data = {}
+    if not isinstance(data, dict):
         data = {}
     try:
         traffic_gb = int(data.get("traffic_gb", 0) or 0)

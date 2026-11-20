@@ -112,6 +112,8 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     plan_id = body.get("id")
     name = str(body.get("name") or "").strip()
@@ -214,6 +216,8 @@ async def post_admin_plan_reorder(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     raw_ids = body.get("plan_ids")
     if not isinstance(raw_ids, list) or not raw_ids:
@@ -272,6 +276,8 @@ async def post_admin_plan_toggle(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     plan_id = body.get("id")
     if not plan_id:
@@ -299,6 +305,8 @@ async def post_admin_plan_delete(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     plan_id = body.get("id")
@@ -370,6 +378,8 @@ async def post_admin_coupon_save(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     code = str(body.get("code") or "").strip().upper()
     if not code:
@@ -423,6 +433,8 @@ async def post_admin_coupon_toggle(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     coupon_id = body.get("id")
     if not coupon_id:
@@ -448,6 +460,8 @@ async def post_admin_coupon_delete(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     coupon_id = body.get("id")
@@ -526,6 +540,8 @@ async def post_admin_batch_vouchers(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     if not isinstance(body, dict):

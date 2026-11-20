@@ -86,6 +86,8 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
     topup_id = body.get("topup_id")
     raw_approved = body.get("approved") if "approved" in body else body.get("approve")

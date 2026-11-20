@@ -36,10 +36,6 @@ class TrafficSnapshotRepository:
         self.session.add(snapshot)
         await self.session.flush()
         await self.session.refresh(snapshot)
-        try:
-            await self.session.commit()
-        except Exception:
-            pass
         return snapshot
 
     async def get_last_hours(self, hours: int = 48, now: datetime | None = None) -> list[HourlyTrafficSnapshot]:

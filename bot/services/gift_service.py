@@ -443,6 +443,7 @@ async def redeem_code_to_wallet(
     remnawave: Any = None,
     bot: Any = None,
     session_factory: Any = None,
+    cache: Any = None,
 ) -> dict[str, Any]:
     """Unified SSOT helper to redeem either a credit voucher coupon or a friend GiftCard."""
     from bot.db.repositories.coupon_repo import CouponRepository
@@ -462,6 +463,7 @@ async def redeem_code_to_wallet(
             remnawave=remnawave,
             bot=bot,
             session_factory=session_factory,
+            cache=cache,
         )
 
     # 2. Check if it's a credit voucher in Coupon table (including GIFT- or custom prefix vouchers)

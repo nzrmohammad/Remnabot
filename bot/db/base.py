@@ -95,7 +95,8 @@ def _migrate_db_schema(sync_conn) -> None:
                 stmt = f'ALTER TABLE "{table_name}" ADD COLUMN "{col.name}" {col_type}{default_str};'
 
             try:
-                sync_conn.execute(text(stmt))
+                with sync_conn.begin_nested():
+                    sync_conn.execute(text(stmt))
                 added_columns.add(col.name)
                 logger.info("Migrated schema: added column %s.%s (%s)", table_name, col.name, col_type)
             except Exception as exc:
@@ -103,12 +104,13 @@ def _migrate_db_schema(sync_conn) -> None:
 
         if table_name == "coupons" and "kind" in added_columns:
             try:
-                sync_conn.execute(
-                    text(
-                        "UPDATE coupons SET kind = 'voucher' "
-                        "WHERE discount_percent = 0 AND discount_amount > 0 AND code LIKE 'GIFT-%'"
+                with sync_conn.begin_nested():
+                    sync_conn.execute(
+                        text(
+                            "UPDATE coupons SET kind = 'voucher' "
+                            "WHERE discount_percent = 0 AND discount_amount > 0 AND code LIKE 'GIFT-%'"
+                        )
                     )
-                )
             except Exception as exc:
                 logger.warning("Could not backfill legacy coupon kinds: %s", exc)
 
@@ -121,7 +123,8 @@ def _migrate_db_schema(sync_conn) -> None:
         for idx in table.indexes:
             if idx.name and idx.name not in existing_indexes:
                 try:
-                    idx.create(bind=sync_conn)
+                    with sync_conn.begin_nested():
+                        idx.create(bind=sync_conn)
                     logger.info("Migrated schema: created missing index %s on %s", idx.name, table_name)
                 except Exception as exc:
                     logger.warning("Could not create index %s on %s: %s", idx.name, table_name, exc)
@@ -137,7 +140,8 @@ def _migrate_db_schema(sync_conn) -> None:
                 if isinstance(c, UniqueConstraint) and c.name and c.name not in existing_ucs:
                     try:
                         cols = ", ".join(f'"{col.name}"' for col in c.columns)
-                        sync_conn.execute(text(f'ALTER TABLE "{table_name}" ADD CONSTRAINT "{c.name}" UNIQUE ({cols});'))
+                        with sync_conn.begin_nested():
+                            sync_conn.execute(text(f'ALTER TABLE "{table_name}" ADD CONSTRAINT "{c.name}" UNIQUE ({cols});'))
                         logger.info("Migrated schema: added unique constraint %s on %s", c.name, table_name)
                     except Exception as exc:
                         logger.debug("Could not add unique constraint %s on %s: %s", c.name, table_name, exc)
@@ -151,27 +155,36 @@ async def init_db(engine) -> None:
         await conn.run_sync(_migrate_db_schema)
         dialect_name = conn.dialect.name
         if dialect_name == "postgresql":
-            try:
-                await conn.execute(text(
-                    "ALTER TABLE crypto_invoices ALTER COLUMN comment TYPE VARCHAR(64);"
-                ))
-            except Exception:
-                pass
-            try:
-                await conn.execute(text(
-                    "ALTER TABLE crypto_invoices ALTER COLUMN nanotons TYPE NUMERIC(38, 0);"
-                ))
-            except Exception:
-                pass
-            try:
-                await conn.execute(text(
-                    "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;"
-                ))
-            except Exception as e:
-                logger.debug("ALTER TABLE orders service_id DROP NOT NULL: %s", e)
-            try:
-                await conn.execute(text(
-                    "CREATE INDEX IF NOT EXISTS ix_crypto_invoices_currency ON crypto_invoices (currency);"
-                ))
-            except Exception:
-                pass
+            def _check_and_alter_postgres(sync_c):
+                insp = inspect(sync_c)
+                try:
+                    cols = {c["name"]: c for c in insp.get_columns("crypto_invoices")}
+                    comment_col = cols.get("comment")
+                    if comment_col and getattr(comment_col.get("type"), "length", None) != 64:
+                        with sync_c.begin_nested():
+                            sync_c.execute(text("ALTER TABLE crypto_invoices ALTER COLUMN comment TYPE VARCHAR(64);"))
+                    nanotons_col = cols.get("nanotons")
+                    if nanotons_col and getattr(nanotons_col.get("type"), "precision", None) != 38:
+                        with sync_c.begin_nested():
+                            sync_c.execute(text("ALTER TABLE crypto_invoices ALTER COLUMN nanotons TYPE NUMERIC(38, 0);"))
+                except Exception as e:
+                    logger.debug("PostgreSQL crypto_invoices column inspection: %s", e)
+
+                try:
+                    orders_cols = {c["name"]: c for c in insp.get_columns("orders")}
+                    svc_col = orders_cols.get("service_id")
+                    if svc_col and svc_col.get("nullable") is False:
+                        with sync_c.begin_nested():
+                            sync_c.execute(text("ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;"))
+                except Exception as e:
+                    logger.debug("PostgreSQL orders column inspection: %s", e)
+
+                try:
+                    with sync_c.begin_nested():
+                        sync_c.execute(text(
+                            "CREATE INDEX IF NOT EXISTS ix_crypto_invoices_currency ON crypto_invoices (currency);"
+                        ))
+                except Exception:
+                    pass
+
+            await conn.run_sync(_check_and_alter_postgres)

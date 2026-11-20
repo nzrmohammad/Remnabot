@@ -138,6 +138,9 @@ async def get_order_invoice_data(
             },
         }
 
+    if not row:
+        return None
+
     order: Order = row[0]
     user: User | None = row[1]
 

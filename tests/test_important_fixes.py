@@ -25,7 +25,14 @@ async def test_item10_schema_index_migration(session_factory):
         conn = await session.connection()
 
         def check_and_migrate(sync_conn):
+            from sqlalchemy import inspect
             _migrate_db_schema(sync_conn)
+            insp = inspect(sync_conn)
+            tables = set(insp.get_table_names())
+            assert "users" in tables
+            assert "crypto_invoices" in tables
+            idx_names = {idx["name"] for idx in insp.get_indexes("crypto_invoices") if idx.get("name")}
+            assert len(idx_names) > 0
 
         await conn.run_sync(check_and_migrate)
 

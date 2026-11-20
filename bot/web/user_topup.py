@@ -323,6 +323,8 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     try:
         amount = int(body.get("amount") or 0)
@@ -597,6 +599,8 @@ async def post_user_topup_crypto(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     try:
         amount = int(body.get("amount") or 0)
@@ -738,6 +742,8 @@ async def post_user_topup_crypto_check(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     invoice_id = body.get("invoice_id")
     if not invoice_id:
@@ -806,6 +812,8 @@ async def post_user_topup_stars(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     try:
@@ -904,6 +912,7 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
             remnawave=request.app.get("remnawave"),
             bot=request.app.get("bot"),
             session_factory=request.app.get("session_factory"),
+            cache=request.app.get("cache"),
         )
         if not res.get("ok"):
             return web.json_response({"ok": False, "message": res.get("message", "کد نامعتبر است.")}, status=400)
@@ -963,6 +972,8 @@ async def post_user_topup_trx(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     try:
@@ -1069,6 +1080,8 @@ async def post_user_topup_trx_verify(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     invoice_id = body.get("invoice_id")
     tx_hash = (body.get("tx_hash") or "").strip()
@@ -1129,6 +1142,8 @@ async def post_user_topup_pol(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     try:
@@ -1234,6 +1249,8 @@ async def post_user_topup_pol_verify(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     invoice_id = body.get("invoice_id")
@@ -1437,6 +1454,8 @@ async def post_user_topup_tonconnect_submit(request: web.Request) -> web.Respons
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     invoice_id = body.get("invoice_id")
     if not invoice_id:
@@ -1504,6 +1523,8 @@ async def post_user_topup_card_auto_create(request: web.Request) -> web.Response
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     try:
@@ -1705,6 +1726,8 @@ async def post_user_topup_card_auto_cancel(request: web.Request) -> web.Response
         body = await request.json()
     except Exception:
         body = {}
+    if not isinstance(body, dict):
+        body = {}
 
     uuid_str = body.get("uuid")
     if not uuid_str:
@@ -1737,6 +1760,8 @@ async def post_user_topup_crypto_cancel(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
 
     invoice_id = body.get("invoice_id")
@@ -1771,17 +1796,16 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
     cache = request.app.get("cache")
 
     # 1. Endpoint Rate Limiting (per IP, max 60 requests per minute)
-    if cache and hasattr(cache, "get") and hasattr(cache, "set"):
+    if cache and hasattr(cache, "incr"):
         try:
             rl_key = f"rl:sms_webhook_req:{peer_ip}"
-            req_count = await cache.get(rl_key)
-            if req_count is not None and isinstance(req_count, int) and req_count >= 60:
+            req_count = await cache.incr(rl_key, ttl_seconds=60)
+            if req_count > 60:
                 logger.warning("SMS webhook rate limit exceeded (60 req/min) for ip=%s", peer_ip)
                 return web.json_response(
                     {"ok": False, "message": "Too many requests. Please slow down."},
                     status=429,
                 )
-            await cache.set(rl_key, (req_count or 0) + 1, ttl_seconds=60)
         except Exception as rl_err:
             logger.debug("Failed checking webhook rate limit for %s: %s", peer_ip, rl_err)
 
