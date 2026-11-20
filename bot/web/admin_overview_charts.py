@@ -272,6 +272,8 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
             s_rounded = s_local - timedelta(minutes=s_local.minute)
         s_d = s_rounded.date()
         s_h = s_rounded.hour
+        if s_d == today_date and s_h > curr_h and s_local <= local_now:
+            s_h = curr_h
         if 0 <= s_h < 24:
             if s_d == today_date:
                 today_bytes[s_h] = max(today_bytes[s_h], s.delta_bytes)

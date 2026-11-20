@@ -273,3 +273,13 @@ def test_donut_chart_uses_tokenized_palette_not_flag_colors():
     assert "return defaultColors[idx % defaultColors.length];" in charts_js, (
         "charts.js should map slices to defaultColors palette for distinct visibility!"
     )
+
+
+def test_no_universal_element_dimension_override():
+    """Ensure no CSS file sets width/height on universal selector (*), which crushes all DOM elements."""
+    pattern = re.compile(r"(?:^|\n|\})\s*\*(?:\s*,[^{]*|\s*)\{[^}]*(?<![a-zA-Z0-9_-])(?:width|height)\s*:", re.MULTILINE)
+    for css_path in [TOKENS_CSS_PATH, BASE_CSS_PATH, COMPONENTS_CSS_PATH, APP_CSS_PATH]:
+        content = css_path.read_text(encoding="utf-8")
+        matches = pattern.findall(content)
+        assert not matches, f"Found dangerous universal dimension override in {css_path.name}: {matches}"
+
