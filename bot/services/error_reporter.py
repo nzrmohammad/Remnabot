@@ -171,20 +171,17 @@ async def report_error(
     try:
         if session is not None:
             store = await get_store_settings(session)
-            if store.topic_errors is not None:
-                update_cached_topic_errors(store.topic_errors)
+            update_cached_topic_errors(store.topic_errors)
             topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
         elif session_factory is not None:
             if hasattr(session_factory, "execute") and not callable(session_factory):
                 store = await get_store_settings(session_factory)
-                if store.topic_errors is not None:
-                    update_cached_topic_errors(store.topic_errors)
+                update_cached_topic_errors(store.topic_errors)
                 topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
             else:
                 async with session_factory() as sess:
                     store = await get_store_settings(sess)
-                    if store.topic_errors is not None:
-                        update_cached_topic_errors(store.topic_errors)
+                    update_cached_topic_errors(store.topic_errors)
                     topic_id = store.topic_errors if store.topic_errors is not None else settings.ADMIN_TOPIC_ERRORS
         else:
             topic_id = _cached_topic_errors or settings.ADMIN_TOPIC_ERRORS

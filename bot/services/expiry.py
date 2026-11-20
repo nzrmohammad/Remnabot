@@ -18,6 +18,7 @@ Panel-down rounds are skipped silently (no de-verify, no disable).
 """
 import asyncio
 import logging
+from html import escape
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
@@ -115,7 +116,7 @@ async def run_expiry_check(
                         continue  # unlimited — nothing to do
                     diff_sec = (expire_at - now).total_seconds()
                     days_left = int(diff_sec // 86400) if diff_sec >= 0 else int(diff_sec / 86400)
-                    username = str(account.get("username", "—"))
+                    username = escape(str(account.get("username", "—")))
                     date_str = format_date(expire_at.astimezone(now.tzinfo), lang)
                     state = await _get_state(session, str(account_id), user.telegram_id)
 

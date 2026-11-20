@@ -34,6 +34,18 @@ def create_engine_and_sessionmaker():
     return engine, session_factory
 
 
+def async_session_factory() -> AsyncSession:
+    """Convenience helper returning an active AsyncSession instance for CLI and scripts."""
+    _, sf = create_engine_and_sessionmaker()
+    return sf()
+
+
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
+    """Return an async_sessionmaker instance."""
+    _, sf = create_engine_and_sessionmaker()
+    return sf
+
+
 def _migrate_db_schema(sync_conn) -> None:
     """Introspect tables and safely add any missing columns from models to the DB."""
     import bot.db.models  # noqa: F401 - ensure models are registered on Base.metadata

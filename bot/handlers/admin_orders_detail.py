@@ -184,15 +184,17 @@ async def order_view_or_refund(
         new_balance = await WalletRepository(session).add_balance_atomic(
             order.telegram_id, order.amount
         )
+        panel_revert_ok = True
         if order.panel_user_id is not None and remnawave is not None:
             try:
                 await _revert_panel_subscription(remnawave, order)
-            except Exception:
-                pass
+            except Exception as rev_exc:
+                panel_revert_ok = False
+                logger.error("Failed to revert panel subscription for refunded order %s: %s", order.id, rev_exc)
         await AdminLogRepository(session).log(
             call.from_user.id,
             "refund",
-            detail=f"#{order.id} user={order.telegram_id} amount={order.amount}",
+            detail=f"#{order.id} user={order.telegram_id} amount={order.amount} panel_reverted={panel_revert_ok}",
         )
         if cache and hasattr(cache, "delete"):
             if hasattr(cache, "invalidate_user"):

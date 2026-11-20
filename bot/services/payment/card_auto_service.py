@@ -231,10 +231,15 @@ async def process_incoming_sms(
         amt_rial_str = str(forapp_amount_toman * 10)
         has_amount_in_body = bool(amt_str in clean_digits or amt_rial_str in clean_digits)
 
-        if not parsed.reject_reason and has_amount_in_body:
+        is_safe_amount_missing = (
+            not parsed.reject_reason
+            or "مبلغ یا واحد پول" in str(parsed.reject_reason)
+        )
+        if is_safe_amount_missing and has_amount_in_body:
             parsed.amount_toman = forapp_amount_toman
             parsed.amount_rial = forapp_amount_toman * 10
             parsed.is_deposit = True
+            parsed.reject_reason = None
         else:
             logger.warning(
                 "Rejected external amount fallback: reject_reason=%r has_amount_in_body=%s forapp_amount=%s",
@@ -259,7 +264,12 @@ async def process_incoming_sms(
     )
 
     # Log incoming SMS atomically with replay deduplication
-    sms_hash = repo.compute_sms_hash(sender, raw_message)
+    sms_hash = repo.compute_sms_hash(
+        sender,
+        raw_message,
+        tracking_code=parsed.tracking_code,
+        idempotency_key=idempotency_key,
+    )
     log_entry = await repo.log_bank_sms(
         sender=sender,
         raw_message=raw_message,

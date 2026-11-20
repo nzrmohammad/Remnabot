@@ -59,8 +59,8 @@ async def broadcast_audience_select(
     kb.button(text=t(lang, "btn_back"), callback_data="menu:admin")
     kb.adjust(2, 2, 1, 1)
 
-    await render_menu(bot, user, user_repo, t(lang, "bcast_target_title"), kb.as_markup())
     await call.answer()
+    await render_menu(bot, user, user_repo, t(lang, "bcast_target_title"), kb.as_markup())
 
 
 @router.callback_query(F.data.startswith("adm:bcast:target:"))
@@ -83,8 +83,8 @@ async def broadcast_target_picked(
     kb.adjust(1)
 
     prompt = f"🎯 <b>{target_label}</b>\n\n{t(lang, 'broadcast_prompt')}"
-    await render_menu(bot, user, user_repo, prompt, kb.as_markup())
     await call.answer()
+    await render_menu(bot, user, user_repo, prompt, kb.as_markup())
 
 
 @router.message(BroadcastStates.waiting_text, F.text)
@@ -186,8 +186,8 @@ async def broadcast_send(
         f"👥 کل دریافت‌کنندگان: {len(recipient_ids):,}\n"
         f"📊 وضعیت: در حال ارسال (0 از {len(recipient_ids):,})"
     )
-    await render_menu(bot, user, user_repo, progress_text, kb_cancel.as_markup())
     await call.answer("🚀 ارسال همگانی آغاز شد.")
+    await render_menu(bot, user, user_repo, progress_text, kb_cancel.as_markup())
 
     # Commit any pending session transaction before the network-heavy sending loop
     # so the connection is not held 'idle in transaction' during broadcast.

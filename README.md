@@ -51,7 +51,7 @@
 Remnabot provides a production-grade Telegram client portal and administrative operations suite:
 
 - **👤 Unified Client Hub**: Multi-subscription management under a single Telegram ID, one-step free trial provisioning, HWID device control, and persistent bilingual localization (English & Persian).
-- **📱 Next-Gen Telegram Mini App (TMA)**: High-performance, mobile-native client web application with Stale-While-Revalidate (SWR) caching, native haptics, theme parameters (dark & light tokens), and app PIN lock.
+- **📱 Next-Gen Telegram Mini App (TMA)**: High-performance, mobile-native client web application with FastCache (in-memory + Redis cache-aside), native haptics, theme parameters (dark & light tokens), and safe areas.
 - **🚀 Real-Time Speedtest Engine**: Zero-bloat client-server throughput benchmark streaming non-compressible binary chunks to accurately measure download, upload, ping, and jitter.
 - **🎡 Gamified Lucky Wheel & Retention**: Daily spin rewards, streak bonus multipliers, spin tickets, traffic bonuses, and promotional coupon prizes.
 - **🎂 Jalali Birthday Rewards & Live Countdown**: Persian birthday picker, live countdown ticker, month traits, and autonomous dispatch of VIP discount codes and extra traffic.
@@ -218,7 +218,7 @@ remnawave-bot/
 │   ├── states/                     # Finite State Machine (FSM) conversation groups
 │   ├── config.py                   # Strongly-typed Pydantic v2 application settings
 │   └── main.py                     # Bot entrypoint, router binding, & scheduler launcher
-├── tests/                          # Comprehensive test suite (322 passing tests)
+├── tests/                          # Comprehensive test suite (545+ passing tests)
 ├── docker-compose.yml              # Production multi-container orchestration (Bot, DB, Redis)
 ├── Dockerfile                      # Optimized Python 3.12-slim multi-stage image
 ├── requirements.txt                # Pinned production dependencies
@@ -403,7 +403,7 @@ WEB_BIND_IP=0.0.0.0
 ### Stage 5: Telegram Mini App (TMA) & Nginx Reverse Proxy
 
 Remnabot features a built-in, asynchronous, high-performance web service delivering **two dedicated Telegram Mini Apps**:
-1. **👤 Client Portal WebApp (`/app`)**: Visual bandwidth circular gauge, collapsible per-country daily traffic accordion, interactive Lucky Wheel (6-tier prizes with automatic Remnawave quota allocation), story card generator, 1-tap app importers (`Incy`, `Happ`, `v2rayNG`, `Hiddify`, `Streisand`), live node ping latency tester, and IP/DNS leak detector.
+1. **👤 Client Portal WebApp (`/app`)**: Visual bandwidth circular gauge, collapsible per-country daily traffic accordion, interactive Lucky Wheel (6-tier prizes with automatic Remnawave quota allocation), story card generator, 1-tap app importers (`Incy`, `Happ`, `v2rayNG`, `Hiddify`, `Streisand`), live node ping latency tester, and client public IP detector.
 2. **👑 Cluster Admin Suite (`/admin`)**: Real-time KPIs (total users, active subscriptions, today's revenue, cluster-wide bandwidth, online sessions), cluster node telemetry (CPU/RAM/Xray restart), instant user modifier (`+GB`, `+Days`, Kill HWID sessions, Ban toggle), support ticket desk, and instant broadcast messaging.
 
 #### 1. WebSocket Upgrade Mapping (`nginx.conf`):
@@ -700,7 +700,12 @@ You can generate a backup in two ways:
 - **Via Telegram Bot**: Go to Admin Dashboard ➔ System Settings ➔ Tap **"💾 Backup Database"**. The bot will immediately send the `.json` file to your Telegram chat.
 - **Via Server CLI**:
   ```bash
+  # Generate database backup inside the container
   docker compose exec bot python -c "import asyncio; from bot.db.base import async_session_factory; from bot.services.backup import create_database_backup; asyncio.run(create_database_backup(async_session_factory()))"
+
+  # Copy generated backup from the container volume to host ./backups
+  mkdir -p backups
+  docker compose cp bot:/app/backups/. ./backups/
   ```
   The generated file is saved under `./backups/remnabot_backup_YYYYMMDD_HHMMSS.json`.
 
@@ -724,9 +729,11 @@ mv /root/remnabot_backup_*.json backups/
 # 3. Start the containers (PostgreSQL schema is automatically provisioned on boot)
 docker compose up -d
 
-# 4. Restore the JSON backup into the database
+# 4. Copy the backup file into the container and restore
 BACKUP_FILE=$(ls backups/remnabot_backup_*.json | tail -n 1)
-docker compose exec bot python -c "import asyncio; from bot.db.base import async_session_factory; from bot.services.backup import restore_database_backup; asyncio.run(restore_database_backup(async_session_factory(), '${BACKUP_FILE}'))"
+docker compose cp "$BACKUP_FILE" bot:/app/backups/
+CONTAINER_BACKUP="/app/backups/$(basename "$BACKUP_FILE")"
+docker compose exec bot python -c "import asyncio; from bot.db.base import async_session_factory; from bot.services.backup import restore_database_backup; asyncio.run(restore_database_backup(async_session_factory(), '${CONTAINER_BACKUP}'))"
 
 # 5. Restart the bot container to refresh caches
 docker compose restart bot
@@ -797,7 +804,7 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 | Task Name | Interval | Responsibility |
 | :--- | :---: | :--- |
 | `reconcile_loop` | **30 min** | Synchronizes panel subscribers with local database, links Telegram IDs, and reconciles state. |
-| `devices_loop` | **5 min** | Inspects active HWID connections and terminates sessions exceeding plan device limits. |
+| `devices_loop` | **5 min** | Inspects active connections and alerts users on newly detected devices. |
 | `expiry_loop` | **60 min** | Dispatches pre-expiry countdown warnings (3 days, 1 day, Day 0), enforces grace periods, and auto-disables expired panel subscriptions. |
 | `alerts_loop` | **180 min** | Evaluates bandwidth consumption thresholds (80%, 90%, 100%) and delivers proactive renewal alerts. |
 | `crypto_rates_loop` | **4x Daily (10:00, 14:00, 18:00, 22:00)** | Queries live TON market rates (Nobitex/Bitpin or Binance/TonAPI global fallback) and dispatches interactive price alerts to the crypto topic. |
@@ -812,7 +819,7 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 
 ## 🧪 Testing & Quality Assurance
 
-Remnabot maintains a strict test-driven development workflow with **515+ passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
+Remnabot maintains a strict test-driven development workflow with **545+ passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
 
 ```bash
 # Execute test suite

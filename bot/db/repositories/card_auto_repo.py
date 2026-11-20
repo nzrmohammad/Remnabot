@@ -241,10 +241,20 @@ class CardAutoRepository:
         return (res.rowcount or 0) > 0
 
     @staticmethod
-    def compute_sms_hash(sender: str, raw_message: str) -> str:
+    def compute_sms_hash(
+        sender: str,
+        raw_message: str,
+        tracking_code: str | None = None,
+        idempotency_key: str | None = None,
+    ) -> str:
         norm_msg = " ".join(normalize_sms_digits(raw_message or "").split())
         norm_sender = (sender or "").strip().lower()
-        return hashlib.sha256(f"{norm_sender}::{norm_msg}".encode()).hexdigest()
+        parts = [norm_sender, norm_msg]
+        if tracking_code:
+            parts.append(f"track:{str(tracking_code).strip()}")
+        if idempotency_key:
+            parts.append(f"idemp:{str(idempotency_key).strip()}")
+        return hashlib.sha256("::".join(parts).encode()).hexdigest()
 
     async def sms_hash_exists(self, sms_hash: str) -> bool:
         if not sms_hash:

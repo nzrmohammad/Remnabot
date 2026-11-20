@@ -3,6 +3,7 @@
 Optimized for sub-millisecond response times in high-traffic Telegram Mini Apps.
 """
 import asyncio
+import functools
 import json
 import logging
 import time
@@ -138,6 +139,7 @@ class FastCache:
 def cached(ttl_seconds: int = 15, key_prefix: str = "tma:cache"):
     """Decorator to cache async API handler responses."""
     def decorator(func: Callable):
+        @functools.wraps(func)
         async def wrapper(request, *args, **kwargs):
             cache: FastCache = request.app.get("cache")
             if not cache:

@@ -518,15 +518,42 @@ async def create_database_backup(
     return file_path
 
 
-async def restore_database_backup(session: AsyncSession, file_path: str | Path) -> dict[str, int]:
-    """Restore database records from a JSON backup file."""
+async def restore_database_backup(
+    session: AsyncSession,
+    file_path: str | Path,
+    password: str | None = None,
+) -> dict[str, int]:
+    """Restore database records from a JSON or password-protected ZIP backup file."""
     path = Path(file_path).resolve()
-    if not path.is_file() or path.suffix.lower() not in (".json", ".dump"):
+    if not path.is_file() or path.suffix.lower() not in (".json", ".dump", ".zip"):
         raise ValueError(f"Invalid backup file format or file not found: {path}")
 
     def _read_file():
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
+        if path.suffix.lower() == ".zip":
+            pwd = (password or "").strip()
+            try:
+                import pyzipper
+                with pyzipper.AESZipFile(path, "r") as zf:
+                    if pwd:
+                        zf.setpassword(pwd.encode("utf-8"))
+                    json_names = [n for n in zf.namelist() if n.endswith((".json", ".dump"))]
+                    if not json_names:
+                        raise ValueError("No JSON dump found inside ZIP archive")
+                    with zf.open(json_names[0]) as jf:
+                        return json.load(jf)
+            except (ImportError, Exception) as zip_exc:
+                import zipfile
+                with zipfile.ZipFile(path, "r") as zf:
+                    if pwd:
+                        zf.setpassword(pwd.encode("utf-8"))
+                    json_names = [n for n in zf.namelist() if n.endswith((".json", ".dump"))]
+                    if not json_names:
+                        raise ValueError("No JSON dump found inside ZIP archive") from zip_exc
+                    with zf.open(json_names[0]) as jf:
+                        return json.load(jf)
+        else:
+            with open(path, encoding="utf-8") as f:
+                return json.load(f)
 
     data = await asyncio.to_thread(_read_file)
 

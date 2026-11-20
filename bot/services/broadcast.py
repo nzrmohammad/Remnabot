@@ -45,16 +45,27 @@ async def resolve_broadcast_recipients(
     active_tids: set[int] = set()
     for pu in panel_users:
         if str(pu.get("status", "")).upper() == "ACTIVE":
+            tid = pu.get("telegramId")
+            if not tid:
+                continue
+            try:
+                tid_int = int(tid)
+            except (ValueError, TypeError):
+                continue
+            if tid_int <= 0:
+                continue
+
             exp_str = pu.get("expireAt")
             if exp_str:
                 try:
                     exp = datetime.fromisoformat(str(exp_str).replace("Z", "+00:00"))
                     if exp > now:
-                        tid = pu.get("telegramId")
-                        if tid and int(tid) > 0:
-                            active_tids.add(int(tid))
+                        active_tids.add(tid_int)
                 except Exception:
                     pass
+            else:
+                # Unlimited / permanent active subscription
+                active_tids.add(tid_int)
 
     if target == "active":
         return list(active_tids - banned_tids)

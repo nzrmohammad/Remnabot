@@ -468,8 +468,8 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                             f"به مبلغ <b>{recent_paid_auto.exact_amount:,} تومان</b> را با موفقیت شارژ کرده است. لطفاً زمان/پیگیری فیش را با دقت بررسی کنید."
                         )
                 pass  # non-cancelled recent card-auto check enforced above
-            except Exception:
-                pass
+            except Exception as af_exc:
+                logger.error("Anti-fraud card verification check failed for user %s: %s", telegram_id, af_exc)
 
         img_hash = "img:" + hashlib.sha256(img_bytes).hexdigest()[:48]
         if await wallet_repo.receipt_exists(img_hash):

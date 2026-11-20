@@ -77,6 +77,9 @@ async def send_admin_topic_notification(
     topic_id = explicit_topic_id or await resolve_admin_topic_id(
         session=session, session_factory=session_factory, kind=kind, settings=settings
     )
+    if text and len(text) > 4000:
+        text = text[:3990] + "\n..."
+
     thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
 
     # 1. Primary delivery to configured ADMIN_CHAT_ID (with dedicated topic)

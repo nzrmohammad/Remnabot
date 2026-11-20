@@ -3,11 +3,12 @@
 The bot keeps exactly ONE menu message per chat and always edits it.
 Any message the user sends is deleted after processing.
 """
+import asyncio
 import contextlib
 import logging
 
 from aiogram import Bot
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
 from aiogram.types import InlineKeyboardMarkup, Message
 
 from bot.db.models import User
@@ -31,6 +32,9 @@ async def render_menu(
     reply_markup: InlineKeyboardMarkup | None = None,
 ) -> None:
     """Edit the stored menu message; if it no longer exists, send a fresh one."""
+    if len(text) > 4000:
+        text = text[:3990] + "\n..."
+
     if user.menu_message_id is not None:
         try:
             await bot.edit_message_text(
@@ -40,16 +44,33 @@ async def render_menu(
                 reply_markup=reply_markup,
             )
             return
+        except TelegramRetryAfter as exc:
+            await asyncio.sleep(exc.retry_after)
+            with contextlib.suppress(Exception):
+                await bot.edit_message_text(
+                    chat_id=user.telegram_id,
+                    message_id=user.menu_message_id,
+                    text=text,
+                    reply_markup=reply_markup,
+                )
+                return
         except TelegramBadRequest as exc:
             # "message is not modified" → nothing to do
             if "message is not modified" in str(exc):
                 return
             # message was deleted / too old → fall through and resend
 
-    msg: Message = await bot.send_message(
-        chat_id=user.telegram_id, text=text, reply_markup=reply_markup
-    )
-    await user_repo.set_menu_message_id(user, msg.message_id)
+    try:
+        msg: Message = await bot.send_message(
+            chat_id=user.telegram_id, text=text, reply_markup=reply_markup
+        )
+        await user_repo.set_menu_message_id(user, msg.message_id)
+    except TelegramRetryAfter as exc:
+        await asyncio.sleep(exc.retry_after)
+        msg = await bot.send_message(
+            chat_id=user.telegram_id, text=text, reply_markup=reply_markup
+        )
+        await user_repo.set_menu_message_id(user, msg.message_id)
 
 
 async def reset_menu(
