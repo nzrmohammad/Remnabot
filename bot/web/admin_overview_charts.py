@@ -265,8 +265,13 @@ async def _calc_hourly_distribution(session, now_utc: datetime) -> dict[str, Any
     for s in snapshots:
         s_ts = s.timestamp
         s_local = s_ts.replace(tzinfo=timezone.utc).astimezone(tz) if s_ts.tzinfo is None else s_ts.astimezone(tz)
-        s_d = s_local.date()
-        s_h = s_local.hour
+        # Round half-hour offsets (e.g. Tehran UTC+03:30) so intervals align with standard clock hour buckets
+        if s_local.minute >= 30:
+            s_rounded = s_local + timedelta(minutes=(60 - s_local.minute))
+        else:
+            s_rounded = s_local - timedelta(minutes=s_local.minute)
+        s_d = s_rounded.date()
+        s_h = s_rounded.hour
         if 0 <= s_h < 24:
             if s_d == today_date:
                 today_bytes[s_h] = max(today_bytes[s_h], s.delta_bytes)
@@ -423,7 +428,7 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
 
     single_device = sum(1 for cnt in user_hwid_counts.values() if cnt == 1)
     two_device = sum(1 for cnt in user_hwid_counts.values() if cnt == 2)
-    three_plus = sum(1 for cnt in user_hwid_counts.values() if cnt >= 3)
+    three_device = sum(1 for cnt in user_hwid_counts.values() if cnt == 3)
     high_risk = sum(1 for cnt in user_hwid_counts.values() if cnt >= 4)
 
     order_user_map: dict[str, str] = {}
@@ -508,8 +513,8 @@ async def _calc_platform_and_hwid(session, remnawave) -> tuple[dict[str, Any], d
         "data": [platform_counts["Android"], platform_counts["iOS"], platform_counts["Windows"], platform_counts["macOS/Linux"], platform_counts["Other"]],
     }
     hwid_dist = {
-        "labels": ["1 دستگاه", "2 دستگاه", "3+ دستگاه", "ریسک بالا (4+)"],
-        "data": [single_device, two_device, three_plus, high_risk],
+        "labels": ["1 دستگاه", "2 دستگاه", "3 دستگاه", "ریسک بالا (4+)"],
+        "data": [single_device, two_device, three_device, high_risk],
         "high_risk_count": len(high_risk_users),
         "total_monitored_users": len(user_hwid_counts),
         "high_risk_users": high_risk_users,

@@ -392,7 +392,7 @@ function formatDateToJalali(dateStr) {
   return dateStr;
 }
 
-// Convert Persian and Arabic digits to ASCII English digits
+// Convert Persian and Arabic digits and separators to standard English digits
 function toEnglishDigits(str) {
   if (str === null || str === undefined) return '';
   const fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
@@ -401,12 +401,26 @@ function toEnglishDigits(str) {
   for (let i = 0; i < 10; i++) {
     res = res.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
   }
+  // Normalize Persian decimal separator (٫) to dot and thousands separator (٬) to comma
+  res = res.replaceAll('٫', '.').replaceAll('٬', ',');
   return res;
 }
 
-// Legacy alias retained for callers: returns ASCII English digits cleanly (no Persian digits)
+// Convert digits to Persian digits
 function toPersianDigits(str) {
-  return toEnglishDigits(str);
+  if (str === null || str === undefined) return '';
+  const fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  const s = toEnglishDigits(str);
+  let res = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch >= '0' && ch <= '9') {
+      res += fa[ch.charCodeAt(0) - 48];
+    } else {
+      res += ch;
+    }
+  }
+  return res;
 }
 
 function formatPrice(amt) {
@@ -1138,6 +1152,8 @@ if (typeof module !== 'undefined' && module.exports) {
     toPersianDigits,
     formatPrice,
     formatNumber,
+    toEnglishDigits,
+    toPersianDigits,
     getFlagEmoji,
     formatSpeed,
     formatChatTimestamp,

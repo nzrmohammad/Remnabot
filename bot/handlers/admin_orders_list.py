@@ -254,6 +254,6 @@ async def orders_search_submit(
     if not query:
         return
 
+    await state.clear()
     await state.update_data(order_search_query=query)
-    await state.set_state(None)
     await _render_orders_list(bot, user, user_repo, session, status="all", page=0, query=query)

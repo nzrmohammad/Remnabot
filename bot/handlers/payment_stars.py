@@ -82,6 +82,17 @@ async def stars_pre_checkout_handler(pre_checkout_query: PreCheckoutQuery, bot: 
             pass
 
 
+def _mask_stars_payload(payload: str) -> str:
+    """Mask nonce and sensitive tokens in stars payload for safe logging."""
+    if not payload:
+        return ""
+    parts = payload.split(":")
+    if len(parts) > 5:
+        nonce_val = parts[5].strip()
+        parts[5] = f"{nonce_val[:4]}***" if len(nonce_val) > 4 else "***"
+    return ":".join(parts)
+
+
 @router.message(F.successful_payment)
 async def stars_successful_payment_handler(
     message: Message, bot: Bot, session: AsyncSession, cache=None,
@@ -92,16 +103,17 @@ async def stars_successful_payment_handler(
         return
 
     payload = str(sp.invoice_payload or "")
+    safe_payload = _mask_stars_payload(payload)
     # Format: stars_topup:{telegram_id}:{amount_toman}:{stars_count}
     parts = payload.split(":")
     if len(parts) < 4 or parts[0] != "stars_topup":
-        logger.error("Unrecognized successful_payment payload: %s", payload)
+        logger.error("Unrecognized successful_payment payload: %s", safe_payload)
         try:
             from bot.services.error_reporter import report_error
             await report_error(
                 bot,
                 session=session,
-                exc=f"Unrecognized Stars payment payload: {payload}",
+                exc=f"Unrecognized Stars payment payload: {safe_payload}",
                 context=f"Stars payment amount={sp.total_amount} XTR",
                 user_id=message.from_user.id if message.from_user else None,
             )
@@ -120,14 +132,14 @@ async def stars_successful_payment_handler(
         if len(parts) > 5:
             nonce = parts[5].strip()
     except (ValueError, TypeError) as exc:
-        logger.exception("Invalid payload numbers in %s", payload)
+        logger.exception("Invalid payload numbers in %s", safe_payload)
         try:
             from bot.services.error_reporter import report_error
             await report_error(
                 bot,
                 session=session,
                 exc=exc,
-                context=f"Invalid payload numbers in Stars topup: {payload}",
+                context=f"Invalid payload numbers in Stars topup: {safe_payload}",
                 user_id=message.from_user.id if message.from_user else None,
             )
         except Exception:
@@ -158,7 +170,8 @@ async def stars_successful_payment_handler(
     if nonce and cache and hasattr(cache, "set_nx"):
         nonce_claimed = await cache.set_nx(f"stars:nonce:{nonce}", "1", ttl_seconds=86400 * 30)
         if not nonce_claimed:
-            logger.warning("Stars payment nonce %s already consumed for charge_id %s, ignoring replay.", nonce, sp.telegram_payment_charge_id)
+            masked_nonce = f"{nonce[:4]}***" if len(nonce) > 4 else "***"
+            logger.warning("Stars payment nonce %s already consumed for charge_id %s, ignoring replay.", masked_nonce, sp.telegram_payment_charge_id)
             return
 
     # Idempotency guard: prevent duplicate crediting if Telegram retries webhook

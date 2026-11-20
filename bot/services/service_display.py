@@ -2,6 +2,7 @@
 from html import escape
 
 from bot.locales.texts import t
+from bot.services.formatting import ltr_frag
 
 
 def fmt_price(value: int) -> str:
@@ -65,7 +66,7 @@ def service_block(service, lang: str, show_state: bool = False) -> str:
     lines = [
         title,
         f"   💰 {t(lang, 'svc_field_price')} : "
-        f"<b>{fmt_price(service.price)}</b> {t(lang, 'svc_currency')}",
+        f"<b>{ltr_frag(fmt_price(service.price))}</b> {t(lang, 'svc_currency')}",
         f"   📅 {t(lang, 'svc_field_duration')} : "
         f"<b>{dur_str}</b>",
         f"   📊 {t(lang, 'svc_field_traffic')} : "

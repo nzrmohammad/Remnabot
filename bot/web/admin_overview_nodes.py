@@ -261,9 +261,9 @@ def extract_node_item(
         "id": n.get("id"),
         "uuid": n_uuid,
         "name": raw_name,
-        "country_code": country_code or "NL",
-        "country_name": c_fa_name or "هلند",
-        "flag": flag,
+        "country_code": country_code or "XX",
+        "country_name": c_fa_name or "نامشخص",
+        "flag": flag or "🌐",
         "status": "ONLINE" if is_connected else "OFFLINE",
         "connected_users": online_users,
         "cpu_percent": round(cpu_val, 1),
@@ -325,13 +325,15 @@ async def calc_cluster_kpis(
 
     panel_users = await remnawave.get_all_panel_users(size=1000) or []
     active_panel_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
-    total_traffic_bytes = sum(get_used_bytes(u) for u in panel_users)
+    active_traffic_bytes = sum(get_used_bytes(u) for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
+    total_traffic_bytes = active_traffic_bytes if active_traffic_bytes > 0 else sum(get_used_bytes(u) for u in panel_users)
     total_traffic_gb = round(total_traffic_bytes / (1024 ** 3), 2)
 
-    thirty_days_ago = now_utc - timedelta(days=30)
+    now_tehran = now_utc.astimezone(ZoneInfo("Asia/Tehran"))
+    thirty_days_ago_utc = (now_tehran.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=29)).astimezone(timezone.utc)
     rev_30d_res = await session.execute(
         select(func.coalesce(func.sum(Order.amount), 0)).where(
-            Order.created_at >= thirty_days_ago,
+            Order.created_at >= thirty_days_ago_utc,
             Order.status == "paid",
         )
     )

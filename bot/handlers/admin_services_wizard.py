@@ -295,7 +295,10 @@ async def edit_service_pick(
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
-    await state.set_state(None)
+    try:
+        await state.clear()
+    except (TypeError, AttributeError):
+        pass
     await state.update_data(service_id=service_id)
 
     kb = InlineKeyboardBuilder()

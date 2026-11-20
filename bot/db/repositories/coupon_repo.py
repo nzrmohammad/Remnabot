@@ -111,6 +111,7 @@ class CouponRepository:
             coupon_obj = await self.get_by_id(coupon)
 
         code_str = getattr(coupon_obj, "code", None) or (coupon if isinstance(coupon, (str, int)) else "unknown")
+        masked_code = f"{code_str[:4]}***" if code_str else "***"
         if coupon_obj:
             if getattr(coupon_obj, "kind", "discount") == "voucher":
                 return None
@@ -118,7 +119,7 @@ class CouponRepository:
             if bound_tid is not None and int(bound_tid) != int(telegram_id):
                 logger.warning(
                     "Coupon %s ownership mismatch: bound=%s caller=%s",
-                    code_str, bound_tid, telegram_id,
+                    masked_code, bound_tid, telegram_id,
                 )
                 return None
         try:
@@ -141,7 +142,7 @@ class CouponRepository:
                         .execution_options(synchronize_session="fetch"),
                     )
                     if res.rowcount == 0:
-                        logger.warning("Coupon %s reached max_uses concurrently, usage not recorded", code_str)
+                        logger.warning("Coupon %s reached max_uses concurrently, usage not recorded", masked_code)
                         return None
 
                 usage = CouponUsage(
@@ -155,7 +156,7 @@ class CouponRepository:
         except IntegrityError:
             logger.warning(
                 "Coupon %s duplicate usage prevented for user %s",
-                code_str,
+                masked_code,
                 telegram_id,
             )
             return None

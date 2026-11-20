@@ -3,7 +3,6 @@ from aiogram.fsm.state import State, StatesGroup
 
 
 class UserManagementStates(StatesGroup):
-    waiting_telegram_id = State()          # «افزودن کاربر» by Telegram ID
     waiting_balance_amount = State()       # amount for add/subtract
     waiting_search = State()               # admin user search query
     create_username = State()              # create panel user: username

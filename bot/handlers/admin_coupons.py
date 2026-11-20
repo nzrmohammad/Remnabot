@@ -298,7 +298,8 @@ async def admin_coupon_add_max_uses(
             message.from_user.id, "setting", detail=f"create_coupon={code}"
         )
     except Exception as exc:
-        logger.error("Failed to create coupon %s: %s", code, exc)
+        masked_code = f"{code[:4]}***" if code else "***"
+        logger.error("Failed to create coupon %s: %s", masked_code, exc)
         kb = InlineKeyboardBuilder()
         kb.button(text="🔙 بازگشت به لیست کدها", callback_data="adm:coupons")
         kb.adjust(1)

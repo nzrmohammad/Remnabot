@@ -2,6 +2,7 @@
 import logging
 
 from aiogram import Bot, F, Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -96,7 +97,10 @@ async def _render_referral_settings(
 @router.callback_query(F.data == "adm:settings:trial")
 async def trial_settings_view(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext | None = None,
 ):
+    if state:
+        await state.clear()
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
@@ -108,7 +112,10 @@ async def trial_settings_view(
 @router.callback_query(F.data == "adm:settings:referral")
 async def referral_settings_view(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext | None = None,
 ):
+    if state:
+        await state.clear()
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
@@ -120,7 +127,10 @@ async def referral_settings_view(
 @router.callback_query(F.data == "adm:settings:trial_ref")
 async def trial_ref_settings_view(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext | None = None,
 ):
+    if state:
+        await state.clear()
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return

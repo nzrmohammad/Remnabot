@@ -836,7 +836,6 @@
           y: {
             stacked: true,
             beginAtZero: true,
-            suggestedMax: (totalRetentionUsers > 0) ? undefined : 5,
             suggestedMax: (newSales.some(v => v > 0) || renewalSales.some(v => v > 0)) ? undefined : 5,
             grid: { color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)' },
             ticks: {
@@ -1110,7 +1109,7 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const labels = hwidDist?.labels || ['1 دستگاه', '2 دستگاه', '3+ دستگاه', 'ریسک بالا (4+)'];
+    const labels = hwidDist?.labels || ['1 دستگاه', '2 دستگاه', '3 دستگاه', 'ریسک بالا (4+)'];
     const values = hwidDist?.data || [0, 0, 0, 0];
     const riskCount = hwidDist?.high_risk_count || 0;
 

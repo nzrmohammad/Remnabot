@@ -128,6 +128,12 @@ async def topup_receipt(
     topup = await wallet_repo.create_topup(
         user.telegram_id, amount, receipt_hash, receipt_photo_id=receipt_photo_id
     )
+    auto_inv_uuid = data.get("auto_invoice_uuid")
+    if auto_inv_uuid:
+        try:
+            await CardAutoRepository(session).cancel_invoice(str(auto_inv_uuid), user.telegram_id)
+        except Exception as exc:
+            logger.warning("Failed to cancel linked card auto invoice %s: %s", auto_inv_uuid, exc)
 
     # receipt + info with approve/reject buttons → admin chat
     tg_username = f"@{message.from_user.username}" if message.from_user.username else "—"

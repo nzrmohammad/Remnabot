@@ -4,8 +4,9 @@ from zoneinfo import ZoneInfo
 
 import jdatetime
 
-GB = 1024 ** 3
+KB = 1024
 MB = 1024 ** 2
+GB = 1024 ** 3
 TB = 1024 ** 4
 
 
@@ -29,7 +30,11 @@ def _human_bytes_plain(n: int | float | None) -> str:
         return f"{n / TB:.2f} TB"
     if n >= GB:
         return f"{n / GB:.2f} GB"
-    return f"{n / MB:.2f} MB"
+    if n >= MB:
+        return f"{n / MB:.2f} MB"
+    if n >= KB:
+        return f"{n / KB:.2f} KB"
+    return f"{n / KB:.2f} KB"
 
 
 def country_flag(code: str | None) -> str:
@@ -192,9 +197,9 @@ def format_datetime(dt: datetime | str | int | float | None, lang: str, tz_name:
     if lang == "fa":
         try:
             j = jdatetime.datetime.fromgregorian(datetime=dt)
-            return j.strftime("%Y/%m/%d - %H:%M")
+            return ltr_frag(j.strftime("%Y/%m/%d - %H:%M"))
         except Exception:
-            return dt.strftime("%Y/%m/%d - %H:%M")
+            return ltr_frag(dt.strftime("%Y/%m/%d - %H:%M"))
     return dt.strftime("%Y-%m-%d - %H:%M")
 
 

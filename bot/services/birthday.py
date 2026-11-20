@@ -203,7 +203,7 @@ def days_until_jalali_birthday(birth_date_val: str | None, tz_name: str = "Asia/
         try:
             this_bday = jdatetime.date(today_j.year, b_month, b_day)
         except ValueError:
-            this_bday = jdatetime.date(today_j.year, b_month, max(1, b_day - 1))
+            this_bday = jdatetime.date(today_j.year, b_month, 29 if b_month == 12 else max(1, b_day - 1))
 
         if this_bday >= today_j:
             return (this_bday - today_j).days
@@ -212,7 +212,7 @@ def days_until_jalali_birthday(birth_date_val: str | None, tz_name: str = "Asia/
         try:
             next_bday = jdatetime.date(today_j.year + 1, b_month, b_day)
         except ValueError:
-            next_bday = jdatetime.date(today_j.year + 1, b_month, max(1, b_day - 1))
+            next_bday = jdatetime.date(today_j.year + 1, b_month, 29 if b_month == 12 else max(1, b_day - 1))
 
         return (next_bday - today_j).days
     except Exception:
@@ -267,7 +267,17 @@ def parse_and_validate_jalali_birthdate(raw_input: str) -> tuple[bool, str, str 
     if month < 1 or month > 12:
         return False, "", "ماه تولد باید بین 1 تا 12 باشد."
 
-    max_days = 31 if month <= 6 else (30 if month <= 11 else 29)
+    if month <= 6:
+        max_days = 31
+    elif month <= 11:
+        max_days = 30
+    else:
+        try:
+            is_leap = jdatetime.date(year, 1, 1).isleap()
+        except Exception:
+            is_leap = False
+        max_days = 30 if is_leap else 29
+
     if day < 1 or day > max_days:
         return False, "", f"روز تولد برای ماه {month} باید بین 1 تا {max_days} باشد."
 

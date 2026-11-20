@@ -506,11 +506,8 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null, 
 function renderTrafficSplit(splitData) {
   if (!splitData) return;
   // Split card retired from UI; retained calculation for backward compatibility
-  const downGb = splitData.download_gb ?? 0;
-  const upGb = splitData.upload_gb ?? 0;
-  const downPct = splitData.download_percent || 0;
-  const upPct = splitData.upload_percent || 0;
-  const hasSplit = Boolean(splitData.has_split);
+  const _downPct = splitData.download_percent || 0;
+  const _upPct = splitData.upload_percent || 0;
 }
 
 function renderBurnRate(burnRate, sub) {

@@ -165,7 +165,8 @@ async def run_reconcile(
                 )
             )
             if not ord_res.scalar_one_or_none():
-                logger.warning("Reconcile: auto-reverting orphaned gift card %s (id=%s) stuck since %s", gc.code, gc.id, gc.claimed_at)
+                masked_gc_code = f"{gc.code[:4]}***" if gc.code else "***"
+                logger.warning("Reconcile: auto-reverting orphaned gift card %s (id=%s) stuck since %s", masked_gc_code, gc.id, gc.claimed_at)
                 gc.is_claimed = False
                 gc.claimed_at = None
                 if getattr(gc, "delivery_type", "LINK") != "DIRECT":

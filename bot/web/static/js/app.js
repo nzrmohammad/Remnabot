@@ -3409,13 +3409,17 @@ function updateUserPeakHoursView(sub) {
     );
     barLabels = [];
     barData = [];
-    for (let i = 0; i < rawHours.length; i += 2) {
-      const a = rawHours[i];
-      const b = rawHours[i + 1];
-      const endH = ((b ? b.hour : a.hour) + 1) % 24;
-      barLabels.push(`${String(a.hour).padStart(2, '0')}-${String(endH).padStart(2, '0')}`);
-      barData.push(Number(((a.val || 0) + (b?.val || 0)).toFixed(3)));
-    }
+    const groupHoursIntoBars = (slice) => {
+      for (let i = 0; i < slice.length; i += 2) {
+        const a = slice[i];
+        const b = slice[i + 1];
+        const endH = ((b ? b.hour : a.hour) + 1) % 24;
+        barLabels.push(`${String(a.hour).padStart(2, '0')}-${String(endH).padStart(2, '0')}`);
+        barData.push(Number(((a.val || 0) + (b?.val || 0)).toFixed(3)));
+      }
+    };
+    groupHoursIntoBars(rawHours.slice(0, splitTodayIndex));
+    groupHoursIntoBars(rawHours.slice(splitTodayIndex));
   } else {
     plotLabels = labels24;
     plotData = today24;

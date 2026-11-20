@@ -234,7 +234,10 @@ async def _render_settings(
 
 async def store_settings_view(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext | None = None,
 ):
+    if state:
+        await state.clear()
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return

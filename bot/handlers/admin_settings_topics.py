@@ -4,6 +4,7 @@ import time
 from html import escape
 
 from aiogram import Bot, F, Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -127,7 +128,10 @@ async def _render_topics_settings(
 @router.callback_query(F.data == "adm:settings:topics")
 async def topics_settings_view(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, session: AsyncSession,
+    state: FSMContext | None = None,
 ):
+    if state:
+        await state.clear()
     if not is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return

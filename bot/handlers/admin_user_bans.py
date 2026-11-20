@@ -2,6 +2,7 @@
 import logging
 
 from aiogram import Bot, F, Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +28,10 @@ async def telegram_user_detail(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient,
     target_telegram_id: int | None = None,
+    state: FSMContext | None = None,
 ):
+    if state:
+        await state.clear()
     if call.data in ("adm:user:search", "adm:user:create"):
         return
     if not _is_admin(call.from_user.id):

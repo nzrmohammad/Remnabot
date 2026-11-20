@@ -232,10 +232,10 @@ async def fetch_subscription_configs(url: str, timeout: float = 2.0) -> list[dic
     try:
         return await asyncio.wait_for(_fetch_subscription_configs_impl(url, timeout), timeout=3.0)
     except TimeoutError:
-        logger.warning("Subscription fetch reached overall timeout for %s", url)
+        logger.warning("Subscription fetch reached overall timeout for %s", _mask_url(url))
         return []
     except Exception as exc:
-        logger.warning("Unexpected error during subscription fetch for %s: %s", url, exc)
+        logger.warning("Unexpected error during subscription fetch for %s: %s", _mask_url(url), exc)
         return []
 
 

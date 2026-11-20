@@ -158,7 +158,9 @@ async def report_error(
         ):
             return
 
-    sig = f"{exc_type}:{exc_msg[:80]}:{context[:50]}"
+    # Deduplicate primarily by exception type and message to prevent duplicate reporting
+    # when both logger.exception and explicit report_error are triggered for the same event
+    sig = f"{exc_type}:{exc_msg[:100]}"
     now_epoch = time.time()
     last_sent = _recent_errors.get(sig, 0.0)
     if now_epoch - last_sent < THROTTLE_SECONDS:
@@ -334,12 +336,16 @@ async def report_error_event(
 class TelegramErrorLogHandler(logging.Handler):
     """Logging handler that forwards ERROR and CRITICAL logs directly to the Telegram error topic."""
 
-    def __init__(self, bot: Bot, session_factory: async_sessionmaker) -> None:
+    def __init__(self, bot: Bot, session_factory: async_sessionmaker, loop: asyncio.AbstractEventLoop | None = None) -> None:
         super().__init__(level=logging.ERROR)
         self.bot = bot
         self.session_factory = session_factory
+        try:
+            self.loop = loop or asyncio.get_running_loop()
+        except RuntimeError:
+            self.loop = None
         self._recent_errors: dict[str, float] = {}
-        self._active_tasks: set[asyncio.Task] = set()
+        self._active_tasks: set[Any] = set()
 
     def emit(self, record: logging.LogRecord) -> None:
         # Check re-entrancy / infinite loop guard
@@ -424,12 +430,16 @@ class TelegramErrorLogHandler(logging.Handler):
             ):
                 return
 
+        # Ensure we have a valid event loop (either current running loop or captured main loop from worker threads)
+        loop = None
+        current_running_loop = None
         try:
-            loop = asyncio.get_running_loop()
+            current_running_loop = asyncio.get_running_loop()
+            loop = current_running_loop
         except RuntimeError:
-            return
+            loop = self.loop
 
-        if not loop.is_running():
+        if not loop or not loop.is_running():
             return
 
         # Throttle repetitive errors to prevent log storms
@@ -460,22 +470,35 @@ class TelegramErrorLogHandler(logging.Handler):
             exc_obj = record.getMessage()
 
         context = f"Logger: {record.name} ({record.filename}:{record.lineno})"
-        task = loop.create_task(
-            report_error(
-                bot=self.bot,
-                session_factory=self.session_factory,
-                exc=exc_obj,
-                context=context,
-                traceback_str=tb_str,
-            )
+        coro = report_error(
+            bot=self.bot,
+            session_factory=self.session_factory,
+            exc=exc_obj,
+            context=context,
+            traceback_str=tb_str,
         )
-        self._active_tasks.add(task)
-        task.add_done_callback(self._active_tasks.discard)
+
+        if current_running_loop is loop:
+            task = loop.create_task(coro)
+            self._active_tasks.add(task)
+            task.add_done_callback(self._active_tasks.discard)
+        else:
+            # Safely schedule error dispatch onto main event loop from background/worker threads
+            try:
+                future = asyncio.run_coroutine_threadsafe(coro, loop)
+                self._active_tasks.add(future)
+                future.add_done_callback(self._active_tasks.discard)
+            except Exception as sched_err:
+                logger.debug("Failed scheduling error report from worker thread: %s", sched_err)
 
 
 def setup_telegram_error_logging(bot: Bot, session_factory: async_sessionmaker) -> TelegramErrorLogHandler:
     """Attaches TelegramErrorLogHandler to the root logger to capture all system errors."""
-    handler = TelegramErrorLogHandler(bot, session_factory)
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    handler = TelegramErrorLogHandler(bot, session_factory, loop=loop)
     logging.getLogger().addHandler(handler)
     return handler
 

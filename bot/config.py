@@ -55,6 +55,8 @@ class Settings(BaseSettings):
     # --- Misc ---
     TIMEZONE: str = "Asia/Tehran"      # used for "today's usage" and report dates
     ALERT_CHECK_INTERVAL_MINUTES: int = 180   # how often the alert job runs
+    LOG_LEVEL: str = "INFO"            # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    LOG_FILE: str = ""                 # Optional path to rotating log file, e.g. logs/bot.log
 
     # --- Wallet (card-to-card top-up) ---
     CARD_NUMBER: str = ""              # e.g. 6037-9917-1234-5678 (empty → top-up disabled)
