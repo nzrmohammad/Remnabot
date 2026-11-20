@@ -1363,3 +1363,11 @@ html.theme-light #customPlanDiscountDisplay {
   text-align: center;
   white-space: nowrap;
 }
+
+/* Force vertical scrollbar to the right side in RTL layouts */
+.scroll-right {
+  direction: ltr;
+}
+.scroll-right > * {
+  direction: rtl;
+}

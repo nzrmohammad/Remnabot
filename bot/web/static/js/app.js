@@ -1694,8 +1694,8 @@ function renderTutorialApps(osKey) {
         <div class="flex items-center justify-between gap-2" dir="ltr">
           <!-- Left side: App Icon + Name -->
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-10 h-10 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden relative">
-              <img src="/static/img/apps/${app.id}.webp?v=fl3" alt="${escapeHtml(app.name)}" class="w-full h-full object-contain rounded-lg" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${app.id}.png?v=fl3';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" />
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden relative">
+              <img src="/static/img/apps/${app.id}.webp?v=fl4" alt="${escapeHtml(app.name)}" class="w-full h-full object-cover rounded-2xl" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${app.id}.png?v=fl4';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" />
               <span class="text-xl items-center justify-center hidden" style="display:none;">${app.icon || '📱'}</span>
             </div>
             <div class="min-w-0 flex-1 text-left">

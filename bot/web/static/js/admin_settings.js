@@ -102,7 +102,7 @@
           <div class="admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent">
             <button type="button" dir="ltr" onclick="window.adminActions.toggleAppCard(this)" class="w-full flex items-center justify-between text-left p-0 bg-transparent border-0 cursor-pointer">
               <div class="flex items-center gap-2">
-                <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="${meta.name}" loading="lazy" />
+                <img src="/static/img/apps/${appId}.webp?v=fl4" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl4';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="${meta.name}" loading="lazy" />
                 <span class="text-sm leading-none hidden" style="display:none;">${meta.icon || '📱'}</span>
                 <b class="text-white text-xs font-bold font-sans">${meta.name}</b>
               </div>
@@ -1293,7 +1293,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         html += `
           <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}', '${pickerRole}')" dir="ltr" class="w-full p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-card-border t-muted hover:t-main'} active:scale-95">
             <div class="flex items-center gap-2.5">
-              <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';}" class="w-6 h-6 rounded-lg object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
+              <img src="/static/img/apps/${appId}.webp?v=fl4" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl4';}else{this.style.display='none';}" class="w-6 h-6 rounded-lg object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
               <span class="font-sans font-bold text-xs">${escapeHtml(appName)}</span>
             </div>
             ${isSelected ? '<span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
@@ -1336,12 +1336,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
             pickerRole === 'recommended' ? 'border-amber-500/50' : (pickerRole === 'alternative' ? 'border-sky-500/50' : 'border-emerald-500/50')
           );
           if (iconImg) {
-            iconImg.src = `/static/img/apps/${appId}.webp?v=fl3`;
+            iconImg.src = `/static/img/apps/${appId}.webp?v=fl4`;
             iconImg.className = 'w-4 h-4 rounded object-contain shrink-0';
             iconImg.onerror = function() {
               if (!this.dataset.triedPng) {
                 this.dataset.triedPng = '1';
-                this.src = `/static/img/apps/${appId}.png?v=fl3`;
+                this.src = `/static/img/apps/${appId}.png?v=fl4`;
               } else {
                 this.src = pickerRole === 'recommended' ? '/static/img/icons/star.svg?v=fl2' : '/static/img/icons/sparkles.svg?v=fl2';
               }
@@ -2795,7 +2795,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
           <div dir="ltr" class="flex items-center justify-between gap-2.5">
             <div class="flex items-center gap-2.5 min-w-0">
               <div class="w-10 h-10 rounded-xl card-inset p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-                <img src="/static/img/apps/${appId}.webp?v=fl3" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl3';}else{this.style.display='none';}" class="w-full h-full object-contain rounded-lg" alt="${escapeHtml(appName)}" loading="lazy" />
+                <img src="/static/img/apps/${appId}.webp?v=fl4" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl4';}else{this.style.display='none';}" class="w-full h-full object-contain rounded-lg" alt="${escapeHtml(appName)}" loading="lazy" />
               </div>
               <div class="min-w-0 text-left">
                 <b class="text-sm t-main font-bold truncate block font-sans tracking-wide">${escapeHtml(appName)}</b>
