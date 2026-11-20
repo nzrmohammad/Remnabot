@@ -130,6 +130,7 @@ async def create_gift(
     share_url = f"https://t.me/{bot_username}?start=gift_{code}" if bot_username else code
 
     # 4. If direct delivery and receiver has telegram_id, notify them immediately
+    direct_notified = False
     if delivery_type == "DIRECT" and receiver_tg_id and bot:
         try:
             from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -157,6 +158,7 @@ async def create_gift(
                 reply_markup=kb.as_markup(),
                 parse_mode="HTML",
             )
+            direct_notified = True
         except Exception as notify_err:
             logger.debug("Failed notifying gift recipient %s: %s", receiver_tg_id, notify_err)
 
@@ -167,11 +169,12 @@ async def create_gift(
         "cost": cost_to_charge,
         "gift_type": gift_type,
         "delivery_type": delivery_type,
+        "direct_notified": direct_notified,
         "message": "کارت هدیه با موفقیت صادر شد.",
     }
 
 
-async def claim_gift(
+async def _claim_gift_core(
     session: AsyncSession,
     code: str,
     claimer_telegram_id: int,
@@ -179,8 +182,9 @@ async def claim_gift(
     remnawave: Any = None,
     bot: Any = None,
     session_factory: Any = None,
+    cache: Any = None,
 ) -> dict[str, Any]:
-    """Claim a gift card by code. Validates ownership, provisions balance or service, and notifies sender."""
+    """Internal core gift claiming logic."""
     clean_code = code.strip().upper()
     
     # Atomic lookup with row lock
@@ -266,6 +270,7 @@ async def claim_gift(
                             discount_amount=(p_service.price if p_service else service.price),
                             bot=bot,
                             session_factory=session_factory,
+                            cache=cache,
                         )
                 else:
                     purchase_res = await execute_purchase(
@@ -277,6 +282,7 @@ async def claim_gift(
                         discount_amount=service.price,
                         bot=bot,
                         session_factory=session_factory,
+                        cache=cache,
                     )
             except Exception as p_exc:
                 logger.error("Gift execute_purchase exception: %s", p_exc)
@@ -329,6 +335,48 @@ async def claim_gift(
         "subscription_url": sub_url,
         "message": f"تبریک! {gift_title} با موفقیت به حساب شما اضافه شد.",
     }
+
+
+async def claim_gift(
+    session: AsyncSession,
+    code: str,
+    claimer_telegram_id: int,
+    claimer_username: str | None = None,
+    remnawave: Any = None,
+    bot: Any = None,
+    session_factory: Any = None,
+    cache: Any = None,
+) -> dict[str, Any]:
+    """Claim a gift card by code. Validates ownership, provisions balance or service, and notifies sender."""
+    clean_code = code.strip().upper()
+    lock_key = f"lock:gift:{clean_code}"
+    lock_token = secrets.token_hex(8)
+    lock_acquired = False
+    if cache and hasattr(cache, "set_nx"):
+        try:
+            lock_acquired = await cache.set_nx(lock_key, lock_token, ttl_seconds=20)
+            if not lock_acquired:
+                return {"ok": False, "message": "این کارت هدیه هم‌اکنون در حال پردازش توسط کاربر دیگری است."}
+        except Exception as lock_err:
+            logger.debug("Gift lock set_nx exception: %s", lock_err)
+
+    try:
+        return await _claim_gift_core(
+            session=session,
+            code=clean_code,
+            claimer_telegram_id=claimer_telegram_id,
+            claimer_username=claimer_username,
+            remnawave=remnawave,
+            bot=bot,
+            session_factory=session_factory,
+            cache=cache,
+        )
+    finally:
+        if lock_acquired and cache and hasattr(cache, "release_lock"):
+            try:
+                await cache.release_lock(lock_key, lock_token)
+            except Exception as rel_err:
+                logger.debug("Gift lock release exception: %s", rel_err)
 
 
 async def get_user_gifts(

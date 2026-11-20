@@ -1,7 +1,7 @@
 """Async SQLAlchemy engine / session factory."""
 import logging
 
-from sqlalchemy import inspect, text
+from sqlalchemy import UniqueConstraint, inspect, text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -125,6 +125,22 @@ def _migrate_db_schema(sync_conn) -> None:
                     logger.info("Migrated schema: created missing index %s on %s", idx.name, table_name)
                 except Exception as exc:
                     logger.warning("Could not create index %s on %s: %s", idx.name, table_name, exc)
+
+        # Inspect and create missing table unique constraints on PostgreSQL
+        if sync_conn.dialect.name == "postgresql":
+            try:
+                existing_ucs = {uc["name"] for uc in inspector.get_unique_constraints(table_name) if uc.get("name")}
+            except Exception:
+                existing_ucs = set()
+
+            for c in table.constraints:
+                if isinstance(c, UniqueConstraint) and c.name and c.name not in existing_ucs:
+                    try:
+                        cols = ", ".join(f'"{col.name}"' for col in c.columns)
+                        sync_conn.execute(text(f'ALTER TABLE "{table_name}" ADD CONSTRAINT "{c.name}" UNIQUE ({cols});'))
+                        logger.info("Migrated schema: added unique constraint %s on %s", c.name, table_name)
+                    except Exception as exc:
+                        logger.debug("Could not add unique constraint %s on %s: %s", c.name, table_name, exc)
 
 
 async def init_db(engine) -> None:

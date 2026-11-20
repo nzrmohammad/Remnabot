@@ -218,6 +218,7 @@ async def process_incoming_sms(
     idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     """Process forwarded bank SMS, match to pending invoice, and credit user wallet."""
+    raw_message = (raw_message or "")[:1000]
     repo = CardAutoRepository(session)
     wallet_repo = WalletRepository(session)
 

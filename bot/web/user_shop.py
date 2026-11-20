@@ -603,6 +603,7 @@ async def post_user_claim_gift(request: web.Request) -> web.Response:
             remnawave=remnawave,
             bot=bot,
             session_factory=session_factory,
+            cache=cache,
         )
         if not res.get("ok"):
             return web.json_response(res, status=400)

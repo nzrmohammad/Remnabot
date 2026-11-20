@@ -470,6 +470,10 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
                 pass  # non-cancelled recent card-auto check enforced above
             except Exception as af_exc:
                 logger.error("Anti-fraud card verification check failed for user %s: %s", telegram_id, af_exc)
+                return web.json_response(
+                    {"ok": False, "message": "خطای موقت در بررسی اعتبارسنجی کارت. لطفاً لحظاتی دیگر مجدداً تلاش کنید."},
+                    status=500,
+                )
 
         img_hash = "img:" + hashlib.sha256(img_bytes).hexdigest()[:48]
         if await wallet_repo.receipt_exists(img_hash):

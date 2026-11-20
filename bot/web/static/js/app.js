@@ -1924,8 +1924,11 @@ function switchBdayPickerTab(tab) {
       const curYear = $('birthdayYearSelect')?.value || '1375';
       const activeYearBtn = yPane?.querySelector('.active-bday-item') || yPane?.querySelector(`[data-val="${curYear}"]`);
       if (yPane && activeYearBtn) {
-        if (typeof activeYearBtn.scrollIntoView === 'function') {
-          activeYearBtn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        const topPos = activeYearBtn.offsetTop - yPane.offsetTop - (yPane.clientHeight / 2) + (activeYearBtn.clientHeight / 2);
+        if (typeof yPane.scrollTo === 'function') {
+          yPane.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' });
+        } else if (typeof activeYearBtn.scrollIntoView === 'function') {
+          activeYearBtn.scrollIntoView({ block: 'center' });
         }
       }
     }, 40);
@@ -2948,7 +2951,7 @@ const APP_MODAL_IDS = [
   'giftServiceSelectModal', 'invoiceModal', 'loyaltyModal', 'killAllSessionsModal', 'killSingleDeviceModal',
 ];
 
-function updateTopPadding() {
+function applyUserTopPadding() {
   if (typeof window.updateTopPadding === 'function') {
     window.updateTopPadding('topHeaderBar');
   } else {
@@ -2999,12 +3002,12 @@ function setupTelegramSDK() {
       if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
     } catch (e) {}
 
-    updateTopPadding();
+    applyUserTopPadding();
     try {
       if (tg.onEvent) {
-        tg.onEvent('contentSafeAreaChanged', updateTopPadding);
-        tg.onEvent('safeAreaChanged', updateTopPadding);
-        tg.onEvent('viewportChanged', updateTopPadding);
+        tg.onEvent('contentSafeAreaChanged', applyUserTopPadding);
+        tg.onEvent('safeAreaChanged', applyUserTopPadding);
+        tg.onEvent('viewportChanged', applyUserTopPadding);
       }
     } catch (e) {}
 
@@ -3052,7 +3055,7 @@ function setupTelegramSDK() {
       else alert('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.');
     });
   } else {
-    updateTopPadding();
+    applyUserTopPadding();
   }
 }
 
@@ -5796,6 +5799,7 @@ window.populateGiftServices = populateGiftServices;
 // DIGITAL INVOICE & OFFICIAL RECEIPT CONTROLLERS
 // ========================================================
 let currentInvoiceData = null;
+let currentInvoiceType = '';
 
 const invoiceClientCache = new Map();
 
@@ -5871,19 +5875,32 @@ function renderInvoiceModalFields(inv, orderId) {
   }
 }
 
-async function openInvoiceModal(orderId) {
+async function openInvoiceModal(orderId, itemType = '') {
   if (!orderId) return;
   const modal = $('invoiceModal');
   if (!modal) return;
 
+  let effectiveType = itemType || '';
+  if (!effectiveType) {
+    const tx = (window.lastUserData?.transactions || []).find(t => String(t.id) === String(orderId));
+    if (tx && tx.type) effectiveType = tx.type;
+  }
+  const clientKey = `${effectiveType || 'ord'}:${orderId}`;
+
   // SWR: Instant render if cached in client memory (0ms perceived wait)
-  if (invoiceClientCache.has(orderId)) {
-    renderInvoiceModalFields(invoiceClientCache.get(orderId), orderId);
+  if (invoiceClientCache.has(clientKey) || invoiceClientCache.has(orderId)) {
+    currentInvoiceType = effectiveType;
+    const cachedData = invoiceClientCache.get(clientKey);
+    if (cachedData) {
+      renderInvoiceModalFields(cachedData, orderId);
+    } else {
+      renderInvoiceModalFields(invoiceClientCache.get(orderId), orderId);
+    }
     modal.classList.remove('hidden');
     // Silently revalidate in background
-    window.api.getInvoice(orderId).then(res => {
+    window.api.getInvoice(orderId, effectiveType).then(res => {
       if (res && res.ok && res.data) {
-        invoiceClientCache.set(orderId, res.data);
+        invoiceClientCache.set(clientKey, res.data);
         renderInvoiceModalFields(res.data, orderId);
       }
     }).catch(() => {});
@@ -5893,6 +5910,7 @@ async function openInvoiceModal(orderId) {
   // SWR 2: Immediate synthesize from transaction history in memory for 0ms perceived latency
   const tx = (window.lastUserData?.transactions || []).find(t => String(t.id) === String(orderId));
   if (tx) {
+    if (!effectiveType && tx.type) effectiveType = tx.type;
     const fallbackInv = {
       order_id: tx.id,
       invoice_number: `INV-${String(tx.id).padStart(5, '0')}`,
@@ -5920,13 +5938,14 @@ async function openInvoiceModal(orderId) {
         deduction_note: tx.type === 'topup' ? 'واریز به موجودی کیف پول' : 'کسر شده از موجودی کیف پول'
       }
     };
-    invoiceClientCache.set(orderId, fallbackInv);
+    invoiceClientCache.set(clientKey, fallbackInv);
+    currentInvoiceType = effectiveType;
     renderInvoiceModalFields(fallbackInv, orderId);
     modal.classList.remove('hidden');
 
-    window.api.getInvoice(orderId, tx.type || '').then(res => {
+    window.api.getInvoice(orderId, effectiveType).then(res => {
       if (res && res.ok && res.data) {
-        invoiceClientCache.set(orderId, res.data);
+        invoiceClientCache.set(clientKey, res.data);
         renderInvoiceModalFields(res.data, orderId);
       }
     }).catch(() => {});
@@ -5947,14 +5966,15 @@ async function openInvoiceModal(orderId) {
   $('invTrackingCode').innerText = 'TRX-........';
 
   try {
-    const res = await window.api.getInvoice(orderId);
+    const res = await window.api.getInvoice(orderId, effectiveType);
     if (!res || !res.ok || !res.data) {
       showToast(`❌ ${res?.message || 'فاکتور یافت نشد.'}`);
       closeInvoiceModal();
       return;
     }
 
-    invoiceClientCache.set(orderId, res.data);
+    currentInvoiceType = effectiveType || res.data.type || '';
+    invoiceClientCache.set(clientKey, res.data);
     renderInvoiceModalFields(res.data, orderId);
   } catch (err) {
     console.warn('Failed loading invoice:', err);
@@ -5976,7 +5996,10 @@ async function sendCurrentInvoiceTelegram() {
   if (btn) btn.disabled = true;
 
   try {
-    const res = await window.api.sendInvoiceToTelegram(currentInvoiceData.order_id);
+    const res = await window.api.sendInvoiceToTelegram(
+      currentInvoiceData.order_id,
+      currentInvoiceType || currentInvoiceData.type || ''
+    );
     if (res && res.ok) {
       hapticFeedback('success');
       showToast('🎉 فاکتور رسمی به پیوی تلگرام شما ارسال شد!');

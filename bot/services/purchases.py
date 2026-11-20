@@ -392,7 +392,8 @@ async def _execute_purchase_impl(
                         purchases_count=case(
                             (Service.purchases_count > 0, Service.purchases_count - 1),
                             else_=0,
-                        )
+                        ),
+                        is_active=True,
                     )
                 )
             except Exception as s_err:

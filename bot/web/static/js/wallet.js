@@ -257,14 +257,14 @@ function renderWalletTransactions(transactions) {
     }
 
     const invoiceBtn = isOrder ? `
-      <button type="button" onclick="event.stopPropagation(); window.openInvoiceModal && window.openInvoiceModal(${tx.id});" class="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-0.5 font-bold" title="مشاهده و دانلود فاکتور رسمی">
+      <button type="button" onclick="event.stopPropagation(); window.openInvoiceModal && window.openInvoiceModal(${tx.id}, '${tx.type || 'order'}');" class="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-0.5 font-bold" title="مشاهده و دانلود فاکتور رسمی">
         <span>🧾</span> <span>فاکتور</span>
       </button>
     ` : '';
 
     const txIcon = ({ topup: '💳', card_auto: '💳', crypto: '💎', admin_adjust: '⚡️' })[tx.type] || '🛒';
     return `
-    <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id});"` : ''}>
+    <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id}, '${tx.type || 'order'}');"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <span class="text-xl shrink-0">${txIcon}</span>
         <div class="min-w-0 flex-1 space-y-1">

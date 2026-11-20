@@ -61,6 +61,7 @@ async def api_ban_check_middleware(request: web.Request, handler):
             is_banned = None
 
     if is_banned is None:
+        db_error = False
         session_factory = request.app.get("session_factory")
         if session_factory:
             try:
@@ -70,9 +71,10 @@ async def api_ban_check_middleware(request: web.Request, handler):
                     is_banned = bool(db_user and getattr(db_user, "is_banned", False))
             except Exception as exc:
                 logger.warning("Ban check DB lookup failed for user %s: %s", user_id, exc)
-                is_banned = False
+                is_banned = True
+                db_error = True
 
-        if cache and hasattr(cache, "set") and is_banned is not None:
+        if cache and hasattr(cache, "set") and is_banned is not None and not db_error:
             try:
                 await cache.set(ban_cache_key, 1 if is_banned else 0, ttl_seconds=30)
             except Exception as exc:

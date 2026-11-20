@@ -487,7 +487,8 @@ html.theme-light .system-status-card .status-pill-invite {
 }
 
 /* Toast Container Floating Fixed Position */
-#toastContainer {
+#toastContainer,
+#appToast {
   position: fixed;
   z-index: var(--z-toast, 100);
 }

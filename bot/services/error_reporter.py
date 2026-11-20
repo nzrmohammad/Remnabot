@@ -24,14 +24,12 @@ _is_reporting_var: contextvars.ContextVar[bool] = contextvars.ContextVar("_is_re
 
 # In-memory resilient cache for topic_errors (persists across transient DB connection drops)
 _cached_topic_errors: int | None = None
-_last_topic_cached_epoch: float = 0.0
 
 
 def update_cached_topic_errors(topic_id: int | None) -> None:
     """Updates the in-memory cached topic ID for error logs."""
-    global _cached_topic_errors, _last_topic_cached_epoch
+    global _cached_topic_errors
     _cached_topic_errors = int(topic_id) if topic_id is not None else None
-    _last_topic_cached_epoch = time.time()
 
 
 def get_cached_topic_errors() -> int | None:

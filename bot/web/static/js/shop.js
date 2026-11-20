@@ -1290,7 +1290,7 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
     invoiceBtn.onclick = () => {
       const orderId = res.order_id || (window.lastUserData?.transactions?.[0]?.id);
       if (orderId && window.openInvoiceModal) {
-        window.openInvoiceModal(orderId);
+        window.openInvoiceModal(orderId, 'order');
       } else {
         showToast('فاکتور این سفارش در بخش کیف پول ثبت گردید.');
       }

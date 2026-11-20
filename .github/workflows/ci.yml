@@ -37,11 +37,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-anyio ruff
+          pip install pytest pytest-asyncio ruff bandit
 
       - name: Lint Python Code with Ruff
         run: |
           ruff check bot/
+
+      - name: Security Scan with Bandit
+        run: |
+          bandit -r bot/ -ll -q -x bot/web/static/
 
       - name: Verify JavaScript Syntax & Tests
         run: |

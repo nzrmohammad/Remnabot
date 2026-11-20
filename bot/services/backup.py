@@ -531,6 +531,13 @@ async def restore_database_backup(
     def _read_file():
         if path.suffix.lower() == ".zip":
             pwd = (password or "").strip()
+            if not pwd:
+                try:
+                    from bot.config import get_settings
+                    settings = get_settings()
+                    pwd = (getattr(settings, "BACKUP_PASSWORD", "") or getattr(settings, "BACKUP_ENCRYPTION_KEY", "") or "").strip()
+                except Exception:
+                    pwd = ""
             try:
                 import pyzipper
                 with pyzipper.AESZipFile(path, "r") as zf:
