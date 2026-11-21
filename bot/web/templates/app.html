@@ -274,27 +274,25 @@
 
         <!-- Quick Interactive Action Cards (گردونه شانس و راهنمای اتصال) -->
         <div class="grid grid-cols-2 gap-2.5">
-          <button id="openLuckyWheelBtn" type="button" onclick="window.openLuckyWheel && window.openLuckyWheel()" class="card lucky-wheel-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex flex-col justify-between gap-2 transition shadow-sm group active:scale-95 min-h-[72px]">
+          <button id="openLuckyWheelBtn" type="button" onclick="window.openLuckyWheel && window.openLuckyWheel()" class="card lucky-wheel-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-2.5 sm:p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95 min-h-[48px]">
             <div class="flex items-center gap-1.5 lucky-wheel-title">
               <img src="/static/img/icons/wheel.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
               <span class="text-xs font-bold t-main">گردونه شانس</span>
             </div>
-            <div class="flex items-center justify-start min-w-0">
-              <span id="luckyWheelBadge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-lg border leading-tight transition-all whitespace-nowrap inline-flex items-center justify-center"></span>
+            <div class="flex items-center justify-end shrink-0">
+              <span id="luckyWheelBadge" class="hidden text-[10px] font-bold px-1.5 py-0.5 rounded-lg border leading-tight whitespace-nowrap inline-flex items-center justify-center"></span>
             </div>
           </button>
 
-          <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="card tutorial-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-card-border text-right flex flex-col justify-between gap-2 transition shadow-sm group active:scale-95 min-h-[72px]">
+          <button id="openTutorialModalBtn" type="button" onclick="window.openTutorialModal()" class="card tutorial-entry-btn hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-2.5 sm:p-3 rounded-2xl border border-card-border text-right flex items-center justify-between transition shadow-sm group active:scale-95 min-h-[48px]">
             <div class="flex items-center gap-1.5 tutorial-title">
               <img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
               <span class="text-xs font-bold t-main">راهنمای اتصال</span>
             </div>
-            <div class="flex items-center justify-start min-w-0">
-              <span id="tutorialBadge" class="hidden inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 whitespace-nowrap">
-                <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping"></span>
-                <span>آپدیت شد</span>
+            <div class="flex items-center justify-end shrink-0">
+              <span id="tutorialBadge" class="hidden w-2.5 h-2.5 rounded-full bg-cyan-500 relative flex items-center justify-center" title="بروزرسانی جدید نرم‌افزارها">
+                <span class="absolute inset-0 rounded-full bg-cyan-400 animate-ping opacity-75"></span>
               </span>
-              <span class="tutorial-sub text-[10px] t-muted block truncate">دانلود نرم‌افزارها</span>
             </div>
           </button>
         </div>
@@ -2069,9 +2067,9 @@
 
                 <!-- Action Buttons: Positioned below guide -->
                 <div class="grid grid-cols-2 gap-2 pt-1">
-                  <button type="button" id="checkCardAutoStatus" onclick="window.checkCardAutoStatus(true)" class="btn btn-primary w-full py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm text-white">
-                    <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span class="text-white font-bold">بررسی وضعیت</span>
+                  <button type="button" id="checkCardAutoStatus" onclick="window.checkCardAutoStatus(true)" class="btn btn-primary w-full py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>بررسی وضعیت</span>
                   </button>
                   <button type="button" onclick="window.cancelCardAutoInvoice()" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1.5 shadow-xs">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2279,9 +2277,9 @@
                 <img src="/static/img/icons/ton.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /> <span>پرداخت با برنامه تون‌کیپر (Tonkeeper)</span>
               </a>
               <div class="grid grid-cols-2 gap-2">
-                <button id="cryptoCheckStatusBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm text-white">
-                  <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span class="text-white font-bold">بررسی پرداخت</span>
+                <button id="cryptoCheckStatusBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span>بررسی وضعیت</span>
                 </button>
                 <button id="cryptoCancelInvoiceBtn" type="button" onclick="window.cancelCryptoInvoice && window.cancelCryptoInvoice()" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
                   <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2344,9 +2342,9 @@
                 <img src="/static/img/icons/tron.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت مستقیم با TronLink</span>
               </a>
               <div class="grid grid-cols-2 gap-2">
-                <button id="submitTrxTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm text-white">
-                  <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span class="text-white font-bold">بررسی واریز</span>
+                <button id="submitTrxTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span>بررسی وضعیت</span>
                 </button>
                 <button id="cancelTrxInvoiceBtn" type="button" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
                   <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2409,9 +2407,9 @@
                 <img src="/static/img/icons/polygon.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span>پرداخت مستقیم با متامسک (MetaMask)</span>
               </button>
               <div class="grid grid-cols-2 gap-2">
-                <button id="submitPolTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm text-white">
-                  <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span class="text-white font-bold">بررسی واریز</span>
+                <button id="submitPolTxIdBtn" type="button" class="btn btn-primary py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs active:scale-95 transition shadow-sm">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span>بررسی وضعیت</span>
                 </button>
                 <button id="cancelPolInvoiceBtn" type="button" class="w-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-600 dark:text-rose-400 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-xs">
                   <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -3633,11 +3631,11 @@
 
         <!-- 15. MODAL: GIFT TO FRIENDS (ارسال هدیه به دوستان) -->
     <div id="giftModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeGiftModal()" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3.5 shadow-2xl relative max-w-[360px] my-auto">
-        <button type="button" onclick="window.closeGiftModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن مودال هدیه"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right shadow-2xl relative max-w-[390px] sm:max-w-[420px] max-h-[88vh] flex flex-col my-auto">
+        <button type="button" onclick="window.closeGiftModal()" class="modal-close-btn absolute top-3 left-3 z-10" title="بستن" aria-label="بستن مودال هدیه"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <!-- Header -->
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2.5 shrink-0 pb-1">
           <div class="w-10 h-10 rounded-2xl bg-pink-500/15 text-pink-500 border border-pink-500/30 flex items-center justify-center shrink-0 shadow-sm">
             <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
           </div>
@@ -3648,7 +3646,7 @@
         </div>
 
         <!-- Gift Modal Tabs (ارسال هدیه / تاریخچه) -->
-        <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1 border-0" role="tablist">
+        <div class="flex items-center p-1 card-inset rounded-2xl text-xs gap-1 border-0 shrink-0 my-2" role="tablist">
           <button type="button" onclick="window.switchGiftModalTab('new')" id="giftTabBtn-new" role="tab" aria-selected="true" class="flex-1 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-xs bg-pink-600 text-white shadow-sm border-0">
             <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span>هدیه جدید</span>
           </button>
@@ -3658,22 +3656,22 @@
         </div>
 
         <!-- Tab 1: New Gift View -->
-        <div id="giftNewView" class="space-y-3">
+        <div id="giftNewView" class="space-y-2.5 flex-1 overflow-y-auto pr-0.5">
           <!-- Step 1: Select Gift Type (Balance or Service) -->
           <div class="space-y-1">
             <span class="text-[11px] t-muted block">نوع هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
-              <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
+              <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
                 <img src="/static/img/icons/finance.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">شارژ کیف پول</span>
               </button>
-              <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
+              <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
                 <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">بسته اشتراک</span>
               </button>
             </div>
           </div>
 
           <!-- Balance Specific Inputs -->
-          <div id="giftBalanceSection" class="space-y-2">
+          <div id="giftBalanceSection" class="space-y-1.5">
             <span class="text-[11px] t-muted block">مبلغ هدیه (تومان):</span>
             <input type="number" id="giftBalanceAmount" min="10000" step="5000" placeholder="مثال: 50,000" class="input-base w-full p-2.5 rounded-xl text-xs outline-none num-bidi font-sans" oninput="window.updateGiftCostDisplay()" />
             <div class="grid grid-cols-4 gap-1 text-[11px] font-sans font-medium">
@@ -3689,9 +3687,9 @@
             <span class="text-[11px] t-muted block">بسته اشتراک هدیه:</span>
             <div role="button" tabindex="0" id="giftSelectedServiceCard" onclick="window.openGiftServiceSelectModal && window.openGiftServiceSelectModal()" class="card-inset p-3 rounded-2xl border border-pink-500/30 flex items-center justify-between cursor-pointer hover:border-pink-500 transition" dir="rtl">
               <span class="text-xs text-pink-500 font-bold px-2.5 py-1 rounded-lg card-inset border border-pink-500/30 shrink-0">انتخاب</span>
-              <div class="flex items-center gap-2 min-w-0 flex-1 justify-start">
-                <div class="min-w-0 text-right">
-                  <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-2 min-w-0 flex-1 justify-end text-left pl-1">
+                <div class="min-w-0 text-left">
+                  <div class="flex items-center justify-end gap-1.5">
                     <b id="giftSelectedServiceTitle" class="text-xs t-main block truncate">انتخاب بسته اشتراک...</b>
                     <span id="giftSelectedServiceIcon" class="shrink-0 flex items-center justify-center"><img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /></span>
                   </div>
@@ -3706,17 +3704,17 @@
           <div class="space-y-1">
             <span class="text-[11px] t-muted block">نحوه تحویل هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
-              <button type="button" onclick="window.setGiftDeliveryType('DIRECT')" id="giftDeliveryBtn-direct" class="py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
+              <button type="button" onclick="window.setGiftDeliveryType('DIRECT')" id="giftDeliveryBtn-direct" class="py-2 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
                 <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">ارسال مستقیم تلگرام</span>
               </button>
-              <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
+              <button type="button" onclick="window.setGiftDeliveryType('LINK')" id="giftDeliveryBtn-link" class="py-2 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
                 <img src="/static/img/icons/link.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">ساخت لینک هدیه</span>
               </button>
             </div>
           </div>
 
           <!-- Direct Recipient Input (Shown only for DIRECT delivery) -->
-          <div id="giftReceiverSection" class="space-y-1.5">
+          <div id="giftReceiverSection" class="space-y-1">
             <span class="text-[11px] t-muted block">آیدی یا شناسه عددی تلگرام گیرنده:</span>
             <div class="relative flex items-center">
               <input type="text" id="giftReceiverInput" placeholder="@username &lrm;یا&lrm; 123456789" class="input-base w-full p-2.5 rounded-xl text-xs outline-none text-left font-sans" dir="ltr" />
@@ -3734,7 +3732,7 @@
           </div>
 
           <!-- Cost & Balance Summary Box -->
-          <div class="card-inset p-3 rounded-2xl space-y-1.5 text-xs">
+          <div class="card-inset p-2.5 rounded-2xl space-y-1 text-xs">
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span>مبلغ کسر شده از کیف پول:</span>
               <div class="font-sans font-bold t-pink num-bidi">
@@ -3778,7 +3776,7 @@
         </div>
 
         <!-- Tab 2: Gifts History (لیست هدایای ارسال شده) -->
-        <div id="giftHistoryView" class="space-y-3 hidden">
+        <div id="giftHistoryView" class="space-y-2.5 flex-1 overflow-y-auto pr-0.5 hidden">
           <div class="space-y-1.5">
             <span class="text-[11px] t-muted block">لیست هدایای ارسال شده شما:</span>
             <div id="giftsHistoryContainer" class="space-y-2 max-h-80 overflow-y-auto">
@@ -3794,7 +3792,7 @@
 
     <!-- 15.1 MODAL: SELECT SUBSCRIPTION FOR GIFT (انتخاب بسته اشتراک هدیه) -->
     <div id="giftServiceSelectModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeGiftServiceSelectModal()" class="fixed inset-0 modal-backdrop z-[90] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[420px] max-h-[85vh] flex flex-col my-auto">
+      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[420px] max-h-[88vh] flex flex-col my-auto">
         <button type="button" onclick="window.closeGiftServiceSelectModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن پنجره انتخاب بسته"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         <div class="border-b border-card-border pb-2.5 flex items-center gap-2 shrink-0">
           <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
@@ -3803,7 +3801,7 @@
             <span class="text-[11px] t-muted block">یکی از بسته‌های زیر را برای هدیه انتخاب فرمایید:</span>
           </div>
         </div>
-        <div id="giftServiceSelectModalList" class="space-y-2 max-h-[65vh] overflow-y-auto pr-0.5 flex-1 min-h-[260px]">
+        <div id="giftServiceSelectModalList" class="space-y-2 max-h-[72vh] overflow-y-auto pr-0.5 flex-1 min-h-[380px]">
           <div class="p-4 rounded-xl card-inset text-center text-xs t-muted">در حال بارگذاری بسته‌ها...</div>
         </div>
       </div>

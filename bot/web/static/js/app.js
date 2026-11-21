@@ -5452,16 +5452,17 @@ function renderGiftServiceSelectModalList() {
     }
 
     return `
-      <div onclick="window.selectGiftService(${p.id})" dir="ltr" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between gap-2.5 transition">
-        <div class="space-y-1 min-w-0 text-left flex-1">
+      <div onclick="window.selectGiftService(${p.id})" dir="rtl" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between gap-2.5 transition">
+        <span class="text-xs text-pink-500 font-bold px-2.5 py-1 rounded-lg card-inset border border-pink-500/30 shrink-0">انتخاب</span>
+        <div class="space-y-1 min-w-0 text-left flex-1 pl-1">
           <b class="text-xs t-main block truncate">${formatPlanTitle(p.name, { iconPosition: 'left' })}</b>
           <div class="flex items-center justify-start gap-2 text-[11px] t-muted" dir="ltr">
             ${specsHtml}
           </div>
         </div>
-        <div class="text-right font-sans num-bidi shrink-0 pl-1">
+        <div class="text-left font-sans num-bidi shrink-0 pr-1" dir="ltr">
           <span class="text-xs font-black t-pink block">${priceStr}</span>
-          <span class="text-[11px] t-muted font-sans block">تومان</span>
+          <span class="text-[10px] t-muted font-sans block text-left">تومان</span>
         </div>
       </div>
     `;
@@ -5480,7 +5481,7 @@ function selectGiftService(serviceId) {
 
   const iconEl = $('giftSelectedServiceIcon');
 
-  if (titleEl) titleEl.innerHTML = formatPlanTitle(chosen.name);
+  if (titleEl) titleEl.innerHTML = formatPlanTitle(chosen.name, { iconPosition: 'left' });
   if (iconEl) iconEl.classList.add('hidden');
   if (specsEl) {
     const isTimeOnly = chosen.plan_type === 'time' || (chosen.duration_days > 0 && (!chosen.traffic_gb || chosen.traffic_gb <= 0));

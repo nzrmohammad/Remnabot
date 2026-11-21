@@ -1011,6 +1011,11 @@ window.createCardAutoInvoice = async function () {
 
 window.checkCardAutoStatus = async function (isManual = false) {
   if (!activeCardAutoUuid) return;
+  const chkBtn = document.getElementById('checkCardAutoStatus');
+  if (isManual && chkBtn) {
+    chkBtn.disabled = true;
+    chkBtn.innerHTML = '<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>در حال بررسی...</span>';
+  }
   try {
     const res = await window.api.getCardAutoStatus(activeCardAutoUuid);
     if (res && res.ok) {
@@ -1029,7 +1034,12 @@ window.checkCardAutoStatus = async function (isManual = false) {
         if (window.showToast) window.showToast('هنوز پیامی مبنی بر واریز دریافت نشده است؛ لطفاً پس از واریز صبور باشید.', 'info');
       }
     }
-  } catch (e) {}
+  } catch (e) {} finally {
+    if (isManual && chkBtn) {
+      chkBtn.disabled = false;
+      chkBtn.innerHTML = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>بررسی وضعیت</span>';
+    }
+  }
 };
 
 window.cancelCardAutoInvoice = async function () {
@@ -2088,7 +2098,7 @@ function setupWalletListeners() {
     if (!currentTopupInvoice?.id) return;
     const chkBtn = document.getElementById('cryptoCheckStatusBtn');
     chkBtn.disabled = true;
-    chkBtn.innerText = 'در حال بررسی شبکه...';
+    chkBtn.innerHTML = '<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>در حال بررسی...</span>';
     try {
       const res = await window.api.checkCryptoInvoice(currentTopupInvoice.id);
       if (res.ok && res.paid) {
@@ -2103,7 +2113,7 @@ function setupWalletListeners() {
       showToast('❌ خطا در استعلام پرداخت.');
     } finally {
       chkBtn.disabled = false;
-      chkBtn.innerText = '🔄 بررسی وضعیت پرداخت';
+      chkBtn.innerHTML = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>بررسی وضعیت</span>';
     }
   });
 
@@ -2231,7 +2241,7 @@ function setupWalletListeners() {
     }
     const btn = document.getElementById('submitTrxTxIdBtn');
     btn.disabled = true;
-    btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 inline-block shrink-0 animate-spin')}<span>در حال استعلام از شبکه ترون...</span></span>`;
+    btn.innerHTML = '<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>در حال بررسی...</span>';
     try {
       const res = await window.api.verifyTrxInvoice(currentTrxInvoice.id, txId);
       if (res.ok) {
@@ -2247,7 +2257,7 @@ function setupWalletListeners() {
       showToast('❌ خطا در بررسی تراکنش.');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<span>🔍</span> بررسی و تأیید واریز TRX';
+      btn.innerHTML = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>بررسی وضعیت</span>';
     }
   });
 
@@ -2406,7 +2416,7 @@ function setupWalletListeners() {
     }
     const btn = document.getElementById('submitPolTxIdBtn');
     btn.disabled = true;
-    btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 inline-block shrink-0 animate-spin')}<span>در حال استعلام از شبکه پلیگان...</span></span>`;
+    btn.innerHTML = '<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>در حال بررسی...</span>';
     try {
       const res = await window.api.verifyPolInvoice(currentPolInvoice.id, txId);
       if (res.ok) {
@@ -2422,7 +2432,7 @@ function setupWalletListeners() {
       showToast('❌ خطا در بررسی تراکنش.');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<span>🔍</span> بررسی و تأیید واریز POL';
+      btn.innerHTML = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>بررسی وضعیت</span>';
     }
   });
 

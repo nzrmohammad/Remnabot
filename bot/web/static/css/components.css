@@ -177,6 +177,17 @@ html.theme-light .on-dark .text-slate-400 {
   box-shadow: var(--shadow-accent);
 }
 
+.btn-primary,
+.btn-primary *,
+.btn-primary svg,
+.btn-primary span {
+  color: var(--on-accent);
+}
+
+.btn-primary svg {
+  stroke: currentColor;
+}
+
 .btn-primary:hover {
   background-color: var(--c-accent-solid-hover);
 }

@@ -177,20 +177,20 @@ function updateDashboardWheelBadge(canSpin, nextSeconds, tickets, hasActiveSub) 
   if (!badge) return;
   badge.classList.remove('hidden');
   if (hasActiveSub === false) {
-    badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-lg border border-slate-500/30 bg-slate-500/10 text-slate-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
-    badge.innerText = 'نیاز به اشتراک';
+    badge.className = 'w-2 h-2 rounded-full bg-slate-400/40 inline-flex items-center justify-center';
+    badge.innerHTML = '';
     return;
   }
   const rem = typeof nextSeconds === 'number' ? nextSeconds : wheelCooldownSeconds;
   if (tickets > 0 && rem > 0) {
-    badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
+    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
     badge.innerText = `${tickets} تیکت`;
   } else if (rem > 0) {
-    badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
+    badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
     badge.innerText = formatCountdown(rem);
   } else {
-    badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-tight whitespace-nowrap inline-flex items-center justify-center';
-    badge.innerText = 'آماده چرخش';
+    badge.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 relative inline-flex items-center justify-center';
+    badge.innerHTML = '<span class="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75"></span>';
   }
 }
 
@@ -221,14 +221,14 @@ function startWheelCountdown(sec) {
     const badge = document.getElementById('luckyWheelBadge');
     if (badge) {
       if (currentWheelTickets > 0 && rem > 0) {
-        badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
+        badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-cyan-500/30 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
         badge.innerText = `${currentWheelTickets} تیکت`;
       } else if (rem > 0) {
-        badge.className = 'text-[10px] font-sans font-bold px-2 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
+        badge.className = 'text-[10px] font-sans font-bold px-1.5 py-0.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 leading-tight whitespace-nowrap inline-flex items-center justify-center';
         badge.innerText = formatCountdown(rem);
       } else {
-        badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-pulse leading-tight whitespace-nowrap inline-flex items-center justify-center';
-        badge.innerText = 'آماده چرخش';
+        badge.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 relative inline-flex items-center justify-center';
+        badge.innerHTML = '<span class="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75"></span>';
       }
     }
   }, 1000);
