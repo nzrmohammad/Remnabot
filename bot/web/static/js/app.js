@@ -5454,15 +5454,15 @@ function renderGiftServiceSelectModalList() {
     return `
       <div onclick="window.selectGiftService(${p.id})" dir="rtl" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between gap-2.5 transition">
         <span class="text-xs text-pink-500 font-bold px-2.5 py-1 rounded-lg card-inset border border-pink-500/30 shrink-0">انتخاب</span>
+        <div class="flex items-center gap-1 shrink-0" dir="rtl">
+          <span class="text-xs font-bold t-pink font-sans num-bidi">${priceStr}</span>
+          <span class="text-[11px] t-muted">تومان</span>
+        </div>
         <div class="space-y-1 min-w-0 text-left flex-1 pl-1">
           <b class="text-xs t-main block truncate">${formatPlanTitle(p.name, { iconPosition: 'left' })}</b>
           <div class="flex items-center justify-start gap-2 text-[11px] t-muted" dir="ltr">
             ${specsHtml}
           </div>
-        </div>
-        <div class="text-left font-sans num-bidi shrink-0 pr-1" dir="ltr">
-          <span class="text-xs font-black t-pink block">${priceStr}</span>
-          <span class="text-[10px] t-muted font-sans block text-left">تومان</span>
         </div>
       </div>
     `;
@@ -5484,20 +5484,8 @@ function selectGiftService(serviceId) {
   if (titleEl) titleEl.innerHTML = formatPlanTitle(chosen.name, { iconPosition: 'left' });
   if (iconEl) iconEl.classList.add('hidden');
   if (specsEl) {
-    const isTimeOnly = chosen.plan_type === 'time' || (chosen.duration_days > 0 && (!chosen.traffic_gb || chosen.traffic_gb <= 0));
-    const isTrafficOnly = chosen.plan_type === 'traffic' || (chosen.traffic_gb > 0 && (!chosen.duration_days || chosen.duration_days <= 0));
-    const giftPrice = Number(chosen.original_price ?? chosen.price ?? 0);
-    let specText = '';
-    if (isTimeOnly) {
-      specText = `${chosen.duration_days} روز`;
-    } else if (isTrafficOnly) {
-      specText = fmtTraffic(chosen.traffic_gb, { html: false });
-    } else {
-      const durStr = chosen.duration_days > 0 ? `${chosen.duration_days} روز` : 'نامحدود';
-      const trafStr = chosen.traffic_gb > 0 ? fmtTraffic(chosen.traffic_gb, { html: false }) : 'نامحدود';
-      specText = `${trafStr} | ${durStr}`;
-    }
-    specsEl.innerText = `${specText} (${giftPrice.toLocaleString('en-US')} تومان)`;
+    specsEl.innerText = '';
+    specsEl.classList.add('hidden');
   }
   if (hiddenInp) hiddenInp.value = chosen.id;
 

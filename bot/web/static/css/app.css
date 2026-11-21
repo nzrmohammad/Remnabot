@@ -414,11 +414,11 @@ html.theme-light #topupMethodTabs button.bg-blue-600 {
   background-color: var(--c-accent-solid);
   color: var(--text-inverse);
 }
-html.theme-light #topupCardDetailsBox > div {
+html.theme-light #manualCardTopupSection > div {
   background-color: var(--card-inner-bg);
   border-color: var(--card-border);
 }
-html.theme-light #topupCardDetailsBox span {
+html.theme-light #topupCardDetailsBox span:not(button *):not([class*="btn"] *) {
   color: var(--text-muted);
 }
 html.theme-light #topupCardDetailsBox #topupCardNumber,

@@ -1004,7 +1004,7 @@ window.createCardAutoInvoice = async function () {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<span>⚡️</span> ایجاد فاکتور پرداخت آنی کارت‌به‌کارت';
+      btn.innerHTML = '<img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block icon-white" width="16" height="16" alt="" /> <span class="text-white">ایجاد فاکتور پرداخت آنی کارت‌به‌کارت</span>';
     }
   }
 };
