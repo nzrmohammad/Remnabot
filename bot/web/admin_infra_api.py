@@ -654,6 +654,8 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
             body = await request.json()
         except Exception:
             body = {}
+        if not isinstance(body, dict):
+            body = {}
         host = (body.get("host") or "").strip()
         check_type = (body.get("check_type") or body.get("type") or "ping").lower().strip()
         port_val = body.get("port")

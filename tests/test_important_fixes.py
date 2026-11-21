@@ -20,19 +20,31 @@ from bot.services.wheel_service import execute_lucky_wheel_spin
 
 @pytest.mark.anyio
 async def test_item10_schema_index_migration(session_factory):
-    """Test Item 10: _migrate_db_schema introspects and creates missing indexes."""
+    """Test Item 10: _migrate_db_schema introspects and dynamically creates missing indexes."""
     async with session_factory() as session:
         conn = await session.connection()
 
         def check_and_migrate(sync_conn):
-            from sqlalchemy import inspect
-            _migrate_db_schema(sync_conn)
+            from sqlalchemy import inspect, text
             insp = inspect(sync_conn)
             tables = set(insp.get_table_names())
             assert "users" in tables
-            assert "crypto_invoices" in tables
-            idx_names = {idx["name"] for idx in insp.get_indexes("crypto_invoices") if idx.get("name")}
-            assert len(idx_names) > 0
+            assert "orders" in tables
+
+            # 1. Simulate an existing table missing an index (e.g. upgraded legacy DB)
+            target_idx = "ix_orders_status_created_at"
+            sync_conn.execute(text(f'DROP INDEX IF EXISTS "{target_idx}";'))
+            insp = inspect(sync_conn)
+            indexes_after_drop = {idx["name"] for idx in insp.get_indexes("orders") if idx.get("name")}
+            assert target_idx not in indexes_after_drop
+
+            # 2. Run schema migration
+            _migrate_db_schema(sync_conn)
+
+            # 3. Assert the missing index was dynamically recreated by _migrate_db_schema
+            insp = inspect(sync_conn)
+            indexes_after_migration = {idx["name"] for idx in insp.get_indexes("orders") if idx.get("name")}
+            assert target_idx in indexes_after_migration
 
         await conn.run_sync(check_and_migrate)
 

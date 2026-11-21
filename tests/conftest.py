@@ -35,19 +35,28 @@ _shared_engine = None
 
 
 async def _get_shared_engine():
-    """Return session-cached in-memory SQLite engine with pre-created tables."""
+    """Return session-cached engine with pre-created tables (PostgreSQL if DATABASE_URL configured, otherwise fast SQLite)."""
     global _shared_engine
     if _shared_engine is None:
-        from sqlalchemy.pool import StaticPool
+        db_url = os.environ.get("DATABASE_URL", "")
+        if db_url.startswith("postgresql"):
+            _shared_engine = create_async_engine(
+                db_url,
+                pool_pre_ping=True,
+            )
+            async with _shared_engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+        else:
+            from sqlalchemy.pool import StaticPool
 
-        worker = os.environ.get("PYTEST_XDIST_WORKER") or f"p{os.getpid()}"
-        _shared_engine = create_async_engine(
-            f"sqlite+aiosqlite:///file:test_shared_mem_{worker}?mode=memory&cache=shared&uri=true",
-            poolclass=StaticPool,
-            connect_args={"check_same_thread": False},
-        )
-        async with _shared_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+            worker = os.environ.get("PYTEST_XDIST_WORKER") or f"p{os.getpid()}"
+            _shared_engine = create_async_engine(
+                f"sqlite+aiosqlite:///file:test_shared_mem_{worker}?mode=memory&cache=shared&uri=true",
+                poolclass=StaticPool,
+                connect_args={"check_same_thread": False},
+            )
+            async with _shared_engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
     return _shared_engine
 
 

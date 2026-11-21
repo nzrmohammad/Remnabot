@@ -890,6 +890,8 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
         body = await request.json()
     except Exception:
         return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+    if not isinstance(body, dict):
+        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
 
     code = str(body.get("code") or "").strip()
     if not code:
@@ -943,6 +945,8 @@ async def post_user_auto_renew(request: web.Request) -> web.Response:
     try:
         body = await request.json()
     except Exception:
+        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+    if not isinstance(body, dict):
         return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
 
     auto_renew_val = bool(body.get("auto_renew", False))

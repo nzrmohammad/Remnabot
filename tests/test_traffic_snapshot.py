@@ -96,13 +96,11 @@ async def test_admin_overview_uses_real_hourly_snapshots(session_factory):
     now_utc = datetime.datetime.now(datetime.timezone.utc)
     target_hour = now_utc.hour
 
-    # Insert a real snapshot for target hour
+    # Insert a real snapshot for current hour
     async with session_factory() as session:
         repo = TrafficSnapshotRepository(session)
         await repo.record_snapshot(
-            timestamp=datetime.datetime(
-                now_utc.year, now_utc.month, now_utc.day, target_hour, tzinfo=datetime.timezone.utc
-            ),
+            timestamp=now_utc,
             total_bytes=100 * (1024**3),
             delta_bytes=15 * (1024**3),  # 15 GB delta
         )
