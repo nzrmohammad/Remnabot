@@ -22,8 +22,8 @@
   const TOTAL_DEGREES = 240;
   const MAX_GAUGE_MBPS = 100;
 
-  const DOWNLOAD_DURATION_MS = 5500;
-  const UPLOAD_DURATION_MS = 4500;
+  const DOWNLOAD_DURATION_MS = 9000;
+  const UPLOAD_DURATION_MS = 7000;
 
   const domCache = new Map();
   function getEl(id) {
@@ -165,7 +165,7 @@
     }
 
     const pings = [];
-    const probeCount = 7;
+    const probeCount = 10;
 
     for (let i = 0; i < probeCount; i++) {
       if (signal && signal.aborted) return { medianPing: 0, jitter: 0 };
@@ -191,7 +191,7 @@
           if (pingEl) pingEl.innerText = Math.round(duration).toString();
         }
       } catch (e) {}
-      await new Promise(r => setTimeout(r, 40));
+      await new Promise(r => setTimeout(r, 65));
     }
 
     if (pings.length === 0) return { medianPing: 0, jitter: 0 };
@@ -326,9 +326,14 @@
     // Step 1: Ramp-up probe (1.5MB)
     await downloadStreamWithFallback(1572864, 'probe', onChunk, signal, 1500);
 
-    // Step 2: Main measurement payload (10MB)
-    const remainingTimeMs = Math.max(1000, DOWNLOAD_DURATION_MS - (performance.now() - testStartTime));
-    await downloadStreamWithFallback(10485760, 'main', onChunk, signal, remainingTimeMs);
+    // Step 2: Main measurement payload loop (continues while remaining time > 400ms)
+    let cycle = 0;
+    while (performance.now() - testStartTime < DOWNLOAD_DURATION_MS) {
+      if (signal && signal.aborted) break;
+      const remainingTimeMs = DOWNLOAD_DURATION_MS - (performance.now() - testStartTime);
+      if (remainingTimeMs < 400) break;
+      await downloadStreamWithFallback(15728640, `main_${cycle++}`, onChunk, signal, remainingTimeMs);
+    }
 
     // Precise steady-state bandwidth: total steady bytes / steady duration
     let finalDownloadMbps = 0;

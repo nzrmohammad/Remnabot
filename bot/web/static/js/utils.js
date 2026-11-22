@@ -755,9 +755,9 @@ function formatPlanTitle(name, options = {}) {
     return `<span class="inline-block text-base">${emojiStr}</span>`;
   }
   if (isIconLeft) {
-    return `<span class="inline-flex items-center gap-1.5"><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi><span class="shrink-0 text-base">${emojiStr}</span></span>`;
+    return `<span class="inline-flex items-center gap-1.5" dir="ltr"><span class="shrink-0 text-base">${emojiStr}</span><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
   }
-  return `<span class="inline-flex items-center gap-1.5"><span class="shrink-0 text-base">${emojiStr}</span><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi></span>`;
+  return `<span class="inline-flex items-center gap-1.5" dir="ltr"><bdi dir="ltr" class="font-bold select-all">${escapeHtml(cleanText)}</bdi><span class="shrink-0 text-base">${emojiStr}</span></span>`;
 }
 
 function buildRefLink(botUsername, userId) {
