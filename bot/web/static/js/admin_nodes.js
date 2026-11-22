@@ -39,7 +39,7 @@
       const statusBadge = typeof renderNodeStatusBadge === 'function'
         ? renderNodeStatusBadge(isOnline)
         : (isOnline
-          ? '<span class="inline-flex items-center gap-1 text-[11px] font-bold bg-transparent t-success border border-emerald-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>آنلاین</span>'
+          ? '<span class="relative flex items-center justify-center w-3 h-3" title="آنلاین"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>'
           : '<span class="inline-flex items-center gap-1 text-[11px] font-bold bg-transparent t-danger border border-rose-500/30 px-2 py-0.5 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>آفلاین</span>');
 
       const cpuText = (n.cpu_percent && n.cpu_percent > 0) ? `CPU: ${n.cpu_percent}%` : null;
@@ -308,10 +308,7 @@
                   <span class="text-indigo-400 font-bold">↑${formatSpeed(ulSpeed)}</span>
                 </div>
               ` : ''}
-              <span class="badge ${isOnline ? 'badge-success' : 'badge-danger'} font-sans flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
-                <span>${statusBadge}</span>
-              </span>
+              ${typeof renderNodeStatusBadge === 'function' ? renderNodeStatusBadge(isOnline) : (isOnline ? '<span class="relative flex items-center justify-center w-3 h-3" title="آنلاین"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>' : '<span class="badge badge-danger font-sans flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>آفلاین</span></span>')}
               <svg class="settings-box-chevron node-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
@@ -441,11 +438,17 @@
 
               <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
                 <div class="flex items-center justify-between gap-2 min-w-0">
-                  <span class="t-muted shrink-0">ارائه‌دهنده:</span>
+                  <span class="t-muted flex items-center gap-1 shrink-0">
+                    ${uiIcon('desktop', 'w-3.5 h-3.5 t-muted shrink-0')}
+                    <span>ارائه‌دهنده:</span>
+                  </span>
                   <b class="t-main font-semibold truncate text-left">${n.provider || 'ثبت‌نشده'}</b>
                 </div>
                 <div class="flex items-center justify-between gap-2 min-w-0">
-                  <span class="t-muted shrink-0">قیمت تمام‌شده به ازای هر گیگ:</span>
+                  <span class="t-muted flex items-center gap-1 shrink-0">
+                    ${uiIcon('coins', 'w-3.5 h-3.5 t-warn shrink-0')}
+                    <span>قیمت تمام‌شده به ازای هر گیگ:</span>
+                  </span>
                   <b class="t-main font-bold shrink-0">
                     ${n.cost_per_gb ? `
                       <span class="font-sans num-bidi" dir="ltr">${formatNumber(n.cost_per_gb)}</span>
@@ -458,13 +461,19 @@
               <!-- Node Profit / Loss & Estimated Revenue Strip -->
               <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="t-muted shrink-0">درآمد تخمینی نود:</span>
+                  <span class="t-muted flex items-center gap-1 shrink-0">
+                    ${uiIcon('finance', 'w-3.5 h-3.5 t-accent shrink-0')}
+                    <span>درآمد تخمینی نود:</span>
+                  </span>
                   <b class="t-main font-bold font-sans shrink-0">
                     ${n.est_revenue_toman ? `<span class="num-bidi" dir="ltr">${formatNumber(n.est_revenue_toman)}</span> <span class="text-[11px] t-muted font-sans font-medium">تومان</span>` : '0 <span class="text-[11px] t-muted font-sans font-medium">تومان</span>'}
                   </b>
                 </div>
                 <div class="flex items-center justify-between gap-2">
-                  <span class="t-muted shrink-0">سود/زیان خالص:</span>
+                  <span class="t-muted flex items-center gap-1 shrink-0">
+                    ${uiIcon('reports', `w-3.5 h-3.5 ${n.is_profitable ? 't-success' : 't-danger'} shrink-0`)}
+                    <span>سود/زیان خالص:</span>
+                  </span>
                   <b class="${n.is_profitable ? 't-success' : 't-danger'} font-bold font-sans shrink-0">
                     <span class="inline-flex items-center gap-1">
                       <span dir="ltr" class="num-bidi">${(n.net_profit_toman || 0) > 0 ? '+' : ''}${formatNumber(n.net_profit_toman || 0)}</span>

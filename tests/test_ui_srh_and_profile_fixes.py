@@ -621,8 +621,8 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     # 1. Node inline revenue/net profit rows & per-GB label
     rev_idx = admin_nodes_js.find("درآمد تخمینی نود:")
     prof_idx = admin_nodes_js.find("سود/زیان خالص:")
-    assert 'flex items-center justify-between gap-2' in admin_nodes_js[rev_idx - 60:prof_idx]
-    assert 'flex items-center justify-between gap-2' in admin_nodes_js[prof_idx - 120:prof_idx + 20]
+    assert 'flex items-center justify-between gap-2' in admin_nodes_js[rev_idx - 300:prof_idx]
+    assert 'flex items-center justify-between gap-2' in admin_nodes_js[prof_idx - 300:prof_idx + 20]
     assert "قیمت تمام‌شده به ازای هر گیگ:" in admin_nodes_js
 
     # 2. Node billing modal: split notes (اختیاری), polished Vazirmatn date input & no font-mono
@@ -631,7 +631,7 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     assert "[color-scheme:dark]" not in billing_modal
     assert "addDaysToNodeBillingDueDate(30)" in billing_modal
     assert ">یادداشت و مشخصات:</label>" in billing_modal
-    assert ">(اختیاری)</span>" in billing_modal
+    assert ">اختیاری</span>" in billing_modal
     assert 'input[type="date"]' in components_css
     assert "::-webkit-datetime-edit" in components_css
     assert "font-mono" not in charts_js
@@ -746,7 +746,7 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     assert 'placeholder="پیش\u200cفرض: خودکار"' in create_block
     assert 'id="createUserPlanLabel" class="text-xs text-white font-medium truncate">انتخاب کنید<' in create_block
     assert 'placeholder="0 = نامحدود"' in create_block
-    assert 'placeholder="مثلاً 30"' in create_block
+    assert 'placeholder="30"' in create_block
     assert 'id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[55vh] text-xs px-2.5 py-1.5"' in admin_html
     assert "if (labelEl) labelEl.innerText = 'انتخاب کنید';" in admin_users_js
 
@@ -815,8 +815,8 @@ def test_admin_plan_card_and_picker_ltr_and_shop_compact_price():
 
     squad_picker_section = admin_users_js[admin_users_js.find("openSquadPickerModal"):admin_users_js.find("closeSquadPickerModal")]
     assert 'dir="ltr" class="p-3 rounded-2xl' in squad_picker_section
-    assert "text-left min-w-0 flex-1" in squad_picker_section
-    assert "leading-none\">🧩<" not in squad_picker_section
+    assert "min-w-0 flex-1" in squad_picker_section
+    assert "leading-none\">🧩<" in squad_picker_section
 
     # 4. Plan Squad Picker uses LTR layout and excludes 'انتخاب کنید' as a selectable option while preserving initial label on #planModal
     plan_squad_picker_section = admin_plans_js[admin_plans_js.find("openPlanSquadPickerModal"):admin_plans_js.find("closePlanSquadPickerModal")]

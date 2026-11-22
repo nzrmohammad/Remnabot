@@ -155,8 +155,8 @@ function renderUserStatusBadge(u) {
 // Centralized Single Source of Truth (SSOT) for Node Online/Offline Status Badges
 function renderNodeStatusBadge(isOnline) {
   return isOnline
-    ? '<span class="badge badge-success"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>آنلاین</span></span>'
-    : '<span class="badge badge-danger"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>آفلاین</span></span>';
+    ? '<span class="relative flex items-center justify-center w-3 h-3" title="آنلاین"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>'
+    : '<span class="badge badge-danger font-sans flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>آفلاین</span></span>';
 }
 if (typeof window !== 'undefined') {
   window.renderUserStatusBadge = renderUserStatusBadge;

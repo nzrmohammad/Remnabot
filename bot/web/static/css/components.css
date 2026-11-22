@@ -513,7 +513,8 @@ input.ltr-input::placeholder {
   text-align: left;
 }
 
-input.num-bidi::placeholder {
+input.num-bidi::placeholder,
+#createUserUsername::placeholder {
   direction: rtl;
   text-align: right;
 }
