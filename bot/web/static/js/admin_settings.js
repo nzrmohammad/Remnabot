@@ -518,7 +518,7 @@
 
       const currentVal = $('settingBluBankColor')?.value || 'red';
       list.innerHTML = BLUBANK_COLOR_OPTIONS.map(c => `
-        <div onclick="window.adminActions.selectCardColor('${c.id}', '${c.name}', '${c.icon}')" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === c.id ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+        <div onclick="window.adminActions.selectCardColor('${c.id}', '${c.name}', '${c.icon}')" dir="rtl" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${currentVal === c.id ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
           <div class="flex items-center gap-2.5">
             <span class="text-base">${c.icon}</span>
             <div>

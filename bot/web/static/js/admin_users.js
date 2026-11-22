@@ -1431,9 +1431,6 @@ async applyUserModification() {
             <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
             <span class="text-[11px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
           </div>
-          <div class="shrink-0 flex items-center gap-2.5">
-            <span class="w-5 h-5 rounded-full ${selectedId === 'custom' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'border border-slate-700/60'} flex items-center justify-center shrink-0">${selectedId === 'custom' ? '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}</span>
-          </div>
         </div>
       `;
 
@@ -1469,10 +1466,7 @@ async applyUserModification() {
                   <span class="text-amber-600 dark:text-amber-300 font-bold">${p.duration_days} روز</span>
                 </div>
               </div>
-              <div class="shrink-0 flex items-center gap-2.5 text-right font-sans">
-                ${priceLabel ? `<span class="font-bold text-xs t-main font-sans" dir="rtl">${escapeHtml(priceLabel)}</span>` : ''}
-                <span class="w-5 h-5 rounded-full ${isSelected ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'border border-slate-700/60'} flex items-center justify-center shrink-0">${isSelected ? '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}</span>
-              </div>
+              ${priceLabel ? `<div class="shrink-0 text-right font-sans"><span class="font-bold text-xs t-main font-sans" dir="rtl">${escapeHtml(priceLabel)}</span></div>` : ''}
             </div>
           `;
         }).join('');
@@ -1523,8 +1517,8 @@ async applyUserModification() {
         html += `
           <div onclick="window.adminActions.selectCreateUserSquad('${escapeHtml(sqId)}', '${escapeHtml(sqName)}', '🧩')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
             <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span class="text-xs font-bold truncate ${isSelected ? 't-info' : 't-main'}">${escapeHtml(sqName)}</span>
               <span class="text-sm shrink-0 leading-none">🧩</span>
+              <span class="text-xs font-bold truncate ${isSelected ? 't-info' : 't-main'}">${escapeHtml(sqName)}</span>
             </div>
             ${isSelected ? '<span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </div>

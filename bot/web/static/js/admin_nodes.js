@@ -156,6 +156,21 @@
         badgeHtml = `<span class="text-[11px] font-bold t-danger">خطا / قطع</span>`;
       }
 
+      let statusDotHtml = '';
+      if (item.is_ip) {
+        statusDotHtml = '<span class="w-2 h-2 rounded-full bg-slate-500 flex-shrink-0" title="IP سرور"></span>';
+      } else if (item.valid) {
+        if (item.status === 'ok') {
+          statusDotHtml = '<span class="relative flex items-center justify-center w-2.5 h-2.5 flex-shrink-0" title="معتبر"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>';
+        } else if (item.status === 'warning') {
+          statusDotHtml = '<span class="relative flex items-center justify-center w-2.5 h-2.5 flex-shrink-0" title="هشدار انقضا"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span></span>';
+        } else {
+          statusDotHtml = '<span class="relative flex items-center justify-center w-2.5 h-2.5 flex-shrink-0" title="انقضا فوری"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span></span>';
+        }
+      } else {
+        statusDotHtml = '<span class="relative flex items-center justify-center w-2.5 h-2.5 flex-shrink-0" title="خطا / قطع"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span></span>';
+      }
+
       const editBtnHtml = item.is_custom
         ? `<button type="button" data-domain="${escapeHtml(item.domain)}" class="btn-edit-ssl-domain p-1.5 rounded-xl bg-transparent hover:bg-cyan-500/15 t-accent hover:text-cyan-300 border border-slate-700/70 hover:border-cyan-500/40 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="ویرایش دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -201,7 +216,7 @@
               ${badgeHtml}
             </div>
             <div class="text-left min-w-0 flex items-center gap-2" dir="ltr">
-              <span class="w-2 h-2 rounded-full ${item.valid ? (item.status === 'ok' ? 'bg-emerald-400' : 'bg-amber-400') : (item.is_ip ? 'bg-slate-500' : 'bg-rose-500')} flex-shrink-0"></span>
+              ${statusDotHtml}
               <span class="font-sans text-xs font-semibold text-slate-100 select-all break-all leading-normal" title="${escapeHtml(item.domain)}">${escapeHtml(item.domain)}</span>
             </div>
           </div>

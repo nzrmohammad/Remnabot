@@ -747,7 +747,7 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     assert 'id="createUserPlanLabel" class="text-xs text-white font-medium truncate">انتخاب کنید<' in create_block
     assert 'placeholder="0 = نامحدود"' in create_block
     assert 'placeholder="30"' in create_block
-    assert 'id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[55vh] text-xs px-2.5 py-1.5"' in admin_html
+    assert 'id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[72vh] text-xs px-2.5 py-1.5"' in admin_html
     assert "if (labelEl) labelEl.innerText = 'انتخاب کنید';" in admin_users_js
 
     # 5b. High-risk users modal device count renders in explicit RTL order (5 دستگاه, not دستگاه 5)

@@ -653,6 +653,10 @@
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-xs font-bold t-main flex items-center gap-1.5">
+                  <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
                   <svg class="w-4 h-4 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                   <span>مدیریت و پایش گواهی‌های SSL</span>
                 </h3>
@@ -4251,8 +4255,11 @@
           </div>
 
           <div>
-            <label class="text-[11px] t-muted block mb-1">هزینه تبلیغ به تومان (اختیاری):</label>
-            <input type="number" id="campaignCostInput" min="0" step="1000" placeholder="مثلاً: 500000" class="input-base text-xs font-sans text-amber-600 dark:text-amber-300 font-bold" />
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-[11px] t-muted block">هزینه تبلیغ به تومان:</label>
+              <span class="badge-optional">اختیاری</span>
+            </div>
+            <input type="number" id="campaignCostInput" min="0" step="1000" dir="ltr" placeholder="500000" class="input-base text-xs font-sans text-amber-600 dark:text-amber-300 font-bold" />
             <span class="text-[11px] t-muted mt-1 block">جهت محاسبه سودآوری و درصد بازگشت سرمایه (ROI)</span>
           </div>
 
@@ -4345,7 +4352,7 @@
                 <label class="text-[11px] t-muted font-medium">شناسه عددی تلگرام:</label>
                 <span class="badge-required s-danger-soft border text-[11px] font-bold px-2 py-0.5 rounded-lg">الزامی</span>
               </div>
-              <input type="number" inputmode="numeric" id="createUserTelegramId" placeholder="123456789" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
+              <input type="number" inputmode="numeric" id="createUserTelegramId" dir="ltr" placeholder="123456789" class="input-base text-xs font-sans text-cyan-600 dark:text-cyan-300 font-bold" />
             </div>
             <div class="form-group">
               <div class="form-label">
@@ -4417,7 +4424,7 @@
 
     <!-- MODAL: Plan Picker for Create User (انتخاب بسته کامل) -->
     <div id="planPickerModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[380px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
             <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
@@ -4425,7 +4432,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closePlanPickerModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
-        <div id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[55vh] text-xs px-2.5 py-1.5">
+        <div id="planPickerList" class="space-y-2 flex-1 overflow-y-auto custom-scroll max-h-[72vh] text-xs px-2.5 py-1.5">
           <!-- Dynamically populated complete packages -->
         </div>
       </div>
@@ -4559,7 +4566,7 @@
           </div>
           <button type="button" onclick="window.adminActions.closeCardColorModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
-        <div id="cardColorList" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-2.5 py-1.5">
+        <div id="cardColorList" dir="ltr" class="space-y-2 flex-1 overflow-y-auto custom-scroll text-xs px-2.5 py-1.5">
           <!-- Dynamically populated colors -->
         </div>
       </div>
