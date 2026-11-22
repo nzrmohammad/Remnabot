@@ -310,6 +310,13 @@ async function copyToClipboard(text, successToast = null, toastType = 'success')
 
   if (copied) {
     hapticFeedback('success');
+    try {
+      const activeEl = document.activeElement;
+      if (activeEl && activeEl !== document.body && !activeEl.classList.contains('copy-flash')) {
+        activeEl.classList.add('copy-flash');
+        setTimeout(() => activeEl.classList.remove('copy-flash'), 500);
+      }
+    } catch (_) {}
     if (successToast) {
       showToast(successToast, toastType);
     }

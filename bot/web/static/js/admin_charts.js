@@ -14,6 +14,29 @@
 
   let cachedOverviewData = null;
 
+  function animateCountUp(element, endVal, duration = 380) {
+    if (!element) return;
+    const target = Number(endVal);
+    if (isNaN(target) || target <= 0) {
+      element.innerText = formatNumber(endVal || 0);
+      return;
+    }
+    const startTime = performance.now();
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(target * easeOut);
+      element.innerText = formatNumber(current);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        element.innerText = formatNumber(target);
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
   // --- 3. Theme Toggle ---
   const adminThemeToggle = $('adminThemeToggle');
   const adminThemeIcon = $('adminThemeIcon');
@@ -167,15 +190,15 @@
       const m = data.metrics || {};
       const nodes = data.nodes || [];
 
-      // KPI Cards
+      // KPI Cards with smooth CountUp ticker
       const totalU = $('adminTotalUsers');
-      if (totalU) totalU.innerText = formatNumber(m.total_users || 0);
+      if (totalU) animateCountUp(totalU, m.total_users || 0);
 
       const activeU = $('adminActiveUsers');
       if (activeU) activeU.innerText = `${formatNumber(m.active_panel_users || 0)} اکانت فعال پنل`;
 
       const rev = $('adminTodayRevenue');
-      if (rev) rev.innerText = formatNumber(m.today_revenue_toman || 0);
+      if (rev) animateCountUp(rev, m.today_revenue_toman || 0);
 
       // Traffic: format via SSOT fmtTraffic (handles TB auto-conversion & BiDi isolation)
       const bw = $('adminMonthTraffic');
@@ -184,14 +207,14 @@
       }
 
       const onDev = $('adminOnlineDevices');
-      if (onDev) onDev.innerText = formatNumber(m.online_devices || 0);
+      if (onDev) animateCountUp(onDev, m.online_devices || 0);
 
       // Infra-Billing & Net Profit Analytics
       const mRev = $('adminMonthlyRevenue');
-      if (mRev) mRev.innerText = formatNumber(m.monthly_revenue_toman || 0);
+      if (mRev) animateCountUp(mRev, m.monthly_revenue_toman || 0);
 
       const iCost = $('adminTotalInfraCost');
-      if (iCost) iCost.innerText = formatNumber(m.total_infra_cost_toman || 0);
+      if (iCost) animateCountUp(iCost, m.total_infra_cost_toman || 0);
 
       const nProf = $('adminNetProfit');
       if (nProf) {
@@ -240,6 +263,17 @@
         if (viewPendingBtn) viewPendingBtn.classList.remove('hidden');
       } else {
         if (pendingBox) pendingBox.classList.add('hidden');
+      }
+
+      // Notification Ping Badges for Pending Topups
+      const topupPing = $('topupsPendingPingBadge');
+      const financeNavPing = $('financeNavPingBadge');
+      if (pTopups > 0) {
+        topupPing?.classList.remove('hidden');
+        financeNavPing?.classList.remove('hidden');
+      } else {
+        topupPing?.classList.add('hidden');
+        financeNavPing?.classList.add('hidden');
       }
 
       // Cluster Status Header Bar

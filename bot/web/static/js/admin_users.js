@@ -247,8 +247,15 @@
                   <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
                   <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${escapeHtml(initial)}</span>
                 </div>
-                <!-- Online / Offline Badge at Bottom-Left of the Avatar -->
-                <span class="absolute bottom-0 left-0 w-3 h-3 rounded-full border-2 border-slate-900 ${u.is_online ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}" title="${u.is_online ? 'آنلاین (متصل به سرور)' : 'آفلاین'}"></span>
+                <!-- Online / Offline Badge at Bottom-Left of the Avatar (Radar Ping) -->
+                ${u.is_online ? `
+                  <span class="absolute bottom-0 left-0 w-3 h-3 flex items-center justify-center pointer-events-none" title="آنلاین (متصل به سرور)">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900"></span>
+                  </span>
+                ` : `
+                  <span class="absolute bottom-0 left-0 w-3 h-3 rounded-full border-2 border-slate-900 bg-slate-500" title="آفلاین"></span>
+                `}
               </div>
 
               <!-- Name and Status Badge side-by-side on the same line -->

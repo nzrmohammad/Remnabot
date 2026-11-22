@@ -240,6 +240,7 @@
 
       const cpuBarColor = cpu > 85 ? 'bg-rose-500' : (cpu > 60 ? 'bg-amber-500' : 'bg-cyan-500');
       const ramBarColor = ram > 85 ? 'bg-rose-500' : (ram > 60 ? 'bg-amber-500' : 'bg-indigo-500');
+      const isOverloaded = isOnline && (cpu > 85 || ram > 85);
 
       const cpuDisplay = isOnline ? (cpu > 0 ? (cpu % 1 === 0 ? cpu : cpu.toFixed(1)) + '%' : '< 1%') : 'آفلاین';
       const ramDisplay = isOnline ? (ram > 0 ? (ram % 1 === 0 ? ram : ram.toFixed(1)) + '%' : '< 1%') : 'آفلاین';
@@ -281,7 +282,7 @@
       const boxId = `nodeBox_${n.id || idx}`;
 
       return `
-        <div class="node-card settings-box bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow-md relative overflow-hidden transition-all">
+        <div class="node-card settings-box bg-slate-800/90 rounded-2xl border ${isOverloaded ? 'border-rose-500/80 shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-heartbeat' : 'border-slate-700/80'} shadow-md relative overflow-hidden transition-all">
           <!-- Top Accent Light -->
           <div class="absolute top-0 right-0 left-0 h-[2px] ${isOnline ? 'bg-gradient-to-r from-emerald-500/0 via-emerald-400/50 to-emerald-500/0' : 'bg-gradient-to-r from-rose-500/0 via-rose-500/40 to-rose-500/0'}"></div>
 
@@ -359,7 +360,7 @@
                   <span class="font-sans font-bold ${cpu > 80 ? 't-danger' : 'text-slate-100'}">${cpuDisplay}</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                  <div class="h-full ${cpuBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (cpu > 0 ? cpu : 1) : 0))}%"></div>
+                  <div class="h-full ${cpuBarColor} ${cpu > 80 ? 'shimmer-bar' : ''} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (cpu > 0 ? cpu : 1) : 0))}%"></div>
                 </div>
               </div>
 
@@ -370,7 +371,7 @@
                   <span class="font-sans font-bold ${ram > 80 ? 't-danger' : 'text-slate-100'}">${ramDisplay}</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                  <div class="h-full ${ramBarColor} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (ram > 0 ? ram : 1) : 0))}%"></div>
+                  <div class="h-full ${ramBarColor} ${ram > 80 ? 'shimmer-bar' : ''} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (ram > 0 ? ram : 1) : 0))}%"></div>
                 </div>
               </div>
             </div>

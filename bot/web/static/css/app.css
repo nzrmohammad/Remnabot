@@ -500,3 +500,25 @@ html.theme-light .system-status-card .status-pill-invite {
   #invoiceModal { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: transparent; }
   #invoiceModal .modal-close-btn, #invoiceModal .btn { display: none; }
 }
+
+/* Micro-Interactions & Ambient Animation Suite */
+@keyframes heartbeatGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.5); }
+  50% { box-shadow: 0 0 18px rgba(244, 63, 94, 0.5); border-color: rgba(244, 63, 94, 0.9); }
+}
+.animate-heartbeat { animation: heartbeatGlow 2s ease-in-out infinite; }
+
+.shimmer-bar { position: relative; overflow: hidden; }
+.shimmer-bar::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.35) 50%, transparent 100%);
+  animation: shimmerSweep 2s infinite; transform: translateX(-100%);
+}
+@keyframes shimmerSweep { 100% { transform: translateX(100%); } }
+
+.copy-flash { position: relative; animation: copyPulse 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes copyPulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); transform: scale(0.97); }
+  50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); transform: scale(1.02); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); transform: scale(1); }
+}

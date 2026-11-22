@@ -182,7 +182,10 @@
         <!-- Pending Tasks Alert (اقدامات نیازمند بررسی - مخفی در صورت عدم وجود مورد معلق) -->
         <div id="adminPendingBanner" class="hidden bg-amber-50 dark:bg-amber-950/40 rounded-2xl p-3.5 border border-amber-200 dark:border-amber-500/40 flex items-center justify-between shadow-sm transition">
           <div class="flex items-center gap-2.5">
-            <svg class="w-5 h-5 t-warn flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="relative flex items-center justify-center shrink-0">
+              <span class="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-amber-400/40"></span>
+              <svg class="w-5 h-5 t-warn relative" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
             <div>
               <span class="text-xs font-bold t-warn block">اقدامات نیازمند بررسی:</span>
               <span id="adminPendingSummary" class="text-[11px] text-amber-900 dark:text-slate-300">در حال دریافت وضعیت...</span>
@@ -818,6 +821,10 @@
           <button id="subtabBtnTopups" type="button" onclick="window.switchFinanceSubtab('topups')" class="admin-subtab-btn is-active group" aria-selected="true">
             <svg class="w-4 h-4 t-success group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
             <span>فیش‌های واریزی</span>
+            <span id="topupsPendingPingBadge" class="hidden relative flex h-2 w-2 mr-1">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
           </button>
           <button id="subtabBtnCampaigns" type="button" onclick="window.switchFinanceSubtab('campaigns')" class="admin-subtab-btn group" aria-selected="false">
             <svg class="w-4 h-4 t-pink group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
@@ -2829,8 +2836,12 @@
         <span class="text-[11px] font-medium">سرورها</span>
       </button>
       <button class="admin-nav-btn flex flex-col items-center justify-center gap-1 transition min-w-[48px] min-h-[44px] py-0.5 cursor-pointer active:scale-95" aria-selected="false" data-admin-tab="tab-admin-tickets" aria-label="مالی و کمپین">
-        <span class="nav-icon-pill">
+        <span class="nav-icon-pill relative">
           <img src="/static/img/icons/finance.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" alt="" aria-hidden="true" loading="eager" width="24" height="24">
+          <span id="financeNavPingBadge" class="hidden absolute top-1 right-2 flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+          </span>
         </span>
         <span class="text-[11px] font-medium">مالی</span>
       </button>
@@ -2870,7 +2881,10 @@
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5 min-w-0">
               <b id="userProfModalFullName" class="text-sm font-extrabold t-main truncate max-w-[170px]">نام کاربر</b>
-              <span id="userProfModalOnlineDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse hidden flex-shrink-0" title="متصل به سرور"></span>
+              <span id="userProfModalOnlineDot" class="relative flex items-center justify-center w-3 h-3 hidden flex-shrink-0" title="آنلاین (متصل به سرور)">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full w-2 h-2 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+              </span>
             </div>
             <div class="flex items-center gap-2 mt-1.5">
               <span id="userProfModalStatusBadge"></span>

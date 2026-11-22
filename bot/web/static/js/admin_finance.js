@@ -662,6 +662,16 @@ openCryptoRatesModal() {
         return;
       }
       const topups = res.topups || [];
+      const topupPing = $('topupsPendingPingBadge');
+      const financeNavPing = $('financeNavPingBadge');
+      if (topups.length > 0) {
+        topupPing?.classList.remove('hidden');
+        financeNavPing?.classList.remove('hidden');
+      } else {
+        topupPing?.classList.add('hidden');
+        financeNavPing?.classList.add('hidden');
+      }
+
       if (topups.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
