@@ -1167,7 +1167,7 @@
                 <div class="user-wallet-card-sheen"></div>
 
                 <!-- Currency Switcher Icon Button (Top-Right Corner) -->
-                <button type="button" onclick="event.stopPropagation(); window.openWalletCurrencyModal ? window.openWalletCurrencyModal() : (window.cycleWalletCurrency && window.cycleWalletCurrency());" class="absolute top-3.5 right-3.5 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center backdrop-blur-md transition select-none" title="تغییر واحد پول">
+                <button type="button" onclick="event.stopPropagation(); window.openWalletCurrencyModal ? window.openWalletCurrencyModal() : (window.cycleWalletCurrency && window.cycleWalletCurrency());" class="user-wallet-currency-btn" title="تغییر واحد پول">
                   <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 invert brightness-0 opacity-80" width="14" height="14" alt="" />
                 </button>
 
@@ -1744,6 +1744,37 @@
                 <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- 5. Box: نمایش و تنظیمات کیف پول -->
+        <div class="settings-box shadow transition-all">
+          <div role="button" tabindex="0" class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxWalletSettings')">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                <img src="/static/img/icons/wallet.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+              </div>
+              <div>
+                <b class="text-xs t-main block">تنظیمات و ظاهر کیف پول</b>
+                <span class="text-[11px] t-muted block mt-0.5">سبک کارت سه‌بعدی و انتخاب واحد ارزی پیش‌فرض</span>
+              </div>
+            </div>
+            <img src="/static/img/icons/chevron-down.svg?v=fl2" class="settings-box-chevron ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
+          </div>
+          <div id="userBoxWalletSettings" class="settings-box-body p-4 pt-1 border-t border-card-border space-y-2.5 text-xs hidden">
+            <!-- Wallet Card Style Toggle (نمایش گرافیکی کارت کیف پول) -->
+            <div class="flex items-center justify-between py-1">
+              <div>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />نمایش گرافیکی کارت کیف پول</span>
+                <span class="text-[11px] t-muted">نمایش کارت سه‌بعدی متالیک به جای کادر ساده</span>
+              </div>
+              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleWalletCardView" class="sr-only switch-checkbox" checked onchange="window.toggleWalletCardView && window.toggleWalletCardView(this.checked)">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
 
             <!-- Currency Trigger (واحد پول نمایش کیف پول) -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
@@ -1759,24 +1790,10 @@
                 </button>
               </div>
             </div>
-
-            <!-- Wallet Card Style Toggle (نمایش گرافیکی کارت کیف پول) -->
-            <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
-              <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />نمایش گرافیکی کارت کیف پول</span>
-                <span class="text-[11px] t-muted">نمایش کارت سه‌بعدی متالیک به جای کادر ساده</span>
-              </div>
-              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="settingToggleWalletCardView" class="sr-only switch-checkbox" checked onchange="window.toggleWalletCardView && window.toggleWalletCardView(this.checked)">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
-            </div>
           </div>
         </div>
 
-        <!-- 5. Box: امنیت و تغییر لینک اشتراک -->
+        <!-- 6. Box: امنیت و تغییر لینک اشتراک -->
         <div class="settings-box shadow transition-all">
           <div role="button" tabindex="0" class="settings-box-header p-3.5 flex items-center justify-between cursor-pointer select-none transition" onclick="window.toggleSettingsBox('userBoxSecurity')">
             <div class="flex items-center gap-2.5">

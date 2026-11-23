@@ -1548,3 +1548,33 @@ html.theme-light .user-wallet-card-face * {
   }
 }
 
+.user-wallet-currency-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  user-select: none;
+  z-index: 25;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+
+.user-wallet-currency-btn:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.user-wallet-currency-btn:active {
+  transform: scale(0.92);
+}
+
+

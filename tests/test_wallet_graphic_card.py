@@ -20,6 +20,7 @@ def test_wallet_graphic_card_css_components():
     assert ".user-wallet-chip" in content
     assert ".user-wallet-vertical-code" in content
     assert ".user-wallet-sparkle" in content
+    assert ".user-wallet-currency-btn" in content
     assert "writing-mode: vertical-rl;" in content
     assert "preserve-3d" in content
 
@@ -30,11 +31,12 @@ def test_wallet_graphic_card_html_structure():
     assert 'class="user-wallet-card-container' in content
     assert 'id="userWalletGraphicBox"' in content
     assert 'id="userWalletClassicBox"' in content
+    assert 'id="userBoxWalletSettings"' in content
     assert 'id="settingToggleWalletCardView"' in content
     assert 'id="classicWalletBalance"' in content
     assert 'id="userWalletCardBalance"' in content
     assert 'id="userWalletCardName"' in content
-    assert 'top-3.5 right-3.5' in content  # Currency switcher moved to top-right
+    assert 'user-wallet-currency-btn' in content  # Dedicated top-right currency switcher button
     assert 'CARD HOLDER' not in content
     assert 'userWalletCardVerticalCode' not in content
     assert 'Remna but lovely' in content
