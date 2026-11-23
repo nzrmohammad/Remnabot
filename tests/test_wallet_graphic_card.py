@@ -46,9 +46,18 @@ def test_wallet_graphic_card_html_structure():
     assert 'dir="ltr"' in content
     # Legacy compatibility element preserved
     assert 'id="walletTabBalance"' in content
-    # Charge & gift buttons preserved
-    assert 'id="chargeWalletBtn"' in content
+    # Charge & gift buttons preserved without duplication
+    assert content.count('id="chargeWalletBtn"') == 1
     assert 'openGiftModal' in content
+
+    # Profile tab is cleanly nested before navBottom inside contentArea
+    tab_profile_pos = content.find('id="tab-profile"')
+    nav_bottom_pos = content.find('id="navBottom"')
+    content_area_pos = content.find('id="contentArea"')
+    assert content_area_pos != -1
+    assert tab_profile_pos != -1
+    assert nav_bottom_pos != -1
+    assert content_area_pos < tab_profile_pos < nav_bottom_pos
 
 
 def test_wallet_graphic_card_js_logic():
