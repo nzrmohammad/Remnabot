@@ -30,14 +30,15 @@ def test_wallet_graphic_card_html_structure():
     content = APP_HTML_PATH.read_text(encoding="utf-8")
     assert 'class="user-wallet-card-container' in content
     assert 'id="userWalletCardBalance"' in content
-    assert 'id="userWalletCardSecondaryBalance"' in content
     assert 'id="userWalletCurrencyBadge"' in content
     assert 'id="userWalletCardVerticalCode"' in content
     assert 'id="userWalletCardName"' in content
     assert 'id="userWalletCardUid"' in content
-    assert 'id="userWalletCardCvv"' in content
     assert 'id="userWalletCardTier"' in content
     assert 'id="userCurrencySelector"' in content
+    # Card is strictly LTR front face
+    assert 'user-wallet-card-front' in content
+    assert 'dir="ltr"' in content
     # Legacy compatibility element preserved
     assert 'id="walletTabBalance"' in content
     # Charge & gift buttons preserved

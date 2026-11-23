@@ -87,12 +87,10 @@ window.renderUserWalletCard = function(userData) {
   }
 
   const balEl = document.getElementById('userWalletCardBalance');
-  const secBalEl = document.getElementById('userWalletCardSecondaryBalance');
   const badgeEl = document.getElementById('userWalletCurrencyBadge');
   const nameEl = document.getElementById('userWalletCardName');
   const uidEl = document.getElementById('userWalletCardUid');
   const tierEl = document.getElementById('userWalletCardTier');
-  const cvvEl = document.getElementById('userWalletCardCvv');
   const codeEl = document.getElementById('userWalletCardVerticalCode');
 
   // Rates from storeSettings or defaults
@@ -102,28 +100,22 @@ window.renderUserWalletCard = function(userData) {
 
   const currentCurrency = localStorage.getItem('user_wallet_currency') || 'toman';
 
-  if (balEl && secBalEl && badgeEl) {
+  if (balEl && badgeEl) {
     if (currentCurrency === 'ton') {
       const tonVal = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
       balEl.innerText = `${tonVal} TON`;
-      secBalEl.innerText = `≈ ${rawBal.toLocaleString('en-US')} تومان`;
       badgeEl.innerText = 'TON';
     } else if (currentCurrency === 'usdt') {
       const usdtVal = usdtRate > 0 ? (rawBal / usdtRate).toFixed(2) : '0';
       balEl.innerText = `${usdtVal} USDT`;
-      secBalEl.innerText = `≈ ${rawBal.toLocaleString('en-US')} تومان`;
       badgeEl.innerText = 'USDT';
     } else if (currentCurrency === 'stars') {
       const starsVal = starsRate > 0 ? Math.floor(rawBal / starsRate).toLocaleString('en-US') : '0';
       balEl.innerText = `${starsVal} ⭐️`;
-      secBalEl.innerText = `≈ ${rawBal.toLocaleString('en-US')} تومان`;
       badgeEl.innerText = 'ستاره ⭐️';
     } else {
-      // Default: Toman
+      // Default: Toman (only one unit displayed)
       balEl.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
-      const tonEq = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
-      const usdtEq = usdtRate > 0 ? (rawBal / usdtRate).toFixed(2) : '0';
-      secBalEl.innerText = `≈ ${tonEq} TON  |  $${usdtEq}`;
       badgeEl.innerText = 'تومان';
     }
   }
@@ -138,13 +130,6 @@ window.renderUserWalletCard = function(userData) {
   // Telegram ID & Unique Security Codes
   const tgId = user?.telegram_id || tgUser?.id || '';
   if (uidEl) uidEl.innerText = tgId ? `UID: ${tgId}` : 'UID: ----';
-
-  if (cvvEl && tgId) {
-    let hash = 0;
-    const s = String(tgId);
-    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) & 0xffffffff;
-    cvvEl.innerText = String(Math.abs(hash) % 900 + 100);
-  }
 
   if (tierEl) {
     const tierName = window.lastUserData?.loyalty?.name || user?.loyalty_tier_name || 'کاربر همراه';
