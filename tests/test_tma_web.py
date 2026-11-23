@@ -871,6 +871,13 @@ async def test_admin_broadcast_audience_targeting(session_factory):
     assert res_data["ok"] is True
     assert "همه کاربران" in res_data["message"]
 
+    req_photo = make_mocked_request("POST", "/api/admin/broadcast?user_id=99999", app=app)
+    req_photo.json = AsyncMock(return_value={"message": "پیام عکس‌دار", "photo": "https://example.com/banner.jpg", "target": "all"})
+    resp_photo = await post_admin_broadcast(req_photo)
+    assert resp_photo.status == 200
+    res_photo = json.loads(resp_photo.text)
+    assert res_photo["ok"] is True
+
 
 @pytest.mark.anyio
 async def test_admin_reset_trial(session_factory):

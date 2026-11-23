@@ -1426,10 +1426,13 @@ async applyUserModification() {
       };
 
       let html = `
-        <div onclick="window.adminActions.selectCreateUserPlan('custom')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
-          <div class="min-w-0 flex-1 text-left">
+        <div onclick="window.adminActions.selectCreateUserPlan('custom')" dir="rtl" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${selectedId === 'custom' ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div class="min-w-0 flex-1 text-right">
             <span class="font-bold t-main text-xs block">تنظیمات سفارشی (دستی)</span>
             <span class="text-[11px] t-muted block mt-0.5">تعیین دستی حجم، روز و محدودیت دلخواه</span>
+          </div>
+          <div class="shrink-0 text-left">
+            <span class="px-2 py-0.5 text-[10px] rounded-lg border border-blue-500/30 text-blue-400 bg-blue-500/10 font-bold font-sans">Manual</span>
           </div>
         </div>
       `;
@@ -1450,23 +1453,23 @@ async applyUserModification() {
           else if (bKey.includes('seller')) badgeClass = 'border-amber-500/40 text-amber-500 dark:text-amber-400 bg-amber-500/10';
           else if (bKey.includes('popular')) badgeClass = 'border-purple-500/40 text-purple-500 dark:text-purple-400 bg-purple-500/10';
           else if (bKey.includes('eco') || bKey.includes('iran')) badgeClass = 'border-emerald-500/40 text-emerald-500 dark:text-emerald-400 bg-emerald-500/10';
-          const badgeHtml = badgeText ? `<span dir="rtl" class="px-1.5 py-0.5 text-[11px] rounded border font-semibold ${badgeClass}">${badgeText}</span>` : '';
+          const badgeHtml = badgeText ? `<span dir="rtl" class="px-1.5 py-0.5 text-[11px] rounded border font-semibold whitespace-nowrap ${badgeClass}">${badgeText}</span>` : '';
           const priceLabel = p.price ? (typeof fmtMoney === 'function' ? fmtMoney(p.price) : `${p.price} تومان`) : '';
 
           return `
-            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+            <div onclick="window.adminActions.selectCreateUserPlan('${p.id}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-2.5 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
               <div class="min-w-0 flex-1 text-left space-y-1">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-bold t-main text-xs">${escapeHtml(p.name)}</span>
-                  ${badgeHtml}
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="font-bold t-main text-xs whitespace-nowrap">${escapeHtml(p.name)}</span>
+                  ${badgeHtml ? `<span class="shrink-0 whitespace-nowrap inline-flex">${badgeHtml}</span>` : ''}
                 </div>
-                <div class="flex items-center gap-2 text-[11px] t-muted font-sans flex-wrap">
+                <div class="flex items-center gap-2 text-[11px] t-muted font-sans whitespace-nowrap">
                   <span class="text-cyan-600 dark:text-cyan-300 font-bold inline-flex items-center gap-0.5"><span class="font-sans font-bold">${toEnglishDigits(p.traffic_gb)}</span><span>GB</span></span>
                   <span>•</span>
                   <span class="text-amber-600 dark:text-amber-300 font-bold">${p.duration_days} روز</span>
                 </div>
               </div>
-              ${priceLabel ? `<div class="shrink-0 text-right font-sans"><span class="font-bold text-xs t-main font-sans" dir="rtl">${escapeHtml(priceLabel)}</span></div>` : ''}
+              ${priceLabel ? `<div class="shrink-0 text-right font-sans whitespace-nowrap"><span class="font-bold text-xs t-main font-sans" dir="rtl">${escapeHtml(priceLabel)}</span></div>` : ''}
             </div>
           `;
         }).join('');

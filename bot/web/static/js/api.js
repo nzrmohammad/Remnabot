@@ -391,8 +391,8 @@ const api = {
     return this.post('/api/admin/settings/upload-logo', { logo_image });
   },
 
-  async broadcastMessage(message, target = 'all') {
-    return this.post('/api/admin/broadcast', { message, target });
+  async broadcastMessage(message, target = 'all', photo = '') {
+    return this.post('/api/admin/broadcast', { message, target, photo });
   },
 
   async getBroadcastStatus(broadcastId) {

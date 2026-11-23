@@ -31,9 +31,10 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
     if not isinstance(body, dict):
         return web.json_response({"ok": False, "error": "Invalid JSON"}, status=400)
 
-    text = body.get("message")
-    if not text:
-        return web.json_response({"ok": False, "error": "متن پیام خالی است."}, status=400)
+    text = (body.get("message") or "").strip()
+    photo_raw = (body.get("photo") or body.get("photo_url") or "").strip()
+    if not text and not photo_raw:
+        return web.json_response({"ok": False, "error": "متن یا تصویر پیام خالی است."}, status=400)
 
     target = str(body.get("target") or "all").strip().lower()
     bot = request.app["bot"]
@@ -79,21 +80,70 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
     async def _broadcast_worker_with_cache():
         st = _BROADCAST_STATUSES[broadcast_id]
         counter = 0
+
+        # Resolve initial photo object if provided
+        initial_photo = None
+        if photo_raw:
+            if photo_raw.startswith("data:image/") and "base64," in photo_raw:
+                try:
+                    import base64
+                    from aiogram.types import BufferedInputFile
+                    header, b64_str = photo_raw.split("base64,", 1)
+                    img_bytes = base64.b64decode(b64_str)
+                    ext = "jpg" if ("jpeg" in header or "jpg" in header) else ("webp" if "webp" in header else "png")
+                    initial_photo = BufferedInputFile(img_bytes, filename=f"broadcast.{ext}")
+                except Exception as b64_err:
+                    logger.warning("Failed to decode base64 broadcast photo: %s", b64_err)
+                    initial_photo = None
+            else:
+                initial_photo = photo_raw
+
+        reusable_photo_id: str | None = None
         for tid in recipients:
             try:
-                await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
+                if initial_photo:
+                    p = reusable_photo_id or initial_photo
+                    sent_msg = await bot.send_photo(
+                        chat_id=tid,
+                        photo=p,
+                        caption=text or None,
+                        parse_mode="HTML"
+                    )
+                    if sent_msg.photo and not reusable_photo_id:
+                        reusable_photo_id = sent_msg.photo[-1].file_id
+                else:
+                    await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
                 st["sent"] += 1
                 await asyncio.sleep(0.04)  # ~25 messages/sec rate limit
             except TelegramRetryAfter as retry_err:
                 try:
                     await asyncio.sleep(retry_err.retry_after + 1)
-                    await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
+                    if initial_photo:
+                        p = reusable_photo_id or initial_photo
+                        sent_msg = await bot.send_photo(
+                            chat_id=tid,
+                            photo=p,
+                            caption=text or None,
+                            parse_mode="HTML"
+                        )
+                        if sent_msg.photo and not reusable_photo_id:
+                            reusable_photo_id = sent_msg.photo[-1].file_id
+                    else:
+                        await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
                     st["sent"] += 1
                 except Exception as retry_exc:
                     st["failed"] += 1
                     logger.debug("Broadcast retry error for user %s: %s", tid, retry_exc)
             except Exception as exc:
-                st["failed"] += 1
+                # Fallback to sending text if photo sending failed
+                if initial_photo and text:
+                    try:
+                        await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
+                        st["sent"] += 1
+                    except Exception:
+                        st["failed"] += 1
+                else:
+                    st["failed"] += 1
                 logger.debug("Broadcast send error for user %s: %s", tid, exc)
             counter += 1
             if counter % 25 == 0 and cache and hasattr(cache, "set"):

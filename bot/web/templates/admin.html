@@ -3714,6 +3714,32 @@
           </div>
         </div>
 
+        <!-- Broadcast Photo / Image Attachment -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-[11px] t-muted font-medium flex items-center gap-1">
+              <img src="/static/img/icons/photo.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
+              <span>پیوست تصویر به پیام:</span>
+            </label>
+            <span class="badge-optional">اختیاری</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <input type="text" id="broadcastPhotoInput" dir="ltr" placeholder="آدرس تصویر (URL) یا فایل..." class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans text-cyan-300 outline-none focus:border-cyan-500 transition placeholder:text-[11px]" oninput="window.updateBroadcastPhotoPreview && window.updateBroadcastPhotoPreview(this.value)" />
+            </div>
+            <label class="btn btn-secondary text-xs px-2.5 py-2 rounded-xl cursor-pointer active:scale-95 transition inline-flex items-center gap-1 shrink-0 shadow-sm">
+              <img src="/static/img/icons/plus.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span class="text-[11px]">آپلود</span>
+              <input type="file" id="broadcastPhotoFileInput" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="window.handleBroadcastPhotoUpload && window.handleBroadcastPhotoUpload(event)" />
+            </label>
+          </div>
+          <!-- Photo Preview Container -->
+          <div id="broadcastPhotoPreviewBox" class="hidden relative rounded-xl overflow-hidden border border-[var(--card-border)] max-h-36 bg-slate-950/60 flex items-center justify-center">
+            <img id="broadcastPhotoPreviewImg" src="" alt="Broadcast Preview" class="max-h-36 w-full object-cover" />
+            <button type="button" onclick="window.clearBroadcastPhoto && window.clearBroadcastPhoto()" class="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-rose-600/80 hover:bg-rose-600 text-white flex items-center justify-center text-xs shadow-md transition active:scale-90" title="حذف تصویر">✕</button>
+          </div>
+        </div>
+
         <div>
           <textarea id="broadcastTextArea" rows="4" placeholder="متن پیام همگانی خود را اینجا بنویسید (از ایموجی و متن فرمت‌شده تلگرام پشتیبانی می‌شود)..." class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl p-3 text-xs text-slate-200 outline-none resize-none"></textarea>
         </div>
@@ -4237,7 +4263,7 @@
         <form id="createCampaignForm" onsubmit="window.adminActions.submitCreateCampaign(event)" class="space-y-3.5 text-xs">
           <div>
             <label class="text-[11px] t-muted block mb-1">نام کمپین / منبع تبلیغ:</label>
-            <input type="text" id="campaignNameInput" required placeholder="مثلاً: بنر کانال تلگرام پروکسی" class="input-base text-xs" />
+            <input type="text" id="campaignNameInput" required placeholder="بنر کانال تلگرام پروکسی" class="input-base text-xs" />
           </div>
 
           <div>
@@ -4420,7 +4446,7 @@
 
     <!-- MODAL: Plan Picker for Create User (انتخاب بسته کامل) -->
     <div id="planPickerModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[380px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-[var(--card-border)] rounded-3xl p-4 sm:p-5 w-full max-w-[400px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2.5 shrink-0">
           <div class="flex items-center gap-2">
             <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />

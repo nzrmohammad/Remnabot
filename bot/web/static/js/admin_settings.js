@@ -2387,21 +2387,64 @@ openUserChat(telegram_id, name, tag, topup_id) {
     });
   });
 
+  window.updateBroadcastPhotoPreview = function(url) {
+    const box = $('broadcastPhotoPreviewBox');
+    const img = $('broadcastPhotoPreviewImg');
+    if (!box || !img) return;
+    const cleanUrl = (url || '').trim();
+    if (cleanUrl) {
+      img.src = cleanUrl;
+      box.classList.remove('hidden');
+    } else {
+      box.classList.add('hidden');
+      img.src = '';
+    }
+  };
+
+  window.handleBroadcastPhotoUpload = function(event) {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      if (window.showToast) window.showToast('حجم تصویر نباید بیشتر از 5 مگابایت باشد.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const base64 = e.target?.result;
+      if (base64) {
+        const inp = $('broadcastPhotoInput');
+        if (inp) inp.value = base64;
+        window.updateBroadcastPhotoPreview(base64);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.clearBroadcastPhoto = function() {
+    const inp = $('broadcastPhotoInput');
+    const fileInp = $('broadcastPhotoFileInput');
+    if (inp) inp.value = '';
+    if (fileInp) fileInp.value = '';
+    window.updateBroadcastPhotoPreview('');
+  };
+
   sendBroadcastBtn?.addEventListener('click', async () => {
     const txt = $('broadcastTextArea')?.value?.trim();
-    if (!txt) {
-      if (window.showToast) window.showToast('لطفاً متن پیام را وارد کنید.');
+    const photo = $('broadcastPhotoInput')?.value?.trim() || '';
+    if (!txt && !photo) {
+      if (window.showToast) window.showToast('لطفاً متن یا تصویر پیام را وارد کنید.');
       return;
     }
     sendBroadcastBtn.disabled = true;
     sendBroadcastBtn.innerText = 'در حال آماده‌سازی و ارسال...';
 
     try {
-      const res = await window.api.broadcastMessage(txt, currentBroadcastTarget);
+      const res = await window.api.broadcastMessage(txt, currentBroadcastTarget, photo);
       if (res && res.ok && res.broadcast_id) {
         if (broadcastModal) broadcastModal.classList.add('hidden');
         const txtEl = $('broadcastTextArea');
         if (txtEl) txtEl.value = '';
+        window.clearBroadcastPhoto();
 
         // Open Live Progress Report Modal
         if (broadcastReportModal) {

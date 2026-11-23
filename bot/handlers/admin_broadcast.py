@@ -87,7 +87,7 @@ async def broadcast_target_picked(
     await render_menu(bot, user, user_repo, prompt, kb.as_markup())
 
 
-@router.message(BroadcastStates.waiting_text, F.text)
+@router.message(BroadcastStates.waiting_text, F.text | F.photo)
 async def broadcast_text(
     message: Message, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, state: FSMContext, remnawave: RemnawaveClient,
@@ -96,12 +96,13 @@ async def broadcast_text(
     lang = user.language
     await delete_message_silently(bot, message.chat.id, message.message_id)
 
-    draft = message.text.strip()
+    draft = (message.caption if message.photo else message.text or "").strip()
+    photo_id = message.photo[-1].file_id if message.photo else None
     data = await state.get_data()
     target = str(data.get("bcast_target", "all"))
     target_label = t(lang, f"bcast_target_{target}")
 
-    if not draft:
+    if not draft and not photo_id:
         kb = InlineKeyboardBuilder()
         kb.button(text=t(lang, "btn_cancel"), callback_data="adm:broadcast")
         kb.adjust(1)
@@ -109,7 +110,7 @@ async def broadcast_text(
         return
 
     recipients = await _resolve_broadcast_recipients(session, remnawave, target)
-    await state.update_data(draft=draft, recipient_ids=recipients)
+    await state.update_data(draft=draft, photo_id=photo_id, recipient_ids=recipients)
 
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_send"), callback_data=BROADCAST_CONFIRM_KEY)
@@ -120,8 +121,10 @@ async def broadcast_text(
         lang, "bcast_preview_target",
         target=target_label,
         count=len(recipients),
-        text=escape(draft),
+        text=escape(draft) if draft else "(فقط تصویر)",
     )
+    if photo_id:
+        preview_text = f"🖼 <b>[دارای تصویر پیوست]</b>\n\n{preview_text}"
     await render_menu(bot, user, user_repo, preview_text, kb.as_markup())
 
 
@@ -153,11 +156,12 @@ async def broadcast_send(
 
     data = await state.get_data()
     draft = data.get("draft", "")
+    photo_id = data.get("photo_id")
     recipient_ids = data.get("recipient_ids") or []
     target = data.get("bcast_target", "all")
     await state.clear()
 
-    if not draft:
+    if not draft and not photo_id:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
 
@@ -194,14 +198,17 @@ async def broadcast_send(
     # so the connection is not held 'idle in transaction' during broadcast.
     await session.commit()
 
-    safe_text = escape(draft)
+    safe_text = escape(draft) if draft else ""
 
     for idx, tid in enumerate(recipient_ids, 1):
         if ACTIVE_BROADCASTS[bcast_id]["status"] == "stopped":
             break
 
         try:
-            sent_msg = await bot.send_message(tid, safe_text)
+            if photo_id:
+                sent_msg = await bot.send_photo(tid, photo=photo_id, caption=safe_text or None)
+            else:
+                sent_msg = await bot.send_message(tid, safe_text)
             ACTIVE_BROADCASTS[bcast_id]["sent"].append((tid, sent_msg.message_id))
             ACTIVE_BROADCASTS[bcast_id]["ok"] += 1
         except Exception as exc:
@@ -211,6 +218,18 @@ async def broadcast_send(
                     await asyncio.sleep(exc.retry_after + 1)
                 except Exception:
                     pass
+                try:
+                    if photo_id:
+                        sent_msg = await bot.send_photo(tid, photo=photo_id, caption=safe_text or None)
+                    else:
+                        sent_msg = await bot.send_message(tid, safe_text)
+                    ACTIVE_BROADCASTS[bcast_id]["sent"].append((tid, sent_msg.message_id))
+                    ACTIVE_BROADCASTS[bcast_id]["ok"] += 1
+                    continue
+                except Exception:
+                    pass
+            # Fallback to text if photo failed
+            if photo_id and safe_text:
                 try:
                     sent_msg = await bot.send_message(tid, safe_text)
                     ACTIVE_BROADCASTS[bcast_id]["sent"].append((tid, sent_msg.message_id))
