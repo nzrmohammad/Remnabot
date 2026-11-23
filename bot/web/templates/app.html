@@ -1184,11 +1184,6 @@
                   </div>
                 </div>
 
-                <!-- Vertical Alphanumeric Code (Positioned along the far Right edge) -->
-                <div id="userWalletCardVerticalCode" class="user-wallet-vertical-code">
-                  UQBA PKJ5 VNMO ITPY 2ENU FNB9 GFMS FUTX EQHR HI2V 53XQ SLF0
-                </div>
-
                 <!-- Top / Balance section (Left-aligned) -->
                 <div class="relative z-10 flex flex-col items-start gap-2.5 max-w-[210px] sm:max-w-[230px]">
                   <div class="flex items-center gap-2">
@@ -1198,52 +1193,39 @@
                     </span>
                   </div>
 
-                  <!-- Currency Switcher Icon Button (Only Icon) -->
-                  <button type="button" onclick="event.stopPropagation(); window.openWalletCurrencyModal ? window.openWalletCurrencyModal() : (window.cycleWalletCurrency && window.cycleWalletCurrency());" class="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 flex items-center justify-center backdrop-blur-md transition shadow-sm select-none" title="تغییر واحد پول">
-                    <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 invert brightness-0" width="14" height="14" alt="" />
+                  <!-- Currency Switcher Icon Button (Only Icon, No Border) -->
+                  <button type="button" onclick="event.stopPropagation(); window.openWalletCurrencyModal ? window.openWalletCurrencyModal() : (window.cycleWalletCurrency && window.cycleWalletCurrency());" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center backdrop-blur-md transition select-none" title="تغییر واحد پول">
+                    <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 invert brightness-0 opacity-80" width="14" height="14" alt="" />
                   </button>
                 </div>
 
                 <!-- Bottom Row: Cardholder Name -->
                 <div class="relative z-10 flex flex-col items-start">
-                  <span class="text-[9px] uppercase tracking-widest text-blue-200/60 font-mono font-semibold">CARD HOLDER</span>
-                  <span id="userWalletCardName" class="font-mono font-bold tracking-wider text-xs sm:text-sm text-white/95 uppercase drop-shadow-sm truncate max-w-[190px]">
+                  <span id="userWalletCardName" class="font-mono font-bold tracking-wider text-xs sm:text-sm text-white/95 uppercase drop-shadow-sm truncate max-w-[200px]">
                     USER
                   </span>
                 </div>
               </div>
 
               <!-- BACK FACE -->
-              <div class="user-wallet-card-face user-wallet-card-back surface-dark on-dark flex flex-col justify-between shadow-2xl relative overflow-hidden" dir="rtl">
+              <div class="user-wallet-card-face user-wallet-card-back surface-dark on-dark flex flex-col justify-between shadow-2xl relative overflow-hidden" dir="ltr">
                 <!-- Radial sheen effect -->
                 <div class="user-wallet-card-sheen"></div>
 
+                <!-- Sparkle stars (scattered across back face) -->
+                <div class="user-wallet-sparkle" style="top: 22%; left: 36%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 52%; left: 18%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 70%; left: 24%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 26%; right: 30%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 56%; right: 18%;">✦</div>
+                <div class="user-wallet-sparkle" style="bottom: 20%; right: 34%;">✦</div>
+
                 <!-- Magnetic Stripe -->
-                <div class="w-full h-8 bg-slate-950/90 shadow-inner mt-3 border-y border-white/10 shrink-0"></div>
+                <div class="w-full h-8 sm:h-9 bg-slate-950/90 shadow-inner mt-4 border-y border-white/5 shrink-0"></div>
 
-                <!-- Center Info: Clean, Minimal, Well Spaced -->
-                <div class="px-5 py-2 flex flex-col justify-center flex-1 space-y-2 relative z-10">
-                  <div class="flex items-center justify-between text-white">
-                    <div class="flex items-center gap-1.5">
-                      <span class="text-blue-200/70 text-[11px]">شناسه:</span>
-                      <span class="text-xs sm:text-sm font-mono font-bold tracking-wider text-white" id="userWalletCardUid" dir="ltr">UID: ----</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <span class="text-blue-200/70 text-[11px]">سطح:</span>
-                      <span id="userWalletCardTier" class="text-xs font-bold text-amber-300">عادی</span>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between text-[11px] text-blue-100/70 pt-1 border-t border-white/10">
-                    <span class="text-blue-200/60">شبکه پرداخت:</span>
-                    <span class="font-mono text-[10px] text-white/90">REMNABOT ECOSYSTEM</span>
-                  </div>
-                </div>
-
-                <!-- Back Bottom: Security note (Ultra compact single line) -->
-                <div class="px-5 pb-3 pt-1 relative z-10 flex items-center justify-between text-[9px] text-blue-200/50 border-t border-white/5 shrink-0">
-                  <span>کیف پول امن غیرمتمرکز</span>
-                  <span class="font-mono text-[9px] text-blue-200/60">TON • FIAT</span>
+                <!-- Center Slogan: Remna but lovely -->
+                <div class="flex-1 flex flex-col items-center justify-center relative z-10 px-6 text-center select-none pb-4">
+                  <span class="font-sans font-medium tracking-wider text-sm sm:text-base text-white/90 drop-shadow select-none">Remna but lovely</span>
                 </div>
               </div>
             </div>

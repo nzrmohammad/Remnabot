@@ -146,9 +146,6 @@ window.renderUserWalletCard = function(userData) {
 
   const balEl = document.getElementById('userWalletCardBalance');
   const nameEl = document.getElementById('userWalletCardName');
-  const uidEl = document.getElementById('userWalletCardUid');
-  const tierEl = document.getElementById('userWalletCardTier');
-  const codeEl = document.getElementById('userWalletCardVerticalCode');
 
   // Rates from storeSettings or defaults
   const tonRate = Number(window.storeSettings?.ton_rate_toman) || 500000;
@@ -187,19 +184,6 @@ window.renderUserWalletCard = function(userData) {
   const lastName = tgUser?.last_name || user?.last_name || '';
   const fullName = `${firstName} ${lastName}`.trim() || user?.username || 'REMNABOT USER';
   if (nameEl) nameEl.innerText = fullName;
-
-  // Telegram ID & Unique Security Codes
-  const tgId = user?.telegram_id || tgUser?.id || '';
-  if (uidEl) uidEl.innerText = tgId ? `UID: ${tgId}` : 'UID: ----';
-
-  if (tierEl) {
-    const tierName = window.lastUserData?.loyalty?.name || user?.loyalty_tier_name || 'کاربر همراه';
-    tierEl.innerText = tierName;
-  }
-
-  if (codeEl && tgId) {
-    codeEl.innerText = generateUserCardVerticalCode(tgId);
-  }
 };
 
 const BLUBANK_PALETTES = {

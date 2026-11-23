@@ -30,10 +30,10 @@ def test_wallet_graphic_card_html_structure():
     content = APP_HTML_PATH.read_text(encoding="utf-8")
     assert 'class="user-wallet-card-container' in content
     assert 'id="userWalletCardBalance"' in content
-    assert 'id="userWalletCardVerticalCode"' in content
     assert 'id="userWalletCardName"' in content
-    assert 'id="userWalletCardUid"' in content
-    assert 'id="userWalletCardTier"' in content
+    assert 'CARD HOLDER' not in content
+    assert 'userWalletCardVerticalCode' not in content
+    assert 'Remna but lovely' in content
     assert 'id="walletCurrencyModal"' in content
     assert 'id="userCurrencyTriggerBtn"' in content
     assert 'id="userCurrencyInput"' in content
