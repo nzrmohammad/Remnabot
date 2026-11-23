@@ -108,7 +108,7 @@ logger = logging.getLogger(__name__)
 
 
 from bot.web.admin_overview_charts import (
-    USERS_PERIODIC_BANDWIDTH_CACHE_KEY,
+    get_periodic_bandwidth_cache_key,
     get_periodic_users_bandwidth,
 )
 from bot.web.user_subscription_detail import (
@@ -884,8 +884,19 @@ async def get_user_me(request: web.Request) -> web.Response:
         user_leaderboard = {}
         now_utc = datetime.now(timezone.utc)
         try:
-            cached_bw = await cache.get(USERS_PERIODIC_BANDWIDTH_CACHE_KEY)
-            if cached_bw and isinstance(cached_bw, dict) and "weekly" in cached_bw and "daily" in cached_bw and "nightly" in cached_bw:
+            cache_key = get_periodic_bandwidth_cache_key(now_utc)
+            cached_bw = await cache.get(cache_key)
+            tehran_tz = ZoneInfo("Asia/Tehran")
+            now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+            today_tehran_str = now_tehran.strftime("%Y-%m-%d")
+            if (
+                cached_bw
+                and isinstance(cached_bw, dict)
+                and cached_bw.get("tehran_date") == today_tehran_str
+                and "weekly" in cached_bw
+                and "daily" in cached_bw
+                and "nightly" in cached_bw
+            ):
                 periodic_bw = cached_bw
             else:
                 cached_all_panel = await cache.get("tma:all_panel_users")

@@ -628,6 +628,14 @@ async def _calc_retention_and_payments(session, now_utc: datetime) -> tuple[dict
 USERS_PERIODIC_BANDWIDTH_CACHE_KEY = "analytics:users_periodic_bandwidth_v6"
 
 
+def get_periodic_bandwidth_cache_key(dt: datetime | None = None) -> str:
+    """Return date-scoped cache key based on Tehran date to ensure automatic midnight rollover."""
+    tehran_tz = ZoneInfo("Asia/Tehran")
+    ref_dt = dt or datetime.now(timezone.utc)
+    now_tehran = ref_dt.astimezone(tehran_tz) if ref_dt.tzinfo else ref_dt.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+    return f"{USERS_PERIODIC_BANDWIDTH_CACHE_KEY}:{now_tehran.strftime('%Y%m%d')}"
+
+
 async def get_periodic_users_bandwidth(
     remnawave: Any,
     cache: Any,
@@ -636,10 +644,21 @@ async def get_periodic_users_bandwidth(
     is_refresh: bool = False,
 ) -> dict[str, Any]:
     """Calculate daily, weekly, 30-day, and Jalali calendar monthly bandwidth for users."""
-    cache_key = USERS_PERIODIC_BANDWIDTH_CACHE_KEY
+    tehran_tz = ZoneInfo("Asia/Tehran")
+    now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+    today_tehran_str = now_tehran.strftime("%Y-%m-%d")
+    cache_key = get_periodic_bandwidth_cache_key(now_utc)
+
     if not is_refresh and cache:
         cached = await cache.get(cache_key)
-        if cached and isinstance(cached, dict) and "weekly" in cached and "daily" in cached and "nightly" in cached:
+        if (
+            cached
+            and isinstance(cached, dict)
+            and cached.get("tehran_date") == today_tehran_str
+            and "weekly" in cached
+            and "daily" in cached
+            and "nightly" in cached
+        ):
             return cached
 
     active_users = [
@@ -886,6 +905,7 @@ async def get_periodic_users_bandwidth(
     }
 
     result = {
+        "tehran_date": today_tehran_str,
         "daily": daily_lb,
         "nightly": nightly_lb,
         "weekly": week_lb,
@@ -900,7 +920,14 @@ async def get_periodic_users_bandwidth(
     }
 
     if cache:
-        await cache.set(cache_key, result, ttl_seconds=300)
+        seconds_until_midnight = int(
+            (
+                datetime.combine(now_tehran.date() + timedelta(days=1), datetime.min.time(), tzinfo=tehran_tz)
+                - now_tehran
+            ).total_seconds()
+        )
+        ttl = min(300, max(15, seconds_until_midnight))
+        await cache.set(cache_key, result, ttl_seconds=ttl)
     return result
 
 

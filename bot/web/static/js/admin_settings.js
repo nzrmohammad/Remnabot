@@ -134,22 +134,61 @@
   renderAdminExtraAppCards();
 
   const DEFAULT_TV_DNS_LIST = [
+    // 1. Anti-Sanction / Gaming DNS (Iran)
     { name: 'Electro', primary: '78.157.42.101', secondary: '78.157.42.100' },
+    { name: 'Electro (DoH)', primary: 'https://elc.elcdn.ir/dns-query', secondary: 'https://78.157.42.101/dns-query' },
+    { name: 'Electro (DoT)', primary: 'elc.elcdn.ir', secondary: 'tls://78.157.42.101' },
     { name: 'Shecan', primary: '178.22.122.100', secondary: '185.51.200.2' },
+    { name: 'Shecan (DoH)', primary: 'https://free.shecan.ir/dns-query', secondary: 'https://178.22.122.100/dns-query' },
+    { name: 'Shecan (DoT)', primary: 'free.shecan.ir', secondary: 'tls://178.22.122.100' },
     { name: 'Radar Plus', primary: '10.202.10.10', secondary: '10.202.10.11' },
+    { name: 'Radar Plus (DoH)', primary: 'https://dns.radar.game/dns-query', secondary: 'https://10.202.10.10/dns-query' },
+    { name: 'Radar Plus (DoT)', primary: 'dns.radar.game', secondary: 'tls://10.202.10.10' },
     { name: 'Begzar', primary: '185.55.226.26', secondary: '185.55.225.25' },
+    { name: 'Begzar (DoH)', primary: 'https://dns.begzar.ir/dns-query', secondary: 'https://185.55.226.26/dns-query' },
     { name: 'Shelter', primary: '87.107.206.15', secondary: '87.107.206.16' },
     { name: 'XoDNS', primary: '85.208.255.71', secondary: '85.208.255.182' },
     { name: 'TIC DNS', primary: '217.218.127.127', secondary: '217.218.155.155' },
+
+    // 2. Cloudflare
+    { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1' },
+    { name: 'Cloudflare (DoH)', primary: 'https://1.1.1.1/dns-query', secondary: 'https://cloudflare-dns.com/dns-query' },
+    { name: 'Cloudflare (DoT)', primary: 'one.one.one.one', secondary: 'tls://1.1.1.1' },
+    { name: 'Cloudflare (IPv6)', primary: '2606:4700:4700::1111', secondary: '2606:4700:4700::1001' },
+    { name: 'Cloudflare Security', primary: '1.1.1.2', secondary: '1.0.0.2' },
+    { name: 'Cloudflare Security (DoH)', primary: 'https://security.cloudflare-dns.com/dns-query', secondary: 'https://1.1.1.2/dns-query' },
+
+    // 3. Google
+    { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4' },
+    { name: 'Google (DoH)', primary: 'https://dns.google/dns-query', secondary: 'https://8.8.8.8/dns-query' },
+    { name: 'Google (DoT)', primary: 'dns.google', secondary: 'tls://8.8.8.8' },
+    { name: 'Google (IPv6)', primary: '2001:4860:4860::8888', secondary: '2001:4860:4860::8844' },
+
+    // 4. Quad9
     { name: 'Quad9', primary: '9.9.9.9', secondary: '149.112.112.112' },
     { name: 'Quad9 (DoH)', primary: 'https://9.9.9.9/dns-query', secondary: 'https://dns.quad9.net/dns-query' },
     { name: 'Quad9 (DoT)', primary: 'dns.quad9.net', secondary: 'tls://9.9.9.9' },
     { name: 'Quad9 (Uncensored)', primary: '9.9.9.10', secondary: '149.112.112.10' },
     { name: 'Quad9 (IPv6)', primary: '2620:fe::fe', secondary: '2620:fe::9' },
-    { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1' },
+
+    // 5. AdGuard
     { name: 'AdGuard', primary: '94.140.14.14', secondary: '94.140.15.15' },
-    { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1' },
-    { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4' }
+    { name: 'AdGuard (DoH)', primary: 'https://dns.adguard-dns.com/dns-query', secondary: 'https://unfiltered.adguard-dns.com/dns-query' },
+    { name: 'AdGuard (DoT)', primary: 'dns.adguard-dns.com', secondary: 'tls://94.140.14.14' },
+    { name: 'AdGuard (IPv6)', primary: '2a10:50c0::ad1:ff', secondary: '2a10:50c0::ad2:ff' },
+    { name: 'AdGuard (Family)', primary: '94.140.14.15', secondary: '94.140.15.16' },
+
+    // 6. OpenDNS
+    { name: 'OpenDNS', primary: '208.67.222.222', secondary: '208.67.220.220' },
+    { name: 'OpenDNS (DoH)', primary: 'https://doh.opendns.com/dns-query', secondary: 'https://208.67.222.222/dns-query' },
+    { name: 'OpenDNS (DoT)', primary: 'dns.opendns.com', secondary: 'tls://208.67.222.222' },
+    { name: 'OpenDNS (IPv6)', primary: '2620:119:35::35', secondary: '2620:119:53::53' },
+
+    // 7. Yandex
+    { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1' },
+    { name: 'Yandex (DoH)', primary: 'https://common.dot.dns.yandex.net/dns-query', secondary: 'https://77.88.8.8/dns-query' },
+    { name: 'Yandex (DoT)', primary: 'common.dot.dns.yandex.net', secondary: 'tls://77.88.8.8' },
+    { name: 'Yandex (IPv6)', primary: '2a02:6b8::feed:0ff', secondary: '2a02:6b8:0:1::feed:0ff' }
   ];
   let currentAdminTvDnsList = DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
 
