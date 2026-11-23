@@ -1,11 +1,13 @@
 """Admin Broadcasts, Marketing Campaigns, and Announcements API endpoints."""
 import asyncio
+import base64
 import logging
 from datetime import datetime, timezone
 from typing import Any
 
 # Bot instance resolved dynamically from request.app["bot"]
 from aiogram.exceptions import TelegramRetryAfter
+from aiogram.types import BufferedInputFile
 from aiohttp import web
 
 from bot.common.links import ad_link
@@ -86,8 +88,6 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
         if photo_raw:
             if photo_raw.startswith("data:image/") and "base64," in photo_raw:
                 try:
-                    import base64
-                    from aiogram.types import BufferedInputFile
                     header, b64_str = photo_raw.split("base64,", 1)
                     img_bytes = base64.b64decode(b64_str)
                     ext = "jpg" if ("jpeg" in header or "jpg" in header) else ("webp" if "webp" in header else "png")
