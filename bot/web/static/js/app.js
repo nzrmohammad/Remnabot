@@ -3965,6 +3965,9 @@ function hydrateUserInterface(data) {
     if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
     if (shopBalAmt) shopBalAmt.innerText = rawBalNum;
     if (walletTabBal) walletTabBal.innerText = formattedWallet;
+    if (window.renderUserWalletCard) {
+      window.renderUserWalletCard(user);
+    }
 
     if (typeof renderShopPlans === 'function') {
       renderShopPlans(data);
@@ -4143,6 +4146,12 @@ function hydrateUserInterface(data) {
       langFaBtn?.classList.remove('text-slate-400');
       langEnBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
       langEnBtn?.classList.add('text-slate-400');
+    }
+
+    // Wallet Display Currency Selector Sync
+    const curSelector = $('userCurrencySelector');
+    if (curSelector) {
+      curSelector.value = localStorage.getItem('user_wallet_currency') || 'toman';
     }
   });
 

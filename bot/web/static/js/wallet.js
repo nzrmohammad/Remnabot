@@ -31,6 +31,131 @@ window.flipBluCard = function(el) {
   if (window.hapticFeedback) window.hapticFeedback('impact');
 };
 
+function generateUserCardVerticalCode(tgId) {
+  const seed = String(tgId || '987654321');
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) & 0xffffffff;
+  }
+  const parts = [];
+  for (let block = 0; block < 12; block++) {
+    let part = '';
+    for (let c = 0; c < 4; c++) {
+      hash = (hash * 1664525 + 1013904223) & 0xffffffff;
+      part += alphabet[Math.abs(hash) % alphabet.length];
+    }
+    parts.push(part);
+  }
+  return parts.join(' ');
+}
+
+window.flipUserWalletCard = function(el) {
+  if (!el) return;
+  const flipper = el.classList.contains('user-wallet-card-flipper')
+    ? el
+    : (el.querySelector('.user-wallet-card-flipper') || el);
+  flipper.classList.toggle('is-flipped');
+  if (window.hapticFeedback) window.hapticFeedback('impact');
+};
+
+window.cycleWalletCurrency = function() {
+  const currencies = ['toman', 'ton', 'usdt', 'stars'];
+  const cur = localStorage.getItem('user_wallet_currency') || 'toman';
+  const nextIdx = (currencies.indexOf(cur) + 1) % currencies.length;
+  window.setWalletCurrency(currencies[nextIdx]);
+};
+
+window.setWalletCurrency = function(curr) {
+  const valid = ['toman', 'ton', 'usdt', 'stars'];
+  const target = valid.includes(curr) ? curr : 'toman';
+  localStorage.setItem('user_wallet_currency', target);
+  const sel = document.getElementById('userCurrencySelector');
+  if (sel && sel.value !== target) sel.value = target;
+  if (window.hapticFeedback) window.hapticFeedback('selection');
+  window.renderUserWalletCard();
+};
+
+window.renderUserWalletCard = function(userData) {
+  const user = userData || window.lastUserData?.user;
+  const rawBal = Number(user?.wallet_balance || 0);
+
+  // Sync legacy hidden element
+  const walletTabBal = document.getElementById('walletTabBalance');
+  if (walletTabBal) {
+    walletTabBal.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
+  }
+
+  const balEl = document.getElementById('userWalletCardBalance');
+  const secBalEl = document.getElementById('userWalletCardSecondaryBalance');
+  const badgeEl = document.getElementById('userWalletCurrencyBadge');
+  const nameEl = document.getElementById('userWalletCardName');
+  const uidEl = document.getElementById('userWalletCardUid');
+  const tierEl = document.getElementById('userWalletCardTier');
+  const cvvEl = document.getElementById('userWalletCardCvv');
+  const codeEl = document.getElementById('userWalletCardVerticalCode');
+
+  // Rates from storeSettings or defaults
+  const tonRate = Number(window.storeSettings?.ton_rate_toman) || 500000;
+  const usdtRate = Number(window.storeSettings?.usdt_rate_toman) || 75000;
+  const starsRate = Number(window.storeSettings?.stars_rate_toman) || 1500;
+
+  const currentCurrency = localStorage.getItem('user_wallet_currency') || 'toman';
+
+  if (balEl && secBalEl && badgeEl) {
+    if (currentCurrency === 'ton') {
+      const tonVal = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
+      balEl.innerText = `${tonVal} TON`;
+      secBalEl.innerText = `≈ ${rawBal.toLocaleString('en-US')} تومان`;
+      badgeEl.innerText = 'TON';
+    } else if (currentCurrency === 'usdt') {
+      const usdtVal = usdtRate > 0 ? (rawBal / usdtRate).toFixed(2) : '0';
+      balEl.innerText = `${usdtVal} USDT`;
+      secBalEl.innerText = `≈ ${rawBal.toLocaleString('en-US')} تومان`;
+      badgeEl.innerText = 'USDT';
+    } else if (currentCurrency === 'stars') {
+      const starsVal = starsRate > 0 ? Math.floor(rawBal / starsRate).toLocaleString('en-US') : '0';
+      balEl.innerText = `${starsVal} ⭐️`;
+      secBalEl.innerText = `≈ ${rawBal.toLocaleString('en-US')} تومان`;
+      badgeEl.innerText = 'ستاره ⭐️';
+    } else {
+      // Default: Toman
+      balEl.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
+      const tonEq = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
+      const usdtEq = usdtRate > 0 ? (rawBal / usdtRate).toFixed(2) : '0';
+      secBalEl.innerText = `≈ ${tonEq} TON  |  $${usdtEq}`;
+      badgeEl.innerText = 'تومان';
+    }
+  }
+
+  // Cardholder name
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const firstName = tgUser?.first_name || user?.first_name || '';
+  const lastName = tgUser?.last_name || user?.last_name || '';
+  const fullName = `${firstName} ${lastName}`.trim() || user?.username || 'REMNABOT USER';
+  if (nameEl) nameEl.innerText = fullName;
+
+  // Telegram ID & Unique Security Codes
+  const tgId = user?.telegram_id || tgUser?.id || '';
+  if (uidEl) uidEl.innerText = tgId ? `UID: ${tgId}` : 'UID: ----';
+
+  if (cvvEl && tgId) {
+    let hash = 0;
+    const s = String(tgId);
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) & 0xffffffff;
+    cvvEl.innerText = String(Math.abs(hash) % 900 + 100);
+  }
+
+  if (tierEl) {
+    const tierName = window.lastUserData?.loyalty?.name || user?.loyalty_tier_name || 'کاربر همراه';
+    tierEl.innerText = tierName;
+  }
+
+  if (codeEl && tgId) {
+    codeEl.innerText = generateUserCardVerticalCode(tgId);
+  }
+};
+
 const BLUBANK_PALETTES = {
   red: {
     grad: 'linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #dc2626 100%)',
@@ -621,6 +746,7 @@ async function loadTopupInfo() {
       if (manualClassicNum) manualClassicNum.innerText = formatCardNumberDisplay(rawNum);
       if (manualClassicHolder) manualClassicHolder.innerText = rawHolder;
       applyBluBankCardTheme(res.card_blubank_color || 'rose', res.card_template || 'blubank');
+      if (window.renderUserWalletCard) window.renderUserWalletCard();
 
       const hasCard = res.card_enabled === true;
       const hasStars = res.stars_enabled === true;
