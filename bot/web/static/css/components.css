@@ -1555,13 +1555,12 @@ html.theme-light .user-wallet-card-face * {
   width: 28px;
   height: 28px;
   border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.12);
+  background: transparent;
+  background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: transform 0.15s ease, background-color 0.15s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
   user-select: none;
   z-index: 25;
   cursor: pointer;
@@ -1570,7 +1569,8 @@ html.theme-light .user-wallet-card-face * {
 }
 
 .user-wallet-currency-btn:hover {
-  background-color: rgba(255, 255, 255, 0.22);
+  background: transparent;
+  opacity: 0.8;
 }
 
 .user-wallet-currency-btn:active {

@@ -235,6 +235,10 @@ function switchTab(targetId) {
 
   if (targetId === 'tab-reports') {
     setTimeout(() => renderReportsCharts(), 60);
+  } else if (targetId === 'tab-shop') {
+    if (typeof window.showShopGuidanceToast === 'function') {
+      window.showShopGuidanceToast();
+    }
   }
 
   navButtons.forEach(b => {
@@ -1194,6 +1198,11 @@ const DEFAULT_TV_DNS_LIST = [
   { name: 'Shelter', primary: '87.107.206.15', secondary: '87.107.206.16' },
   { name: 'XoDNS', primary: '85.208.255.71', secondary: '85.208.255.182' },
   { name: 'TIC DNS', primary: '217.218.127.127', secondary: '217.218.155.155' },
+  { name: 'Quad9', primary: '9.9.9.9', secondary: '149.112.112.112' },
+  { name: 'Quad9 (DoH)', primary: 'https://9.9.9.9/dns-query', secondary: 'https://dns.quad9.net/dns-query' },
+  { name: 'Quad9 (DoT)', primary: 'dns.quad9.net', secondary: 'tls://9.9.9.9' },
+  { name: 'Quad9 (Uncensored)', primary: '9.9.9.10', secondary: '149.112.112.10' },
+  { name: 'Quad9 (IPv6)', primary: '2620:fe::fe', secondary: '2620:fe::9' },
   { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1' },
   { name: 'AdGuard', primary: '94.140.14.14', secondary: '94.140.15.15' },
   { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1' },
@@ -1426,7 +1435,11 @@ function renderTutorialApps(osKey) {
       : DEFAULT_TV_DNS_LIST;
 
     const dnsCardsHtml = tvDnsList.map((dns, idx) => {
-      const cleanName = (dns.name || `DNS ${idx + 1}`).replace(/[\u0600-\u06FF\(\)]/g, '').trim() || (dns.name || `DNS ${idx + 1}`);
+      const cleanName = (dns.name || `DNS ${idx + 1}`).replace(/[\u0600-\u06FF]/g, '').trim() || (dns.name || `DNS ${idx + 1}`);
+      const isUrlOrLong = (dns.primary && dns.primary.length > 18) || (dns.secondary && dns.secondary.length > 18);
+      const gridClass = isUrlOrLong
+        ? (dns.secondary ? 'grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs' : 'grid grid-cols-1 gap-1.5 text-xs')
+        : 'grid grid-cols-2 gap-2 text-xs';
       return `
         <div class="tutorial-app-card rounded-2xl p-3 card-inset border border-card-border space-y-2 transition" dir="ltr">
           <div class="flex items-center justify-between gap-2">
@@ -1440,13 +1453,15 @@ function renderTutorialApps(osKey) {
               <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="Copy Both" />
             </button>
           </div>
-          <div class="grid grid-cols-2 gap-2 text-xs" dir="ltr">
-            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-card-border flex items-center justify-center font-mono font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 shadow-inner" data-ip="${escapeHtml(dns.primary || '')}">
+          <div class="${gridClass}" dir="ltr">
+            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-card-border flex items-center justify-center font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 shadow-inner truncate text-[11px] sm:text-xs" data-ip="${escapeHtml(dns.primary || '')}" title="${escapeHtml(dns.primary || '')}">
               ${escapeHtml(dns.primary || '-')}
             </button>
-            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-card-border flex items-center justify-center font-mono font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 shadow-inner" data-ip="${escapeHtml(dns.secondary || '')}">
+            ${dns.secondary ? `
+            <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-card-border flex items-center justify-center font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 shadow-inner truncate text-[11px] sm:text-xs" data-ip="${escapeHtml(dns.secondary || '')}" title="${escapeHtml(dns.secondary || '')}">
               ${escapeHtml(dns.secondary || '-')}
             </button>
+            ` : ''}
           </div>
         </div>
       `;

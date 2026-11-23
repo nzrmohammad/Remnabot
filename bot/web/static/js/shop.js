@@ -508,11 +508,9 @@ function renderShopPlans(data) {
   const noticeEl = document.getElementById('shopSmartNotice');
   if (noticeEl) {
     if (!hasActiveSub) {
-      noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft';
-      noticeEl.innerHTML = '<div class="flex items-start gap-2"><div class="flex flex-col gap-0.5"><span class="font-bold">جهت شروع، یکی از <b>سرویس‌های کامل</b> را انتخاب فرمایید.</span><span class="text-[10px] sm:text-[10.5px] opacity-85 whitespace-nowrap overflow-hidden text-ellipsis block">در صورت کندی اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود.</span></div></div>';
-      noticeEl.dataset.shouldShow = 'true';
-      if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
-      else noticeEl.classList.add('hidden');
+      noticeEl.innerHTML = '';
+      noticeEl.dataset.shouldShow = 'false';
+      noticeEl.classList.add('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'full';
     } else if (daysLeft > 3 && pctRemaining <= 25) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft border';
@@ -1314,6 +1312,17 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
 
   openModal('purchaseSuccessModal');
 }
+
+let _lastShopToastTime = 0;
+function showShopGuidanceToast() {
+  const now = Date.now();
+  if (now - _lastShopToastTime < 3500) return;
+  _lastShopToastTime = now;
+  if (typeof showToast === 'function') {
+    showToast('💡 جهت شروع، یکی از سرویس‌های کامل را انتخاب فرمایید.\nدر صورت کندی اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود.', 'info', 4500);
+  }
+}
+window.showShopGuidanceToast = showShopGuidanceToast;
 
 window.renderShopPlans = renderShopPlans;
 window.setupCouponInput = setupCouponInput;

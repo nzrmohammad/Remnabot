@@ -21,6 +21,12 @@ def test_wallet_graphic_card_css_components():
     assert ".user-wallet-vertical-code" in content
     assert ".user-wallet-sparkle" in content
     assert ".user-wallet-currency-btn" in content
+    # Currency button background must be transparent per user request
+    btn_start = content.find(".user-wallet-currency-btn")
+    btn_end = content.find("}", btn_start)
+    assert btn_start != -1 and btn_end != -1
+    btn_block = content[btn_start:btn_end]
+    assert "background: transparent" in btn_block or "background-color: transparent" in btn_block
     assert "writing-mode: vertical-rl;" in content
     assert "preserve-3d" in content
 
@@ -90,3 +96,23 @@ def test_app_js_wallet_card_integration():
     assert "userCurrencyDisplay" in content
     assert "settingToggleWalletCardView" in content
     assert "user_wallet_card_view" in content
+
+
+def test_shop_guidance_toast_and_dns_presets():
+    """Verify that shop guidance banner is converted to toast and Quad9 DNS variants are configured."""
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
+
+    # 1. Shop banner converted to toast
+    assert "window.showShopGuidanceToast" in shop_js
+    assert "showShopGuidanceToast" in app_js
+    assert "noticeEl.innerHTML = '<div" not in shop_js
+
+    # 2. Quad9 DNS presets in app.js and admin_settings.js
+    for js_code in (app_js, admin_settings_js):
+        assert "Quad9" in js_code
+        assert "9.9.9.9" in js_code
+        assert "https://9.9.9.9/dns-query" in js_code
+        assert "dns.quad9.net" in js_code
+        assert "2620:fe::fe" in js_code
