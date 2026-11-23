@@ -954,51 +954,47 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxSwitches" class="settings-box-body p-4 pt-2 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
-            <input type="checkbox" class="sr-only hidden" id="settingMaintSwitch">
+          <div id="settingsBoxSwitches" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
+            <input type="checkbox" id="settingMaintSwitch" hidden class="hidden sr-only">
 
             <!-- Access Mode (حالت دسترسی ربات) -->
-            <div class="py-1">
-              <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl card-inset">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div id="accessModeIconBox" class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 t-success flex items-center justify-center text-sm flex-shrink-0">
-                    <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-                  </div>
-                  <div class="min-w-0">
-                    <span class="t-main font-semibold text-xs block">حالت دسترسی ربات</span>
-                    <span id="accessModeSubtext" class="text-[11px] t-muted block mt-0.5">ورود و ثبت‌نام برای تمامی کاربران آزاد است</span>
-                  </div>
+            <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl card-inset">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div id="accessModeIconBox" class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 t-success flex items-center justify-center text-sm flex-shrink-0">
+                  <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                 </div>
-                <input type="hidden" id="settingAccessMode" value="open" />
-                <button type="button" id="openAccessModeModalBtn" onclick="window.adminActions.openAccessModeModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] hover:border-[var(--c-accent)] transition text-xs font-sans font-bold t-main active:scale-95 shadow-xs flex-shrink-0">
-                  <span id="accessModeBadge" class="t-success font-bold text-[11px] whitespace-nowrap">عمومی (آزاد)</span>
-                  <span class="text-[11px] t-muted">▾</span>
-                </button>
+                <div class="min-w-0">
+                  <span class="t-main font-semibold text-xs block">حالت دسترسی ربات</span>
+                  <span id="accessModeSubtext" class="text-[11px] t-muted block mt-0.5">ورود و ثبت‌نام برای تمامی کاربران آزاد است</span>
+                </div>
               </div>
+              <input type="hidden" id="settingAccessMode" value="open" />
+              <button type="button" id="openAccessModeModalBtn" onclick="window.adminActions.openAccessModeModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] hover:border-[var(--c-accent)] transition text-xs font-sans font-bold t-main active:scale-95 shadow-xs flex-shrink-0">
+                <span id="accessModeBadge" class="t-success font-bold text-[11px] whitespace-nowrap">عمومی (آزاد)</span>
+                <span class="text-[11px] t-muted">▾</span>
+              </button>
             </div>
 
             <!-- Timezone Selector (منطقه زمانی سامانه) -->
-            <div class="py-1">
-              <div class="flex items-center justify-between p-2.5 rounded-xl card-inset">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-sm flex-shrink-0">
-                    <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-                  </div>
-                  <div>
-                    <span class="t-main font-semibold text-xs block">منطقه زمانی سامانه</span>
-                    <span class="text-[11px] t-muted block mt-0.5">مبنای ثبت تاریخ، نمودارهای مصرف و گزارش‌ها</span>
-                  </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl card-inset">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-sm flex-shrink-0">
+                  <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                 </div>
-                <input type="hidden" id="settingAppTimezone" value="Asia/Tehran" />
-                <button type="button" id="openTimezoneModalBtn" onclick="window.adminActions.openTimezoneModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] hover:border-[var(--c-accent)] transition text-xs font-sans num-bidi font-bold t-main active:scale-95 shadow-xs" dir="ltr">
-                  <span id="settingAppTimezoneDisplay" class="font-bold text-xs t-main">Asia/Tehran</span>
-                  <span class="text-[11px] t-muted">▾</span>
-                </button>
+                <div>
+                  <span class="t-main font-semibold text-xs block">منطقه زمانی سامانه</span>
+                  <span class="text-[11px] t-muted block mt-0.5">مبنای ثبت تاریخ، نمودارهای مصرف و گزارش‌ها</span>
+                </div>
               </div>
+              <input type="hidden" id="settingAppTimezone" value="Asia/Tehran" />
+              <button type="button" id="openTimezoneModalBtn" onclick="window.adminActions.openTimezoneModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-inner-bg)] hover:border-[var(--c-accent)] transition text-xs font-sans num-bidi font-bold t-main active:scale-95 shadow-xs" dir="ltr">
+                <span id="settingAppTimezoneDisplay" class="font-bold text-xs t-main">Asia/Tehran</span>
+                <span class="text-[11px] t-muted">▾</span>
+              </button>
             </div>
 
             <!-- History Page Size -->
-            <div class="py-1 space-y-1">
+            <div class="space-y-1 pt-0.5">
               <label class="text-[11px] t-muted block font-semibold">تعداد آیتم تاریخچه تراکنش‌ها و سفارشات در هر صفحه:</label>
               <input type="number" id="settingHistoryPageSize" min="5" max="100" step="5" placeholder="15" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
@@ -1019,9 +1015,9 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxCard" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
+          <div id="settingsBoxCard" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
             <!-- Card Payment Switch -->
-            <div class="flex items-center justify-between py-1 mb-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه کارت به کارت</span>
                 <span class="text-[11px] t-muted">واریز و دریافت فیش دستی توسط کاربران</span>
@@ -1042,7 +1038,7 @@
               <input type="text" id="settingCardNumber" dir="ltr" placeholder="6037..." class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
             </div>
             <!-- Graphical Card Toggle -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">طراحی گرافیکی مدرن کارت</span>
                 <span class="text-[11px] t-muted">نمایش کارت بانکی به شکل کارت اعتباری سه‌بعدی و مدرن با قابلیت چرخش</span>
@@ -1089,7 +1085,7 @@
               <label class="text-[11px] t-muted block mb-1">حداقل مبلغ افزایش موجودی (تومان)</label>
               <input type="number" id="settingMinTopup" dir="ltr" placeholder="20000" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
             </div>
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-medium block">احراز هویت شماره تماس</span>
                 <span class="text-[11px] t-muted">فقط کاربرانی که شماره تلفن خود را به اشتراک گذاشته‌اند مجاز به پرداخت کارت‌به‌کارت باشند</span>
@@ -1101,7 +1097,7 @@
                 </div>
               </label>
             </div>
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-medium block">محدودیت احراز فقط برای شماره ایران (<span class="num-bidi font-sans" dir="ltr">+98</span>)</span>
                 <span class="text-[11px] t-muted">تنها شماره‌های معتبر ایران مجاز به تأیید هویت و شارژ کارت به کارت باشند</span>
@@ -1115,7 +1111,7 @@
             </div>
 
             <!-- Auto Card-to-Card via SMS Forwarder -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-medium block">کارت‌به‌کارت هوشمند و آنی (پیامکی)</span>
                 <span class="text-[11px] t-muted">شارژ خودکار و لحظه‌ای کیف پول با پیامک واریز بانکی</span>
@@ -1237,7 +1233,7 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxCrypto" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
+          <div id="settingsBoxCrypto" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
             <!-- 4 Currency Rates: 2 per row -->
             <div class="grid grid-cols-2 gap-2.5">
               <div>
@@ -1285,7 +1281,7 @@
             </div>
 
             <!-- Crypto Payment Switch -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه TON</span>
                 <span class="text-[11px] t-muted">پرداخت خودکار و تایید آنی بلاکچین TON</span>
@@ -1299,7 +1295,7 @@
             </div>
 
             <!-- TRX Payment Switch -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه ترون (TRX - شبکه Tron)</span>
                 <span class="text-[11px] t-muted">پرداخت مستقیم با آدرس متمرکز و استعلام آن‌چین TxID</span>
@@ -1313,7 +1309,7 @@
             </div>
 
             <!-- POL Payment Switch -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه پلیگان (POL - شبکه Polygon)</span>
                 <span class="text-[11px] t-muted">پرداخت مستقیم با آدرس متمرکز و استعلام آن‌چین TxHash</span>
@@ -1327,7 +1323,7 @@
             </div>
 
             <!-- Telegram Stars Payment Switch -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">درگاه استارز تلگرام (Stars)</span>
                 <span class="text-[11px] t-muted">پرداخت رسمی درون‌برنامه‌ای تلگرام</span>
@@ -1363,9 +1359,9 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxTrial" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
+          <div id="settingsBoxTrial" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
             <!-- Trial Subscription Switch -->
-            <div class="flex items-center justify-between py-1 mb-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">اشتراک تست رایگان</span>
                 <span class="text-[11px] t-muted">امکان دریافت سرویس آزمایشی توسط کاربران</span>
@@ -1390,7 +1386,7 @@
             </div>
 
             <!-- Referral System Switch -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">سیستم زیرمجموعه‌گیری</span>
                 <span class="text-[11px] t-muted">پاداش ترافیک هدیه برای دعوت از دوستان</span>
@@ -1409,7 +1405,7 @@
             </div>
 
             <!-- Default Store & Trial Squad Custom Selector -->
-            <div class="py-1">
+            <div>
               <label class="text-[11px] t-muted block mb-1.5 font-medium">اسکواد پیش‌فرض سرویس تست:</label>
               <input type="hidden" id="settingDefaultSquadUuid" value="" />
               <div role="button" tabindex="0" onclick="window.adminActions.openDefaultSquadPickerModal()" class="w-full card-inset rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99] border border-[var(--card-border)] hover:border-blue-500/50 group">
@@ -1426,7 +1422,7 @@
             </div>
 
             <!-- Direct Support in Bot Switch -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-semibold block text-xs">چت پشتیبانی درون ربات</span>
                 <span class="text-[11px] t-muted">ارسال مستقیم پیام تیکت به تاپیک پشتیبانی ادمین</span>
@@ -1445,7 +1441,7 @@
             </div>
 
             <!-- Join Gate Settings (Inside Trial Section) -->
-            <div class="pt-1 space-y-2.5">
+            <div class="space-y-2.5">
               <div class="flex items-center justify-between">
                 <div>
                   <span class="t-main font-medium block text-xs">عضویت اجباری در کانال</span>
@@ -1480,7 +1476,7 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxTopics" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
+          <div id="settingsBoxTopics" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
             <p class="text-[11px] t-muted leading-relaxed">
               شناسه (Message Thread ID) هر تاپیک در سوپرگروه ادمین را وارد کنید تا پیام‌ها و اعلان‌ها تفکیک شوند
             </p>
@@ -1531,7 +1527,7 @@
               </div>
             </div>
             <!-- Auto Clean Previous Reports Switch -->
-            <div class="flex items-center justify-between pt-1 mt-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-medium text-xs block flex items-center gap-1"><img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />حذف خودکار گزارش قبلی</span>
                 <span class="text-[11px] t-muted block mt-0.5">پس از ارسال هر گزارش جدید، پیام گزارش قبلی حذف شود تا تاپیک گزارش‌ها همیشه خلوت باشد.</span>
@@ -1560,7 +1556,7 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxApps" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
+          <div id="settingsBoxApps" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
             <div class="flex items-center justify-between">
               <div>
                 <span class="text-[11px] t-muted block">در صورت خالی بودن لینک دانلود، برنامه در لیست کاربر نمایش داده نمی‌شود.</span>
@@ -2430,8 +2426,8 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxBirthday" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
-            <div class="flex items-center justify-between py-1">
+          <div id="settingsBoxBirthday" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-medium block">فعال‌سازی سیستم هدیه زادروز</span>
                 <span class="text-[11px] t-muted">تبریک خودکار در روز تولد کاربر و اهدای بسته هدیه VIP</span>
@@ -2443,7 +2439,7 @@
                 </div>
               </label>
             </div>
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <div class="grid grid-cols-2 gap-2.5">
               <div>
                 <label class="text-[11px] t-muted block mb-1">حجم ترافیک هدیه (GB)</label>
                 <input type="number" id="settingBirthdayRewardTraffic" dir="ltr" placeholder="2" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-pink-300 outline-none focus:border-pink-500 transition" />
@@ -2453,7 +2449,7 @@
                 <input type="number" id="settingBirthdayRewardDiscount" dir="ltr" placeholder="20" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
               </div>
             </div>
-            <div class="pt-1 space-y-1.5">
+            <div class="space-y-1.5">
               <div class="flex items-center justify-between">
                 <label class="text-[11px] t-muted font-medium block">متن پیام تبریک و هدیه زادروز:</label>
                 <button type="button" onclick="window.adminActions.resetBirthdayTemplate()" class="text-[11px] t-pink hover:text-pink-300 transition">بازنشانی پیش‌فرض</button>
@@ -2485,9 +2481,9 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxCustomPlan" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
+          <div id="settingsBoxCustomPlan" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
             <!-- Custom Plan Switch -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <span class="t-main font-medium block">فعال‌سازی ساخت بسته دلخواه</span>
                 <span class="text-[11px] t-muted">امکان انتخاب حجم و زمان دلخواه توسط کاربر در فروشگاه</span>
@@ -2501,7 +2497,7 @@
             </div>
 
             <!-- Pricing Rates: 2x2 Grid (Per GB, Per Day, Base Price, Extra User Percent) -->
-            <div class="grid grid-cols-2 gap-2 pt-1">
+            <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[11px] t-muted block mb-1 truncate">قیمت هر گیگابایت (تومان)</label>
                 <input type="number" id="settingCustomPlanPricePerGb" dir="ltr" placeholder="2500" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
@@ -2521,7 +2517,7 @@
             </div>
 
             <!-- Volume Slider Limits: Min / Max GB -->
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <div class="grid grid-cols-2 gap-2.5">
               <div>
                 <label class="text-[11px] t-muted block mb-1">حداقل حجم (GB)</label>
                 <input type="number" id="settingCustomPlanMinGb" dir="ltr" placeholder="5" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-200 outline-none focus:border-cyan-500 transition" />
@@ -2533,7 +2529,7 @@
             </div>
 
             <!-- Duration Slider Limits: Min / Max Days -->
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <div class="grid grid-cols-2 gap-2.5">
               <div>
                 <label class="text-[11px] t-muted block mb-1">حداقل مدت (روز)</label>
                 <input type="number" id="settingCustomPlanMinDays" dir="ltr" placeholder="10" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-3 py-2 text-xs font-sans num-bidi text-slate-200 outline-none focus:border-indigo-500 transition" />
@@ -2545,14 +2541,14 @@
             </div>
 
             <!-- Volume Discount Tiers (تخفیف‌های پلکانی حجم مصرفی) -->
-            <div class="pt-1 space-y-2">
+            <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <div>
                   <b class="text-xs t-main block">تخفیف‌های پلکانی حجم مصرفی</b>
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-2.5 pt-1">
+              <div class="grid grid-cols-2 gap-2.5">
                 <!-- Tier 1 -->
                 <div>
                   <label class="text-[11px] t-muted block mb-1">پله اول: از چند گیگابایت</label>
@@ -2601,9 +2597,9 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxLoyalty" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3 text-xs hidden">
+          <div id="settingsBoxLoyalty" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
             <!-- Main Enable/Disable Toggle for Loyalty Club -->
-            <div class="flex items-center justify-between py-1">
+            <div class="flex items-center justify-between">
               <div>
                 <b class="text-xs t-main block">فعال‌سازی باشگاه مشتریان</b>
                 <span class="text-[11px] t-muted block mt-0.5">در صورت غیرفعال بودن، تخفیف‌های سطوح وفاداری در فروشگاه اعمال نخواهند شد.</span>
@@ -2766,9 +2762,9 @@
             </div>
             <svg class="settings-box-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
-          <div id="settingsBoxBranding" class="settings-box-body p-4 pt-1 border-t border-[var(--card-border)] space-y-3.5 text-xs hidden">
+          <div id="settingsBoxBranding" class="settings-box-body p-3.5 pt-3 border-t border-[var(--card-border)] space-y-2.5 text-xs hidden">
             <!-- Logo Preview & Upload Section -->
-            <div class="flex items-center gap-3.5 p-1">
+            <div class="flex items-center gap-3.5">
               <div id="adminLogoPreviewBox" class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 border border-[var(--card-border)] bg-slate-900/60">
                 <img id="adminStoreLogoImg" class="w-full h-full object-contain hidden" alt="Logo Preview" / width="16" height="16">
                 <span id="adminStoreLogoEmpty" class="text-2xl text-slate-500 flex items-center justify-center"><img src="/static/img/icons/shop.svg?v=fl2" class="ui-icon-img w-8 h-8 opacity-40 shrink-0" width="32" height="32" alt="" /></span>
