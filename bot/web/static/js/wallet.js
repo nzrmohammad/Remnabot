@@ -134,14 +134,48 @@ window.setWalletCurrency = function(curr) {
   window.renderUserWalletCard();
 };
 
+window.toggleWalletCardView = function(isGraphic, showToastMsg = true) {
+  const graphicBox = document.getElementById('userWalletGraphicBox');
+  const classicBox = document.getElementById('userWalletClassicBox');
+  const toggleEl = document.getElementById('settingToggleWalletCardView');
+
+  const enable = Boolean(isGraphic);
+  localStorage.setItem('user_wallet_card_view', enable ? 'graphic' : 'classic');
+
+  if (toggleEl && toggleEl.checked !== enable) {
+    toggleEl.checked = enable;
+  }
+
+  if (graphicBox && classicBox) {
+    if (enable) {
+      graphicBox.classList.remove('hidden');
+      classicBox.classList.add('hidden');
+    } else {
+      graphicBox.classList.add('hidden');
+      classicBox.classList.remove('hidden');
+    }
+  }
+
+  if (showToastMsg && typeof showToast === 'function') {
+    showToast(enable ? '✨ حالت نمایش کارت گرافیکی فعال شد.' : '📋 حالت نمایش کادر ساده فعال شد.', 'info');
+  }
+  if (showToastMsg && window.hapticFeedback) {
+    window.hapticFeedback('selection');
+  }
+};
+
 window.renderUserWalletCard = function(userData) {
   const user = userData || window.lastUserData?.user;
   const rawBal = Number(user?.wallet_balance || 0);
 
-  // Sync legacy hidden element
+  // Sync legacy hidden element and classic wallet box balance
   const walletTabBal = document.getElementById('walletTabBalance');
   if (walletTabBal) {
     walletTabBal.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
+  }
+  const classicBal = document.getElementById('classicWalletBalance');
+  if (classicBal) {
+    classicBal.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
   }
 
   const balEl = document.getElementById('userWalletCardBalance');
@@ -1867,6 +1901,12 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
 }
 
 function setupWalletListeners() {
+  // Initialize wallet card graphic/classic view state from localStorage
+  const isGraphic = localStorage.getItem('user_wallet_card_view') !== 'classic';
+  if (window.toggleWalletCardView) {
+    window.toggleWalletCardView(isGraphic, false);
+  }
+
   const topupAmountInput = document.getElementById('topupAmountInput');
   topupAmountInput?.addEventListener('input', (e) => {
     updateTopupDisplays(parseInt(e.target.value || '0'));

@@ -1,5 +1,4 @@
 """Test suite for the 3D Holographic User Wallet Card and Currency Switcher."""
-import re
 from pathlib import Path
 
 COMPONENTS_CSS_PATH = Path("bot/web/static/css/components.css")
@@ -26,11 +25,16 @@ def test_wallet_graphic_card_css_components():
 
 
 def test_wallet_graphic_card_html_structure():
-    """Verify that the 3D card markup and currency switcher exist in app.html."""
+    """Verify that the 3D card markup, classic box, and currency switcher exist in app.html."""
     content = APP_HTML_PATH.read_text(encoding="utf-8")
     assert 'class="user-wallet-card-container' in content
+    assert 'id="userWalletGraphicBox"' in content
+    assert 'id="userWalletClassicBox"' in content
+    assert 'id="settingToggleWalletCardView"' in content
+    assert 'id="classicWalletBalance"' in content
     assert 'id="userWalletCardBalance"' in content
     assert 'id="userWalletCardName"' in content
+    assert 'top-3.5 right-3.5' in content  # Currency switcher moved to top-right
     assert 'CARD HOLDER' not in content
     assert 'userWalletCardVerticalCode' not in content
     assert 'Remna but lovely' in content
@@ -48,9 +52,12 @@ def test_wallet_graphic_card_html_structure():
 
 
 def test_wallet_graphic_card_js_logic():
-    """Verify that interactive flipper, code generator, and currency functions exist in wallet.js."""
+    """Verify that interactive flipper, code generator, view toggle, and currency functions exist in wallet.js."""
     content = WALLET_JS_PATH.read_text(encoding="utf-8")
     assert "window.flipUserWalletCard" in content
+    assert "window.toggleWalletCardView" in content
+    assert "user_wallet_card_view" in content
+    assert "classicWalletBalance" in content
     assert "window.cycleWalletCurrency" in content
     assert "window.setWalletCurrency" in content
     assert "window.openWalletCurrencyModal" in content
@@ -70,3 +77,5 @@ def test_app_js_wallet_card_integration():
     assert "window.renderUserWalletCard" in content
     assert "userCurrencyInput" in content
     assert "userCurrencyDisplay" in content
+    assert "settingToggleWalletCardView" in content
+    assert "user_wallet_card_view" in content

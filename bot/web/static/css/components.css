@@ -1510,7 +1510,7 @@ html.theme-light .user-wallet-card-face * {
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transform: rotate(180deg);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-sans);
   font-size: 8px;
   letter-spacing: 0.16em;
   text-transform: uppercase;

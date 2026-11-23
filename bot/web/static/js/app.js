@@ -4164,6 +4164,14 @@ function hydrateUserInterface(data) {
     };
     if (curDisp && curLabels[curVal]) curDisp.innerText = curLabels[curVal].name;
     if (curSub && curLabels[curVal]) curSub.innerText = `واحد اصلی: ${curLabels[curVal].full}`;
+
+    // Wallet Card Graphic/Classic View Toggle Sync
+    const isGraphicWallet = localStorage.getItem('user_wallet_card_view') !== 'classic';
+    const walletViewToggle = $('settingToggleWalletCardView');
+    if (walletViewToggle) walletViewToggle.checked = isGraphicWallet;
+    if (window.toggleWalletCardView) {
+      window.toggleWalletCardView(isGraphicWallet, false);
+    }
   });
 
   // --- PHASE 4: Wallet Transactions History (DB Data) ---

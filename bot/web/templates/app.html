@@ -1158,7 +1158,7 @@
       <!-- ===================================================== -->
       <div id="tab-wallet" class="tab-pane space-y-4 hidden">
         <!-- 3D Holographic Graphic Wallet Card Container -->
-        <div class="space-y-3">
+        <div id="userWalletGraphicBox" class="space-y-3">
           <div role="button" tabindex="0" class="user-wallet-card-container select-none" onclick="window.flipUserWalletCard && window.flipUserWalletCard(this)" title="برای چرخش کارت ضربه بزنید">
             <div class="user-wallet-card-flipper">
               <!-- FRONT FACE -->
@@ -1166,13 +1166,18 @@
                 <!-- Radial sheen effect -->
                 <div class="user-wallet-card-sheen"></div>
 
-                <!-- Sparkle stars (scattered across card) -->
-                <div class="user-wallet-sparkle" style="top: 18%; left: 38%;">✦</div>
-                <div class="user-wallet-sparkle" style="top: 48%; left: 22%;">✦</div>
-                <div class="user-wallet-sparkle" style="top: 68%; left: 10%;">✦</div>
-                <div class="user-wallet-sparkle" style="top: 28%; right: 34%;">✦</div>
+                <!-- Currency Switcher Icon Button (Top-Right Corner) -->
+                <button type="button" onclick="event.stopPropagation(); window.openWalletCurrencyModal ? window.openWalletCurrencyModal() : (window.cycleWalletCurrency && window.cycleWalletCurrency());" class="absolute top-3.5 right-3.5 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center backdrop-blur-md transition select-none" title="تغییر واحد پول">
+                  <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 invert brightness-0 opacity-80" width="14" height="14" alt="" />
+                </button>
+
+                <!-- Sparkle stars (scattered across card - moved down from balance text) -->
+                <div class="user-wallet-sparkle" style="top: 45%; left: 34%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 56%; left: 18%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 72%; left: 10%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 30%; right: 34%;">✦</div>
                 <div class="user-wallet-sparkle" style="top: 52%; right: 30%;">✦</div>
-                <div class="user-wallet-sparkle" style="bottom: 14%; right: 28%;">✦</div>
+                <div class="user-wallet-sparkle" style="bottom: 14%; right: 26%;">✦</div>
 
                 <!-- Metallic Smart Chip with micro-pattern (Positioned on the Right) -->
                 <div class="user-wallet-chip">
@@ -1185,23 +1190,16 @@
                 </div>
 
                 <!-- Top / Balance section (Left-aligned) -->
-                <div class="relative z-10 flex flex-col items-start gap-2.5 max-w-[210px] sm:max-w-[230px]">
-                  <div class="flex items-center gap-2">
-                    <img src="/static/img/icons/diamond.svg?v=fl2" class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 drop-shadow-md select-none" alt="Diamond" />
-                    <span id="userWalletCardBalance" class="text-xl sm:text-2xl font-black text-white tracking-tight font-sans drop-shadow select-none whitespace-nowrap">
-                      0 تومان
-                    </span>
-                  </div>
-
-                  <!-- Currency Switcher Icon Button (Only Icon, No Border) -->
-                  <button type="button" onclick="event.stopPropagation(); window.openWalletCurrencyModal ? window.openWalletCurrencyModal() : (window.cycleWalletCurrency && window.cycleWalletCurrency());" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center backdrop-blur-md transition select-none" title="تغییر واحد پول">
-                    <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 invert brightness-0 opacity-80" width="14" height="14" alt="" />
-                  </button>
+                <div class="relative z-10 flex items-center gap-2 max-w-[210px] sm:max-w-[230px]">
+                  <img src="/static/img/icons/diamond.svg?v=fl2" class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 drop-shadow-md select-none" alt="Diamond" />
+                  <span id="userWalletCardBalance" class="text-xl sm:text-2xl font-black text-white tracking-tight font-sans drop-shadow select-none whitespace-nowrap">
+                    0 تومان
+                  </span>
                 </div>
 
                 <!-- Bottom Row: Cardholder Name -->
                 <div class="relative z-10 flex flex-col items-start">
-                  <span id="userWalletCardName" class="font-mono font-bold tracking-wider text-xs sm:text-sm text-white/95 uppercase drop-shadow-sm truncate max-w-[200px]">
+                  <span id="userWalletCardName" class="font-sans font-bold tracking-wider text-xs sm:text-sm text-white/95 uppercase drop-shadow-sm truncate max-w-[200px]">
                     USER
                   </span>
                 </div>
@@ -1212,13 +1210,13 @@
                 <!-- Radial sheen effect -->
                 <div class="user-wallet-card-sheen"></div>
 
-                <!-- Sparkle stars (scattered across back face) -->
-                <div class="user-wallet-sparkle" style="top: 22%; left: 36%;">✦</div>
-                <div class="user-wallet-sparkle" style="top: 52%; left: 18%;">✦</div>
-                <div class="user-wallet-sparkle" style="top: 70%; left: 24%;">✦</div>
-                <div class="user-wallet-sparkle" style="top: 26%; right: 30%;">✦</div>
-                <div class="user-wallet-sparkle" style="top: 56%; right: 18%;">✦</div>
-                <div class="user-wallet-sparkle" style="bottom: 20%; right: 34%;">✦</div>
+                <!-- Sparkle stars (scattered across back face - moved down from magnetic stripe) -->
+                <div class="user-wallet-sparkle" style="top: 36%; left: 36%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 54%; left: 18%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 72%; left: 24%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 38%; right: 28%;">✦</div>
+                <div class="user-wallet-sparkle" style="top: 58%; right: 18%;">✦</div>
+                <div class="user-wallet-sparkle" style="bottom: 18%; right: 34%;">✦</div>
 
                 <!-- Magnetic Stripe -->
                 <div class="w-full h-8 sm:h-9 bg-slate-950/90 shadow-inner mt-4 border-y border-white/5 shrink-0"></div>
@@ -1231,8 +1229,48 @@
             </div>
           </div>
 
-          <!-- Compatibility element for legacy hooks / scripts (hidden) -->
-          <div id="walletTabBalance" class="hidden">0 تومان</div>
+          <!-- Quick Action Buttons: Charge & Gift -->
+          <div class="grid grid-cols-2 gap-2">
+            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span class="inline-block">شارژ کیف پول</span>
+            </button>
+            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span class="inline-block">ارسال هدیه</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Classic Wallet Hero Box (Shown when graphic card view is disabled) -->
+        <div id="userWalletClassicBox" class="wallet-hero-card card p-5 shadow-xl relative overflow-hidden text-center space-y-3 hidden">
+          <div class="flex justify-between items-center text-xs t-muted">
+            <span class="flex items-center gap-1.5 font-medium">
+              <img src="/static/img/icons/wallet.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 inline-block" width="20" height="20" alt="" /> <span>موجودی کیف پول شما</span>
+            </span>
+          </div>
+
+          <div class="py-2">
+            <div id="classicWalletBalance" class="text-3xl font-black t-success font-sans">
+              0 تومان
+            </div>
+            <span class="text-[11px] t-muted block mt-1">قابل استفاده برای خرید، تمدید اشتراک و بسته‌های حجمی و زمانی</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-card-border">
+            <button onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span class="inline-block">شارژ کیف پول</span>
+            </button>
+            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span class="inline-block">ارسال هدیه</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Compatibility element for legacy hooks / scripts (hidden) -->
+        <div id="walletTabBalance" class="hidden">0 تومان</div>
 
           <!-- Quick Action Buttons: Charge & Gift -->
           <div class="grid grid-cols-2 gap-2">
@@ -1733,6 +1771,20 @@
                   <img src="/static/img/icons/settings.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0" width="12" height="12" alt="" aria-hidden="true" />
                 </button>
               </div>
+            </div>
+
+            <!-- Wallet Card Style Toggle (نمایش گرافیکی کارت کیف پول) -->
+            <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
+              <div>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />نمایش گرافیکی کارت کیف پول</span>
+                <span class="text-[11px] t-muted">نمایش کارت سه‌بعدی متالیک به جای کادر ساده</span>
+              </div>
+              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleWalletCardView" class="sr-only switch-checkbox" checked onchange="window.toggleWalletCardView && window.toggleWalletCardView(this.checked)">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
           </div>
         </div>
