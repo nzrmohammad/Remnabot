@@ -4149,10 +4149,21 @@ function hydrateUserInterface(data) {
     }
 
     // Wallet Display Currency Selector Sync
-    const curSelector = $('userCurrencySelector');
-    if (curSelector) {
-      curSelector.value = localStorage.getItem('user_wallet_currency') || 'toman';
-    }
+    const curVal = localStorage.getItem('user_wallet_currency') || 'toman';
+    const curInput = $('userCurrencyInput');
+    const curDisp = $('userCurrencyDisplay');
+    const curSub = $('userCurrencySubtext');
+    if (curInput) curInput.value = curVal;
+    const curLabels = {
+      toman: { name: 'تومان', full: 'تومان (IRT)' },
+      ton: { name: 'تون', full: 'تون (TON)' },
+      usdt: { name: 'تتر', full: 'تتر (USDT)' },
+      trx: { name: 'ترون', full: 'ترون (TRX)' },
+      pol: { name: 'پالیگان', full: 'پالیگان (POL / MATIC)' },
+      stars: { name: 'ستاره', full: 'ستاره تلگرام (Stars ⭐️)' },
+    };
+    if (curDisp && curLabels[curVal]) curDisp.innerText = curLabels[curVal].name;
+    if (curSub && curLabels[curVal]) curSub.innerText = `واحد اصلی: ${curLabels[curVal].full}`;
   });
 
   // --- PHASE 4: Wallet Transactions History (DB Data) ---

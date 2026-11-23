@@ -30,12 +30,13 @@ def test_wallet_graphic_card_html_structure():
     content = APP_HTML_PATH.read_text(encoding="utf-8")
     assert 'class="user-wallet-card-container' in content
     assert 'id="userWalletCardBalance"' in content
-    assert 'id="userWalletCurrencyBadge"' in content
     assert 'id="userWalletCardVerticalCode"' in content
     assert 'id="userWalletCardName"' in content
     assert 'id="userWalletCardUid"' in content
     assert 'id="userWalletCardTier"' in content
-    assert 'id="userCurrencySelector"' in content
+    assert 'id="walletCurrencyModal"' in content
+    assert 'id="userCurrencyTriggerBtn"' in content
+    assert 'id="userCurrencyInput"' in content
     # Card is strictly LTR front face
     assert 'user-wallet-card-front' in content
     assert 'dir="ltr"' in content
@@ -52,13 +53,20 @@ def test_wallet_graphic_card_js_logic():
     assert "window.flipUserWalletCard" in content
     assert "window.cycleWalletCurrency" in content
     assert "window.setWalletCurrency" in content
+    assert "window.openWalletCurrencyModal" in content
+    assert "window.closeWalletCurrencyModal" in content
+    assert "window.selectWalletCurrency" in content
     assert "window.renderUserWalletCard" in content
     assert "generateUserCardVerticalCode" in content
     assert "user_wallet_currency" in content
+    assert "WALLET_CURRENCY_OPTIONS" in content
+    assert "'pol'" in content
+    assert "'stars'" in content
 
 
 def test_app_js_wallet_card_integration():
     """Verify that app.js triggers wallet card rendering and syncs preferences."""
     content = APP_JS_PATH.read_text(encoding="utf-8")
     assert "window.renderUserWalletCard" in content
-    assert "userCurrencySelector" in content
+    assert "userCurrencyInput" in content
+    assert "userCurrencyDisplay" in content

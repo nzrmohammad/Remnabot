@@ -59,20 +59,78 @@ window.flipUserWalletCard = function(el) {
   if (window.hapticFeedback) window.hapticFeedback('impact');
 };
 
+const WALLET_CURRENCY_OPTIONS = [
+  { id: 'toman', name: 'تومان (IRT)', desc: 'واحد پایه پولی ایران (پیش‌فرض سامانه ⭐)', icon: '/static/img/icons/coins.svg?v=fl2' },
+  { id: 'ton', name: 'تون (TON)', desc: 'شبکه بلاکچین تلگرام The Open Network', icon: '/static/img/icons/ton.svg?v=fl2' },
+  { id: 'usdt', name: 'تتر (USDT)', desc: 'استیبل‌کوین دلاری تتر معادل دلار آمریکا', icon: '/static/img/icons/credit-card.svg?v=fl2' },
+  { id: 'trx', name: 'ترون (TRX)', desc: 'ارز دیجیتال شبکه پرسرعت TRON', icon: '/static/img/icons/tron.svg?v=fl2' },
+  { id: 'pol', name: 'پالیگان (POL / MATIC)', desc: 'ارز دیجیتال اکوسیستم و شبکه Polygon', icon: '/static/img/icons/polygon.svg?v=fl2' },
+  { id: 'stars', name: 'ستاره تلگرام (Stars ⭐️)', desc: 'اعتبار رسمی ستاره‌های درون‌برنامه‌ای تلگرام', icon: '/static/img/icons/star.svg?v=fl2' },
+];
+
+window.openWalletCurrencyModal = function() {
+  const modal = document.getElementById('walletCurrencyModal');
+  const listEl = document.getElementById('walletCurrencyOptionsList');
+  if (!modal || !listEl) return;
+
+  const currentVal = localStorage.getItem('user_wallet_currency') || 'toman';
+
+  listEl.innerHTML = WALLET_CURRENCY_OPTIONS.map(opt => {
+    const isAct = opt.id === currentVal;
+    return `
+      <div onclick="window.selectWalletCurrency && window.selectWalletCurrency('${opt.id}')" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${isAct ? 'active-alert-opt s-accent-soft' : 'card-inset t-main hover:border-slate-500'}">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl ${isAct ? 'bg-cyan-500/20 border-cyan-500/30' : 'bg-slate-500/10 border-card-border'} border flex items-center justify-center shrink-0">
+            <img src="${opt.icon}" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+          </div>
+          <div>
+            <b class="text-xs block ${isAct ? 't-accent' : 't-main'}">${opt.name}</b>
+            <span class="text-[11px] t-muted block mt-0.5">${opt.desc}</span>
+          </div>
+        </div>
+        <div class="w-6 h-6 rounded-full flex items-center justify-center border transition-all ${isAct ? 'bg-cyan-500 border-cyan-500 text-white shadow-xs' : 'border-card-border bg-slate-500/5'}">
+          ${isAct ? '<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (typeof openModal === 'function') openModal('walletCurrencyModal');
+  if (window.hapticFeedback) window.hapticFeedback('selection');
+};
+
+window.closeWalletCurrencyModal = function() {
+  if (typeof closeModal === 'function') closeModal('walletCurrencyModal');
+};
+
+window.selectWalletCurrency = function(curr) {
+  window.setWalletCurrency(curr);
+  window.closeWalletCurrencyModal();
+  if (window.hapticFeedback) window.hapticFeedback('success');
+};
+
 window.cycleWalletCurrency = function() {
-  const currencies = ['toman', 'ton', 'usdt', 'stars'];
+  const currencies = ['toman', 'ton', 'usdt', 'trx', 'pol', 'stars'];
   const cur = localStorage.getItem('user_wallet_currency') || 'toman';
   const nextIdx = (currencies.indexOf(cur) + 1) % currencies.length;
   window.setWalletCurrency(currencies[nextIdx]);
 };
 
 window.setWalletCurrency = function(curr) {
-  const valid = ['toman', 'ton', 'usdt', 'stars'];
+  const valid = ['toman', 'ton', 'usdt', 'trx', 'pol', 'stars'];
   const target = valid.includes(curr) ? curr : 'toman';
   localStorage.setItem('user_wallet_currency', target);
-  const sel = document.getElementById('userCurrencySelector');
-  if (sel && sel.value !== target) sel.value = target;
-  if (window.hapticFeedback) window.hapticFeedback('selection');
+
+  // Sync settings display elements
+  const inputEl = document.getElementById('userCurrencyInput');
+  const dispEl = document.getElementById('userCurrencyDisplay');
+  const subEl = document.getElementById('userCurrencySubtext');
+  const matched = WALLET_CURRENCY_OPTIONS.find(o => o.id === target);
+
+  if (inputEl) inputEl.value = target;
+  if (dispEl && matched) dispEl.innerText = matched.name.split('—')[0].split('(')[0].trim();
+  if (subEl && matched) subEl.innerText = `واحد اصلی: ${matched.name}`;
+
   window.renderUserWalletCard();
 };
 
@@ -87,7 +145,6 @@ window.renderUserWalletCard = function(userData) {
   }
 
   const balEl = document.getElementById('userWalletCardBalance');
-  const badgeEl = document.getElementById('userWalletCurrencyBadge');
   const nameEl = document.getElementById('userWalletCardName');
   const uidEl = document.getElementById('userWalletCardUid');
   const tierEl = document.getElementById('userWalletCardTier');
@@ -96,27 +153,31 @@ window.renderUserWalletCard = function(userData) {
   // Rates from storeSettings or defaults
   const tonRate = Number(window.storeSettings?.ton_rate_toman) || 500000;
   const usdtRate = Number(window.storeSettings?.usdt_rate_toman) || 75000;
+  const trxRate = Number(window.storeSettings?.trx_rate_toman) || 12000;
+  const polRate = Number(window.storeSettings?.pol_rate_toman) || 35000;
   const starsRate = Number(window.storeSettings?.stars_rate_toman) || 1500;
 
   const currentCurrency = localStorage.getItem('user_wallet_currency') || 'toman';
 
-  if (balEl && badgeEl) {
+  if (balEl) {
     if (currentCurrency === 'ton') {
       const tonVal = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
       balEl.innerText = `${tonVal} TON`;
-      badgeEl.innerText = 'TON';
     } else if (currentCurrency === 'usdt') {
       const usdtVal = usdtRate > 0 ? (rawBal / usdtRate).toFixed(2) : '0';
       balEl.innerText = `${usdtVal} USDT`;
-      badgeEl.innerText = 'USDT';
+    } else if (currentCurrency === 'trx') {
+      const trxVal = trxRate > 0 ? (rawBal / trxRate).toFixed(2) : '0';
+      balEl.innerText = `${trxVal} TRX`;
+    } else if (currentCurrency === 'pol') {
+      const polVal = polRate > 0 ? (rawBal / polRate).toFixed(3) : '0';
+      balEl.innerText = `${polVal} POL`;
     } else if (currentCurrency === 'stars') {
       const starsVal = starsRate > 0 ? Math.floor(rawBal / starsRate).toLocaleString('en-US') : '0';
       balEl.innerText = `${starsVal} ⭐️`;
-      badgeEl.innerText = 'ستاره ⭐️';
     } else {
       // Default: Toman (only one unit displayed)
       balEl.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
-      badgeEl.innerText = 'تومان';
     }
   }
 
