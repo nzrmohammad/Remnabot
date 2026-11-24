@@ -310,6 +310,32 @@ function playSubtleSound(type = 'click') {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
       osc.start(now);
       osc.stop(now + 0.04);
+    } else if (type === 'copy') {
+      // Crisp crystal micro-chirp for copying
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(840, now);
+      osc.frequency.exponentialRampToValueAtTime(1260, now + 0.04);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } else if (type === 'scratch') {
+      // Subtle textured friction sound for scratching foil
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220 + Math.random() * 140, now);
+      gain.gain.setValueAtTime(0.015, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+      osc.start(now);
+      osc.stop(now + 0.035);
+    } else if (type === 'slash' || type === 'discount') {
+      // Snappy swoosh sound for price discount slash
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(740, now);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.08);
+      gain.gain.setValueAtTime(0.045, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.start(now);
+      osc.stop(now + 0.09);
     }
   } catch (e) {}
 }
@@ -418,6 +444,7 @@ if (typeof window !== 'undefined') {
   window.playSubtleSound = playSubtleSound;
   window.animateNumber = animateNumber;
   window.launchCelebrationConfetti = launchCelebrationConfetti;
+  window.initScratchCard = initScratchCard;
 }
 
 // Global delegated haptic feedback on switch toggles
@@ -463,6 +490,9 @@ async function copyToClipboard(text, successToast = null, toastType = 'success')
 
   if (copied) {
     hapticFeedback('success');
+    if (typeof playSubtleSound === 'function') {
+      playSubtleSound('copy');
+    }
     try {
       const activeEl = document.activeElement;
       if (activeEl && activeEl !== document.body && !activeEl.classList.contains('copy-flash')) {
@@ -477,6 +507,137 @@ async function copyToClipboard(text, successToast = null, toastType = 'success')
     showToast('خطا در کپی خودکار؛ لطفاً متن را دستی انتخاب و کپی فرمایید.', 'error');
   }
   return copied;
+}
+
+// Interactive Scratch-Off Foil Card Engine
+function initScratchCard({ canvas, coverText = '✨ لمس و کشیدن انگشت ✨', threshold = 0.40, onReveal }) {
+  if (!canvas) return null;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+
+  const w = canvas.width = canvas.offsetWidth || 260;
+  const h = canvas.height = canvas.offsetHeight || 60;
+
+  // Render metallic brushed silver foil
+  const foilGrad = ctx.createLinearGradient(0, 0, w, h);
+  foilGrad.addColorStop(0, '#94a3b8');
+  foilGrad.addColorStop(0.25, '#e2e8f0');
+  foilGrad.addColorStop(0.5, '#64748b');
+  foilGrad.addColorStop(0.75, '#cbd5e1');
+  foilGrad.addColorStop(1, '#94a3b8');
+  ctx.fillStyle = foilGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Brushed foil noise lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < w; i += 5) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i + 14, h);
+    ctx.stroke();
+  }
+
+  // Cover label text
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 11px Vazirmatn, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(coverText, w / 2, h / 2);
+
+  let isDrawing = false;
+  let revealed = false;
+
+  const getPos = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * (w / rect.width),
+      y: (clientY - rect.top) * (h / rect.height)
+    };
+  };
+
+  const scratch = (x, y) => {
+    if (revealed) return;
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (typeof playSubtleSound === 'function') {
+      playSubtleSound('scratch');
+    }
+    if (typeof hapticFeedback === 'function') {
+      hapticFeedback('light');
+    }
+  };
+
+  const checkThreshold = () => {
+    if (revealed) return;
+    try {
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      let zeroAlpha = 0;
+      for (let i = 3; i < data.length; i += 64) {
+        if (data[i] === 0) zeroAlpha++;
+      }
+      const ratio = zeroAlpha / (data.length / 64);
+      if (ratio >= threshold) {
+        revealed = true;
+        canvas.style.transition = 'opacity 0.35s ease-out';
+        canvas.style.opacity = '0';
+        setTimeout(() => {
+          if (canvas.parentNode) canvas.style.display = 'none';
+        }, 360);
+        if (typeof playSubtleSound === 'function') playSubtleSound('success');
+        if (typeof launchCelebrationConfetti === 'function') {
+          launchCelebrationConfetti(canvas.parentElement || document.body);
+        }
+        if (typeof onReveal === 'function') onReveal();
+      }
+    } catch (_) {}
+  };
+
+  const startDraw = (e) => {
+    isDrawing = true;
+    const pos = getPos(e);
+    scratch(pos.x, pos.y);
+  };
+
+  const moveDraw = (e) => {
+    if (!isDrawing) return;
+    if (e.cancelable) e.preventDefault();
+    const pos = getPos(e);
+    scratch(pos.x, pos.y);
+  };
+
+  const endDraw = () => {
+    if (!isDrawing) return;
+    isDrawing = false;
+    checkThreshold();
+  };
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', moveDraw);
+  window.addEventListener('mouseup', endDraw);
+
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', moveDraw, { passive: false });
+  window.addEventListener('touchend', endDraw);
+
+  return {
+    revealAll: () => {
+      if (revealed) return;
+      revealed = true;
+      canvas.style.transition = 'opacity 0.3s ease-out';
+      canvas.style.opacity = '0';
+      setTimeout(() => {
+        canvas.style.display = 'none';
+      }, 310);
+      if (typeof onReveal === 'function') onReveal();
+    }
+  };
 }
 
 // Format seconds into HH:MM:SS

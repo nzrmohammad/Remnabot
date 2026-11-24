@@ -66,6 +66,22 @@ function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = 
     if (couponCode) {
       couponCodeEl.innerText = couponCode;
       couponBox.classList.remove('hidden');
+
+      const scratchCanvas = document.getElementById('wheelScratchCanvas');
+      if (scratchCanvas) {
+        scratchCanvas.style.display = '';
+        scratchCanvas.style.opacity = '1';
+        if (typeof window.initScratchCard === 'function') {
+          setTimeout(() => {
+            window.initScratchCard({
+              canvas: scratchCanvas,
+              coverText: '✨ برای مشاهده کد تخفیف بتراشید ✨',
+              threshold: 0.38,
+            });
+          }, 80);
+        }
+      }
+
       const copyBtn = document.getElementById('copyWheelCouponBtn');
       if (copyBtn) {
         copyBtn.onclick = () => {
@@ -144,6 +160,10 @@ function launchCelebrationConfetti() {
 function closeWheelResultModal() {
   const modal = document.getElementById('wheelResultModal');
   if (modal) modal.classList.add('hidden');
+  const scratchCanvas = document.getElementById('wheelScratchCanvas');
+  if (scratchCanvas) {
+    scratchCanvas.style.display = 'none';
+  }
 }
 window.closeWheelResultModal = closeWheelResultModal;
 window.showWheelResultModal = showWheelResultModal;

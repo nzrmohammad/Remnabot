@@ -2958,11 +2958,51 @@ function setupThemeToggle() {
     });
   } catch(e) {}
 
-  themeToggle?.addEventListener('click', () => {
-    isDark = !isDark;
-    localStorage.setItem('remna_user_theme', isDark ? 'dark' : 'light');
-    applyTheme();
-    if (window.hapticFeedback) window.hapticFeedback('impact');
+  themeToggle?.addEventListener('click', (event) => {
+    const nextDark = !isDark;
+    const x = (event && typeof event.clientX === 'number') ? event.clientX : (window.innerWidth - 30);
+    const y = (event && typeof event.clientY === 'number') ? event.clientY : 24;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const performThemeChange = () => {
+      isDark = nextDark;
+      localStorage.setItem('remna_user_theme', isDark ? 'dark' : 'light');
+      applyTheme();
+      if (window.hapticFeedback) window.hapticFeedback('impact');
+      if (typeof window.playSubtleSound === 'function') window.playSubtleSound('light');
+    };
+
+    if (!document.startViewTransition || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      performThemeChange();
+      return;
+    }
+
+    try {
+      const transition = document.startViewTransition(() => {
+        performThemeChange();
+      });
+
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`
+            ]
+          },
+          {
+            duration: 380,
+            easing: 'ease-in-out',
+            pseudoElement: '::view-transition-new(root)'
+          }
+        );
+      }).catch(() => {});
+    } catch (_) {
+      performThemeChange();
+    }
   });
 }
 

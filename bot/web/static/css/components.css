@@ -1592,4 +1592,59 @@ html.theme-light .user-wallet-card-face * {
   transform: scale(0.92);
 }
 
+/* Telegram-style Circular Reveal View Transition */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/* Coupon Price Slash Animation */
+@keyframes priceSlashStrike {
+  0% {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    opacity: 0.4;
+  }
+  100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    opacity: 1;
+  }
+}
+
+.price-slash-strike {
+  position: relative;
+  display: inline-block;
+}
+
+.price-slash-strike::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 52%;
+  height: 2px;
+  background-color: #ef4444;
+  transform: translateY(-50%) rotate(-4deg);
+  animation: priceSlashStrike 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.price-discount-glow {
+  animation: discountPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes discountPulse {
+  0% {
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+  }
+}
+
 

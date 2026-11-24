@@ -581,6 +581,17 @@
           </div>
         </button>
 
+        <!-- Usage Wrapped / Story Card Entry Banner Card -->
+        <button id="openUsageStoryModalBtn" type="button" onclick="window.openStoryCard && window.openStoryCard('usage')" class="card w-full hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-indigo-500/30 text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
+          <span class="text-xs font-bold t-main flex items-center gap-1.5">
+            <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
+            <span>کارنامه مصرف اینترنت آزاد (استوری تلگرام)</span>
+          </span>
+          <div class="flex items-center gap-1 t-accent font-medium text-xs card-inset px-2.5 py-1.5 rounded-xl border border-card-border transition">
+            <span>مشاهده</span>
+          </div>
+        </button>
+
         <!-- Periodic Reports Sub-Tabs (5 items: Daily & Nightly on the right) -->
         <div class="card p-1 rounded-2xl border border-card-border shadow-sm flex items-center text-xs gap-1">
           <button id="repSubDaily" class="flex-1 py-1.5 rounded-xl font-bold bg-blue-600 text-white shadow-sm transition text-center"><img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />روزانه</button>
@@ -2915,6 +2926,18 @@
       <div class="modal-card relative w-full max-w-[330px] flex flex-col items-center space-y-3 my-auto">
         <button id="closeStoryCardBtn" class="modal-close-btn absolute -top-3.5 left-0 z-20" title="بستن" aria-label="بستن کارت استوری"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
+        <!-- Mode Switcher: Referral vs Usage Wrapped -->
+        <div class="flex items-center p-1 bg-slate-800/80 rounded-xl border border-slate-700/60 w-full mb-1">
+          <button id="storyModeReferralBtn" type="button" class="flex-1 py-1 px-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1 cursor-pointer border-0">
+            <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+            <span>معرفی و پاداش</span>
+          </button>
+          <button id="storyModeUsageBtn" type="button" class="flex-1 py-1 px-2 text-xs font-medium rounded-lg transition text-slate-300 hover:text-white flex items-center justify-center gap-1 cursor-pointer bg-transparent border-0">
+            <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
+            <span>کارنامه مصرف من</span>
+          </button>
+        </div>
+
         <!-- Redesigned Premium Glassmorphic Card Container -->
         <div id="exportableStoryCard" class="surface-dark on-dark w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-xl">
           <!-- Background decorative glows -->
@@ -3335,11 +3358,14 @@
 
         <div id="wheelResultModalCouponBox" class="hidden card-inset border border-amber-500/40 rounded-2xl p-2.5 text-center space-y-1.5">
           <span class="text-[11px] t-muted block">کد تخفیف اختصاصی شما:</span>
-          <div class="flex items-center justify-center gap-2">
-            <button id="copyWheelCouponBtn" type="button" class="text-base p-1.5 t-accent hover:opacity-80 transition active:scale-90 bg-transparent border-0 shadow-none cursor-pointer flex items-center justify-center" title="کپی کد تخفیف" aria-label="کپی کد تخفیف">
-              <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-            </button>
-            <code id="wheelResultModalCouponCode" class="font-sans text-cyan-600 dark:text-cyan-300 font-extrabold text-sm select-all tracking-wider" dir="ltr">CODE</code>
+          <div class="relative w-full h-10 flex items-center justify-center rounded-xl overflow-hidden my-1 bg-slate-900/90 border border-slate-700/60">
+            <div class="flex items-center justify-center gap-2 w-full h-full">
+              <button id="copyWheelCouponBtn" type="button" class="text-base p-1.5 t-accent hover:opacity-80 transition active:scale-90 bg-transparent border-0 shadow-none cursor-pointer flex items-center justify-center" title="کپی کد تخفیف" aria-label="کپی کد تخفیف">
+                <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              </button>
+              <code id="wheelResultModalCouponCode" class="font-sans text-cyan-600 dark:text-cyan-300 font-extrabold text-sm select-all tracking-wider" dir="ltr">CODE</code>
+            </div>
+            <canvas id="wheelScratchCanvas" class="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing z-10 touch-none"></canvas>
           </div>
           <span class="text-[11px] font-bold t-warn block mt-1"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" aria-hidden="true" /> مهلت استفاده: 7 روز در تب فروشگاه</span>
         </div>

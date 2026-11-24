@@ -6,10 +6,62 @@ function setupStoryCard() {
   const closeStoryCardBtn = document.getElementById('closeStoryCardBtn');
   const downloadStoryBtn = document.getElementById('downloadStoryBtn');
   const shareTelegramStoryBtn = document.getElementById('shareTelegramStoryBtn');
+  const storyModeReferralBtn = document.getElementById('storyModeReferralBtn');
+  const storyModeUsageBtn = document.getElementById('storyModeUsageBtn');
+
+  let currentStoryMode = 'referral';
+
+  const updateStoryModeUI = (mode) => {
+    currentStoryMode = mode;
+    const isUsage = mode === 'usage';
+    if (storyModeReferralBtn) {
+      storyModeReferralBtn.className = isUsage
+        ? 'flex-1 py-1 px-2 text-xs font-medium rounded-lg transition text-slate-300 hover:text-white flex items-center justify-center gap-1 cursor-pointer bg-transparent border-0'
+        : 'flex-1 py-1 px-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1 cursor-pointer border-0';
+    }
+    if (storyModeUsageBtn) {
+      storyModeUsageBtn.className = isUsage
+        ? 'flex-1 py-1 px-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1 cursor-pointer border-0'
+        : 'flex-1 py-1 px-2 text-xs font-medium rounded-lg transition text-slate-300 hover:text-white flex items-center justify-center gap-1 cursor-pointer bg-transparent border-0';
+    }
+
+    const brandTitle = document.getElementById('storyBrandTitle');
+    const brandBadge = document.getElementById('storyBrandBadge');
+    const gamificationBanner = document.getElementById('storyGamificationBanner');
+    const rewardText = document.getElementById('storyCardRewardText');
+
+    if (isUsage) {
+      if (brandTitle) brandTitle.innerText = 'کارنامه اینترنت آزاد';
+      if (brandBadge) brandBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> WRAPPED PRO';
+      if (gamificationBanner) gamificationBanner.innerHTML = '<span class="font-black block text-cyan-300 mb-0.5">📊 کارنامه مصرف اینترنت آزاد شما:</span>این تصویر آماری خلاصه از مصرف و پایداری اتصال شما را نشان می‌دهد. می‌توانید آن را در استوری تلگرام با دوستانتان به اشتراک بگذارید!';
+      if (rewardText) rewardText.innerHTML = '🟢 اتصال پایدار 100% بدون مرز و فیلترینگ';
+    } else {
+      if (brandTitle) brandTitle.innerText = 'RemnaStore Pro';
+      if (brandBadge) brandBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> VIP PASS';
+      if (gamificationBanner) gamificationBanner.innerHTML = '<span class="font-black block text-amber-300 mb-0.5"><img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />پاداش استوری و اشتراک‌گذاری:</span>با انتشار این تصویر در استوری تلگرام، دوستانتان عضو شده و پس از اولین خریدشان، <b id="storyRewardBannerGb" class="text-amber-300 font-sans">5</b> گیگابایت پاداش معرف برای شما واریز می‌شود!';
+      if (rewardText) {
+        const rewardVal = window.lastUserData?.user?.referral_reward_gb ?? (document.getElementById('storyCardRewardGb')?.innerText || '5');
+        rewardText.innerHTML = `<img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />با این کارت <span id="storyCardRewardGb" class="font-sans">${toEnglishDigits(rewardVal)}</span> گیگابایت هدیه بگیرید`;
+      }
+    }
+  };
+
+  storyModeReferralBtn?.addEventListener('click', () => {
+    (window.api?.haptic || window.hapticFeedback || hapticFeedback)('selection');
+    if (typeof playSubtleSound === 'function') playSubtleSound('light');
+    updateStoryModeUI('referral');
+  });
+
+  storyModeUsageBtn?.addEventListener('click', () => {
+    (window.api?.haptic || window.hapticFeedback || hapticFeedback)('selection');
+    if (typeof playSubtleSound === 'function') playSubtleSound('light');
+    updateStoryModeUI('usage');
+  });
 
   const storyModal = bindModal('storyCardModal', 'closeStoryCardBtn');
-  window.openStoryCard = () => {
+  window.openStoryCard = (mode = 'referral') => {
     (window.api?.haptic || window.hapticFeedback || hapticFeedback)('selection');
+    updateStoryModeUI(mode === 'usage' ? 'usage' : 'referral');
     storyModal.open();
   };
 
@@ -20,6 +72,7 @@ function setupStoryCard() {
     const refLink = window.currentReferralLink || fallbackRef;
     copyToClipboard(refLink);
 
+    const isUsage = currentStoryMode === 'usage';
     const rewardVal = window.lastUserData?.user?.referral_reward_gb
       ?? (document.getElementById('storyCardRewardGb')?.innerText || '5');
     const rewardGb = String(rewardVal).trim();
@@ -28,11 +81,14 @@ function setupStoryCard() {
     const mediaUrl = qrEl?.src || '';
     if (window.Telegram?.WebApp?.shareToStory && mediaUrl) {
       try {
+        const storyCaption = isUsage
+          ? '📊 کارنامه اینترنت آزاد و بدون قطعی من در ربات رمنا\n🌐 اتصال پرسرعت بین‌المللی'
+          : `🚀 اتصال پرسرعت به اینترنت بدون قطعی\n🎁 با این کارت ${rewardGb} گیگابایت هدیه رایگان بگیرید!`;
         window.Telegram.WebApp.shareToStory(mediaUrl, {
-          text: `🚀 اتصال پرسرعت به اینترنت بدون قطعی\n🎁 با این کارت ${rewardGb} گیگابایت هدیه رایگان بگیرید!`,
+          text: storyCaption,
           widget_link: {
             url: refLink,
-            name: 'دریافت اینترنت هدیه',
+            name: isUsage ? 'دریافت اینترنت آزاد' : 'دریافت اینترنت هدیه',
           },
         });
         sharedViaStory = true;
@@ -42,7 +98,9 @@ function setupStoryCard() {
     }
 
     if (!sharedViaStory) {
-      const shareMsg = `🚀 اتصال فوق‌سریع و بدون قطعی به اینترنت آزاد\n🎁 با لینک دعوت اختصاصی من ${rewardGb} گیگابایت اینترنت هدیه بگیرید:\n` + refLink;
+      const shareMsg = isUsage
+        ? '📊 کارنامه اتصال اینترنت آزاد من در ربات رمنا:\n' + refLink
+        : `🚀 اتصال فوق‌سریع و بدون قطعی به اینترنت آزاد\n🎁 با لینک دعوت اختصاصی من ${rewardGb} گیگابایت اینترنت هدیه بگیرید:\n` + refLink;
       const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(shareMsg)}`;
       if (window.Telegram?.WebApp?.openTelegramLink) {
         try { window.Telegram.WebApp.openTelegramLink(tgShareUrl); } catch (e) { window.open(tgShareUrl, '_blank'); }
@@ -63,16 +121,18 @@ function setupStoryCard() {
       return;
     }
 
+    const isUsage = currentStoryMode === 'usage';
+
     // Modern glassmorphism gradient card background
     const bgGrad = ctx.createLinearGradient(0, 0, 600, 780);
     bgGrad.addColorStop(0, '#0b0f19');
-    bgGrad.addColorStop(0.5, '#131b2e');
-    bgGrad.addColorStop(1, '#1e1b4b');
+    bgGrad.addColorStop(0.5, isUsage ? '#0f172a' : '#131b2e');
+    bgGrad.addColorStop(1, isUsage ? '#064e3b' : '#1e1b4b');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 600, 780);
 
     // Subtle border
-    ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+    ctx.strokeStyle = isUsage ? 'rgba(16, 185, 129, 0.45)' : 'rgba(99, 102, 241, 0.4)';
     ctx.lineWidth = 4;
     ctx.strokeRect(12, 12, 576, 756);
 
@@ -86,18 +146,18 @@ function setupStoryCard() {
       ctx.arc(gx, gy, r, 0, Math.PI * 2);
       ctx.fill();
     };
-    drawGlow(520, 80, 140, 'rgba(6, 182, 212, 0.18)');
-    drawGlow(80, 700, 160, 'rgba(99, 102, 241, 0.22)');
+    drawGlow(520, 80, 140, isUsage ? 'rgba(16, 185, 129, 0.22)' : 'rgba(6, 182, 212, 0.18)');
+    drawGlow(80, 700, 160, isUsage ? 'rgba(6, 182, 212, 0.22)' : 'rgba(99, 102, 241, 0.22)');
 
     // Header bar
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 26px Vazirmatn, sans-serif';
-    ctx.fillText('⚡️ RemnaStore Pro', 300, 65);
+    ctx.fillText(isUsage ? '📊 Remna Wrapped' : '⚡️ RemnaStore Pro', 300, 65);
 
     ctx.font = 'bold 12px Vazirmatn, sans-serif';
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillText('VIP PASS', 300, 92);
+    ctx.fillStyle = isUsage ? '#34d399' : '#fbbf24';
+    ctx.fillText(isUsage ? 'کارنامه مصرف اینترنت آزاد' : 'VIP PASS', 300, 92);
 
     // Avatar drawing
     const avatarImg = document.getElementById('storyCardAvatarImg');
@@ -166,12 +226,16 @@ function setupStoryCard() {
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '15px Vazirmatn, sans-serif';
-    ctx.fillText('ترافیک باقی‌مانده اشتراک:', 300, 345);
+    ctx.fillText(isUsage ? 'ترافیک مصرفی دوره:' : 'ترافیک باقی‌مانده اشتراک:', 300, 345);
 
     const sub = window.lastUserData?.active_sub;
-    const sTraf = sub?.traffic_remaining_gb != null
-      ? fmtTraffic(sub.traffic_remaining_gb, { html: false })
-      : ((document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim());
+    const sTraf = isUsage
+      ? (sub?.traffic_used_gb != null
+          ? fmtTraffic(sub.traffic_used_gb, { html: false })
+          : ((document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim()))
+      : (sub?.traffic_remaining_gb != null
+          ? fmtTraffic(sub.traffic_remaining_gb, { html: false })
+          : ((document.getElementById('storyCardTraffic')?.innerText || '-- GB').trim()));
     ctx.fillStyle = '#34d399';
     ctx.font = 'bold 42px Vazirmatn, sans-serif';
     ctx.fillText(sTraf, 300, 400);
@@ -183,7 +247,7 @@ function setupStoryCard() {
     ctx.font = '15px Vazirmatn, sans-serif';
     ctx.fillText(`${sDays}  •  🟢 پایداری 100%`, 300, 442);
 
-    // Bottom Viral Referral Promo box
+    // Bottom box (Referral promo OR Usage Wrapped showcase)
     ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
     ctx.fillRect(50, 490, 500, 240);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
@@ -191,14 +255,26 @@ function setupStoryCard() {
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 22px Vazirmatn, sans-serif';
-    ctx.fillText('اینترنت بدون قطعی و فوق‌سریع', 300, 535);
+    ctx.fillText(isUsage ? 'اتصال امن، سریع و پایدار' : 'اینترنت بدون قطعی و فوق‌سریع', 300, 535);
 
-    const rewardVal = window.lastUserData?.user?.referral_reward_gb
-      ?? (document.getElementById('storyCardRewardGb')?.innerText || '5');
-    const rewardGb = String(rewardVal).trim();
-    ctx.fillStyle = '#34d399';
-    ctx.font = 'bold 17px Vazirmatn, sans-serif';
-    ctx.fillText(`🎁 با این کارت ${toEnglishDigits(rewardGb)} گیگابایت هدیه رایگان بگیرید`, 300, 568);
+    if (isUsage) {
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 17px Vazirmatn, sans-serif';
+      ctx.fillText('🏆 کاربر برگزیده شبکه اینترنت آزاد رمنا', 300, 568);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '14px Vazirmatn, sans-serif';
+      ctx.fillText('🇩🇪 آلمان • 🇫🇮 فنلاند • 🇳🇱 هلند', 300, 620);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '13px Vazirmatn, sans-serif';
+      ctx.fillText('@RemnaBot  •  Verified High Speed Tunnel', 300, 680);
+    } else {
+      const rewardVal = window.lastUserData?.user?.referral_reward_gb
+        ?? (document.getElementById('storyCardRewardGb')?.innerText || '5');
+      const rewardGb = String(rewardVal).trim();
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 17px Vazirmatn, sans-serif';
+      ctx.fillText(`🎁 با این کارت ${toEnglishDigits(rewardGb)} گیگابایت هدیه رایگان بگیرید`, 300, 568);
+    }
 
     const qrImg = document.getElementById('storyCardQr');
     const finishDownload = () => {
