@@ -41,9 +41,9 @@ def test_wallet_graphic_card_html_structure():
     assert 'id="settingToggleWalletCardView"' in content
     assert 'id="classicWalletBalance"' in content
     assert 'id="userWalletCardBalance"' in content
-    assert 'id="userWalletCardName"' not in content  # Cardholder name removed per user request
+    assert 'id="userWalletCardName"' in content  # Cardholder name displayed alongside virtual card ID for gift receipt
+    assert 'id="userWalletCardNumber"' in content  # Virtual card ID (Telegram ID)
     assert 'user-wallet-currency-btn' in content  # Dedicated top-right currency switcher button
-    assert 'CARD HOLDER' not in content
     assert 'userWalletCardVerticalCode' not in content
     assert 'Remna but lovely' in content
     assert 'classicWalletCurrencyDisplay' in content

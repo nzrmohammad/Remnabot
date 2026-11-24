@@ -167,6 +167,20 @@ window.toggleWalletCardView = function(isGraphic, showToastMsg = true) {
   }
 };
 
+window.toggleSoundFx = function(enabled) {
+  if (enabled) {
+    localStorage.removeItem('user_sound_fx_disabled');
+    if (typeof window.playSubtleSound === 'function') window.playSubtleSound('selection');
+    if (typeof showToast === 'function') showToast('🔊 افکت‌های صوتی لمسی فعال شد.', 'info');
+  } else {
+    localStorage.setItem('user_sound_fx_disabled', '1');
+    if (typeof showToast === 'function') showToast('🔇 افکت‌های صوتی لمسی غیرفعال شد.', 'info');
+  }
+  if (window.hapticFeedback) {
+    window.hapticFeedback('selection');
+  }
+};
+
 const USER_WALLET_PALETTES = {
   blue: {
     id: 'blue',
@@ -316,6 +330,31 @@ window.renderUserWalletCard = function(userData) {
     if (classicBal) classicBal.innerText = formattedBalStr;
   }
   if (classicCurrDisp) classicCurrDisp.innerText = currencyShortName;
+
+  const cardNameEl = document.getElementById('userWalletCardName');
+  const cardNumEl = document.getElementById('userWalletCardNumber');
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const tgId = String(user?.telegram_id || tgUser?.id || user?.id || '').trim();
+  window.lastUserTgId = tgId;
+
+  const rawName = (user?.first_name ? `${user.first_name} ${user.last_name || ''}` : (tgUser?.first_name ? `${tgUser.first_name} ${tgUser.last_name || ''}` : (user?.username || 'REMNA VIP'))).trim().toUpperCase();
+
+  if (cardNameEl) {
+    cardNameEl.innerText = rawName || 'REMNA VIP';
+  }
+  if (cardNumEl) {
+    cardNumEl.innerText = tgId ? `ID: ${tgId}` : 'ID: ------';
+  }
+
+  window.copyUserCardId = function() {
+    if (!tgId) {
+      if (typeof showToast === 'function') showToast('شناسه تلگرام یافت نشد.');
+      return;
+    }
+    if (typeof copyToClipboard === 'function') {
+      copyToClipboard(tgId, `📋 شناسه تلگرام جهت دریافت هدیه کپی شد:\n${tgId}`);
+    }
+  };
 
   window.applyUserWalletCardColor();
   setupUserWalletCardTiltGlare();
@@ -2058,6 +2097,11 @@ function setupWalletListeners() {
   const isGraphic = localStorage.getItem('user_wallet_card_view') !== 'classic';
   if (window.toggleWalletCardView) {
     window.toggleWalletCardView(isGraphic, false);
+  }
+
+  const soundToggle = document.getElementById('settingToggleSoundFx');
+  if (soundToggle) {
+    soundToggle.checked = localStorage.getItem('user_sound_fx_disabled') !== '1';
   }
 
   const topupAmountInput = document.getElementById('topupAmountInput');

@@ -91,6 +91,12 @@
         </div>
       </div>
 
+      <!-- Center: Brand Logo / VIP Easter Egg Trigger -->
+      <div id="headerBrandLogo" role="button" tabindex="0" onclick="window.triggerLogoEasterEgg && window.triggerLogoEasterEgg()" class="flex items-center gap-1.5 cursor-pointer select-none py-1 px-2.5 rounded-xl transition active:scale-90 hover:bg-slate-500/10" title="Remna" aria-label="لوگوی اختصاصی رمنا">
+        <span class="font-black text-sm tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 font-sans">Remna</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+      </div>
+
       <!-- Left Side (in RTL): Support + Theme Toggle + Fallback Close + Hidden Sessions Stub -->
       <div class="flex items-center gap-1.5 flex-shrink-0">
         <button id="headerOnlineBadge" class="hidden"><span id="headerOnlineCount"></span></button>
@@ -1207,6 +1213,25 @@
                     0 تومان
                   </span>
                 </div>
+
+                <!-- Bottom Row: Cardholder Name & Virtual Card Number (Telegram ID) -->
+                <div class="relative z-10 flex items-end justify-between w-full pt-2">
+                  <div class="flex flex-col items-start min-w-0">
+                    <span id="userWalletCardName" class="font-sans font-bold tracking-wider text-xs sm:text-sm text-white/95 uppercase drop-shadow-sm truncate max-w-[170px] select-none">
+                      USER
+                    </span>
+                    <span class="text-[9px] font-sans tracking-widest text-slate-300/80 uppercase">CARDHOLDER</span>
+                  </div>
+                  <div role="button" tabindex="0" onclick="event.stopPropagation(); if (window.copyUserCardId) window.copyUserCardId();" class="flex flex-col items-end cursor-pointer active:scale-95 transition select-none" title="کپی شماره کارت مجازی (شناسه دریافت هدیه)">
+                    <span id="userWalletCardNumber" class="font-sans text-xs sm:text-[13px] font-bold text-cyan-300 drop-shadow-sm tracking-widest" dir="ltr">
+                      ID: ------
+                    </span>
+                    <span class="text-[9px] font-sans tracking-wider text-cyan-400/80 flex items-center gap-0.5">
+                      <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-2.5 h-2.5 shrink-0 opacity-80" width="10" height="10" alt="" />
+                      <span>RECEIVE GIFT</span>
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <!-- BACK FACE -->
@@ -1813,6 +1838,20 @@
                 <button type="button" data-color="purple" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('purple')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #8e24aa, #4a148c);" title="بنفش نئونی"></button>
                 <button type="button" data-color="yellow" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('yellow')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #fb8c00, #bf360c);" title="طلایی متالیک"></button>
               </div>
+            </div>
+
+            <!-- Sound Effects Toggle (افکت‌های صوتی لمسی) -->
+            <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
+              <div>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/bell.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />افکت‌های صوتی لمسی (Sound FX)</span>
+                <span class="text-[11px] t-muted">پخش صدای ملایم ورق زدن، کپی و خرید</span>
+              </div>
+              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleSoundFx" class="sr-only switch-checkbox" checked onchange="window.toggleSoundFx && window.toggleSoundFx(this.checked)">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
             </div>
           </div>
         </div>

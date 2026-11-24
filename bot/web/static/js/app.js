@@ -233,12 +233,18 @@ function switchTab(targetId) {
     }
   });
 
-  if (targetId === 'tab-reports') {
-    setTimeout(() => renderReportsCharts(), 60);
-  } else if (targetId === 'tab-shop') {
+  if (targetId === 'tab-shop') {
     if (typeof window.showShopGuidanceToast === 'function') {
       window.showShopGuidanceToast();
     }
+  } else {
+    if (typeof window.dismissToast === 'function') {
+      window.dismissToast();
+    }
+  }
+
+  if (targetId === 'tab-reports') {
+    setTimeout(() => renderReportsCharts(), 60);
   }
 
   navButtons.forEach(b => {
@@ -6636,6 +6642,29 @@ async function confirmKillSingleDevice() {
     showToast('❌ خطا در برقراری ارتباط با سرور.');
   }
 }
+
+// VIP 5-tap Logo Easter Egg
+let _logoTapTimes = [];
+window.triggerLogoEasterEgg = function() {
+  const now = Date.now();
+  _logoTapTimes.push(now);
+  _logoTapTimes = _logoTapTimes.filter(t => now - t <= 2400);
+
+  if (window.hapticFeedback) window.hapticFeedback('light');
+  if (typeof window.playSubtleSound === 'function') window.playSubtleSound('tap');
+
+  if (_logoTapTimes.length >= 5) {
+    _logoTapTimes = [];
+    if (window.hapticFeedback) window.hapticFeedback('success');
+    if (typeof window.playSubtleSound === 'function') window.playSubtleSound('coin_success');
+    if (typeof window.launchCelebrationConfetti === 'function') {
+      window.launchCelebrationConfetti();
+    }
+    if (typeof showToast === 'function') {
+      showToast('🎉 تبریک! شما ایستراگ مخفی رمنا را باز کردید ✨\n(پاداش وفاداری و افتخار عضویت در باشگاه VIP)', 'success', 5000);
+    }
+  }
+};
 
 window.openKillSingleDeviceModal = openKillSingleDeviceModal;
 window.closeKillSingleDeviceModal = closeKillSingleDeviceModal;

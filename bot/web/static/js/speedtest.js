@@ -51,24 +51,46 @@
   let needleEl = null;
   let speedDisplayEl = null;
   let gaugeProgressArcEl = null;
+  let lastHapticSpeedTier = 0;
 
   function updateGaugeVisual(mbps) {
     if (!needleEl || !needleEl.isConnected) needleEl = getEl('speedGaugeNeedle');
     if (!speedDisplayEl || !speedDisplayEl.isConnected) speedDisplayEl = getEl('speedDisplayVal');
     if (!gaugeProgressArcEl || !gaugeProgressArcEl.isConnected) gaugeProgressArcEl = getEl('speedGaugeProgressArc');
 
-    const angle = speedToAngle(mbps);
+    // Tachometer revving physics: dynamic needle micro-jitter during active testing
+    let displayedAngle = speedToAngle(mbps);
+    if (isTesting && mbps > 2) {
+      const jitterFactor = Math.min(mbps / 30, 1.5);
+      const revvingJitter = (Math.random() - 0.5) * (1.6 * jitterFactor);
+      displayedAngle += revvingJitter;
+
+      // Progressive tachometer haptic rev milestones
+      const currentTier = mbps >= 80 ? 3 : (mbps >= 50 ? 2 : (mbps >= 25 ? 1 : 0));
+      if (currentTier > lastHapticSpeedTier) {
+        lastHapticSpeedTier = currentTier;
+        if (window.hapticFeedback) window.hapticFeedback(currentTier === 3 ? 'impact' : 'selection');
+      } else if (currentTier < lastHapticSpeedTier) {
+        lastHapticSpeedTier = currentTier;
+      }
+    }
+
     if (needleEl) {
-      needleEl.setAttribute('transform', `rotate(${angle}, 100, 100)`);
+      needleEl.setAttribute('transform', `rotate(${displayedAngle}, 100, 100)`);
     }
 
     if (speedDisplayEl) {
       speedDisplayEl.innerText = mbps < 10 ? mbps.toFixed(1) : Math.round(mbps).toString();
+      if (mbps >= 50) {
+        speedDisplayEl.classList.add('text-cyan-300');
+      } else {
+        speedDisplayEl.classList.remove('text-cyan-300');
+      }
     }
 
     if (gaugeProgressArcEl) {
       const totalLen = 314.16;
-      const angleFraction = (angle - MIN_ANGLE) / TOTAL_DEGREES;
+      const angleFraction = (displayedAngle - MIN_ANGLE) / TOTAL_DEGREES;
       const offset = totalLen * (1 - Math.max(0, Math.min(1, angleFraction)));
       gaugeProgressArcEl.style.strokeDashoffset = offset.toFixed(2);
     }
@@ -661,6 +683,7 @@
     } finally {
       if (runId === currentSpeedRunId) {
         isTesting = false;
+        lastHapticSpeedTier = 0;
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         updateGaugeVisual(targetSpeedMbps);
 
@@ -680,6 +703,7 @@
       abortController = null;
     }
     isTesting = false;
+    lastHapticSpeedTier = 0;
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
     const startBtn = getEl('startSpeedTestBtn');

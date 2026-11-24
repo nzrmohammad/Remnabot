@@ -123,6 +123,20 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
   }, delay);
 }
 
+function dismissToast() {
+  const toast = document.getElementById('appToast');
+  if (!toast) return;
+  if (_appToastTimer) {
+    clearTimeout(_appToastTimer);
+    _appToastTimer = null;
+  }
+  toast.classList.remove('opacity-100', 'translate-y-0');
+  toast.classList.add('opacity-0', '-translate-y-2');
+}
+if (typeof window !== 'undefined') {
+  window.dismissToast = dismissToast;
+}
+
 // Centralized Single Source of Truth (SSOT) for User Subscription Status Badges
 function renderUserStatusBadge(u) {
   if (!u) return '<span class="badge badge-neutral">بدون اکانت</span>';
