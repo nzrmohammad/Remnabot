@@ -1,11 +1,11 @@
 from bot.web.user_common import db_session, enforce_invite_only, require_user
 
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
-from contextlib import asynccontextmanager
 import json
 import logging
 import re
 import secrets
+from contextlib import asynccontextmanager
 
 from aiogram import Bot
 from aiohttp import web
