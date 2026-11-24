@@ -265,7 +265,6 @@ window.renderUserWalletCard = function(userData) {
   const balEl = document.getElementById('userWalletCardBalance');
   const classicBal = document.getElementById('classicWalletBalance');
   const classicCurrDisp = document.getElementById('classicWalletCurrencyDisplay');
-  const nameEl = document.getElementById('userWalletCardName');
 
   // Rates from storeSettings or defaults
   const tonRate = Number(window.storeSettings?.ton_rate_toman) || 500000;
@@ -304,13 +303,6 @@ window.renderUserWalletCard = function(userData) {
   if (balEl) balEl.innerText = formattedBalStr;
   if (classicBal) classicBal.innerText = formattedBalStr;
   if (classicCurrDisp) classicCurrDisp.innerText = currencyShortName;
-
-  // Cardholder name
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const firstName = tgUser?.first_name || user?.first_name || '';
-  const lastName = tgUser?.last_name || user?.last_name || '';
-  const fullName = `${firstName} ${lastName}`.trim() || user?.username || 'REMNABOT USER';
-  if (nameEl) nameEl.innerText = fullName;
 
   window.applyUserWalletCardColor();
 };

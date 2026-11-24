@@ -331,7 +331,23 @@
     const container = $('adminTvDnsList');
     if (!container) return;
     if (Array.isArray(savedDnsList)) {
-      currentAdminTvDnsList = savedDnsList.length > 0 ? savedDnsList.map(x => ({ ...x })) : DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
+      if (savedDnsList.length > 0) {
+        currentAdminTvDnsList = savedDnsList.map(x => ({ ...x }));
+        // Auto-merge any missing official presets (e.g. Quad9 / 9.9.9.9, DoH, DoT)
+        const existingNames = new Set(currentAdminTvDnsList.map(x => String(x.name || '').trim().toLowerCase()));
+        const existingPrimaries = new Set(currentAdminTvDnsList.map(x => String(x.primary || '').trim().toLowerCase()));
+        DEFAULT_TV_DNS_LIST.forEach(defDns => {
+          const defName = String(defDns.name || '').trim().toLowerCase();
+          const defPri = String(defDns.primary || '').trim().toLowerCase();
+          if (!existingNames.has(defName) && !existingPrimaries.has(defPri)) {
+            currentAdminTvDnsList.push({ ...defDns });
+            existingNames.add(defName);
+            existingPrimaries.add(defPri);
+          }
+        });
+      } else {
+        currentAdminTvDnsList = DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
+      }
     }
     const list = currentAdminTvDnsList;
     if (!list.length) {
@@ -340,6 +356,19 @@
     }
     const rows = list.map((item, i) => {
       const isNew = !item.name && !item.primary && !item.secondary;
+      const lowerName = String(item.name || '').toLowerCase();
+      const lowerPri = String(item.primary || '').toLowerCase();
+      let protoBadge = '';
+      if (lowerName.includes('(doh)') || lowerPri.startsWith('https://')) {
+        protoBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">DoH</span>';
+      } else if (lowerName.includes('(dot)') || lowerPri.startsWith('tls://') || (!lowerPri.startsWith('http') && lowerPri.includes('dns.'))) {
+        protoBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">DoT</span>';
+      } else if (lowerName.includes('(ipv6)') || lowerPri.includes(':')) {
+        protoBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">IPv6</span>';
+      } else {
+        protoBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30">UDP/IPv4</span>';
+      }
+
       return `
       <div class="admin-tv-dns-row admin-app-card p-3 rounded-2xl border border-[var(--card-border)] bg-transparent space-y-2 transition">
         <div class="flex items-center justify-between gap-2" dir="ltr">
@@ -347,27 +376,36 @@
             <div class="w-7 h-7 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0 text-cyan-600 dark:text-cyan-400">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
             </div>
-            <b class="t-main text-xs font-bold font-sans truncate">${escapeHtml(item.name || 'DNS Server')}</b>
-            <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">${escapeHtml(item.primary || '—')}</span>
-            <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" style="transform:${isNew ? 'rotate(180deg)' : 'rotate(0deg)'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <b class="t-main text-xs font-bold font-sans truncate">${escapeHtml(item.name || 'DNS Server')}</b>
+              ${protoBadge}
+            </div>
+            <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi truncate max-w-[130px] sm:max-w-[200px]" dir="ltr">${escapeHtml(item.primary || '—')}</span>
+            <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200 shrink-0" style="transform:${isNew ? 'rotate(180deg)' : 'rotate(0deg)'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
           <button type="button" onclick="window.adminActions.deleteAdminTvDnsRow(${i})" class="w-7 h-7 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0 transition active:scale-95 border border-rose-500/20" title="حذف این DNS">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           </button>
         </div>
-        <div class="admin-app-card-body space-y-2 pt-1 ${isNew ? '' : 'hidden'}" dir="rtl">
+        <div class="admin-app-card-body space-y-2.5 pt-1.5 ${isNew ? '' : 'hidden'}" dir="rtl">
           <div>
-            <label class="text-[11px] t-muted block mb-1 text-right">نام سرور DNS:</label>
-            <input type="text" value="${escapeHtml(item.name || '')}" placeholder="نام سرور (مثلاً Shecan)" class="dns-name-inp input-base text-xs font-bold font-sans py-1.5 px-2.5 w-full" />
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-[11px] t-muted block text-right">نام سرور DNS و نوع پروتکل:</label>
+              <div class="flex items-center gap-1" dir="ltr">
+                <button type="button" onclick="const p=this.closest('.admin-app-card-body'); const ni=p.querySelector('.dns-name-inp'); const pi=p.querySelector('.dns-primary-inp'); if(ni && !ni.value.includes('(DoH)')) ni.value=(ni.value.replace(/\s*\([^)]*\)/g,'')+' (DoH)').trim(); if(pi && !pi.value.startsWith('http')) pi.placeholder='https://9.9.9.9/dns-query';" class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 transition">+ DoH</button>
+                <button type="button" onclick="const p=this.closest('.admin-app-card-body'); const ni=p.querySelector('.dns-name-inp'); const pi=p.querySelector('.dns-primary-inp'); if(ni && !ni.value.includes('(DoT)')) ni.value=(ni.value.replace(/\s*\([^)]*\)/g,'')+' (DoT)').trim(); if(pi && !pi.value.startsWith('tls')) pi.placeholder='dns.quad9.net';" class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 transition">+ DoT</button>
+              </div>
+            </div>
+            <input type="text" value="${escapeHtml(item.name || '')}" placeholder="نام سرور (مثلاً Quad9 یا Shecan (DoH))" class="dns-name-inp input-base text-xs font-bold font-sans py-1.5 px-2.5 w-full" />
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label class="text-[11px] t-muted block mb-1 text-right">آدرس Primary DNS:</label>
-              <input type="text" value="${escapeHtml(item.primary || '')}" dir="ltr" placeholder="178.22.122.100" class="dns-primary-inp input-base text-xs font-mono font-bold text-cyan-600 dark:text-cyan-300 py-1.5 px-2.5 w-full text-center" />
+              <label class="text-[11px] t-muted block mb-1 text-right">آدرس اصلی (Primary IP یا لینک DoH/DoT):</label>
+              <input type="text" value="${escapeHtml(item.primary || '')}" dir="ltr" placeholder="مثال: 9.9.9.9 یا https://9.9.9.9/dns-query" class="dns-primary-inp input-base text-xs font-mono font-bold text-cyan-600 dark:text-cyan-300 py-1.5 px-2.5 w-full text-center" />
             </div>
             <div>
-              <label class="text-[11px] t-muted block mb-1 text-right">آدرس Secondary DNS:</label>
-              <input type="text" value="${escapeHtml(item.secondary || '')}" dir="ltr" placeholder="185.51.200.2" class="dns-secondary-inp input-base text-xs font-mono font-bold text-cyan-600 dark:text-cyan-300 py-1.5 px-2.5 w-full text-center" />
+              <label class="text-[11px] t-muted block mb-1 text-right">آدرس ثانویه (Secondary IP یا لینک دوم):</label>
+              <input type="text" value="${escapeHtml(item.secondary || '')}" dir="ltr" placeholder="مثال: 149.112.112.112 یا https://..." class="dns-secondary-inp input-base text-xs font-mono font-bold text-cyan-600 dark:text-cyan-300 py-1.5 px-2.5 w-full text-center" />
             </div>
           </div>
         </div>
@@ -490,6 +528,16 @@
       currentAdminTvDnsList.push({ name: '', primary: '', secondary: '' });
       renderAdminTvDnsList();
       if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+    resetAdminTvDnsToDefaults() {
+      if (confirm('آیا از بازگردانی لیست سرورهای DNS به لیست کامل پیش‌فرض (شامل Quad9، DoH، DoT و تمام ارائه‌دهندگان) اطمینان دارید؟')) {
+        currentAdminTvDnsList = DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
+        renderAdminTvDnsList();
+        if (typeof showToast === 'function') {
+          showToast('✅ لیست کامل سرورهای DNS پیش‌فرض (شامل Quad9 و DoH/DoT) بارگذاری شد.', 'success');
+        }
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      }
     },
     deleteAdminTvDnsRow(idx) {
       syncAdminTvDnsFromDom();

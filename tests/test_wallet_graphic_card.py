@@ -41,7 +41,7 @@ def test_wallet_graphic_card_html_structure():
     assert 'id="settingToggleWalletCardView"' in content
     assert 'id="classicWalletBalance"' in content
     assert 'id="userWalletCardBalance"' in content
-    assert 'id="userWalletCardName"' in content
+    assert 'id="userWalletCardName"' not in content  # Cardholder name removed per user request
     assert 'user-wallet-currency-btn' in content  # Dedicated top-right currency switcher button
     assert 'CARD HOLDER' not in content
     assert 'userWalletCardVerticalCode' not in content
@@ -118,11 +118,12 @@ def test_shop_guidance_toast_and_dns_presets():
     assert "noticeEl.innerHTML = '<div" not in shop_js
     assert "\\n" not in shop_js.split("showShopGuidanceToast")[1].split("}")[0]
     # utils.js toast allows horizontal width expansion
-    assert "w-max max-w-[95%] sm:max-w-xl" in utils_js
+    assert "w-[94%] sm:w-auto sm:max-w-2xl" in utils_js
 
-    # DNS Categorization and Badges in app.js
+    # DNS Categorization and Badges in app.js and admin_settings.js
     assert "window.setDnsCategory" in app_js
     assert "_currentDnsCategory" in app_js
+    assert "resetAdminTvDnsToDefaults" in admin_settings_js
     assert "DoH" in app_js
     assert "DoT" in app_js
 
