@@ -3061,6 +3061,10 @@
             مشاهده در داشبورد
           </button>
         </div>
+        <button id="psvcShareCardBtn" type="button" onclick="window.downloadPurchaseSuccessCard()" class="btn btn-secondary w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
+          <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />
+          <span>ذخیره تصویر رسید خرید (کارت دیجیتال)</span>
+        </button>
       </div>
     </div>
 
@@ -4059,7 +4063,11 @@
 
         <!-- Action Buttons -->
         <div class="pt-1 space-y-2">
-          <button id="sendInvoiceTelegramBtn" type="button" onclick="window.sendCurrentInvoiceTelegram()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5 active:scale-[0.98]">
+          <button id="downloadInvoiceCardBtn" type="button" onclick="window.downloadInvoiceShareCard()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5 active:scale-[0.98]">
+            <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />
+            <span>ذخیره تصویر فاکتور رسمی (PNG)</span>
+          </button>
+          <button id="sendInvoiceTelegramBtn" type="button" onclick="window.sendCurrentInvoiceTelegram()" class="btn btn-secondary w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.98]">
             <span><img src="/static/img/icons/chat.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
             <span>ارسال رسید رسمی به تلگرام من</span>
           </button>

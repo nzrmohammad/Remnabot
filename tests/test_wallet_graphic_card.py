@@ -128,6 +128,10 @@ def test_shop_guidance_toast_and_dns_presets():
     assert "dns-dot-inp" in admin_settings_js
     assert "dns-primary-inp" in admin_settings_js
     assert "dns-secondary-inp" in admin_settings_js
+    assert 'class="dns-name-inp input-base text-xs font-bold font-sans py-1.5 px-2.5 w-full text-left"' in admin_settings_js
+    assert 'badge-optional">اختیاری</span>' in admin_settings_js
+    assert "HTTPS URL - اختیاری" not in admin_settings_js
+    assert "TLS Hostname - اختیاری" not in admin_settings_js
     # Ensure collapsed row button only shows name and badge, not primary address
     dns_row_header = admin_settings_js.split('onclick="window.adminActions.toggleAppCard(this)"')[1].split('</button>')[0]
     assert "item.primary" not in dns_row_header

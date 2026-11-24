@@ -91,7 +91,10 @@ function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = 
 function launchCelebrationConfetti() {
   const modal = document.getElementById('wheelResultModal');
   if (!modal) return;
-  const canvas = document.createElement('canvas');
+  if (typeof window.launchCelebrationConfetti === 'function') {
+    window.launchCelebrationConfetti(modal);
+    return;
+  }
   canvas.className = 'absolute inset-0 pointer-events-none z-50 w-full h-full';
   modal.appendChild(canvas);
   const ctx = canvas.getContext('2d');

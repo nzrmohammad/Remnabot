@@ -388,7 +388,7 @@
         <div class="admin-app-card-body space-y-2.5 pt-1.5 ${isNew ? '' : 'hidden'}" dir="rtl">
           <div>
             <label class="text-[11px] t-muted block mb-1 text-right">نام سرور DNS:</label>
-            <input type="text" value="${escapeHtml(item.name || '')}" placeholder="نام سرور (مثلاً Quad9 یا Shecan)" class="dns-name-inp input-base text-xs font-bold font-sans py-1.5 px-2.5 w-full" />
+            <input type="text" value="${escapeHtml(item.name || '')}" dir="ltr" placeholder="مثال: Shecan یا Quad9" class="dns-name-inp input-base text-xs font-bold font-sans py-1.5 px-2.5 w-full text-left" />
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
@@ -402,11 +402,17 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label class="text-[11px] t-muted block mb-1 text-right">آدرس DoH (HTTPS URL - اختیاری):</label>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[11px] t-muted font-medium">آدرس DoH (HTTPS URL):</label>
+                <span class="badge-optional">اختیاری</span>
+              </div>
               <input type="text" value="${escapeHtml(item.doh || '')}" dir="ltr" placeholder="مثال: https://9.9.9.9/dns-query" class="dns-doh-inp input-base text-xs font-mono font-bold text-cyan-600 dark:text-cyan-300 py-1.5 px-2.5 w-full text-center" />
             </div>
             <div>
-              <label class="text-[11px] t-muted block mb-1 text-right">آدرس DoT (TLS Hostname - اختیاری):</label>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[11px] t-muted font-medium">آدرس DoT (TLS Hostname):</label>
+                <span class="badge-optional">اختیاری</span>
+              </div>
               <input type="text" value="${escapeHtml(item.dot || '')}" dir="ltr" placeholder="مثال: dns.quad9.net" class="dns-dot-inp input-base text-xs font-mono font-bold text-indigo-600 dark:text-indigo-300 py-1.5 px-2.5 w-full text-center" />
             </div>
           </div>

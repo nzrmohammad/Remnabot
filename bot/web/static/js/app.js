@@ -6212,124 +6212,240 @@ async function sendCurrentInvoiceTelegram() {
   }
 }
 
+async function generateInvoiceShareCard(invData) {
+  const inv = invData || currentInvoiceData;
+  if (!inv) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 640;
+  canvas.height = 840;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  // 1. Dark Luxury Obsidian Gradient Background
+  const bgGrad = ctx.createLinearGradient(0, 0, 640, 840);
+  bgGrad.addColorStop(0, '#0a0f1d');
+  bgGrad.addColorStop(0.5, '#0f172a');
+  bgGrad.addColorStop(1, '#1e1b4b');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 640, 840);
+
+  // 2. Ambient Glowing Orbs
+  const glow1 = ctx.createRadialGradient(80, 80, 10, 80, 80, 240);
+  glow1.addColorStop(0, 'rgba(6, 182, 212, 0.22)');
+  glow1.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow1;
+  ctx.fillRect(0, 0, 640, 840);
+
+  const glow2 = ctx.createRadialGradient(560, 760, 10, 560, 760, 260);
+  glow2.addColorStop(0, 'rgba(139, 92, 246, 0.22)');
+  glow2.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow2;
+  ctx.fillRect(0, 0, 640, 840);
+
+  // 3. Inner Card Border & Glass Container
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(24, 24, 592, 792);
+
+  // 4. Header Badge: Official Digital Receipt
+  ctx.fillStyle = '#06b6d4';
+  ctx.font = 'bold 22px Vazirmatn, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('⚡ رسید رسمی پرداخت و اشتراک رمنا', 592, 72);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '13px Vazirmatn, sans-serif';
+  ctx.fillText('تاییدیه رسمی تراکنش معتبر سرویس ابری', 592, 98);
+
+  // Invoice Number & Date (Left)
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 15px sans-serif';
+  const invNumber = inv.invoice_number || `INV-${inv.order_id || '00000'}`;
+  ctx.fillText(invNumber, 48, 72);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '13px sans-serif';
+  ctx.fillText(`${inv.date_jalali || '—'} ${inv.time_jalali || ''}`, 48, 96);
+
+  // Divider Line
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.beginPath();
+  ctx.moveTo(48, 120);
+  ctx.lineTo(592, 120);
+  ctx.stroke();
+
+  // 5. Buyer Box
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+  ctx.fillRect(48, 140, 544, 88);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.strokeRect(48, 140, 544, 88);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '13px Vazirmatn, sans-serif';
+  ctx.fillText('👤 مشترک سرویس:', 572, 172);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 16px Vazirmatn, sans-serif';
+  const buyerName = inv.buyer?.name || window.lastUserData?.user?.first_name || 'کاربر گرامی';
+  ctx.fillText(buyerName, 572, 204);
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('شناسه کاربری:', 68, 172);
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 14px sans-serif';
+  const buyerId = String(inv.buyer?.telegram_id || window.lastUserData?.user?.id || '—');
+  ctx.fillText(buyerId, 68, 204);
+
+  // 6. Plan Details Section (The Cyber Ticket)
+  ctx.fillStyle = 'rgba(6, 182, 212, 0.06)';
+  ctx.fillRect(48, 252, 544, 215);
+  ctx.strokeStyle = 'rgba(6, 182, 212, 0.28)';
+  ctx.strokeRect(48, 252, 544, 215);
+
+  // Plan Title
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 20px Vazirmatn, sans-serif';
+  const rawItemTitle = (inv.item?.title || 'اشتراک ویژه اینترنت آزاد').replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gu, '').trim();
+  ctx.fillText(`🚀 ${rawItemTitle}`, 570, 298);
+
+  // Specs
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '15px Vazirmatn, sans-serif';
+  const specs = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
+  ctx.fillText(specs, 570, 338);
+
+  // Perforated line (Ticket Notch effect)
+  ctx.setLineDash([8, 6]);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.beginPath();
+  ctx.moveTo(48, 375);
+  ctx.lineTo(592, 375);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Amount
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px Vazirmatn, sans-serif';
+  ctx.fillText('مبلغ پرداخت شده:', 570, 422);
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#10b981';
+  ctx.font = 'bold 24px sans-serif';
+  const finalPrice = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
+  ctx.fillText(`${finalPrice} Toman`, 68, 426);
+
+  // 7. Status & Tracking
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+  ctx.fillRect(48, 495, 544, 70);
+  ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
+  ctx.strokeRect(48, 495, 544, 70);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#10b981';
+  ctx.font = 'bold 15px Vazirmatn, sans-serif';
+  ctx.fillText('وضعیت: پرداخت موفقیت‌آمیز و فعال ✅', 570, 538);
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#64748b';
+  ctx.font = '12px sans-serif';
+  const trxCode = inv.payment?.tracking_code || `TRX-${inv.order_id || 'SUCCESS'}`;
+  ctx.fillText(trxCode, 68, 538);
+
+  // 8. Footer Remna Seal
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#64748b';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('REMNAWAVE SECURE CLOUD NETWORK • 2026', 320, 770);
+  ctx.restore();
+
+  return canvas;
+}
+
+window.generateInvoiceShareCard = generateInvoiceShareCard;
+
+window.downloadInvoiceShareCard = async function() {
+  if (!currentInvoiceData) return;
+  if (window.hapticFeedback) window.hapticFeedback('selection');
+  if (typeof window.playSubtleSound === 'function') window.playSubtleSound('tap');
+
+  try {
+    const canvas = await generateInvoiceShareCard(currentInvoiceData);
+    if (!canvas) {
+      if (typeof showToast === 'function') showToast('خطا در تولید تصویر فاکتور', 'error');
+      return;
+    }
+    const dataUrl = canvas.toDataURL('image/png');
+    const invNum = currentInvoiceData.invoice_number || `INV-${currentInvoiceData.order_id || 'receipt'}`;
+    const link = document.createElement('a');
+    link.download = `Invoice-${invNum}.png`;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    if (typeof showToast === 'function') showToast('📸 تصویر باکیفیت فاکتور رسمی ذخیره گردید.', 'success');
+    if (window.hapticFeedback) window.hapticFeedback('success');
+    if (typeof window.playSubtleSound === 'function') window.playSubtleSound('success');
+  } catch (err) {
+    console.warn('Failed to download invoice card:', err);
+    printCurrentInvoice();
+  }
+};
+
+window.downloadPurchaseSuccessCard = async function() {
+  if (window.hapticFeedback) window.hapticFeedback('selection');
+  if (typeof window.playSubtleSound === 'function') window.playSubtleSound('tap');
+
+  try {
+    const name = document.getElementById('psvcName')?.innerText || 'اشتراک ویژه';
+    const traffic = document.getElementById('psvcTraffic')?.innerText || '';
+    const days = document.getElementById('psvcDays')?.innerText || '';
+    const price = document.getElementById('psvcPrice')?.innerText || '';
+    const user = document.getElementById('psvcUser')?.innerText || '';
+
+    const invMock = {
+      order_id: Date.now().toString().slice(-6),
+      invoice_number: `REC-${Date.now().toString().slice(-6)}`,
+      date_jalali: new Date().toLocaleDateString('fa-IR'),
+      time_jalali: '',
+      item: { title: name, traffic_text: traffic, duration_text: days },
+      payment: { amount_toman: Number(String(price).replace(/[^0-9]/g, '')), status: 'پرداخت شده و فعال' },
+      buyer: { name: user, telegram_id: window.lastUserData?.user?.id }
+    };
+
+    const canvas = await generateInvoiceShareCard(invMock);
+    if (!canvas) return;
+
+    const link = document.createElement('a');
+    link.download = `Receipt-${invMock.order_id}.png`;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    if (typeof showToast === 'function') showToast('📸 تصویر رسید سفارش ذخیره شد.', 'success');
+    if (window.hapticFeedback) window.hapticFeedback('success');
+    if (typeof window.playSubtleSound === 'function') window.playSubtleSound('success');
+  } catch (err) {
+    console.warn('Failed downloading purchase card:', err);
+  }
+};
+
 function printCurrentInvoice() {
   if (!currentInvoiceData) return;
   hapticFeedback('selection');
-
-  if (window.Telegram?.WebApp?.initData) {
-    sendCurrentInvoiceTelegram();
+  if (typeof window.downloadInvoiceShareCard === 'function') {
+    window.downloadInvoiceShareCard();
     return;
   }
-
-  try {
-    const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 760;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      // Background gradient
-      const grad = ctx.createLinearGradient(0, 0, 0, 760);
-      grad.addColorStop(0, '#0f172a');
-      grad.addColorStop(1, '#020617');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 600, 760);
-
-      // Card border
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(15, 15, 570, 730);
-
-      // Header
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 24px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('رسید رسمی فاکتور خرید', 300, 65);
-
-      // Invoice ID & Date
-      const invNum = currentInvoiceData.invoice_number || `INV-${currentInvoiceData.order_id || '---'}`;
-      const invDate = currentInvoiceData.date_jalali || '---';
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '14px Vazirmatn, sans-serif';
-      ctx.fillText(`فاکتور: ${invNum}   |   تاریخ: ${invDate}`, 300, 100);
-
-      // Separator line
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(30, 120);
-      ctx.lineTo(570, 120);
-      ctx.stroke();
-
-      // Buyer & Service info
-      const buyerName = currentInvoiceData.buyer?.name || 'کاربر گرامی';
-      const buyerTgId = currentInvoiceData.buyer?.telegram_id || '---';
-      ctx.textAlign = 'right';
-      ctx.font = 'bold 16px Vazirmatn, sans-serif';
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillText(`مشترک: ${buyerName}`, 550, 160);
-      ctx.font = '13px Vazirmatn, sans-serif';
-      ctx.fillStyle = '#64748b';
-      ctx.fillText(`شناسه تلگرام: ${buyerTgId}`, 550, 190);
-
-      // Item box
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(30, 220, 540, 120);
-      ctx.strokeStyle = '#334155';
-      ctx.strokeRect(30, 220, 540, 120);
-
-      const itemTitle = currentInvoiceData.item?.title || 'سرویس اشتراک';
-      const trafficGb = currentInvoiceData.item?.traffic_gb || 0;
-      const durationDays = currentInvoiceData.item?.duration_days || 0;
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 18px Vazirmatn, sans-serif';
-      ctx.fillText(itemTitle, 540, 260);
-
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '14px Vazirmatn, sans-serif';
-      ctx.fillText(`${trafficGb} گیگابایت   |   ${durationDays} روز اعتبار`, 540, 295);
-
-      // Total Amount
-      const finalAmount = currentInvoiceData.payment?.amount_toman || 0;
-      ctx.fillStyle = '#10b981';
-      ctx.font = 'bold 22px Vazirmatn, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText(`${Number(finalAmount).toLocaleString('en-US')} تومان`, 50, 280);
-
-      // Status Box
-      const isPaid = Boolean(currentInvoiceData.payment?.is_paid);
-      const statusTitle = currentInvoiceData.payment?.status || (isPaid ? 'پرداخت موفق' : 'در انتظار بررسی');
-      ctx.textAlign = 'center';
-      ctx.fillStyle = isPaid ? '#064e3b' : '#451a03';
-      ctx.fillRect(30, 370, 540, 50);
-      ctx.fillStyle = isPaid ? '#34d399' : '#fbbf24';
-      ctx.font = 'bold 16px Vazirmatn, sans-serif';
-      ctx.fillText(isPaid ? `✅ ${statusTitle}` : `⏳ ${statusTitle}`, 300, 402);
-
-      // Tracking code
-      const trackingCode = currentInvoiceData.payment?.tracking_code || `TRX-${currentInvoiceData.order_id || 'SUCCESS'}`;
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '13px Vazirmatn, sans-serif';
-      ctx.fillText(`کد پیگیری تراکنش: ${trackingCode}`, 300, 460);
-
-      // Footer branding
-      ctx.fillStyle = '#475569';
-      ctx.font = '12px Vazirmatn, sans-serif';
-      ctx.fillText('صادر شده توسط سامانه هوشمند مدیریت سرویس', 300, 710);
-
-      // Trigger download
-      const link = document.createElement('a');
-      link.download = `Invoice-${currentInvoiceData.order_id || 'receipt'}.png`;
-      link.href = canvas.toDataURL('image/png');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast('📸 تصویر فاکتور رسمی ذخیره شد.');
-      return;
-    }
-  } catch (err) {
-    console.warn('Canvas export failed, falling back to print:', err);
-  }
-
   try {
     window.print();
   } catch (e) {}
@@ -6338,6 +6454,7 @@ function printCurrentInvoice() {
 window.openInvoiceModal = openInvoiceModal;
 window.closeInvoiceModal = closeInvoiceModal;
 window.sendCurrentInvoiceTelegram = sendCurrentInvoiceTelegram;
+window.printCurrentInvoice = printCurrentInvoice;
 window.printCurrentInvoice = printCurrentInvoice;
 
 // VIP Loyalty Modal Handler

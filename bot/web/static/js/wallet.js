@@ -55,8 +55,10 @@ window.flipUserWalletCard = function(el) {
   const flipper = el.classList.contains('user-wallet-card-flipper')
     ? el
     : (el.querySelector('.user-wallet-card-flipper') || el);
+  flipper.style.transform = '';
   flipper.classList.toggle('is-flipped');
   if (window.hapticFeedback) window.hapticFeedback('impact');
+  if (typeof window.playSubtleSound === 'function') window.playSubtleSound('flip');
 };
 
 const WALLET_CURRENCY_OPTIONS = [
@@ -107,6 +109,7 @@ window.selectWalletCurrency = function(curr) {
   window.setWalletCurrency(curr);
   window.closeWalletCurrencyModal();
   if (window.hapticFeedback) window.hapticFeedback('success');
+  if (typeof window.playSubtleSound === 'function') window.playSubtleSound('color_switch');
 };
 
 window.cycleWalletCurrency = function() {
@@ -225,6 +228,9 @@ window.setUserWalletCardColor = function(colorKey) {
   if (window.hapticFeedback) {
     window.hapticFeedback('selection');
   }
+  if (typeof window.playSubtleSound === 'function') {
+    window.playSubtleSound('color_switch');
+  }
 };
 
 window.applyUserWalletCardColor = function(colorKey) {
@@ -300,12 +306,72 @@ window.renderUserWalletCard = function(userData) {
     currencyShortName = 'Stars ⭐️';
   }
 
-  if (balEl) balEl.innerText = formattedBalStr;
-  if (classicBal) classicBal.innerText = formattedBalStr;
+  const prevVal = Number(balEl?.dataset?.prevRawBal || 0);
+  if (balEl) balEl.dataset.prevRawBal = String(rawBal);
+  if (prevVal !== rawBal && typeof window.animateNumber === 'function' && currentCurrency === 'toman') {
+    window.animateNumber(balEl, prevVal, rawBal, 700, (n) => `${n.toLocaleString('en-US')} تومان`);
+    if (classicBal) window.animateNumber(classicBal, prevVal, rawBal, 700, (n) => `${n.toLocaleString('en-US')} تومان`);
+  } else {
+    if (balEl) balEl.innerText = formattedBalStr;
+    if (classicBal) classicBal.innerText = formattedBalStr;
+  }
   if (classicCurrDisp) classicCurrDisp.innerText = currencyShortName;
 
   window.applyUserWalletCardColor();
+  setupUserWalletCardTiltGlare();
 };
+
+function setupUserWalletCardTiltGlare() {
+  const container = document.querySelector('.user-wallet-card-container');
+  if (!container || container.dataset.tiltInit === '1') return;
+  container.dataset.tiltInit = '1';
+
+  const sheen = container.querySelector('.user-wallet-card-sheen');
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const tiltX = ((y - centerY) / centerY) * -10;
+    const tiltY = ((x - centerX) / centerX) * 12;
+    const flipper = container.querySelector('.user-wallet-card-flipper');
+    if (flipper && !flipper.classList.contains('is-flipped')) {
+      flipper.style.transform = `rotateY(${tiltY}deg) rotateX(${tiltX}deg)`;
+    }
+    if (sheen) {
+      sheen.style.setProperty('--sheen-x', `${Math.round((x / rect.width) * 100)}%`);
+      sheen.style.setProperty('--sheen-y', `${Math.round((y / rect.height) * 100)}%`);
+    }
+  });
+
+  container.addEventListener('mouseleave', () => {
+    const flipper = container.querySelector('.user-wallet-card-flipper');
+    if (flipper && !flipper.classList.contains('is-flipped')) {
+      flipper.style.transform = '';
+    }
+  });
+
+  if (typeof window !== 'undefined' && window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', (e) => {
+      const gamma = e.gamma;
+      const beta = e.beta;
+      if (gamma === null || beta === null) return;
+      const flipper = container.querySelector('.user-wallet-card-flipper');
+      if (flipper && !flipper.classList.contains('is-flipped')) {
+        const tiltY = Math.max(-12, Math.min(12, gamma * 0.35));
+        const tiltX = Math.max(-10, Math.min(10, (beta - 45) * 0.3));
+        flipper.style.transform = `rotateY(${tiltY}deg) rotateX(${tiltX}deg)`;
+      }
+      if (sheen) {
+        const pctX = Math.max(10, Math.min(90, 50 + gamma));
+        const pctY = Math.max(10, Math.min(90, 50 + (beta - 45)));
+        sheen.style.setProperty('--sheen-x', `${Math.round(pctX)}%`);
+        sheen.style.setProperty('--sheen-y', `${Math.round(pctY)}%`);
+      }
+    }, { passive: true });
+  }
+}
 
 const BLUBANK_PALETTES = {
   red: {

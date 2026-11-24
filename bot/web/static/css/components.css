@@ -1466,8 +1466,9 @@ html.theme-light .user-wallet-card-face * {
 .user-wallet-card-sheen {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 40%, transparent 70%);
+  background: radial-gradient(circle at var(--sheen-x, 50%) var(--sheen-y, 50%), rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 40%, transparent 70%);
   pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 .user-wallet-chip {

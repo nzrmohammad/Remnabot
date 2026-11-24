@@ -1311,6 +1311,12 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
   }
 
   openModal('purchaseSuccessModal');
+  if (pModal && typeof window.launchCelebrationConfetti === 'function') {
+    window.launchCelebrationConfetti(pModal);
+  }
+  if (typeof window.playSubtleSound === 'function') {
+    window.playSubtleSound('success');
+  }
 }
 
 let _lastShopToastTime = 0;

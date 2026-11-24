@@ -247,6 +247,156 @@ if (typeof window !== 'undefined') {
   window.hideBanner = hideBanner;
 }
 
+// Centralized Web Audio API Sound Synthesizer (Zero-latency, 0 kB overhead, offline safe)
+let _appAudioCtx = null;
+function getAppAudioContext() {
+  if (!_appAudioCtx && typeof window !== 'undefined') {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) _appAudioCtx = new AudioCtx();
+  }
+  if (_appAudioCtx && _appAudioCtx.state === 'suspended') {
+    _appAudioCtx.resume().catch(() => {});
+  }
+  return _appAudioCtx;
+}
+
+function playSubtleSound(type = 'click') {
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('user_sound_fx_disabled') === '1') {
+      return;
+    }
+    const ctx = getAppAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'flip' || type === 'card_flip') {
+      // Soft metallic double pulse for 3D card flip
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.07);
+      osc.frequency.exponentialRampToValueAtTime(380, now + 0.14);
+      gain.gain.setValueAtTime(0.045, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    } else if (type === 'color_switch' || type === 'selection') {
+      // Crisp glass droplet chime for color/theme selection
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(680, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.05);
+      gain.gain.setValueAtTime(0.035, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    } else if (type === 'success' || type === 'coin_success') {
+      // Cheerful ascending bell chime for purchase or wallet top-up
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, now); // D5
+      osc.frequency.setValueAtTime(880, now + 0.08); // A5
+      osc.frequency.setValueAtTime(1174.66, now + 0.16); // D6
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } else if (type === 'tap' || type === 'light') {
+      // Muted luxury micro-thump
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(160, now);
+      gain.gain.setValueAtTime(0.03, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    }
+  } catch (e) {}
+}
+
+// Silky Smooth Number Ticker (Odometer Ease-Out)
+function animateNumber(element, startVal, endVal, duration = 650, formatter = (n) => n.toLocaleString('en-US')) {
+  if (!element) return;
+  const start = Number(String(startVal).replace(/[^0-9.-]/g, '')) || 0;
+  const end = Number(String(endVal).replace(/[^0-9.-]/g, '')) || 0;
+  if (start === end || isNaN(start) || isNaN(end)) {
+    element.textContent = formatter(end);
+    return;
+  }
+  const startTime = performance.now();
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeProgress = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(start + (end - start) * easeProgress);
+    element.textContent = formatter(current);
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      element.textContent = formatter(end);
+    }
+  }
+  requestAnimationFrame(update);
+}
+
+// Centralized Celebration Confetti Particles Engine
+function launchCelebrationConfetti(targetContainer = null) {
+  if (typeof document === 'undefined') return;
+  const container = targetContainer || document.body;
+  const canvas = document.createElement('canvas');
+  canvas.className = 'absolute inset-0 pointer-events-none z-[120] w-full h-full';
+  const prevPos = window.getComputedStyle(container).position;
+  if (!prevPos || prevPos === 'static') {
+    container.style.position = 'relative';
+  }
+  container.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  canvas.width = container.clientWidth || 360;
+  canvas.height = container.clientHeight || 500;
+
+  const colors = ['#f59e0b', '#06b6d4', '#10b981', '#ec4899', '#8b5cf6', '#3b82f6', '#fbbf24', '#f43f5e'];
+  const particles = Array.from({ length: 55 }, () => ({
+    x: canvas.width * (0.35 + Math.random() * 0.3),
+    y: canvas.height * 0.35,
+    vx: (Math.random() - 0.5) * 11,
+    vy: (Math.random() - 0.75) * 12,
+    size: Math.random() * 6 + 4,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    alpha: 1,
+    rot: Math.random() * 360,
+    rotSpeed: (Math.random() - 0.5) * 12,
+  }));
+
+  let frame = 0;
+  function step() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.28;
+      p.alpha -= 0.014;
+      p.rot += p.rotSpeed;
+      if (p.alpha > 0) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.35);
+        ctx.restore();
+      }
+    });
+    frame++;
+    if (frame < 75) {
+      requestAnimationFrame(step);
+    } else {
+      canvas.remove();
+    }
+  }
+  requestAnimationFrame(step);
+}
+
 // Telegram Haptic Feedback
 function hapticFeedback(type = 'success') {
   if (window.Telegram?.WebApp?.HapticFeedback) {
@@ -265,6 +415,9 @@ function hapticFeedback(type = 'success') {
 }
 if (typeof window !== 'undefined') {
   window.hapticFeedback = hapticFeedback;
+  window.playSubtleSound = playSubtleSound;
+  window.animateNumber = animateNumber;
+  window.launchCelebrationConfetti = launchCelebrationConfetti;
 }
 
 // Global delegated haptic feedback on switch toggles
