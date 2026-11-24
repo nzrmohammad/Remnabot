@@ -676,6 +676,7 @@ def create_web_app(
     app.router.add_post("/api/user/settings", routes_user.post_user_settings)
     app.router.add_post("/api/user/set_birthday", routes_user.post_user_set_birthday)
     app.router.add_post("/api/user/spin", routes_user.post_user_spin)
+    app.router.add_post("/api/user/easter-egg", routes_user.post_user_easter_egg)
     app.router.add_post("/api/user/revoke_sub", routes_user.post_user_revoke_sub)
     app.router.add_post("/api/user/kill_device", routes_user.post_user_kill_device)
     app.router.add_get("/api/user/nodes", routes_user.get_user_nodes)

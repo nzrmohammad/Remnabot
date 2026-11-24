@@ -6649,9 +6649,10 @@ async function confirmKillSingleDevice() {
   }
 }
 
-// VIP 5-tap Logo Easter Egg
+// VIP 5-tap Avatar / Diamond Easter Egg (grants +1 Lucky Wheel ticket once)
 let _logoTapTimes = [];
-window.triggerLogoEasterEgg = function() {
+let _easterEggInFlight = false;
+window.triggerLogoEasterEgg = async function() {
   const now = Date.now();
   _logoTapTimes.push(now);
   _logoTapTimes = _logoTapTimes.filter(t => now - t <= 2400);
@@ -6661,13 +6662,59 @@ window.triggerLogoEasterEgg = function() {
 
   if (_logoTapTimes.length >= 5) {
     _logoTapTimes = [];
+    if (_easterEggInFlight) return;
+
     if (window.hapticFeedback) window.hapticFeedback('success');
     if (typeof window.playSubtleSound === 'function') window.playSubtleSound('coin_success');
     if (typeof window.launchCelebrationConfetti === 'function') {
       window.launchCelebrationConfetti();
     }
-    if (typeof showToast === 'function') {
-      showToast('🎉 تبریک! شما ایستراگ مخفی رمنا را باز کردید ✨\n(پاداش وفاداری و افتخار عضویت در باشگاه VIP)', 'success', 5000);
+
+    if (localStorage.getItem('remna_vip_easter_claimed') === '1') {
+      if (typeof showToast === 'function') {
+        showToast('✨ باشگاه VIP رمنا! هدیه مخفی (1 تیکت رایگان گردونه) قبلاً دریافت شده است.', 'success', 4000);
+      }
+      return;
+    }
+
+    _easterEggInFlight = true;
+    try {
+      const res = window.api?.claimEasterEgg ? await window.api.claimEasterEgg() : null;
+      if (res && res.ok) {
+        localStorage.setItem('remna_vip_easter_claimed', '1');
+        if (typeof res.spin_tickets === 'number' && window.lastUserData?.wheel_status) {
+          window.lastUserData.wheel_status.spin_tickets = res.spin_tickets;
+          const ws = window.lastUserData.wheel_status;
+          if (typeof window.updateWheelUIState === 'function') {
+            window.updateWheelUIState(
+              Boolean(window.lastUserData?.active_sub) && (ws.remaining_seconds <= 0 || res.spin_tickets > 0),
+              Boolean(window.lastUserData?.active_sub),
+              ws.remaining_seconds || 0,
+              ws.streak || 0,
+              ws.streak_multiplier || 1,
+              res.spin_tickets
+            );
+          }
+        }
+        if (typeof showToast === 'function') {
+          showToast(
+            res.message || '🎉 تبریک! ایستراگ مخفی را باز کردید و 1 تیکت رایگان گردونه شانس گرفتید ✨',
+            'success',
+            5000
+          );
+        }
+        if (!res.already_claimed && typeof syncUserDataWithApi === 'function') {
+          syncUserDataWithApi(window.currentAccountId);
+        }
+      } else if (typeof showToast === 'function') {
+        showToast(res?.error || '✨ تبریک! عضویت در باشگاه VIP رمنا فعال شد.', 'success', 4000);
+      }
+    } catch (e) {
+      if (typeof showToast === 'function') {
+        showToast('✨ تبریک! عضویت در باشگاه VIP رمنا فعال شد.', 'success', 4000);
+      }
+    } finally {
+      _easterEggInFlight = false;
     }
   }
 };

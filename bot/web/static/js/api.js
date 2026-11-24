@@ -295,6 +295,10 @@ const api = {
     return this.post('/api/user/spin', payload);
   },
 
+  async claimEasterEgg() {
+    return this.post('/api/user/easter-egg', {});
+  },
+
   async getNodes() {
     return this.get(`/api/user/nodes?t=${Date.now()}`);
   },

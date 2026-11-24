@@ -1957,5 +1957,53 @@ async def test_serve_versioned_html_assets():
     assert res_admin.content_type == "text/html"
 
 
+@pytest.mark.anyio
+async def test_user_easter_egg_one_time_ticket_reward(session_factory):
+    """Verify /api/user/easter-egg grants +1 Lucky Wheel ticket atomically once per user."""
+    from aiohttp import web
+    from aiohttp.test_utils import make_mocked_request
+    from sqlalchemy import select
+
+    from bot.db.models import AdminLog, User
+    from bot.web.cache import FastCache
+    from bot.web.routes_user import post_user_easter_egg
+
+    app = web.Application()
+    app["bot_token"] = "123:abc"
+    app["admin_ids"] = [55555]
+    app["is_dev"] = True
+    app["session_factory"] = session_factory
+    app["cache"] = FastCache(redis_client=None)
+
+    async def _call(tid: int):
+        req = make_mocked_request("POST", f"/api/user/easter-egg?user_id={tid}", app=app)
+        return await post_user_easter_egg(req)
+
+    # First claim: grants +1 spin ticket
+    res1 = await _call(778899)
+    assert res1.status == 200
+    data1 = json.loads(res1.text)
+    assert data1["ok"] is True
+    assert data1["already_claimed"] is False
+    assert data1["spin_tickets"] == 1
+
+    # Second claim: idempotent, does not grant a second ticket
+    res2 = await _call(778899)
+    assert res2.status == 200
+    data2 = json.loads(res2.text)
+    assert data2["ok"] is True
+    assert data2["already_claimed"] is True
+    assert data2["spin_tickets"] == 1
+
+    async with session_factory() as session:
+        user_row = (await session.execute(select(User).where(User.telegram_id == 778899))).scalar_one()
+        assert user_row.spin_tickets == 1
+        logs = (await session.execute(
+            select(AdminLog).where(AdminLog.action == "easter_egg_vip", AdminLog.target_user_id == 778899)
+        )).scalars().all()
+        assert len(logs) == 1
+
+
+
 
 

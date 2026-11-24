@@ -1,15 +1,19 @@
 from bot.web.user_common import db_session, enforce_invite_only, require_user
 
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
+from contextlib import asynccontextmanager
 import json
 import logging
 import re
+import secrets
 
 from aiogram import Bot
 from aiohttp import web
+from sqlalchemy import func, select, update
 
-from bot.db.models import Service
+from bot.db.models import AdminLog, Service, User
 from bot.db.repositories.coupon_repo import CouponRepository
+from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import StoreSettings, get_store_settings
 from bot.services.gift_service import claim_gift, create_gift, get_user_gifts
 from bot.services.invoice_service import get_order_invoice_data, send_invoice_to_telegram
@@ -32,6 +36,24 @@ async def _invalidate_user_caches(cache, telegram_id: int) -> None:
         await cache.delete(k)
 
 
+@asynccontextmanager
+async def _user_action_lock(cache, telegram_id: int, action: str, ttl_seconds: int = 30):
+    """Acquire a per-user distributed cache lock, yielding True if acquired."""
+    lock_key = f"lock:user:{telegram_id}:{action}"
+    lock_token = secrets.token_hex(16)
+    if cache and hasattr(cache, "set_nx"):
+        if not await cache.set_nx(lock_key, lock_token, ttl_seconds=ttl_seconds):
+            yield False
+            return
+    try:
+        yield True
+    finally:
+        if cache and hasattr(cache, "release_lock"):
+            await cache.release_lock(lock_key, lock_token)
+        elif cache and hasattr(cache, "delete"):
+            await cache.delete(lock_key)
+
+
 async def post_user_spin(request: web.Request) -> web.Response:
     """Handle Lucky Wheel spin with anti-cheat, streak bonuses, referral tickets and prize allocation."""
     user_auth, err = require_user(request)
@@ -47,25 +69,13 @@ async def post_user_spin(request: web.Request) -> web.Response:
     telegram_id = int(user_auth["id"])
     cache: FastCache = request.app["cache"]
 
-    # Concurrency / Race-condition guard via distributed lock
-    import secrets
-    spin_lock_key = f"lock:user:{telegram_id}:spin"
-    spin_token = secrets.token_hex(16)
-    if hasattr(cache, "set_nx"):
-        lock_acquired = await cache.set_nx(spin_lock_key, spin_token, ttl_seconds=30)
-        if not lock_acquired:
+    async with _user_action_lock(cache, telegram_id, "spin", ttl_seconds=30) as acquired:
+        if not acquired:
             return web.json_response(
                 {"ok": False, "error": "درخواست همزمان شناسایی شد. لطفاً چند لحظه بعد تلاش کنید."},
                 status=429,
             )
-
-    try:
         return await _do_user_spin(request, telegram_id, cache, user_auth=user_auth)
-    finally:
-        if hasattr(cache, "release_lock"):
-            await cache.release_lock(spin_lock_key, spin_token)
-        elif hasattr(cache, "delete"):
-            await cache.delete(spin_lock_key)
 
 
 async def _do_user_spin(
@@ -1099,5 +1109,91 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
             "ok": True,
             "message": "فاکتور رسمی با موفقیت به پیوی تلگرام شما ارسال شد!",
         })
+
+
+async def post_user_easter_egg(request: web.Request) -> web.Response:
+    """Grant a one-time secret VIP reward (+1 Lucky Wheel ticket) upon discovering the Easter egg."""
+    user_auth, err = require_user(request)
+    if err:
+        return err
+
+    if user_auth.get("is_preview"):
+        return web.json_response({
+            "ok": True,
+            "already_claimed": True,
+            "spin_tickets": 0,
+            "message": "🎉 حالت پیش‌نمایش فعال است! در تلگرام 1 تیکت رایگان گردونه شانس هدیه می‌گیرید.",
+        })
+
+    telegram_id = int(user_auth["id"])
+    cache: FastCache | None = request.app.get("cache")
+
+    async with _user_action_lock(cache, telegram_id, "easter_egg", ttl_seconds=15) as acquired:
+        if not acquired:
+            return web.json_response(
+                {"ok": False, "error": "درخواست در حال پردازش است. لطفاً چند لحظه بعد تلاش کنید."},
+                status=429,
+            )
+
+        async with db_session(request) as session:
+            if session is None:
+                return web.json_response({"ok": False, "error": "Database unavailable"}, status=503)
+
+            async with session.begin():
+                user_repo = UserRepository(session)
+                db_user = await user_repo.get_or_create(
+                    telegram_id=telegram_id,
+                    username=user_auth.get("username"),
+                    full_name=user_auth.get("full_name"),
+                )
+                locked_res = await session.execute(
+                    select(User).where(User.id == db_user.id).with_for_update()
+                )
+                db_user = locked_res.scalar_one()
+
+                claimed_res = await session.execute(
+                    select(AdminLog.id)
+                    .where(
+                        AdminLog.action == "easter_egg_vip",
+                        AdminLog.target_user_id == telegram_id,
+                    )
+                    .limit(1)
+                )
+                already_claimed = claimed_res.scalar_one_or_none() is not None
+                cur_tickets = int(getattr(db_user, "spin_tickets", 0) or 0)
+
+                if already_claimed:
+                    return web.json_response({
+                        "ok": True,
+                        "already_claimed": True,
+                        "spin_tickets": cur_tickets,
+                        "message": "✨ باشگاه VIP رمنا! هدیه مخفی (1 تیکت رایگان گردونه شانس) قبلاً برای شما فعال شده است.",
+                    })
+
+                new_tickets = cur_tickets + 1
+                await session.execute(
+                    update(User)
+                    .where(User.id == db_user.id)
+                    .values(spin_tickets=func.coalesce(User.spin_tickets, 0) + 1)
+                )
+                session.add(
+                    AdminLog(
+                        admin_id=telegram_id,
+                        action="easter_egg_vip",
+                        target_user_id=telegram_id,
+                        detail="کشف ایستراگ مخفی VIP و دریافت 1 تیکت رایگان گردونه شانس",
+                    )
+                )
+
+        await _invalidate_user_caches(cache, telegram_id)
+        return web.json_response({
+            "ok": True,
+            "already_claimed": False,
+            "reward_type": "spin_ticket",
+            "reward_amount": 1,
+            "spin_tickets": new_tickets,
+            "message": "🎉 تبریک! ایستراگ مخفی رمنا را کشف کردید!\n🎟 1 تیکت رایگان گردونه شانس به اکانت شما اضافه شد ✨",
+        })
+
 
 
