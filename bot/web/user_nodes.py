@@ -277,9 +277,9 @@ async def get_user_avatar(request: web.Request) -> web.Response:
     cache_key = f"tma:avatar:{telegram_id}" if telegram_id else f"tma:avatar:url:{fallback_hash}"
     if cache:
         cached_bytes = await cache.get(cache_key)
-        if cached_bytes == b"EMPTY":
+        if cached_bytes == b"EMPTY" and not fallback_url:
             return web.Response(status=404, headers={"Cache-Control": "public, max-age=86400"})
-        if cached_bytes and isinstance(cached_bytes, (bytes, bytearray)):
+        if cached_bytes and cached_bytes != b"EMPTY" and isinstance(cached_bytes, (bytes, bytearray)):
             return web.Response(
                 body=cached_bytes,
                 content_type="image/jpeg",
@@ -310,13 +310,10 @@ async def get_user_avatar(request: web.Request) -> web.Response:
                         )
             else:
                 logger.info("User %s has no public Telegram avatar photos (total_count=0)", telegram_id)
-                if cache:
-                    await cache.set(cache_key, b"EMPTY", ttl_seconds=86400)
-                return web.Response(status=404, headers={"Cache-Control": "public, max-age=86400"})
         except Exception as exc:
             logger.warning("Failed to fetch avatar for %s via bot: %s", telegram_id, exc)
 
-    # Fallback: strictly validated Telegram avatar URL
+    # Fallback: strictly validated Telegram avatar URL (reachable even if bot cannot see hidden profile photo)
     if fallback_url:
         from urllib.parse import urlparse
         try:
@@ -335,20 +332,23 @@ async def get_user_avatar(request: web.Request) -> web.Response:
                 }
                 async with aiohttp.ClientSession(headers=custom_headers) as client:
                     async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=5, connect=2.0), proxy=proxy, allow_redirects=False) as resp:
-                        if resp.status == 200:
+                        ctype = (resp.headers.get("Content-Type") or "image/jpeg").lower()
+                        if resp.status == 200 and ctype.startswith("image/") and "svg" not in ctype:
                             img_bytes = await resp.read()
                             if img_bytes:
                                 if cache:
                                     await cache.set(cache_key, img_bytes, ttl_seconds=86400 * 7)
                                 return web.Response(
                                     body=img_bytes,
-                                    content_type=resp.headers.get("Content-Type", "image/jpeg"),
+                                    content_type=ctype,
                                     headers=cors_headers,
                                 )
         except Exception as exc:
             logger.warning("Failed to proxy fallback avatar for %s: %s", telegram_id or 'unknown', exc)
 
-    return web.Response(status=404)
+    if cache and telegram_id:
+        await cache.set(cache_key, b"EMPTY", ttl_seconds=3600)
+    return web.Response(status=404, headers={"Cache-Control": "public, max-age=3600"})
 
 
 async def get_qr_code(request: web.Request) -> web.Response:

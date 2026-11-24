@@ -743,17 +743,15 @@ function renderFilteredShopPlans() {
           <div class="min-w-0 flex-1 text-right">
             <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl">
               ${hasAnyDiscount ? `
-                <span class="price-slash-strike t-muted text-xs font-semibold leading-none num-bidi" dir="ltr">${formattedOriginal}</span>
+                <span class="price-slash-strike t-main text-base font-black leading-tight num-bidi" dir="ltr">${formattedOriginal}</span>
                 <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
-                <span class="text-base font-black text-emerald-400 leading-tight num-bidi price-discount-glow mr-1" dir="ltr">${formattedFinal}</span>
-                <span class="text-[11px] t-success font-sans leading-none">تومان</span>
                 ${hasDiscountBadges ? `
                   <button type="button" class="plan-discount-toggle-btn inline-flex items-center justify-center text-xs transition active:scale-90 cursor-pointer p-0.5 mr-0.5 shrink-0 bg-transparent border-0" title="مشاهده جزئیات تخفیف" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
                     <span>🏷️</span>
                   </button>
                 ` : ''}
               ` : `
-                <span class="text-base font-black t-main leading-tight num-bidi" dir="ltr">${formattedFinal}</span>
+                <span class="text-base font-black t-main leading-tight num-bidi" dir="ltr">${formattedOriginal}</span>
                 <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
               `}
             </div>

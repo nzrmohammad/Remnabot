@@ -2004,6 +2004,68 @@ async def test_user_easter_egg_one_time_ticket_reward(session_factory):
         assert len(logs) == 1
 
 
+@pytest.mark.anyio
+async def test_get_user_avatar_falls_back_to_telegram_url_when_bot_photos_empty(monkeypatch):
+    """Verify get_user_avatar falls through to validated Telegram photo_url if bot sees total_count=0."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    import aiohttp
+    from aiohttp import web
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.cache import FastCache
+    from bot.web.routes_user import get_user_avatar
+
+    mock_bot = AsyncMock()
+    mock_bot.get_user_profile_photos = AsyncMock(return_value=SimpleNamespace(total_count=0, photos=[]))
+
+    class FakeResp:
+        status = 200
+        headers = {"Content-Type": "image/jpeg"}
+
+        async def read(self):
+            return b"\xff\xd8\xff\xe0FAKEJPEG"
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+    class FakeClientSession:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get(self, url, **kwargs):
+            return FakeResp()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+    monkeypatch.setattr(aiohttp, "ClientSession", MagicMock(side_effect=FakeClientSession))
+
+    app = web.Application()
+    app["bot_token"] = "123:abc"
+    app["admin_ids"] = []
+    app["is_dev"] = True
+    app["bot"] = mock_bot
+    app["cache"] = FastCache(redis_client=None)
+
+    req = make_mocked_request(
+        "GET",
+        "/api/user/avatar?user_id=778899&url=https://t.me/i/userpic/320/test.jpg",
+        app=app,
+    )
+    res = await get_user_avatar(req)
+    assert res.status == 200
+    assert res.body == b"\xff\xd8\xff\xe0FAKEJPEG"
+
+
+
 
 
 

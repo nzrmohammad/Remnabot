@@ -2676,48 +2676,88 @@ function renderDashboardBirthdayCountdown(user) {
   }
 }
 
+const _avatarBlobPromiseCache = new Map();
+
+async function _resolveProxyAvatarBlobUrl(proxyUrl) {
+  if (!proxyUrl || !window.api || typeof window.api.getBlob !== 'function') return '';
+  if (_avatarBlobPromiseCache.has(proxyUrl)) {
+    return _avatarBlobPromiseCache.get(proxyUrl);
+  }
+  const promise = (async () => {
+    try {
+      const blob = await window.api.getBlob(proxyUrl);
+      if (blob && blob.size > 0 && String(blob.type || '').startsWith('image/')) {
+        return URL.createObjectURL(blob);
+      }
+    } catch (e) {
+      // Fallback handled cleanly by caller
+    }
+    return '';
+  })();
+  _avatarBlobPromiseCache.set(proxyUrl, promise);
+  const resolved = await promise;
+  if (!resolved) {
+    _avatarBlobPromiseCache.delete(proxyUrl);
+  }
+  return resolved;
+}
+
 function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
   if (!imgEl) return;
   imgEl.referrerPolicy = 'no-referrer';
   const profParam = directPhoto ? `&url=${encodeURIComponent(directPhoto)}` : '';
-  // Prioritize server-side proxy endpoint so Telegram CDN URLs are fetched through the VPS rather than blocked locally
+  // Fetch authenticated proxy endpoint with X-Telegram-Init-Data header via api.getBlob
   const proxyUrl = userId ? `/api/user/avatar?user_id=${userId}${profParam}` : (directPhoto ? `/api/user/avatar?url=${encodeURIComponent(directPhoto)}` : '');
-  const targetUrl = proxyUrl || directPhoto;
 
-  if (!targetUrl) {
+  if (!proxyUrl && !directPhoto) {
     imgEl.classList.add('hidden');
     if (initialEl) initialEl.classList.remove('hidden');
     return;
   }
 
-  if (imgEl.dataset.avatarSrc === targetUrl && !imgEl.classList.contains('hidden')) {
+  const cacheKey = proxyUrl || directPhoto;
+  if (imgEl.dataset.avatarSrc === cacheKey && !imgEl.classList.contains('hidden')) {
     return;
   }
-  imgEl.dataset.avatarSrc = targetUrl;
+  imgEl.dataset.avatarSrc = cacheKey;
 
-  imgEl.onload = () => {
+  const showImg = () => {
     imgEl.classList.remove('hidden');
     if (initialEl) initialEl.classList.add('hidden');
   };
+  const showInitial = () => {
+    imgEl.classList.add('hidden');
+    if (initialEl) initialEl.classList.remove('hidden');
+  };
 
+  imgEl.onload = showImg;
   imgEl.onerror = () => {
-    if (directPhoto && imgEl.src.includes('/api/user/avatar') && !imgEl.dataset.directRetried) {
+    if (directPhoto && imgEl.src !== directPhoto && !imgEl.dataset.directRetried) {
       imgEl.dataset.directRetried = '1';
       imgEl.src = directPhoto;
     } else {
-      imgEl.classList.add('hidden');
-      if (initialEl) initialEl.classList.remove('hidden');
+      showInitial();
     }
   };
 
-  // Ensure element is visible in layout tree so mobile WebView does not defer the download
-  imgEl.classList.remove('hidden');
-  if (initialEl) initialEl.classList.add('hidden');
-
-  imgEl.src = targetUrl;
-  if (imgEl.complete && imgEl.naturalWidth > 0) {
-    imgEl.classList.remove('hidden');
-    if (initialEl) initialEl.classList.add('hidden');
+  if (proxyUrl && window.api && typeof window.api.getBlob === 'function') {
+    _resolveProxyAvatarBlobUrl(proxyUrl).then((blobUrl) => {
+      if (imgEl.dataset.avatarSrc !== cacheKey) return;
+      if (blobUrl) {
+        imgEl.src = blobUrl;
+        if (imgEl.complete && imgEl.naturalWidth > 0) showImg();
+      } else if (directPhoto) {
+        imgEl.dataset.directRetried = '1';
+        imgEl.src = directPhoto;
+      } else {
+        showInitial();
+      }
+    });
+  } else if (directPhoto) {
+    imgEl.src = directPhoto;
+    if (imgEl.complete && imgEl.naturalWidth > 0) showImg();
+  } else {
+    showInitial();
   }
 }
 
@@ -4648,29 +4688,14 @@ function hydrateUserInterface(data) {
 
     const uid = user.id || tgUser?.id;
     const tgPhotoUrl = tgUser?.photo_url || user.photo_url || '';
-    const photoParam = tgPhotoUrl ? `&url=${encodeURIComponent(tgPhotoUrl)}` : '';
-    const resolvedAvatarUrl = uid ? `/api/user/avatar?id=${uid}${photoParam}` : tgPhotoUrl;
-
-    if (resolvedAvatarUrl && storyAvatarImg) {
+    if (storyAvatar) {
+      storyAvatar.innerText = displayName.charAt(0).toUpperCase();
+    }
+    if (storyAvatarImg) {
       storyAvatarImg.crossOrigin = 'anonymous';
-      storyAvatarImg.src = resolvedAvatarUrl;
-      storyAvatarImg.onload = () => {
-        storyAvatarImg.classList.remove('hidden');
-        if (storyAvatar) storyAvatar.classList.add('hidden');
-      };
-      storyAvatarImg.onerror = () => {
-        storyAvatarImg.classList.add('hidden');
-        if (storyAvatar) {
-          storyAvatar.classList.remove('hidden');
-          storyAvatar.innerText = displayName.charAt(0).toUpperCase();
-        }
-      };
-    } else {
-      if (storyAvatarImg) storyAvatarImg.classList.add('hidden');
-      if (storyAvatar) {
-        storyAvatar.classList.remove('hidden');
-        storyAvatar.innerText = displayName.charAt(0).toUpperCase();
-      }
+      loadAvatarWithFallback(storyAvatarImg, storyAvatar, tgPhotoUrl, uid);
+    } else if (storyAvatar) {
+      storyAvatar.classList.remove('hidden');
     }
 
     if (storyTraffic) storyTraffic.innerText = fmtTraffic(sub?.traffic_remaining_gb, { html: false });
