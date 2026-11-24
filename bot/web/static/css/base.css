@@ -147,6 +147,14 @@ html {
   }
 }
 
+/* Smooth Standard Dark/Light Surface Transitions */
+body,
+.card-inset,
+.modal-card,
+.settings-box {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
 /* Mobile Smooth Scrolling & Instant Touch Response */
 #contentArea,
 .overflow-y-auto {

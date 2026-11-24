@@ -1067,7 +1067,7 @@
               <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden relative">
-                    <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
+                    <img data-auth-avatar="${escapeHtml(avatarSrc)}" alt="Avatar" class="w-full h-full object-cover hidden" />
                     <span class="font-bold">${initial}</span>
                   </div>
                   <div class="min-w-0 space-y-0.5">
@@ -1094,6 +1094,7 @@
             </div>
           `;
         }).join('');
+        if (typeof window.hydrateAuthAvatars === 'function') window.hydrateAuthAvatars(list);
       } catch (err) {
         if (list) list.innerHTML = '<div class="p-6 text-center text-xs t-danger">خطای شبکه در دریافت لیست استفاده‌کنندگان</div>';
       }

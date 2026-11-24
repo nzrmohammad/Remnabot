@@ -251,7 +251,7 @@ async def get_user_avatar(request: web.Request) -> web.Response:
 
     req_user_id = int(user_auth["id"]) if user_auth else 0
     settings = request.app.get("settings")
-    admin_ids = getattr(settings, "ADMIN_IDS", []) if settings else []
+    admin_ids = (getattr(settings, "ADMIN_IDS", None) if settings else None) or request.app.get("admin_ids", [])
     is_admin = req_user_id in admin_ids
 
     target_id_param = request.query.get("user_id") or request.query.get("id")

@@ -244,8 +244,8 @@
               <!-- User Profile Avatar with Online/Offline indicator badge at bottom-left -->
               <div class="relative flex-shrink-0">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow overflow-hidden transition">
-                  <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
-                  <span class="${u.avatar_url ? 'hidden' : ''} font-bold">${escapeHtml(initial)}</span>
+                  <img data-auth-avatar="${escapeHtml(avatarSrc)}" alt="Avatar" class="w-full h-full object-cover hidden" />
+                  <span class="font-bold">${escapeHtml(initial)}</span>
                 </div>
                 <!-- Online / Offline Badge at Bottom-Left of the Avatar (Radar Ping) -->
                 ${u.is_online ? `
@@ -317,6 +317,7 @@
         </div>
       `;
     }).join('');
+    if (typeof window.hydrateAuthAvatars === 'function') window.hydrateAuthAvatars(listContainer);
   }
 
   // Search input debounce
@@ -576,19 +577,13 @@ async applyUserModification() {
       const avatarImg = $('userProfModalAvatar');
       const initialSpan = $('userProfModalInitial');
       if (avatarImg && initialSpan) {
-        if (user.avatar_url) {
-          avatarImg.src = user.avatar_url;
-          avatarImg.classList.remove('hidden');
-          initialSpan.classList.add('hidden');
-          avatarImg.onerror = () => {
-            avatarImg.classList.add('hidden');
-            initialSpan.classList.remove('hidden');
-          };
+        initialSpan.innerText = initial;
+        if (typeof window.loadAvatarWithFallback === 'function') {
+          window.loadAvatarWithFallback(avatarImg, initialSpan, null, user.telegram_id, user.avatar_url || '');
         } else {
           avatarImg.classList.add('hidden');
           initialSpan.classList.remove('hidden');
         }
-        initialSpan.innerText = initial;
       }
 
       // Name & Online Dot

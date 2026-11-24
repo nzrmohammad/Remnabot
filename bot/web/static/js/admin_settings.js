@@ -814,7 +814,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const avatarEl = $('activeChatUserAvatar');
       if (avatarEl) {
         const initial = ((name || 'U').replace('@', '')[0] || 'U').toUpperCase();
-        avatarEl.innerHTML = `<img src="/api/user/avatar?user_id=${telegram_id}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" /><span class="font-bold">${initial}</span>`;
+        avatarEl.innerHTML = `<img data-auth-avatar="/api/user/avatar?user_id=${telegram_id}" alt="Avatar" class="w-full h-full object-cover hidden" /><span class="font-bold">${initial}</span>`;
+        if (typeof window.hydrateAuthAvatars === 'function') window.hydrateAuthAvatars(avatarEl);
       }
 
       const tagEl = $('activeChatUserTag');
@@ -1493,7 +1494,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const avatarEl = $('activeChatUserAvatar');
       if (avatarEl) {
         const initial = ((user.full_name || user.username || String(telegram_id)).replace('@', '')[0] || 'U').toUpperCase();
-        avatarEl.innerHTML = `<img src="/api/user/avatar?user_id=${telegram_id}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" /><span class="font-bold">${initial}</span>`;
+        avatarEl.innerHTML = `<img data-auth-avatar="/api/user/avatar?user_id=${telegram_id}" alt="Avatar" class="w-full h-full object-cover hidden" /><span class="font-bold">${initial}</span>`;
+        if (typeof window.hydrateAuthAvatars === 'function') window.hydrateAuthAvatars(avatarEl);
       }
 
       const badgeEl = $('activeChatStatusBadge');

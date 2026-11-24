@@ -214,7 +214,7 @@
           </p>
           <span class="status-pill-invite inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full text-[11px] font-medium s-info-soft border font-sans">
             <img src="/static/img/icons/link.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" alt="" aria-hidden="true" loading="eager" width="14" height="14">
-            <span id="joinGateChannelName">کانال اطلاع‌رسانی</span>
+            <span id="joinGateChannelName" dir="ltr" class="font-sans">کانال اطلاع‌رسانی</span>
           </span>
 
           <div class="mt-5 w-full space-y-2">
@@ -1358,6 +1358,28 @@
           <div class="flex items-center justify-center gap-2 mt-2.5">
             <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>کاربر فعال</span></span>
             <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5"><img src="/static/img/icons/shield.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>حساب تأییدشده</span></span>
+          </div>
+        </div>
+
+        <!-- User Achievements & Milestone Badges Strip (نوار دستاوردها و مدال‌های کاربری) -->
+        <div id="profileBadgesCard" class="card p-3.5 shadow-sm space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <b class="text-xs t-main">دستاوردها و مدال‌های کاربری</b>
+            </div>
+            <span id="profileBadgesCount" dir="ltr" class="text-[11px] font-sans font-bold px-2 py-0.5 rounded-full card-inset border border-card-border t-accent">0 / 6</span>
+          </div>
+          <div id="profileBadgesGrid" class="grid grid-cols-6 gap-1.5 sm:gap-2"></div>
+          <div id="profileBadgeDetailBox" class="hidden card-inset rounded-xl p-2.5 border border-card-border text-right space-y-1 animate-fadeIn">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span id="profileBadgeDetailIcon" class="shrink-0 inline-flex items-center"></span>
+                <b id="profileBadgeDetailTitle" class="text-xs t-main truncate">--</b>
+              </div>
+              <span id="profileBadgeDetailStatus" class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">--</span>
+            </div>
+            <p id="profileBadgeDetailDesc" class="text-[11px] t-muted leading-relaxed">--</p>
           </div>
         </div>
 
@@ -3102,13 +3124,13 @@
     <div id="supportChatModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-card-border rounded-3xl w-full max-w-[390px] h-[85vh] max-h-[580px] min-h-[350px] flex flex-col overflow-hidden shadow-2xl relative my-auto">
         <!-- Top Chat Header -->
-        <div class="card-inset border-b border-card-border p-3.5 flex items-center justify-between rounded-none">
+        <div class="bg-slate-500/5 border-b border-card-border px-4 py-3.5 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2.5">
             <div class="relative">
               <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex items-center justify-center shrink-0 shadow-sm">
-                <img src="/static/img/icons/support.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <img src="/static/img/icons/support.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 icon-white" width="20" height="20" alt="" />
               </div>
-              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-900"></span>
+              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-white dark:border-slate-900"></span>
             </div>
             <div>
               <h4 class="text-xs font-bold t-main">پشتیبانی اختصاصی RemnaStore</h4>
@@ -3144,7 +3166,7 @@
         </div>
 
         <!-- Chat Input Bar (Send button on the right in RTL) -->
-        <div class="card-inset border-t border-card-border p-2.5 flex items-center gap-2 rounded-none">
+        <div class="bg-slate-500/5 border-t border-card-border p-3 flex items-center gap-2 shrink-0">
           <button id="sendMessageBtn" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl transition active:scale-95 flex items-center justify-center font-bold" title="ارسال پیام">
             <img src="/static/img/icons/rocket.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
           </button>

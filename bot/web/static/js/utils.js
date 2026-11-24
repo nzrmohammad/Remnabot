@@ -453,12 +453,109 @@ function hapticFeedback(type = 'success') {
     } catch (e) {}
   }
 }
+const _avatarBlobPromiseCache = new Map();
+
+async function _resolveProxyAvatarBlobUrl(proxyUrl) {
+  if (!proxyUrl || !window.api || typeof window.api.getBlob !== 'function') return '';
+  if (_avatarBlobPromiseCache.has(proxyUrl)) {
+    return _avatarBlobPromiseCache.get(proxyUrl);
+  }
+  const promise = (async () => {
+    try {
+      const blob = await window.api.getBlob(proxyUrl);
+      if (blob && blob.size > 0 && String(blob.type || '').startsWith('image/')) {
+        return URL.createObjectURL(blob);
+      }
+    } catch (e) {
+      // Fallback handled cleanly by caller
+    }
+    return '';
+  })();
+  _avatarBlobPromiseCache.set(proxyUrl, promise);
+  const resolved = await promise;
+  if (!resolved) {
+    _avatarBlobPromiseCache.delete(proxyUrl);
+  }
+  return resolved;
+}
+
+function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId, explicitProxyUrl = '') {
+  if (!imgEl) return;
+  imgEl.referrerPolicy = 'no-referrer';
+  const profParam = directPhoto ? `&url=${encodeURIComponent(directPhoto)}` : '';
+  const proxyUrl = explicitProxyUrl
+    || (userId ? `/api/user/avatar?user_id=${userId}${profParam}` : (directPhoto ? `/api/user/avatar?url=${encodeURIComponent(directPhoto)}` : ''));
+
+  if (!proxyUrl && !directPhoto) {
+    imgEl.classList.add('hidden');
+    if (initialEl) initialEl.classList.remove('hidden');
+    return;
+  }
+
+  const cacheKey = proxyUrl || directPhoto;
+  if (imgEl.dataset.avatarSrc === cacheKey && !imgEl.classList.contains('hidden')) {
+    return;
+  }
+  imgEl.dataset.avatarSrc = cacheKey;
+
+  const showImg = () => {
+    imgEl.classList.remove('hidden');
+    if (initialEl) initialEl.classList.add('hidden');
+  };
+  const showInitial = () => {
+    imgEl.classList.add('hidden');
+    if (initialEl) initialEl.classList.remove('hidden');
+  };
+
+  imgEl.onload = showImg;
+  imgEl.onerror = () => {
+    if (directPhoto && imgEl.src !== directPhoto && !imgEl.dataset.directRetried) {
+      imgEl.dataset.directRetried = '1';
+      imgEl.src = directPhoto;
+    } else {
+      showInitial();
+    }
+  };
+
+  if (proxyUrl && window.api && typeof window.api.getBlob === 'function') {
+    _resolveProxyAvatarBlobUrl(proxyUrl).then((blobUrl) => {
+      if (imgEl.dataset.avatarSrc !== cacheKey) return;
+      if (blobUrl) {
+        imgEl.src = blobUrl;
+        if (imgEl.complete && imgEl.naturalWidth > 0) showImg();
+      } else if (directPhoto) {
+        imgEl.dataset.directRetried = '1';
+        imgEl.src = directPhoto;
+      } else {
+        showInitial();
+      }
+    });
+  } else if (directPhoto) {
+    imgEl.src = directPhoto;
+    if (imgEl.complete && imgEl.naturalWidth > 0) showImg();
+  } else {
+    showInitial();
+  }
+}
+
+function hydrateAuthAvatars(rootEl) {
+  if (!rootEl || typeof rootEl.querySelectorAll !== 'function') return;
+  rootEl.querySelectorAll('img[data-auth-avatar]').forEach(img => {
+    const url = img.getAttribute('data-auth-avatar');
+    if (!url) return;
+    const initialEl = img.nextElementSibling;
+    loadAvatarWithFallback(img, initialEl, null, null, url);
+  });
+}
+
 if (typeof window !== 'undefined') {
   window.hapticFeedback = hapticFeedback;
   window.playSubtleSound = playSubtleSound;
   window.animateNumber = animateNumber;
   window.launchCelebrationConfetti = launchCelebrationConfetti;
   window.initScratchCard = initScratchCard;
+  window.loadAvatarWithFallback = loadAvatarWithFallback;
+  window.hydrateAuthAvatars = hydrateAuthAvatars;
 }
 
 // Global delegated haptic feedback on switch toggles

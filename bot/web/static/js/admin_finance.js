@@ -710,7 +710,7 @@ openCryptoRatesModal() {
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow flex-shrink-0 overflow-hidden relative">
-                  <img src="${avatarSrc}" alt="Avatar" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" />
+                  <img data-auth-avatar="${escapeHtml(avatarSrc)}" alt="Avatar" class="w-full h-full object-cover hidden" />
                   <span class="font-bold">${escapeHtml(initial)}</span>
                 </div>
                 <div class="min-w-0 space-y-0.5">
@@ -757,6 +757,7 @@ openCryptoRatesModal() {
           </div>
         `;
       }).join('');
+      if (typeof window.hydrateAuthAvatars === 'function') window.hydrateAuthAvatars(container);
     } catch (err) {
       container.innerHTML = '<div class="p-4 text-center t-danger text-xs">خطای شبکه در دریافت فیش‌ها</div>';
     }

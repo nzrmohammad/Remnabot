@@ -2676,90 +2676,155 @@ function renderDashboardBirthdayCountdown(user) {
   }
 }
 
-const _avatarBlobPromiseCache = new Map();
+let _renderedBadgesList = [];
+let _selectedBadgeId = null;
 
-async function _resolveProxyAvatarBlobUrl(proxyUrl) {
-  if (!proxyUrl || !window.api || typeof window.api.getBlob !== 'function') return '';
-  if (_avatarBlobPromiseCache.has(proxyUrl)) {
-    return _avatarBlobPromiseCache.get(proxyUrl);
-  }
-  const promise = (async () => {
-    try {
-      const blob = await window.api.getBlob(proxyUrl);
-      if (blob && blob.size > 0 && String(blob.type || '').startsWith('image/')) {
-        return URL.createObjectURL(blob);
-      }
-    } catch (e) {
-      // Fallback handled cleanly by caller
+function renderProfileBadges(data) {
+  const grid = $('profileBadgesGrid');
+  const countEl = $('profileBadgesCount');
+  if (!grid || !data) return;
+
+  const user = data.user || {};
+  const ach = data.achievements || {};
+  const loyalty = data.loyalty || {};
+  const wheelStatus = data.wheel_status || {};
+
+  let membershipDays = Number(ach.membership_days || 0);
+  if (!membershipDays && user.created_at) {
+    const parsed = new Date(user.created_at).getTime();
+    if (!isNaN(parsed)) {
+      membershipDays = Math.max(0, Math.floor((Date.now() - parsed) / 86400000));
     }
-    return '';
-  })();
-  _avatarBlobPromiseCache.set(proxyUrl, promise);
-  const resolved = await promise;
-  if (!resolved) {
-    _avatarBlobPromiseCache.delete(proxyUrl);
   }
-  return resolved;
+  const wheelStreak = Number(ach.wheel_streak ?? wheelStatus.streak ?? 0);
+  const refCount = Number(user.referrals_count || 0);
+  const totalSpent = Number(loyalty.total_spent || 0);
+  const easterClaimed = Boolean(ach.easter_egg_claimed || localStorage.getItem('remna_vip_easter_claimed') === '1');
+  if (easterClaimed) {
+    localStorage.setItem('remna_vip_easter_claimed', '1');
+  }
+
+  _renderedBadgesList = [
+    {
+      id: 'veteran',
+      title: 'عضو قدیمی',
+      icon: 'clock',
+      unlocked: membershipDays >= 30,
+      desc: `30 روز همراهی با سرویس‌های رمنا (${toEnglishDigits(membershipDays)} روز سپری‌شده)`,
+      activeClass: 'border-cyan-500/50 bg-cyan-500/15 text-cyan-500 dark:text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.18)]',
+    },
+    {
+      id: 'vip_easter',
+      title: 'کاشف VIP',
+      icon: 'sparkles',
+      unlocked: easterClaimed,
+      desc: 'ایستراگ مخفی 5 بار لمس آواتار یا الماس کارت کیف پول را کشف کنید.',
+      activeClass: 'border-amber-500/50 bg-amber-500/15 text-amber-500 dark:text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.22)]',
+    },
+    {
+      id: 'wheel_streak',
+      title: 'استریک 7 روز گردونه',
+      icon: 'wheel',
+      unlocked: wheelStreak >= 7,
+      desc: `7 روز پیاپی گردونه شانس را بچرخانید (استریک فعلی: ${toEnglishDigits(wheelStreak)} روز)`,
+      activeClass: 'border-purple-500/50 bg-purple-500/15 text-purple-500 dark:text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]',
+    },
+    {
+      id: 'ambassador',
+      title: 'سفیر معرفی دوستان',
+      icon: 'users',
+      unlocked: refCount >= 3,
+      desc: `حداقل 3 دوست را با لینک اختصاصی دعوت کنید (${toEnglishDigits(refCount)} از 3 دعوت)`,
+      activeClass: 'border-emerald-500/50 bg-emerald-500/15 text-emerald-500 dark:text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]',
+    },
+    {
+      id: 'verified_phone',
+      title: 'امنیت و شماره تاییدشده',
+      icon: 'shield',
+      unlocked: Boolean(user.is_phone_verified || user.phone_number),
+      desc: 'شماره همراه خود را جهت افزایش امنیت و فعال‌سازی کارت‌به‌کارت تایید کنید.',
+      activeClass: 'border-blue-500/50 bg-blue-500/15 text-blue-500 dark:text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)]',
+    },
+    {
+      id: 'first_purchase',
+      title: 'خریدار ویژه',
+      icon: 'trophy',
+      unlocked: totalSpent > 0,
+      desc: 'اولین خرید یا تمدید اشتراک خود را در فروشگاه ثبت کرده باشید.',
+      activeClass: 'border-rose-500/50 bg-rose-500/15 text-rose-500 dark:text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)]',
+    },
+  ];
+
+  const unlockedCount = _renderedBadgesList.filter(b => b.unlocked).length;
+  if (countEl) {
+    countEl.innerText = `${toEnglishDigits(unlockedCount)} / ${toEnglishDigits(_renderedBadgesList.length)}`;
+  }
+
+  grid.innerHTML = _renderedBadgesList.map(b => {
+    const stateCls = b.unlocked
+      ? `${b.activeClass} opacity-100 scale-100`
+      : 'border-card-border card-inset t-muted opacity-40 grayscale';
+    const selectedRing = _selectedBadgeId === b.id ? 'ring-2 ring-cyan-400/70' : '';
+    return `
+      <button type="button" onclick="window.showProfileBadgeDetail && window.showProfileBadgeDetail('${b.id}')" class="aspect-square rounded-2xl border flex flex-col items-center justify-center p-1 transition-all duration-200 cursor-pointer active:scale-90 ${stateCls} ${selectedRing}" title="${escapeHtml(b.title)}" aria-label="${escapeHtml(b.title)}">
+        ${uiIcon(b.icon, 'w-5 h-5 shrink-0')}
+      </button>
+    `;
+  }).join('');
+
+  if (_selectedBadgeId) {
+    window.showProfileBadgeDetail(_selectedBadgeId, true);
+  }
 }
 
-function loadAvatarWithFallback(imgEl, initialEl, directPhoto, userId) {
-  if (!imgEl) return;
-  imgEl.referrerPolicy = 'no-referrer';
-  const profParam = directPhoto ? `&url=${encodeURIComponent(directPhoto)}` : '';
-  // Fetch authenticated proxy endpoint with X-Telegram-Init-Data header via api.getBlob
-  const proxyUrl = userId ? `/api/user/avatar?user_id=${userId}${profParam}` : (directPhoto ? `/api/user/avatar?url=${encodeURIComponent(directPhoto)}` : '');
+window.showProfileBadgeDetail = function(badgeId, silent = false) {
+  const badge = _renderedBadgesList.find(b => b.id === badgeId);
+  const box = $('profileBadgeDetailBox');
+  if (!badge || !box) return;
 
-  if (!proxyUrl && !directPhoto) {
-    imgEl.classList.add('hidden');
-    if (initialEl) initialEl.classList.remove('hidden');
+  if (!silent && _selectedBadgeId === badgeId && !box.classList.contains('hidden')) {
+    _selectedBadgeId = null;
+    box.classList.add('hidden');
+    renderProfileBadges(window.lastUserData);
     return;
   }
 
-  const cacheKey = proxyUrl || directPhoto;
-  if (imgEl.dataset.avatarSrc === cacheKey && !imgEl.classList.contains('hidden')) {
-    return;
+  _selectedBadgeId = badgeId;
+  if (!silent) {
+    if (window.hapticFeedback) window.hapticFeedback('selection');
+    if (typeof window.playSubtleSound === 'function') window.playSubtleSound(badge.unlocked ? 'success' : 'tap');
   }
-  imgEl.dataset.avatarSrc = cacheKey;
 
-  const showImg = () => {
-    imgEl.classList.remove('hidden');
-    if (initialEl) initialEl.classList.add('hidden');
-  };
-  const showInitial = () => {
-    imgEl.classList.add('hidden');
-    if (initialEl) initialEl.classList.remove('hidden');
-  };
+  const iconEl = $('profileBadgeDetailIcon');
+  const titleEl = $('profileBadgeDetailTitle');
+  const statusEl = $('profileBadgeDetailStatus');
+  const descEl = $('profileBadgeDetailDesc');
 
-  imgEl.onload = showImg;
-  imgEl.onerror = () => {
-    if (directPhoto && imgEl.src !== directPhoto && !imgEl.dataset.directRetried) {
-      imgEl.dataset.directRetried = '1';
-      imgEl.src = directPhoto;
+  if (iconEl) iconEl.innerHTML = uiIcon(badge.icon, 'w-4 h-4 shrink-0');
+  if (titleEl) titleEl.innerText = badge.title;
+  if (descEl) descEl.innerText = badge.desc;
+  if (statusEl) {
+    if (badge.unlocked) {
+      statusEl.innerText = 'کسب‌شده';
+      statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
     } else {
-      showInitial();
+      statusEl.innerText = 'قفل';
+      statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 card-inset t-muted border border-card-border';
     }
-  };
-
-  if (proxyUrl && window.api && typeof window.api.getBlob === 'function') {
-    _resolveProxyAvatarBlobUrl(proxyUrl).then((blobUrl) => {
-      if (imgEl.dataset.avatarSrc !== cacheKey) return;
-      if (blobUrl) {
-        imgEl.src = blobUrl;
-        if (imgEl.complete && imgEl.naturalWidth > 0) showImg();
-      } else if (directPhoto) {
-        imgEl.dataset.directRetried = '1';
-        imgEl.src = directPhoto;
-      } else {
-        showInitial();
-      }
-    });
-  } else if (directPhoto) {
-    imgEl.src = directPhoto;
-    if (imgEl.complete && imgEl.naturalWidth > 0) showImg();
-  } else {
-    showInitial();
   }
-}
+  box.classList.remove('hidden');
+
+  if (!silent && window.lastUserData) {
+    const grid = $('profileBadgesGrid');
+    if (grid) {
+      grid.querySelectorAll('button').forEach((btn, idx) => {
+        const b = _renderedBadgesList[idx];
+        btn.classList.toggle('ring-2', b && b.id === _selectedBadgeId);
+        btn.classList.toggle('ring-cyan-400/70', b && b.id === _selectedBadgeId);
+      });
+    }
+  }
+};
 
 let expiryCountdownInterval = null;
 
@@ -3003,58 +3068,23 @@ function setupThemeToggle() {
     });
   } catch(e) {}
 
-  themeToggle?.addEventListener('click', (event) => {
-    const nextDark = !isDark;
-    const x = (event && typeof event.clientX === 'number') ? event.clientX : (window.innerWidth - 30);
-    const y = (event && typeof event.clientY === 'number') ? event.clientY : 24;
+  themeToggle?.addEventListener('click', () => {
+    isDark = !isDark;
+    localStorage.setItem('remna_user_theme', isDark ? 'dark' : 'light');
+
+    if (themeIcon) {
+      themeIcon.style.transition = 'transform 180ms cubic-bezier(0.16, 1, 0.3, 1)';
+      themeIcon.style.transform = 'scale(0.75) rotate(25deg)';
+      requestAnimationFrame(() => {
+        applyTheme();
+        themeIcon.style.transform = 'scale(1) rotate(0deg)';
+      });
+    } else {
+      applyTheme();
+    }
 
     if (window.hapticFeedback) window.hapticFeedback('impact');
     if (typeof window.playSubtleSound === 'function') window.playSubtleSound('light');
-
-    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      isDark = nextDark;
-      localStorage.setItem('remna_user_theme', isDark ? 'dark' : 'light');
-      applyTheme();
-      return;
-    }
-
-    const maxDim = Math.max(window.innerWidth, window.innerHeight);
-    const size = Math.ceil(maxDim * 2.8);
-
-    const ripple = document.createElement('div');
-    ripple.className = 'theme-ripple-overlay';
-    ripple.style.cssText = `
-      position: fixed;
-      left: ${x}px;
-      top: ${y}px;
-      width: ${size}px;
-      height: ${size}px;
-      margin-left: -${size / 2}px;
-      margin-top: -${size / 2}px;
-      border-radius: 50%;
-      background-color: ${nextDark ? '#0c1220' : '#f8fafc'};
-      pointer-events: none;
-      z-index: 99999;
-      transform: scale(0);
-      will-change: transform, opacity;
-      transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 140ms ease-out;
-    `;
-    document.body.appendChild(ripple);
-
-    requestAnimationFrame(() => {
-      ripple.style.transform = 'scale(1)';
-    });
-
-    setTimeout(() => {
-      isDark = nextDark;
-      localStorage.setItem('remna_user_theme', isDark ? 'dark' : 'light');
-      applyTheme();
-      ripple.style.opacity = '0';
-      setTimeout(() => {
-        ripple.remove();
-      }, 150);
-    }, 180);
   });
 }
 
@@ -3083,13 +3113,13 @@ function setupSupportChat() {
       bubble.innerHTML = `
         <div class="chat-user-bubble chat-bubble-user rounded-2xl rounded-tr-none p-2.5 leading-relaxed shadow-sm text-right">
           ${safeText}
-          <span class="text-[11px] text-blue-400 dark:text-blue-300 block text-left mt-1 font-sans" dir="ltr">${timeStr}</span>
+          <span class="text-[11px] text-blue-500 dark:text-blue-300 block text-left mt-1 font-sans" dir="ltr">${timeStr}</span>
         </div>
       `;
     } else {
       bubble.className = 'self-end mr-auto ml-0 max-w-[85%] flex items-start gap-2 animate-fadeIn';
       bubble.innerHTML = `
-        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[11px] shrink-0 text-white mt-0.5 shadow-sm">🎧</div>
+        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center shrink-0 text-white mt-0.5 shadow-sm">${uiIcon('support', 'w-3.5 h-3.5 icon-white')}</div>
         <div class="chat-admin-bubble chat-bubble-admin rounded-2xl rounded-tl-none p-2.5 leading-relaxed shadow-md text-right">
           ${safeText}
           <span class="text-[11px] t-muted block text-left mt-1 font-sans" dir="ltr">${timeStr}</span>
@@ -3891,7 +3921,9 @@ function applySystemBlockScreen(mode, data = {}) {
     const chName = $('joinGateChannelName');
     const chLink = $('joinGateChannelLinkBtn');
     if (chName && data.join_gate_channel) {
-      chName.innerText = data.join_gate_channel;
+      const rawCh = String(data.join_gate_channel).trim();
+      chName.innerText = rawCh;
+      chName.dir = /^[@a-zA-Z0-9:/._-]+$/.test(rawCh) ? 'ltr' : 'rtl';
     }
     if (chLink && data.join_gate_channel_link) {
       chLink.href = data.join_gate_channel_link;
@@ -3920,7 +3952,24 @@ function applySystemBlockScreen(mode, data = {}) {
     if (isBlocked) contentArea.scrollTop = 0;
   }
 
-  if (!isBlocked) return false;
+  if (!isBlocked) {
+    $('bottomNavigationBar')?.classList.remove('hidden');
+    $('navBottom')?.classList.remove('hidden');
+    document.querySelector('nav')?.classList.remove('hidden');
+    const hasVisibleTab = Array.from(document.querySelectorAll('.tab-pane')).some(
+      el => !el.classList.contains('hidden')
+    );
+    if (!hasVisibleTab) {
+      const activeBtn = document.querySelector('.nav-btn.is-active, .nav-btn[aria-selected="true"]');
+      const targetTab = activeBtn?.getAttribute('data-tab') || 'tab-dashboard';
+      if (typeof switchTab === 'function') {
+        switchTab(targetTab);
+      } else {
+        $('tab-dashboard')?.classList.remove('hidden');
+      }
+    }
+    return false;
+  }
 
   const splash = $('splashScreen');
   if (splash) splash.classList.add('hidden');
@@ -4114,6 +4163,9 @@ function hydrateUserInterface(data) {
 
     loadAvatarWithFallback(profImg, profAvatarInitial, directPhoto, profUid);
     loadAvatarWithFallback(headImg, headAvatarInitial, directPhoto, profUid);
+    if (typeof renderProfileBadges === 'function') {
+      renderProfileBadges(data);
+    }
 
     // Account Switcher Button Visibility
     const switchBtn = $('switchAccountBtn');
@@ -5369,6 +5421,27 @@ function loadUserCache() {
   }
 }
 
+function applySyncedUserData(data) {
+  window.lastUserData = data;
+  try {
+    hydrateUserInterface(data);
+  } catch (hydrateErr) {
+    console.error('[applySyncedUserData] Error hydrating UI:', hydrateErr);
+  }
+
+  if (data.active_sub && typeof renderActiveSubAnalytics === 'function') {
+    try {
+      renderActiveSubAnalytics(data.active_sub);
+    } catch (analyticsErr) {
+      console.warn('[applySyncedUserData] Error rendering analytics:', analyticsErr);
+    }
+  } else if (typeof resetActiveSubAnalytics === 'function') {
+    resetActiveSubAnalytics();
+  }
+
+  saveUserCache(data);
+}
+
 // 17. Stale-While-Revalidate API Sync
 let _syncUserSeq = 0;
 async function syncUserDataWithApi(accountId) {
@@ -5381,26 +5454,7 @@ async function syncUserDataWithApi(accountId) {
         hideBanner('authErrorBanner');
         hideBanner('apiErrorBanner');
       }
-      window.lastUserData = res.data;
-      try {
-        hydrateUserInterface(res.data);
-      } catch (hydrateErr) {
-        console.error('[syncUserDataWithApi] Error hydrating UI:', hydrateErr);
-      }
-
-      if (res.data.active_sub && typeof renderActiveSubAnalytics === 'function') {
-        try {
-          renderActiveSubAnalytics(res.data.active_sub);
-        } catch (analyticsErr) {
-          console.warn('[syncUserDataWithApi] Error rendering analytics:', analyticsErr);
-        }
-      } else {
-        if (typeof resetActiveSubAnalytics === 'function') {
-          resetActiveSubAnalytics();
-        }
-      }
-
-      saveUserCache(res.data);
+      applySyncedUserData(res.data);
 
       if (res.data.partial) {
         if (typeof showBanner === 'function') {
@@ -5618,7 +5672,7 @@ async function checkJoinGateMembership() {
     if (res && (res.ok || res._httpOk) && res.data) {
       if (!res.data.is_join_gate) {
         if (window.showToast) window.showToast('عضویت شما با موفقیت تأیید شد. خوش آمدید! 🎉');
-        if (typeof hydrateUserInterface === 'function') hydrateUserInterface(res.data);
+        applySyncedUserData(res.data);
       } else {
         if (window.showToast) window.showToast('⚠️ هنوز در کانال عضو نشده‌اید. لطفاً ابتدا در کانال عضو شوید.');
       }
@@ -6707,6 +6761,11 @@ window.triggerLogoEasterEgg = async function() {
       const res = window.api?.claimEasterEgg ? await window.api.claimEasterEgg() : null;
       if (res && res.ok) {
         localStorage.setItem('remna_vip_easter_claimed', '1');
+        if (typeof renderProfileBadges === 'function' && window.lastUserData) {
+          window.lastUserData.achievements = window.lastUserData.achievements || {};
+          window.lastUserData.achievements.easter_egg_claimed = true;
+          renderProfileBadges(window.lastUserData);
+        }
         if (typeof res.spin_tickets === 'number' && window.lastUserData?.wheel_status) {
           window.lastUserData.wheel_status.spin_tickets = res.spin_tickets;
           const ws = window.lastUserData.wheel_status;

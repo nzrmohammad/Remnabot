@@ -863,6 +863,23 @@ async def get_user_me(request: web.Request) -> web.Response:
             else:
                 support_link = f"https://t.me/{raw_support_contact}"
 
+        easter_egg_claimed = False
+        try:
+            from bot.db.models import AdminLog
+            ee_res = await session.execute(
+                select(AdminLog.id)
+                .where(AdminLog.action == "easter_egg_vip", AdminLog.target_user_id == telegram_id)
+                .limit(1)
+            )
+            easter_egg_claimed = ee_res.scalar_one_or_none() is not None
+        except Exception:
+            pass
+
+        membership_days = 0
+        if db_user.created_at:
+            created_utc = db_user.created_at if db_user.created_at.tzinfo else db_user.created_at.replace(tzinfo=timezone.utc)
+            membership_days = max(0, (datetime.now(timezone.utc) - created_utc).days)
+
         achievements_data = {
             "total_gift_traffic_gb": round(total_gift_traffic, 2),
             "active_coupons_count": len(active_won_coupons),
@@ -872,6 +889,8 @@ async def get_user_me(request: web.Request) -> web.Response:
             "days_until_birthday": days_until_birthday,
             "is_birthday_today": is_birthday_today,
             "birthday_claimed": birthday_claimed,
+            "easter_egg_claimed": easter_egg_claimed,
+            "membership_days": membership_days,
         }
 
         user_leaderboard = {}
