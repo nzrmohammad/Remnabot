@@ -66,6 +66,7 @@ async def check_channel_membership(bot, channel: str, user_id: int) -> bool:
     """Check if user is a member of the specified channel.
 
     Returns True if member or if check cannot be performed (failsafe).
+    Note: Telegram requires the bot to be an administrator of the channel to query membership.
     """
     if not bot or not channel:
         return True
@@ -83,6 +84,32 @@ async def check_channel_membership(bot, channel: str, user_id: int) -> bool:
         logger.warning("check_channel_membership failed for %s in %s: %s", user_id, clean_channel, e)
         # If bot is not in channel or channel is unreachable, allow user through
         return True
+
+
+def format_channel_link(channel: str) -> str:
+    """Normalize a channel username, numeric chat ID, or URL into an https://t.me link."""
+    channel_str = (channel or "").strip()
+    if not channel_str:
+        return ""
+    if channel_str.startswith(("http://", "https://")):
+        return channel_str
+    if channel_str.startswith("-100"):
+        return f"https://t.me/c/{channel_str[4:]}"
+    return f"https://t.me/{channel_str.lstrip('@')}"
+
+
+def matches_channel(chat, configured_channel: str) -> bool:
+    """Return True when a Telegram Chat object matches the configured @username, link, or ID."""
+    if chat is None or not configured_channel:
+        return False
+    cfg = configured_channel.strip()
+    if cfg.startswith(("http://", "https://")):
+        cfg = cfg.rstrip("/").rsplit("/", 1)[-1]
+    chat_id = str(getattr(chat, "id", "") or "")
+    if cfg.lstrip("-").isdigit():
+        return chat_id == cfg
+    chat_username = (getattr(chat, "username", None) or "").strip().lower()
+    return bool(chat_username and chat_username == cfg.lstrip("@").lower())
 
 
 def get_node_daily_bytes(n: dict) -> int:

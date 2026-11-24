@@ -62,10 +62,12 @@ async def request_done_notify(
         _REQUEST_DONE_NOTIFIED.clear()
 
     target = await UserRepository(session).get_by_telegram_id(telegram_id)
+    if target is not None and not target.is_verified:
+        await UserRepository(session).set_verified(target, True)
     lang = (target.language if target else None) or "fa"
 
     kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_login"), callback_data="auth:login")
+    kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:welcome")
     kb.adjust(1)
     notified = False
     try:
@@ -102,11 +104,10 @@ async def service_new_request(
     store = await get_store_settings(session)
     if store.trial_enabled:
         if getattr(store, "join_gate_enabled", False) and getattr(store, "join_gate_channel", ""):
-            from bot.common.helpers import check_channel_membership
+            from bot.common.helpers import check_channel_membership, format_channel_link
             is_member = await check_channel_membership(bot, store.join_gate_channel, user.telegram_id)
             if not is_member:
-                channel_str = store.join_gate_channel.strip()
-                channel_link = channel_str if channel_str.startswith("http") else f"https://t.me/{channel_str.lstrip('@')}"
+                channel_link = format_channel_link(store.join_gate_channel)
                 kb = InlineKeyboardBuilder()
                 kb.button(text="📢 عضویت در کانال", url=channel_link)
                 kb.button(text=t(lang, "btn_back"), callback_data="nav:welcome")

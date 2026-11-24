@@ -18,7 +18,6 @@ def language_keyboard() -> InlineKeyboardMarkup:
 
 def welcome_keyboard(lang: str) -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
-    kb.button(text=t(lang, "btn_login"), callback_data="auth:login")
     kb.button(text=t(lang, "btn_new_service"), callback_data="service:new")
     kb.adjust(1)
     return kb.as_markup()

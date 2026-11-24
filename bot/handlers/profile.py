@@ -14,6 +14,7 @@ from bot.db.models import User
 from bot.db.repositories.order_repo import OrderRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
+from bot.handlers.auth import try_auto_verify_from_panel
 from bot.locales.texts import t
 from bot.services.birthday import days_until_jalali_birthday, parse_and_validate_jalali_birthdate
 from bot.services.formatting import format_date, format_datetime, now_tz, parse_iso
@@ -111,8 +112,7 @@ async def _render_profile(
         sizes.append(1)
 
     if not user.is_verified:
-        kb.button(text=t(lang, "btn_login"), callback_data="auth:login")
-        sizes.append(1)
+        await try_auto_verify_from_panel(user, user_repo, remnawave)
     kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
     sizes.append(1)
     kb.adjust(*sizes)

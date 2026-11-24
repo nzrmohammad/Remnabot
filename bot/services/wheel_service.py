@@ -144,16 +144,14 @@ async def execute_lucky_wheel_spin(
     if session is not None:
         store = await get_store_settings(session)
         if getattr(store, "join_gate_enabled", False) and getattr(store, "join_gate_channel", ""):
-            from bot.common.helpers import check_channel_membership
+            from bot.common.helpers import check_channel_membership, format_channel_link
             is_member = await check_channel_membership(bot, store.join_gate_channel, telegram_id)
             if not is_member:
-                channel_str = store.join_gate_channel.strip()
-                channel_link = channel_str if channel_str.startswith("http") else f"https://t.me/{channel_str.lstrip('@')}"
                 return {
                     "ok": False,
                     "error": "برای چرخاندن گردونه شانس، ابتدا باید در کانال ما عضو شوید.",
                     "code": "channel_required",
-                    "channel_url": channel_link,
+                    "channel_url": format_channel_link(store.join_gate_channel),
                 }
 
     wheel_ts_key = f"tma:user:{telegram_id}:wheel_last_spin"

@@ -469,19 +469,11 @@ async def get_user_me(request: web.Request) -> web.Response:
             and getattr(store_settings, "join_gate_channel", "")
             and not is_adm
         ):
-            from bot.common.helpers import check_channel_membership
+            from bot.common.helpers import check_channel_membership, format_channel_link
             bot = request.app.get("bot")
             is_member = await check_channel_membership(bot, store_settings.join_gate_channel, telegram_id)
             if not is_member:
-                channel_str = store_settings.join_gate_channel.strip()
-                if channel_str.startswith("@"):
-                    channel_url = f"https://t.me/{channel_str[1:]}"
-                elif channel_str.startswith("https://t.me/"):
-                    channel_url = channel_str
-                elif channel_str.startswith("-100"):
-                    channel_url = f"https://t.me/c/{channel_str[4:]}"
-                else:
-                    channel_url = f"https://t.me/{channel_str}"
+                channel_url = format_channel_link(store_settings.join_gate_channel)
 
                 raw_support = (getattr(store_settings, "support_contact", "") or "").strip()
                 support_link = ""

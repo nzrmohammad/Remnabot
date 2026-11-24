@@ -488,7 +488,7 @@ EN_TEXTS: dict[str, str] = {
         "btn_request_done": "✅ Service created — notify user",
         "request_done_user": (
             "✅ <b>Your service has been created!</b>\n\n"
-            "Open the bot and tap «Login» to access your account."
+            "Tap the button below to open the main menu and access your account:"
         ),
         "request_done_admin": "✅ The user has been notified.",
         "request_done_already": "The user was already notified.",

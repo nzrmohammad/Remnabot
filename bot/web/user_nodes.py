@@ -274,7 +274,7 @@ async def get_user_avatar(request: web.Request) -> web.Response:
 
     cache = request.app.get("cache")
     fallback_hash = hashlib.sha256(fallback_url.encode("utf-8")).hexdigest()[:32] if fallback_url else ""
-    cache_key = f"tma:avatar:{telegram_id}" if telegram_id else f"tma:avatar:url:{fallback_hash}"
+    cache_key = f"tma:avatar:v2:{telegram_id}" if telegram_id else f"tma:avatar:v2:url:{fallback_hash}"
     if cache:
         cached_bytes = await cache.get(cache_key)
         if cached_bytes == b"EMPTY" and not fallback_url:
@@ -314,24 +314,35 @@ async def get_user_avatar(request: web.Request) -> web.Response:
             logger.warning("Failed to fetch avatar for %s via bot: %s", telegram_id, exc)
 
     # Fallback: strictly validated Telegram avatar URL (reachable even if bot cannot see hidden profile photo)
-    if fallback_url:
+    def _is_safe_tg_avatar_url(raw_url: str) -> bool:
         from urllib.parse import urlparse
+        parsed_url = urlparse(raw_url)
+        scheme = (parsed_url.scheme or "").lower()
+        host = (parsed_url.hostname or "").lower()
+        allowed_hosts = ("telegram.org", "t.me", "telesco.pe", "telegram-cdn.org", "cdn-telegram.org")
+        allowed_suffixes = tuple(f".{h}" for h in allowed_hosts)
+        return scheme in ("http", "https") and (
+            host in allowed_hosts or any(host.endswith(s) for s in allowed_suffixes)
+        )
+
+    if fallback_url and _is_safe_tg_avatar_url(fallback_url):
+        from urllib.parse import urljoin
         try:
-            parsed_url = urlparse(fallback_url)
-            scheme = (parsed_url.scheme or "").lower()
-            host = (parsed_url.hostname or "").lower()
-            allowed_hosts = ("telegram.org", "t.me", "telesco.pe")
-            allowed_suffixes = (".telegram.org", ".telesco.pe", ".t.me")
-            is_valid_origin = scheme in ("http", "https") and (
-                host in allowed_hosts or any(host.endswith(s) for s in allowed_suffixes)
-            )
-            if is_valid_origin:
-                import aiohttp
-                custom_headers = {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                }
-                async with aiohttp.ClientSession(headers=custom_headers) as client:
-                    async with client.get(fallback_url, timeout=aiohttp.ClientTimeout(total=5, connect=2.0), proxy=proxy, allow_redirects=False) as resp:
+            import aiohttp
+            custom_headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            }
+            async with aiohttp.ClientSession(headers=custom_headers) as client:
+                cur_url = fallback_url
+                for _ in range(3):
+                    async with client.get(cur_url, timeout=aiohttp.ClientTimeout(total=5, connect=2.0), proxy=proxy, allow_redirects=False) as resp:
+                        if resp.status in (301, 302, 303, 307, 308):
+                            loc = resp.headers.get("Location", "")
+                            next_url = urljoin(cur_url, loc) if loc else ""
+                            if next_url and _is_safe_tg_avatar_url(next_url):
+                                cur_url = next_url
+                                continue
+                            break
                         ctype = (resp.headers.get("Content-Type") or "image/jpeg").lower()
                         if resp.status == 200 and ctype.startswith("image/") and "svg" not in ctype:
                             img_bytes = await resp.read()
@@ -343,6 +354,7 @@ async def get_user_avatar(request: web.Request) -> web.Response:
                                     content_type=ctype,
                                     headers=cors_headers,
                                 )
+                        break
         except Exception as exc:
             logger.warning("Failed to proxy fallback avatar for %s: %s", telegram_id or 'unknown', exc)
 

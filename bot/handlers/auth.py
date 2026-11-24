@@ -12,6 +12,23 @@ from bot.services.remnawave import RemnawaveClient
 router = Router(name="auth")
 
 
+async def try_auto_verify_from_panel(
+    user,
+    user_repo: UserRepository,
+    remnawave: RemnawaveClient | None,
+) -> bool:
+    """Silently verify the user if their Telegram ID already exists in the Remnawave panel."""
+    if getattr(user, "is_verified", False):
+        return True
+    if remnawave is None:
+        return False
+    exists = await remnawave.telegram_id_exists(user.telegram_id)
+    if exists is True:
+        await user_repo.set_verified(user, True)
+        return True
+    return False
+
+
 @router.callback_query(F.data == "auth:login")
 async def login(
     call: CallbackQuery,

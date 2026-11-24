@@ -5,13 +5,15 @@ from html import escape
 from aiogram import Bot, F, Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from aiogram.types import CallbackQuery, ChatMemberUpdated, Message, ReplyKeyboardRemove
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from bot.common.helpers import format_channel_link, matches_channel
 from bot.config import get_settings
 from bot.db.models import Campaign, GiftCard
 from bot.db.repositories.user_repo import UserRepository
+from bot.handlers.auth import try_auto_verify_from_panel
 from bot.keyboards.inline import (
     language_keyboard,
     main_menu_keyboard,
@@ -23,6 +25,36 @@ from bot.services.menu import render_menu, reset_menu
 from bot.web.user_common import format_support_link
 
 router = Router(name="start")
+
+
+async def _render_verified_or_welcome(
+    bot: Bot,
+    user,
+    user_repo: UserRepository,
+    is_admin: bool,
+    remnawave=None,
+    *,
+    use_reset: bool = False,
+) -> None:
+    """Auto-verify against Remnawave in background and route straight to main menu when present."""
+    verified = await try_auto_verify_from_panel(user, user_repo, remnawave)
+    presenter = reset_menu if use_reset else render_menu
+    if verified:
+        await presenter(
+            bot,
+            user,
+            user_repo,
+            t(user.language, "main_menu_title"),
+            main_menu_keyboard(user.language, is_admin),
+        )
+    else:
+        await presenter(
+            bot,
+            user,
+            user_repo,
+            t(user.language, "welcome"),
+            welcome_keyboard(user.language),
+        )
 
 
 @router.message(CommandStart())
@@ -170,69 +202,109 @@ async def cmd_start(
         await cleaner.delete()
 
     # fresh menu message at the bottom of the chat
+    is_admin = message.from_user.id in get_settings().ADMIN_IDS
     if not user.language:
         await reset_menu(bot, user, user_repo, CHOOSE_LANGUAGE, language_keyboard())
-    elif user.is_verified:
-        is_admin = message.from_user.id in get_settings().ADMIN_IDS
-        await reset_menu(
-            bot, user, user_repo,
-            t(user.language, "main_menu_title"),
-            main_menu_keyboard(user.language, is_admin),
-        )
     else:
-        await reset_menu(
-            bot, user, user_repo,
-            t(user.language, "welcome"),
-            welcome_keyboard(user.language),
+        await _render_verified_or_welcome(
+            bot, user, user_repo, is_admin, remnawave=remnawave, use_reset=True,
         )
 
 
 @router.callback_query(F.data.startswith("lang:"))
-async def choose_language(call: CallbackQuery, bot: Bot, user_repo: UserRepository):
+async def choose_language(
+    call: CallbackQuery, bot: Bot, user_repo: UserRepository, remnawave=None,
+):
     lang = call.data.split(":", 1)[1]
     if lang not in ("fa", "en"):
         await call.answer()
         return
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     had_lang = bool(user.language)
-    was_verified = bool(user.is_verified)
     await user_repo.set_language(user, lang)
 
-    if had_lang:
-        # Language switch from settings → back to main menu, not welcome.
-        is_admin = call.from_user.id in get_settings().ADMIN_IDS
-        if was_verified:
-            await render_menu(
-                bot, user, user_repo,
-                t(lang, "main_menu_title"),
-                main_menu_keyboard(lang, is_admin),
-            )
-        else:
-            await render_menu(bot, user, user_repo, t(lang, "welcome"), welcome_keyboard(lang))
-        await call.answer(t(lang, "settings_saved"))
-        return
-
-    await render_menu(bot, user, user_repo, t(lang, "welcome"), welcome_keyboard(lang))
-    await call.answer()
+    is_admin = call.from_user.id in get_settings().ADMIN_IDS
+    await _render_verified_or_welcome(
+        bot, user, user_repo, is_admin, remnawave=remnawave, use_reset=False,
+    )
+    await call.answer(t(lang, "settings_saved") if had_lang else None)
 
 
 @router.callback_query(F.data == "nav:welcome")
 async def back_to_welcome(
-    call: CallbackQuery, bot: Bot, user_repo: UserRepository, state: FSMContext
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    state: FSMContext,
+    remnawave=None,
 ):
     await state.clear()
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
-    lang = user.language
-    if user.is_verified:
-        is_admin = call.from_user.id in get_settings().ADMIN_IDS
-        await render_menu(
-            bot, user, user_repo,
-            t(lang, "main_menu_title"),
-            main_menu_keyboard(lang, is_admin),
-        )
-    else:
-        await render_menu(bot, user, user_repo, t(lang, "welcome"), welcome_keyboard(lang))
+    is_admin = call.from_user.id in get_settings().ADMIN_IDS
+    await _render_verified_or_welcome(
+        bot, user, user_repo, is_admin, remnawave=remnawave, use_reset=False,
+    )
     await call.answer()
+
+
+@router.chat_member()
+async def on_channel_member_updated(
+    event: ChatMemberUpdated, bot: Bot, user_repo: UserRepository, session,
+):
+    """Notify registered users if they leave the mandatory join-gate channel."""
+    old_status = getattr(event.old_chat_member, "status", None)
+    new_status = getattr(event.new_chat_member, "status", None)
+    target_user = getattr(event.new_chat_member, "user", None)
+    if target_user is None or getattr(target_user, "is_bot", False):
+        return
+    if old_status not in ("member", "administrator", "creator", "restricted"):
+        return
+    if new_status not in ("left", "kicked"):
+        return
+
+    tg_id = target_user.id
+    if tg_id in get_settings().ADMIN_IDS:
+        return
+
+    store_settings = await get_store_settings(session)
+    if not getattr(store_settings, "join_gate_enabled", False):
+        return
+    gate_channel = (getattr(store_settings, "join_gate_channel", "") or "").strip()
+    if not gate_channel or not matches_channel(event.chat, gate_channel):
+        return
+
+    db_user = await user_repo.get_by_telegram_id(tg_id)
+    if db_user is None or getattr(db_user, "is_banned", False):
+        return
+
+    # Clear cached TMA dashboard so join gate blocks immediately
+    bot_cache = getattr(bot, "cache", None)
+    if bot_cache and hasattr(bot_cache, "delete"):
+        for k in (f"tma:user:{tg_id}:dashboard", f"tma:user:{tg_id}:dashboard:default", f"tma:user:{tg_id}:profile"):
+            with contextlib.suppress(Exception):
+                await bot_cache.delete(k)
+
+    channel_url = format_channel_link(gate_channel)
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    kb = InlineKeyboardBuilder()
+    if channel_url:
+        kb.button(text="📢 عضویت مجدد در کانال", url=channel_url)
+    lang = db_user.language or "fa"
+    text = (
+        "⚠️ <b>خروج از کانال رسمی</b>\n\n"
+        "شما از کانال اجباری ربات خارج شدید؛ بنابراین دسترسی به امکانات ربات و مینی‌اپ موقتاً متوقف شده است.\n"
+        "برای فعال‌سازی مجدد دسترسی، لطفاً دوباره در کانال عضو شوید:"
+        if lang == "fa"
+        else "⚠️ <b>You left the required channel</b>\n\n"
+        "Your access to bot and Mini App features has been paused until you rejoin our official channel:"
+    )
+    with contextlib.suppress(Exception):
+        await bot.send_message(
+            tg_id,
+            text,
+            reply_markup=kb.as_markup() if channel_url else None,
+            parse_mode="HTML",
+        )
 
 
 @router.message(F.contact)
