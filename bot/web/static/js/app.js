@@ -2909,48 +2909,47 @@ function setupThemeToggle() {
       speedModal.style.backgroundColor = '';
     }
 
-    const curIsLight = !isDark;
-    const chartTokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(curIsLight) : null;
-    const curTextColor = chartTokens ? chartTokens.legend : (curIsLight ? '#0f172a' : '#e2e8f0');
-    const curTickColor = chartTokens ? chartTokens.tick : (curIsLight ? '#475569' : '#94a3b8');
-    const curGridColor = chartTokens ? chartTokens.grid : (curIsLight ? 'rgba(148, 163, 184, 0.28)' : 'rgba(148, 163, 184, 0.14)');
+    // Defer chart updates asynchronously so UI theme transition is 100% instantaneous & 60+ FPS
+    setTimeout(() => {
+      const curIsLight = !isDark;
+      const chartTokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens(curIsLight) : null;
+      const curTextColor = chartTokens ? chartTokens.legend : (curIsLight ? '#0f172a' : '#e2e8f0');
+      const curTickColor = chartTokens ? chartTokens.tick : (curIsLight ? '#475569' : '#94a3b8');
+      const curGridColor = chartTokens ? chartTokens.grid : (curIsLight ? 'rgba(148, 163, 184, 0.28)' : 'rgba(148, 163, 184, 0.14)');
 
-    if (typeof Chart !== 'undefined') {
-      Chart.defaults.color = curTickColor;
-    }
-
-    if (window.chartInstances) {
-      Object.values(window.chartInstances).forEach(chart => {
-        if (!chart) return;
-        if (chart.options?.plugins?.legend?.labels) {
-          chart.options.plugins.legend.labels.color = curTextColor;
-        }
-        if (chart.legend?.legendItems) {
-          chart.legend.legendItems.forEach(item => {
-            item.fontColor = curTextColor;
-            item.color = curTextColor;
-          });
-        }
-        if (chart.options?.scales) {
-          if (chart.options.scales.x?.ticks) chart.options.scales.x.ticks.color = curTickColor;
-          if (chart.options.scales.y?.ticks) chart.options.scales.y.ticks.color = curTickColor;
-          if (chart.options.scales.y?.grid) chart.options.scales.y.grid.color = curGridColor;
-          if (chart.options.scales.x?.grid) chart.options.scales.x.grid.color = curGridColor;
-        }
-        try { chart.update(); } catch(e) {}
-      });
-    }
-
-    if (window.lastUserData?.active_sub) {
-      const sub = window.lastUserData.active_sub;
-      if (typeof renderBarChart === 'function') {
-        renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
-        renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'], true);
+      if (typeof Chart !== 'undefined') {
+        Chart.defaults.color = curTickColor;
       }
-      if (typeof renderActiveSubAnalytics === 'function') {
-        renderActiveSubAnalytics(sub);
+
+      if (window.chartInstances) {
+        Object.values(window.chartInstances).forEach(chart => {
+          if (!chart) return;
+          if (chart.options?.plugins?.legend?.labels) {
+            chart.options.plugins.legend.labels.color = curTextColor;
+          }
+          if (chart.legend?.legendItems) {
+            chart.legend.legendItems.forEach(item => {
+              item.fontColor = curTextColor;
+              item.color = curTextColor;
+            });
+          }
+          if (chart.options?.scales) {
+            if (chart.options.scales.x?.ticks) chart.options.scales.x.ticks.color = curTickColor;
+            if (chart.options.scales.y?.ticks) chart.options.scales.y.ticks.color = curTickColor;
+            if (chart.options.scales.y?.grid) chart.options.scales.y.grid.color = curGridColor;
+            if (chart.options.scales.x?.grid) chart.options.scales.x.grid.color = curGridColor;
+          }
+          try { chart.update('none'); } catch(e) {}
+        });
       }
-    }
+
+      const repTab = document.getElementById('tab-reports');
+      if (repTab && !repTab.classList.contains('hidden')) {
+        if (typeof renderReportsCharts === 'function') {
+          renderReportsCharts();
+        }
+      }
+    }, 60);
   };
 
   applyTheme();
@@ -2968,47 +2967,54 @@ function setupThemeToggle() {
     const nextDark = !isDark;
     const x = (event && typeof event.clientX === 'number') ? event.clientX : (window.innerWidth - 30);
     const y = (event && typeof event.clientY === 'number') ? event.clientY : 24;
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
 
-    const performThemeChange = () => {
+    if (window.hapticFeedback) window.hapticFeedback('impact');
+    if (typeof window.playSubtleSound === 'function') window.playSubtleSound('light');
+
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
       isDark = nextDark;
       localStorage.setItem('remna_user_theme', isDark ? 'dark' : 'light');
       applyTheme();
-      if (window.hapticFeedback) window.hapticFeedback('impact');
-      if (typeof window.playSubtleSound === 'function') window.playSubtleSound('light');
-    };
-
-    if (!document.startViewTransition || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
-      performThemeChange();
       return;
     }
 
-    try {
-      const transition = document.startViewTransition(() => {
-        performThemeChange();
-      });
+    const maxDim = Math.max(window.innerWidth, window.innerHeight);
+    const size = Math.ceil(maxDim * 2.8);
 
-      transition.ready.then(() => {
-        document.documentElement.animate(
-          {
-            clipPath: [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`
-            ]
-          },
-          {
-            duration: 380,
-            easing: 'ease-in-out',
-            pseudoElement: '::view-transition-new(root)'
-          }
-        );
-      }).catch(() => {});
-    } catch (_) {
-      performThemeChange();
-    }
+    const ripple = document.createElement('div');
+    ripple.className = 'theme-ripple-overlay';
+    ripple.style.cssText = `
+      position: fixed;
+      left: ${x}px;
+      top: ${y}px;
+      width: ${size}px;
+      height: ${size}px;
+      margin-left: -${size / 2}px;
+      margin-top: -${size / 2}px;
+      border-radius: 50%;
+      background-color: ${nextDark ? '#0c1220' : '#f8fafc'};
+      pointer-events: none;
+      z-index: 99999;
+      transform: scale(0);
+      will-change: transform, opacity;
+      transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 140ms ease-out;
+    `;
+    document.body.appendChild(ripple);
+
+    requestAnimationFrame(() => {
+      ripple.style.transform = 'scale(1)';
+    });
+
+    setTimeout(() => {
+      isDark = nextDark;
+      localStorage.setItem('remna_user_theme', isDark ? 'dark' : 'light');
+      applyTheme();
+      ripple.style.opacity = '0';
+      setTimeout(() => {
+        ripple.remove();
+      }, 150);
+    }, 180);
   });
 }
 

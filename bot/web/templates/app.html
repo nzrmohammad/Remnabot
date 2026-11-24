@@ -76,7 +76,7 @@
     <div id="topHeaderBar" class="top-nav-bar px-4 pt-[max(1.125rem,calc(var(--tg-content-safe-area-inset-top,var(--tg-safe-area-inset-top,env(safe-area-inset-top,0px)))+8px))] pb-1.5 flex items-center justify-between z-20 transition-all duration-200">
       <!-- Right Side (in RTL): Avatar + Active Account + Switch Btn -->
       <div class="flex items-center gap-2 min-w-0">
-        <div id="headerUserAvatar" class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow overflow-hidden flex-shrink-0">
+        <div id="headerUserAvatar" onclick="window.triggerLogoEasterEgg && window.triggerLogoEasterEgg()" class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow overflow-hidden flex-shrink-0 cursor-pointer active:scale-90 transition select-none" title="پروفایل کاربری (لمس متوالی برای وضعیت VIP)">
           <img id="headerUserAvatarImg" class="w-full h-full object-cover hidden" alt="Avatar" referrerpolicy="no-referrer" width="28" height="28">
           <span id="headerUserAvatarInitial">U</span>
         </div>
@@ -89,12 +89,6 @@
             <span class="text-[11px]">▼</span>
           </button>
         </div>
-      </div>
-
-      <!-- Center: Brand Logo / VIP Easter Egg Trigger -->
-      <div id="headerBrandLogo" role="button" tabindex="0" onclick="window.triggerLogoEasterEgg && window.triggerLogoEasterEgg()" class="flex items-center gap-1.5 cursor-pointer select-none py-1 px-2.5 rounded-xl transition active:scale-90 hover:bg-slate-500/10" title="Remna" aria-label="لوگوی اختصاصی رمنا">
-        <span class="font-black text-sm tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 font-sans">Remna</span>
-        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
       </div>
 
       <!-- Left Side (in RTL): Support + Theme Toggle + Fallback Close + Hidden Sessions Stub -->
@@ -584,17 +578,6 @@
           <span class="hidden speedtest-sub"></span>
           <div class="flex items-center gap-1 t-muted group-hover:t-main font-medium text-xs card-inset px-2.5 py-1.5 rounded-xl border border-card-border transition">
             <span>شروع</span>
-          </div>
-        </button>
-
-        <!-- Usage Wrapped / Story Card Entry Banner Card -->
-        <button id="openUsageStoryModalBtn" type="button" onclick="window.openStoryCard && window.openStoryCard('usage')" class="card w-full hover:bg-slate-500/5 dark:hover:bg-slate-800/25 p-3 rounded-2xl border border-indigo-500/30 text-right flex items-center justify-between transition shadow-sm group active:scale-[0.98]">
-          <span class="text-xs font-bold t-main flex items-center gap-1.5">
-            <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" alt="" aria-hidden="true" loading="eager" width="16" height="16">
-            <span>کارنامه مصرف اینترنت آزاد (استوری تلگرام)</span>
-          </span>
-          <div class="flex items-center gap-1 t-accent font-medium text-xs card-inset px-2.5 py-1.5 rounded-xl border border-card-border transition">
-            <span>مشاهده</span>
           </div>
         </button>
 
@@ -1208,7 +1191,7 @@
 
                 <!-- Top / Balance section (Left-aligned) -->
                 <div class="relative z-10 flex items-center gap-2 max-w-[210px] sm:max-w-[230px]">
-                  <img src="/static/img/icons/diamond.svg?v=fl2" class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 drop-shadow-md select-none" alt="Diamond" />
+                  <img src="/static/img/icons/diamond.svg?v=fl2" onclick="event.stopPropagation(); if (window.triggerLogoEasterEgg) window.triggerLogoEasterEgg();" class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 drop-shadow-md select-none cursor-pointer active:scale-90 transition" alt="Diamond" title="الماس رمنا" />
                   <span id="userWalletCardBalance" class="text-xl sm:text-2xl font-black text-white tracking-tight font-sans drop-shadow select-none whitespace-nowrap">
                     0 تومان
                   </span>
@@ -1220,15 +1203,10 @@
                     <span id="userWalletCardName" class="font-sans font-bold tracking-wider text-xs sm:text-sm text-white/95 uppercase drop-shadow-sm truncate max-w-[170px] select-none">
                       USER
                     </span>
-                    <span class="text-[9px] font-sans tracking-widest text-slate-300/80 uppercase">CARDHOLDER</span>
                   </div>
-                  <div role="button" tabindex="0" onclick="event.stopPropagation(); if (window.copyUserCardId) window.copyUserCardId();" class="flex flex-col items-end cursor-pointer active:scale-95 transition select-none" title="کپی شماره کارت مجازی (شناسه دریافت هدیه)">
+                  <div role="button" tabindex="0" onclick="event.stopPropagation(); if (window.copyUserCardId) window.copyUserCardId();" class="flex flex-col items-end cursor-pointer active:scale-95 transition select-none" title="کپی شناسه کاربری (جهت دریافت هدیه)">
                     <span id="userWalletCardNumber" class="font-sans text-xs sm:text-[13px] font-bold text-cyan-300 drop-shadow-sm tracking-widest" dir="ltr">
-                      ID: ------
-                    </span>
-                    <span class="text-[9px] font-sans tracking-wider text-cyan-400/80 flex items-center gap-0.5">
-                      <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-2.5 h-2.5 shrink-0 opacity-80" width="10" height="10" alt="" />
-                      <span>RECEIVE GIFT</span>
+                      ------
                     </span>
                   </div>
                 </div>
@@ -1752,6 +1730,20 @@
               </label>
             </div>
 
+            <!-- Sound Effects Toggle (افکت‌های صوتی لمسی) -->
+            <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
+              <div>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/bell.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />افکت‌های صوتی لمسی</span>
+                <span class="text-[11px] t-muted">پخش صدای ملایم لمس، کپی و جوایز</span>
+              </div>
+              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settingToggleSoundFx" class="sr-only switch-checkbox" checked onchange="window.toggleSoundFx && window.toggleSoundFx(this.checked)">
+                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
+                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
+                </div>
+              </label>
+            </div>
+
             <!-- Toggle: Auto-Renew -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
@@ -1838,20 +1830,6 @@
                 <button type="button" data-color="purple" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('purple')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #8e24aa, #4a148c);" title="بنفش نئونی"></button>
                 <button type="button" data-color="yellow" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('yellow')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #fb8c00, #bf360c);" title="طلایی متالیک"></button>
               </div>
-            </div>
-
-            <!-- Sound Effects Toggle (افکت‌های صوتی لمسی) -->
-            <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
-              <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/bell.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />افکت‌های صوتی لمسی (Sound FX)</span>
-                <span class="text-[11px] t-muted">پخش صدای ملایم ورق زدن، کپی و خرید</span>
-              </div>
-              <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="settingToggleSoundFx" class="sr-only switch-checkbox" checked onchange="window.toggleSoundFx && window.toggleSoundFx(this.checked)">
-                <div class="switch-label w-11 h-6 bg-slate-700 rounded-full transition-colors duration-200 flex items-center px-0.5">
-                  <div class="switch-ball w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"></div>
-                </div>
-              </label>
             </div>
           </div>
         </div>
@@ -2964,18 +2942,6 @@
     <div id="storyCardModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card relative w-full max-w-[330px] flex flex-col items-center space-y-3 my-auto">
         <button id="closeStoryCardBtn" class="modal-close-btn absolute -top-3.5 left-0 z-20" title="بستن" aria-label="بستن کارت استوری"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
-
-        <!-- Mode Switcher: Referral vs Usage Wrapped -->
-        <div class="flex items-center p-1 bg-slate-800/80 rounded-xl border border-slate-700/60 w-full mb-1">
-          <button id="storyModeReferralBtn" type="button" class="flex-1 py-1 px-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1 cursor-pointer border-0">
-            <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
-            <span>معرفی و پاداش</span>
-          </button>
-          <button id="storyModeUsageBtn" type="button" class="flex-1 py-1 px-2 text-xs font-medium rounded-lg transition text-slate-300 hover:text-white flex items-center justify-center gap-1 cursor-pointer bg-transparent border-0">
-            <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
-            <span>کارنامه مصرف من</span>
-          </button>
-        </div>
 
         <!-- Redesigned Premium Glassmorphic Card Container -->
         <div id="exportableStoryCard" class="surface-dark on-dark w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-xl">

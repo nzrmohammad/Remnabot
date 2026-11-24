@@ -343,7 +343,7 @@ window.renderUserWalletCard = function(userData) {
     cardNameEl.innerText = rawName || 'REMNA VIP';
   }
   if (cardNumEl) {
-    cardNumEl.innerText = tgId ? `ID: ${tgId}` : 'ID: ------';
+    cardNumEl.innerText = tgId || '------';
   }
 
   window.copyUserCardId = function() {

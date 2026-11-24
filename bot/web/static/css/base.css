@@ -147,3 +147,18 @@ html {
   }
 }
 
+/* Mobile Smooth Scrolling & Instant Touch Response */
+#contentArea,
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+button,
+.btn,
+.nav-btn,
+.card,
+[role="button"] {
+  touch-action: manipulation;
+}
+
