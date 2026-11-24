@@ -1248,6 +1248,10 @@
             <span class="flex items-center gap-1.5 font-medium">
               <img src="/static/img/icons/wallet.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 inline-block" width="20" height="20" alt="" /> <span>موجودی کیف پول شما</span>
             </span>
+            <button type="button" onclick="window.openWalletCurrencyModal && window.openWalletCurrencyModal()" class="flex items-center gap-1.5 text-[11px] font-bold t-accent card-inset px-2.5 py-1 rounded-xl border border-card-border hover:border-cyan-500/40 transition active:scale-95 shadow-2xs" title="تغییر واحد پول نمایش">
+              <span id="classicWalletCurrencyDisplay">تومان</span>
+              <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0 opacity-80" width="12" height="12" alt="" />
+            </button>
           </div>
 
           <div class="py-2">
@@ -1788,6 +1792,22 @@
                   <span id="userCurrencyDisplay">تومان</span>
                   <img src="/static/img/icons/settings.svg?v=fl2" class="ui-icon-img w-3 h-3 shrink-0" width="12" height="12" alt="" aria-hidden="true" />
                 </button>
+              </div>
+            </div>
+
+            <!-- Card Color Swatches (رنگ کارت سه‌بعدی کیف پول) -->
+            <div id="userWalletColorRow" class="flex items-center justify-between py-1 border-t border-card-border pt-2">
+              <div>
+                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />رنگ کارت کیف پول</span>
+                <span id="userWalletColorSubtext" class="text-[11px] t-muted">طرح فعال: آبی رویال</span>
+              </div>
+              <div class="flex items-center gap-1.5" dir="ltr">
+                <button type="button" data-color="blue" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('blue')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #1e88e5, #0d47a1);" title="آبی رویال"></button>
+                <button type="button" data-color="black" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('black')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #3f3f46, #09090b);" title="مشکی کربن"></button>
+                <button type="button" data-color="green" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('green')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #00897b, #004d40);" title="سبز یشمی"></button>
+                <button type="button" data-color="red" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('red')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #e53935, #b71c1c);" title="قرمز یاقوتی"></button>
+                <button type="button" data-color="purple" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('purple')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #8e24aa, #4a148c);" title="بنفش نئونی"></button>
+                <button type="button" data-color="yellow" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('yellow')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #fb8c00, #bf360c);" title="طلایی متالیک"></button>
               </div>
             </div>
           </div>

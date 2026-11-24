@@ -46,6 +46,9 @@ def test_wallet_graphic_card_html_structure():
     assert 'CARD HOLDER' not in content
     assert 'userWalletCardVerticalCode' not in content
     assert 'Remna but lovely' in content
+    assert 'classicWalletCurrencyDisplay' in content
+    assert 'userWalletColorRow' in content
+    assert 'wallet-card-color-swatch' in content
     assert 'id="walletCurrencyModal"' in content
     assert 'id="userCurrencyTriggerBtn"' in content
     assert 'id="userCurrencyInput"' in content
@@ -86,6 +89,10 @@ def test_wallet_graphic_card_js_logic():
     assert "WALLET_CURRENCY_OPTIONS" in content
     assert "'pol'" in content
     assert "'stars'" in content
+    assert "USER_WALLET_PALETTES" in content
+    assert "window.setUserWalletCardColor" in content
+    assert "window.applyUserWalletCardColor" in content
+    assert "classicWalletCurrencyDisplay" in content
 
 
 def test_app_js_wallet_card_integration():
@@ -112,6 +119,12 @@ def test_shop_guidance_toast_and_dns_presets():
     assert "\\n" not in shop_js.split("showShopGuidanceToast")[1].split("}")[0]
     # utils.js toast allows horizontal width expansion
     assert "w-max max-w-[95%] sm:max-w-xl" in utils_js
+
+    # DNS Categorization and Badges in app.js
+    assert "window.setDnsCategory" in app_js
+    assert "_currentDnsCategory" in app_js
+    assert "DoH" in app_js
+    assert "DoT" in app_js
 
     # 2. Quad9 & Major DNS presets (DoH, DoT, IPv6) in app.js and admin_settings.js
     for js_code in (app_js, admin_settings_js):

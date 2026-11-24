@@ -164,21 +164,107 @@ window.toggleWalletCardView = function(isGraphic, showToastMsg = true) {
   }
 };
 
+const USER_WALLET_PALETTES = {
+  blue: {
+    id: 'blue',
+    name: 'آبی رویال',
+    front: 'radial-gradient(circle at 45% 40%, #1e88e5 0%, #1565c0 45%, #0d47a1 80%, #0a256e 100%)',
+    back: 'radial-gradient(circle at 50% 50%, #1565c0 0%, #0d47a1 50%, #081d52 100%)',
+    accent: '#bfdbfe',
+    shadow: '0 20px 42px -10px rgba(13, 71, 161, 0.52)'
+  },
+  black: {
+    id: 'black',
+    name: 'مشکی کربن',
+    front: 'radial-gradient(circle at 45% 40%, #3f3f46 0%, #27272a 45%, #18181b 80%, #09090b 100%)',
+    back: 'radial-gradient(circle at 50% 50%, #27272a 0%, #18181b 50%, #09090b 100%)',
+    accent: '#cbd5e1',
+    shadow: '0 20px 42px -10px rgba(24, 24, 27, 0.65)'
+  },
+  green: {
+    id: 'green',
+    name: 'سبز یشمی',
+    front: 'radial-gradient(circle at 45% 40%, #00897b 0%, #00695c 45%, #004d40 80%, #00251a 100%)',
+    back: 'radial-gradient(circle at 50% 50%, #00695c 0%, #004d40 50%, #00251a 100%)',
+    accent: '#a7f3d0',
+    shadow: '0 20px 42px -10px rgba(0, 77, 64, 0.55)'
+  },
+  red: {
+    id: 'red',
+    name: 'قرمز یاقوتی',
+    front: 'radial-gradient(circle at 45% 40%, #e53935 0%, #c62828 45%, #b71c1c 80%, #5f0909 100%)',
+    back: 'radial-gradient(circle at 50% 50%, #c62828 0%, #b71c1c 50%, #5f0909 100%)',
+    accent: '#fecaca',
+    shadow: '0 20px 42px -10px rgba(183, 28, 28, 0.55)'
+  },
+  purple: {
+    id: 'purple',
+    name: 'بنفش نئونی',
+    front: 'radial-gradient(circle at 45% 40%, #8e24aa 0%, #6a1b9a 45%, #4a148c 80%, #26054f 100%)',
+    back: 'radial-gradient(circle at 50% 50%, #6a1b9a 0%, #4a148c 50%, #26054f 100%)',
+    accent: '#e9d5ff',
+    shadow: '0 20px 42px -10px rgba(74, 20, 140, 0.55)'
+  },
+  yellow: {
+    id: 'yellow',
+    name: 'طلایی متالیک',
+    front: 'radial-gradient(circle at 45% 40%, #fb8c00 0%, #e65100 45%, #bf360c 80%, #5d1700 100%)',
+    back: 'radial-gradient(circle at 50% 50%, #e65100 0%, #bf360c 50%, #5d1700 100%)',
+    accent: '#fed7aa',
+    shadow: '0 20px 42px -10px rgba(191, 54, 12, 0.55)'
+  }
+};
+
+window.setUserWalletCardColor = function(colorKey) {
+  const pal = USER_WALLET_PALETTES[colorKey] || USER_WALLET_PALETTES.blue;
+  localStorage.setItem('user_wallet_card_color', pal.id);
+  window.applyUserWalletCardColor(pal.id);
+  if (typeof showToast === 'function') {
+    showToast(`🎨 رنگ کارت به ${pal.name} تغییر یافت.`, 'info');
+  }
+  if (window.hapticFeedback) {
+    window.hapticFeedback('selection');
+  }
+};
+
+window.applyUserWalletCardColor = function(colorKey) {
+  const curKey = colorKey || localStorage.getItem('user_wallet_card_color') || 'blue';
+  const pal = USER_WALLET_PALETTES[curKey] || USER_WALLET_PALETTES.blue;
+  const front = document.querySelector('.user-wallet-card-front');
+  const back = document.querySelector('.user-wallet-card-back');
+  if (front) {
+    front.style.background = pal.front;
+    front.style.boxShadow = `${pal.shadow}, inset 0 1px 1px rgba(255, 255, 255, 0.35)`;
+  }
+  if (back) {
+    back.style.background = pal.back;
+    back.style.boxShadow = `${pal.shadow}, inset 0 1px 1px rgba(255, 255, 255, 0.35)`;
+  }
+  const subEl = document.getElementById('userWalletColorSubtext');
+  if (subEl) {
+    subEl.innerText = `طرح فعال: ${pal.name}`;
+  }
+  document.querySelectorAll('.wallet-card-color-swatch').forEach(btn => {
+    const isAct = btn.getAttribute('data-color') === pal.id;
+    btn.classList.toggle('ring-2', isAct);
+    btn.classList.toggle('ring-offset-2', isAct);
+    btn.classList.toggle('ring-cyan-500', isAct);
+  });
+};
+
 window.renderUserWalletCard = function(userData) {
   const user = userData || window.lastUserData?.user;
   const rawBal = Number(user?.wallet_balance || 0);
 
-  // Sync legacy hidden element and classic wallet box balance
+  // Sync legacy hidden element
   const walletTabBal = document.getElementById('walletTabBalance');
   if (walletTabBal) {
     walletTabBal.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
   }
-  const classicBal = document.getElementById('classicWalletBalance');
-  if (classicBal) {
-    classicBal.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
-  }
 
   const balEl = document.getElementById('userWalletCardBalance');
+  const classicBal = document.getElementById('classicWalletBalance');
+  const classicCurrDisp = document.getElementById('classicWalletCurrencyDisplay');
   const nameEl = document.getElementById('userWalletCardName');
 
   // Rates from storeSettings or defaults
@@ -190,27 +276,34 @@ window.renderUserWalletCard = function(userData) {
 
   const currentCurrency = localStorage.getItem('user_wallet_currency') || 'toman';
 
-  if (balEl) {
-    if (currentCurrency === 'ton') {
-      const tonVal = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
-      balEl.innerText = `${tonVal} TON`;
-    } else if (currentCurrency === 'usdt') {
-      const usdtVal = usdtRate > 0 ? (rawBal / usdtRate).toFixed(2) : '0';
-      balEl.innerText = `${usdtVal} USDT`;
-    } else if (currentCurrency === 'trx') {
-      const trxVal = trxRate > 0 ? (rawBal / trxRate).toFixed(2) : '0';
-      balEl.innerText = `${trxVal} TRX`;
-    } else if (currentCurrency === 'pol') {
-      const polVal = polRate > 0 ? (rawBal / polRate).toFixed(3) : '0';
-      balEl.innerText = `${polVal} POL`;
-    } else if (currentCurrency === 'stars') {
-      const starsVal = starsRate > 0 ? Math.floor(rawBal / starsRate).toLocaleString('en-US') : '0';
-      balEl.innerText = `${starsVal} ⭐️`;
-    } else {
-      // Default: Toman (only one unit displayed)
-      balEl.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
-    }
+  let formattedBalStr = `${rawBal.toLocaleString('en-US')} تومان`;
+  let currencyShortName = 'تومان';
+
+  if (currentCurrency === 'ton') {
+    const tonVal = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
+    formattedBalStr = `${tonVal} TON`;
+    currencyShortName = 'TON';
+  } else if (currentCurrency === 'usdt') {
+    const usdtVal = usdtRate > 0 ? (rawBal / usdtRate).toFixed(2) : '0';
+    formattedBalStr = `${usdtVal} USDT`;
+    currencyShortName = 'USDT';
+  } else if (currentCurrency === 'trx') {
+    const trxVal = trxRate > 0 ? (rawBal / trxRate).toFixed(2) : '0';
+    formattedBalStr = `${trxVal} TRX`;
+    currencyShortName = 'TRX';
+  } else if (currentCurrency === 'pol') {
+    const polVal = polRate > 0 ? (rawBal / polRate).toFixed(3) : '0';
+    formattedBalStr = `${polVal} POL`;
+    currencyShortName = 'POL';
+  } else if (currentCurrency === 'stars') {
+    const starsVal = starsRate > 0 ? Math.floor(rawBal / starsRate).toLocaleString('en-US') : '0';
+    formattedBalStr = `${starsVal} ⭐️`;
+    currencyShortName = 'Stars ⭐️';
   }
+
+  if (balEl) balEl.innerText = formattedBalStr;
+  if (classicBal) classicBal.innerText = formattedBalStr;
+  if (classicCurrDisp) classicCurrDisp.innerText = currencyShortName;
 
   // Cardholder name
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
@@ -218,6 +311,8 @@ window.renderUserWalletCard = function(userData) {
   const lastName = tgUser?.last_name || user?.last_name || '';
   const fullName = `${firstName} ${lastName}`.trim() || user?.username || 'REMNABOT USER';
   if (nameEl) nameEl.innerText = fullName;
+
+  window.applyUserWalletCardColor();
 };
 
 const BLUBANK_PALETTES = {

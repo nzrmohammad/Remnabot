@@ -1577,4 +1577,18 @@ html.theme-light .user-wallet-card-face * {
   transform: scale(0.92);
 }
 
+.wallet-card-color-swatch {
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wallet-card-color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.wallet-card-color-swatch:active {
+  transform: scale(0.92);
+}
+
 

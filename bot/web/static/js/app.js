@@ -1380,6 +1380,17 @@ const TV_COMPATIBLE_APPS = {
   incy: { ios: ['📺 Apple TV'], android: ['📺 Android TV'], tv: ['📺 Android TV'] }
 };
 
+let _currentDnsCategory = 'all';
+window.setDnsCategory = function(cat) {
+  _currentDnsCategory = cat || 'all';
+  if (typeof renderTutorialApps === 'function') {
+    renderTutorialApps('dns');
+  }
+  if (typeof hapticFeedback === 'function') {
+    hapticFeedback('selection');
+  }
+};
+
 function renderTutorialApps(osKey) {
   currentTutorialOS = osKey || 'ios';
   const listContainer = $('tutorialAppsList');
@@ -1467,18 +1478,70 @@ function renderTutorialApps(osKey) {
     return;
   }
 
-  // Dedicated DNS Tab Rendering (Clean, LTR, High Contrast in Light Theme, Icon-only copy)
+  // Dedicated DNS Tab Rendering (Clean, LTR, High Contrast in Light Theme, Icon-only copy, Categorized tabs & badges)
   if (currentTutorialOS === 'dns') {
     const tvDnsList = (Array.isArray(overrides?.tv_dns_list) && overrides.tv_dns_list.length > 0)
       ? overrides.tv_dns_list
       : DEFAULT_TV_DNS_LIST;
 
-    const dnsCardsHtml = tvDnsList.map((dns, idx) => {
+    const IRAN_DNS_NAMES = ['electro', 'shecan', 'radar plus', 'begzar', 'shelter', 'xodns', 'tic dns'];
+    const GLOBAL_DNS_NAMES = ['cloudflare', 'google', 'quad9', 'adguard', 'opendns', 'yandex'];
+
+    const categorizedList = tvDnsList.map((dns, idx) => {
+      const lowerName = String(dns.name || '').toLowerCase();
+      const isSecure = lowerName.includes('doh') || lowerName.includes('dot') || String(dns.primary || '').startsWith('https://') || String(dns.secondary || '').startsWith('https://') || String(dns.primary || '').startsWith('tls://') || String(dns.secondary || '').startsWith('tls://') || String(dns.primary || '').includes('dns.');
+      const isIran = IRAN_DNS_NAMES.some(k => lowerName.startsWith(k));
+      const isGlobal = GLOBAL_DNS_NAMES.some(k => lowerName.startsWith(k));
+      return {
+        ...dns,
+        originalIdx: idx,
+        isSecure,
+        isIran,
+        isGlobal
+      };
+    });
+
+    const totalCount = categorizedList.length;
+    const iranCount = categorizedList.filter(d => d.isIran).length;
+    const globalCount = categorizedList.filter(d => d.isGlobal).length;
+    const secureCount = categorizedList.filter(d => d.isSecure).length;
+
+    const filteredDnsList = categorizedList.filter(d => {
+      if (_currentDnsCategory === 'antisanction') return d.isIran;
+      if (_currentDnsCategory === 'global') return d.isGlobal;
+      if (_currentDnsCategory === 'secure') return d.isSecure;
+      return true;
+    });
+
+    const dnsCardsHtml = filteredDnsList.map((dns, idx) => {
       const cleanName = (dns.name || `DNS ${idx + 1}`).replace(/[\u0600-\u06FF]/g, '').trim() || (dns.name || `DNS ${idx + 1}`);
       const isUrlOrLong = (dns.primary && dns.primary.length > 18) || (dns.secondary && dns.secondary.length > 18);
       const gridClass = isUrlOrLong
         ? (dns.secondary ? 'grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs' : 'grid grid-cols-1 gap-1.5 text-xs')
         : 'grid grid-cols-2 gap-2 text-xs';
+
+      let badgeHtml = '';
+      let displayName = cleanName;
+      if (cleanName.includes('(DoH)')) {
+        displayName = cleanName.replace('(DoH)', '').trim();
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">DoH</span>';
+      } else if (cleanName.includes('(DoT)')) {
+        displayName = cleanName.replace('(DoT)', '').trim();
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">DoT</span>';
+      } else if (cleanName.includes('(IPv6)')) {
+        displayName = cleanName.replace('(IPv6)', '').trim();
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">IPv6</span>';
+      } else if (cleanName.includes('(Uncensored)')) {
+        displayName = cleanName.replace('(Uncensored)', '').trim();
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">NoFilter</span>';
+      } else if (cleanName.includes('(Security)')) {
+        displayName = cleanName.replace('(Security)', '').trim();
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">Security</span>';
+      } else if (cleanName.includes('(Family)')) {
+        displayName = cleanName.replace('(Family)', '').trim();
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">Family</span>';
+      }
+
       return `
         <div class="tutorial-app-card rounded-2xl p-3 card-inset border border-card-border space-y-2 transition" dir="ltr">
           <div class="flex items-center justify-between gap-2">
@@ -1486,7 +1549,10 @@ function renderTutorialApps(osKey) {
               <div class="w-8 h-8 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner">
                 <img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 text-cyan-600 dark:text-cyan-400" width="16" height="16" alt="" />
               </div>
-              <b class="text-xs t-main font-bold truncate font-sans">${escapeHtml(cleanName)}</b>
+              <div class="flex items-center gap-1.5 min-w-0">
+                <b class="text-xs t-main font-bold truncate font-sans">${escapeHtml(displayName)}</b>
+                ${badgeHtml}
+              </div>
             </div>
             <button type="button" class="btn-copy-dns-pair p-2 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 transition active:scale-95 shadow-sm" data-primary="${escapeHtml(dns.primary || '')}" data-secondary="${escapeHtml(dns.secondary || '')}" title="کپی هر دو DNS">
               <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="Copy Both" />
@@ -1505,6 +1571,15 @@ function renderTutorialApps(osKey) {
         </div>
       `;
     }).join('');
+
+    const dnsFilterTabsHtml = `
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scroll" dir="rtl">
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('all')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'all' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">همه (${totalCount})</button>
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('antisanction')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'antisanction' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">ضدتحریم 🇮🇷 (${iranCount})</button>
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('global')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'global' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">بین‌المللی 🌐 (${globalCount})</button>
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('secure')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'secure' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">DoH / DoT 🔒 (${secureCount})</button>
+      </div>
+    `;
 
     const dnsToolsHtml = DEFAULT_DNS_CHANGER_TOOLS.map(tool => {
       const toolCfg = overrides?.dns_tools?.[tool.id];
@@ -1535,13 +1610,16 @@ function renderTutorialApps(osKey) {
     }).join('');
 
     listContainer.innerHTML = `
-      <div class="space-y-2">
-        <div class="flex items-center gap-1.5 px-1 pt-1">
-          <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
-          <b class="text-xs t-main font-bold">آدرس سرورهای DNS</b>
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between px-1 pt-1">
+          <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
+            <b class="text-xs t-main font-bold">آدرس سرورهای DNS</b>
+          </div>
         </div>
+        ${dnsFilterTabsHtml}
         <div class="space-y-2">
-          ${dnsCardsHtml}
+          ${dnsCardsHtml || '<div class="card-inset p-4 rounded-2xl text-center text-xs t-muted">هیچ سرور DNS در این دسته‌بندی یافت نشد.</div>'}
         </div>
       </div>
 
