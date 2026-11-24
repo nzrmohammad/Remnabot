@@ -2390,14 +2390,10 @@
                 <!-- Dynamically populated DNS rows with delete buttons -->
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button type="button" onclick="window.adminActions.addAdminTvDnsRow()" class="py-2.5 px-3 rounded-2xl card-inset hover:border-cyan-500/50 text-cyan-600 dark:text-cyan-400 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm border border-[var(--card-border)]">
+              <div class="pt-1">
+                <button type="button" onclick="window.adminActions.addAdminTvDnsRow()" class="w-full py-2.5 px-3 rounded-2xl card-inset hover:border-cyan-500/50 text-cyan-600 dark:text-cyan-400 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm border border-[var(--card-border)]">
                   <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   <span>افزودن سرور DNS جدید</span>
-                </button>
-                <button type="button" onclick="window.adminActions.resetAdminTvDnsToDefaults()" class="py-2.5 px-3 rounded-2xl card-inset hover:border-emerald-500/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm border border-[var(--card-border)]" title="بارگذاری مجدد لیست کامل 30+ سرور DNS شامل Quad9 و DoH/DoT">
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-                  <span>بارگذاری پیش‌فرض‌ها (Quad9 و DoH/DoT)</span>
                 </button>
               </div>
 

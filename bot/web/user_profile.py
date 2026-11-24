@@ -41,6 +41,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag, now_tz
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
+from bot.web.admin_overview_charts import USERS_PERIODIC_BANDWIDTH_CACHE_KEY  # noqa: F401
 
 FLAG_EMOJI_RE = re.compile(r"[\U0001F1E6-\U0001F1FF]{2}")
 

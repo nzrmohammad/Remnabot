@@ -493,6 +493,14 @@ html.theme-light .system-status-card .status-pill-invite {
   z-index: var(--z-toast, 100);
 }
 
+#appToast {
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2rem), 520px);
+  box-sizing: border-box;
+}
+
 /* Print Media Styles for Official Digital Invoice */
 @media print {
   body * { visibility: hidden; }

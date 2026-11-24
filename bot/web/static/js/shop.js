@@ -1319,7 +1319,7 @@ function showShopGuidanceToast() {
   if (now - _lastShopToastTime < 3500) return;
   _lastShopToastTime = now;
   if (typeof showToast === 'function') {
-    showToast('💡 جهت شروع، یکی از سرویس‌های کامل را انتخاب فرمایید — در صورت کندی اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود.', 'info', 4500);
+    showToast('💡 جهت شروع، یکی از سرویس‌های کامل را انتخاب فرمایید.\n(در صورت کندی اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود)', 'info', 4500);
   }
 }
 window.showShopGuidanceToast = showShopGuidanceToast;

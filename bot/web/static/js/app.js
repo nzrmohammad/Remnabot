@@ -1192,60 +1192,40 @@ function getDownloadButtonInfo(url, defaultLabel = 'دانلود مستقیم', 
 
 const DEFAULT_TV_DNS_LIST = [
   // 1. Anti-Sanction / Gaming DNS (Iran)
-  { name: 'Electro', primary: '78.157.42.101', secondary: '78.157.42.100' },
-  { name: 'Electro (DoH)', primary: 'https://elc.elcdn.ir/dns-query', secondary: 'https://78.157.42.101/dns-query' },
-  { name: 'Electro (DoT)', primary: 'elc.elcdn.ir', secondary: 'tls://78.157.42.101' },
-  { name: 'Shecan', primary: '178.22.122.100', secondary: '185.51.200.2' },
-  { name: 'Shecan (DoH)', primary: 'https://free.shecan.ir/dns-query', secondary: 'https://178.22.122.100/dns-query' },
-  { name: 'Shecan (DoT)', primary: 'free.shecan.ir', secondary: 'tls://178.22.122.100' },
-  { name: 'Radar Plus', primary: '10.202.10.10', secondary: '10.202.10.11' },
-  { name: 'Radar Plus (DoH)', primary: 'https://dns.radar.game/dns-query', secondary: 'https://10.202.10.10/dns-query' },
-  { name: 'Radar Plus (DoT)', primary: 'dns.radar.game', secondary: 'tls://10.202.10.10' },
-  { name: 'Begzar', primary: '185.55.226.26', secondary: '185.55.225.25' },
-  { name: 'Begzar (DoH)', primary: 'https://dns.begzar.ir/dns-query', secondary: 'https://185.55.226.26/dns-query' },
-  { name: 'Shelter', primary: '87.107.206.15', secondary: '87.107.206.16' },
-  { name: 'XoDNS', primary: '85.208.255.71', secondary: '85.208.255.182' },
-  { name: 'TIC DNS', primary: '217.218.127.127', secondary: '217.218.155.155' },
+  { name: 'Electro', primary: '78.157.42.101', secondary: '78.157.42.100', doh: 'https://elc.elcdn.ir/dns-query', dot: 'elc.elcdn.ir' },
+  { name: 'Shecan', primary: '178.22.122.100', secondary: '185.51.200.2', doh: 'https://free.shecan.ir/dns-query', dot: 'free.shecan.ir' },
+  { name: 'Radar Plus', primary: '10.202.10.10', secondary: '10.202.10.11', doh: 'https://dns.radar.game/dns-query', dot: 'dns.radar.game' },
+  { name: 'Begzar', primary: '185.55.226.26', secondary: '185.55.225.25', doh: 'https://dns.begzar.ir/dns-query', dot: '' },
+  { name: 'Shelter', primary: '87.107.206.15', secondary: '87.107.206.16', doh: '', dot: '' },
+  { name: 'XoDNS', primary: '85.208.255.71', secondary: '85.208.255.182', doh: '', dot: '' },
+  { name: 'TIC DNS', primary: '217.218.127.127', secondary: '217.218.155.155', doh: '', dot: '' },
 
   // 2. Cloudflare
-  { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1' },
-  { name: 'Cloudflare (DoH)', primary: 'https://1.1.1.1/dns-query', secondary: 'https://cloudflare-dns.com/dns-query' },
-  { name: 'Cloudflare (DoT)', primary: 'one.one.one.one', secondary: 'tls://1.1.1.1' },
-  { name: 'Cloudflare (IPv6)', primary: '2606:4700:4700::1111', secondary: '2606:4700:4700::1001' },
-  { name: 'Cloudflare Security', primary: '1.1.1.2', secondary: '1.0.0.2' },
-  { name: 'Cloudflare Security (DoH)', primary: 'https://security.cloudflare-dns.com/dns-query', secondary: 'https://1.1.1.2/dns-query' },
+  { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1', doh: 'https://1.1.1.1/dns-query', dot: 'one.one.one.one' },
+  { name: 'Cloudflare Security', primary: '1.1.1.2', secondary: '1.0.0.2', doh: 'https://security.cloudflare-dns.com/dns-query', dot: '' },
+  { name: 'Cloudflare (IPv6)', primary: '2606:4700:4700::1111', secondary: '2606:4700:4700::1001', doh: '', dot: '' },
 
   // 3. Google
-  { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4' },
-  { name: 'Google (DoH)', primary: 'https://dns.google/dns-query', secondary: 'https://8.8.8.8/dns-query' },
-  { name: 'Google (DoT)', primary: 'dns.google', secondary: 'tls://8.8.8.8' },
-  { name: 'Google (IPv6)', primary: '2001:4860:4860::8888', secondary: '2001:4860:4860::8844' },
+  { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4', doh: 'https://dns.google/dns-query', dot: 'dns.google' },
+  { name: 'Google (IPv6)', primary: '2001:4860:4860::8888', secondary: '2001:4860:4860::8844', doh: '', dot: '' },
 
   // 4. Quad9
-  { name: 'Quad9', primary: '9.9.9.9', secondary: '149.112.112.112' },
-  { name: 'Quad9 (DoH)', primary: 'https://9.9.9.9/dns-query', secondary: 'https://dns.quad9.net/dns-query' },
-  { name: 'Quad9 (DoT)', primary: 'dns.quad9.net', secondary: 'tls://9.9.9.9' },
-  { name: 'Quad9 (Uncensored)', primary: '9.9.9.10', secondary: '149.112.112.10' },
-  { name: 'Quad9 (IPv6)', primary: '2620:fe::fe', secondary: '2620:fe::9' },
+  { name: 'Quad9', primary: '9.9.9.9', secondary: '149.112.112.112', doh: 'https://9.9.9.9/dns-query', dot: 'dns.quad9.net' },
+  { name: 'Quad9 (Uncensored)', primary: '9.9.9.10', secondary: '149.112.112.10', doh: 'https://dns10.quad9.net/dns-query', dot: 'dns10.quad9.net' },
+  { name: 'Quad9 (IPv6)', primary: '2620:fe::fe', secondary: '2620:fe::9', doh: '', dot: '' },
 
   // 5. AdGuard
-  { name: 'AdGuard', primary: '94.140.14.14', secondary: '94.140.15.15' },
-  { name: 'AdGuard (DoH)', primary: 'https://dns.adguard-dns.com/dns-query', secondary: 'https://unfiltered.adguard-dns.com/dns-query' },
-  { name: 'AdGuard (DoT)', primary: 'dns.adguard-dns.com', secondary: 'tls://94.140.14.14' },
-  { name: 'AdGuard (IPv6)', primary: '2a10:50c0::ad1:ff', secondary: '2a10:50c0::ad2:ff' },
-  { name: 'AdGuard (Family)', primary: '94.140.14.15', secondary: '94.140.15.16' },
+  { name: 'AdGuard', primary: '94.140.14.14', secondary: '94.140.15.15', doh: 'https://dns.adguard-dns.com/dns-query', dot: 'dns.adguard-dns.com' },
+  { name: 'AdGuard (Family)', primary: '94.140.14.15', secondary: '94.140.15.16', doh: 'https://family.adguard-dns.com/dns-query', dot: 'family.adguard-dns.com' },
+  { name: 'AdGuard (IPv6)', primary: '2a10:50c0::ad1:ff', secondary: '2a10:50c0::ad2:ff', doh: '', dot: '' },
 
   // 6. OpenDNS
-  { name: 'OpenDNS', primary: '208.67.222.222', secondary: '208.67.220.220' },
-  { name: 'OpenDNS (DoH)', primary: 'https://doh.opendns.com/dns-query', secondary: 'https://208.67.222.222/dns-query' },
-  { name: 'OpenDNS (DoT)', primary: 'dns.opendns.com', secondary: 'tls://208.67.222.222' },
-  { name: 'OpenDNS (IPv6)', primary: '2620:119:35::35', secondary: '2620:119:53::53' },
+  { name: 'OpenDNS', primary: '208.67.222.222', secondary: '208.67.220.220', doh: 'https://doh.opendns.com/dns-query', dot: 'dns.opendns.com' },
+  { name: 'OpenDNS (IPv6)', primary: '2620:119:35::35', secondary: '2620:119:53::53', doh: '', dot: '' },
 
   // 7. Yandex
-  { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1' },
-  { name: 'Yandex (DoH)', primary: 'https://common.dot.dns.yandex.net/dns-query', secondary: 'https://77.88.8.8/dns-query' },
-  { name: 'Yandex (DoT)', primary: 'common.dot.dns.yandex.net', secondary: 'tls://77.88.8.8' },
-  { name: 'Yandex (IPv6)', primary: '2a02:6b8::feed:0ff', secondary: '2a02:6b8:0:1::feed:0ff' }
+  { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1', doh: 'https://common.dot.dns.yandex.net/dns-query', dot: 'common.dot.dns.yandex.net' },
+  { name: 'Yandex (IPv6)', primary: '2a02:6b8::feed:0ff', secondary: '2a02:6b8:0:1::feed:0ff', doh: '', dot: '' }
 ];
 
 const PREREQUISITES_DATA = [
@@ -1480,16 +1460,43 @@ function renderTutorialApps(osKey) {
 
   // Dedicated DNS Tab Rendering (Clean, LTR, High Contrast in Light Theme, Icon-only copy, Categorized tabs & badges)
   if (currentTutorialOS === 'dns') {
-    const tvDnsList = (Array.isArray(overrides?.tv_dns_list) && overrides.tv_dns_list.length > 0)
-      ? overrides.tv_dns_list
-      : DEFAULT_TV_DNS_LIST;
+    let tvDnsList = (Array.isArray(overrides?.tv_dns_list) && overrides.tv_dns_list.length > 0)
+      ? overrides.tv_dns_list.map(x => ({ ...x }))
+      : DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
+
+    // Auto-enrich existing list with defaults (fill missing doh/dot and missing presets like Quad9)
+    const defMap = new Map();
+    DEFAULT_TV_DNS_LIST.forEach(d => {
+      defMap.set(String(d.name || '').toLowerCase(), d);
+      if (d.primary) defMap.set(String(d.primary).toLowerCase(), d);
+    });
+
+    tvDnsList.forEach(item => {
+      const match = defMap.get(String(item.name || '').toLowerCase()) || defMap.get(String(item.primary || '').toLowerCase());
+      if (match) {
+        if (!item.doh && match.doh) item.doh = match.doh;
+        if (!item.dot && match.dot) item.dot = match.dot;
+        if (!item.secondary && match.secondary) item.secondary = match.secondary;
+      }
+    });
+
+    const existingNames = new Set(tvDnsList.map(x => String(x.name || '').trim().toLowerCase()));
+    DEFAULT_TV_DNS_LIST.forEach(defDns => {
+      const defKey = String(defDns.name || '').trim().toLowerCase();
+      if (!existingNames.has(defKey)) {
+        tvDnsList.push({ ...defDns });
+        existingNames.add(defKey);
+      }
+    });
 
     const IRAN_DNS_NAMES = ['electro', 'shecan', 'radar plus', 'begzar', 'shelter', 'xodns', 'tic dns'];
     const GLOBAL_DNS_NAMES = ['cloudflare', 'google', 'quad9', 'adguard', 'opendns', 'yandex'];
 
     const categorizedList = tvDnsList.map((dns, idx) => {
       const lowerName = String(dns.name || '').toLowerCase();
-      const isSecure = lowerName.includes('doh') || lowerName.includes('dot') || String(dns.primary || '').startsWith('https://') || String(dns.secondary || '').startsWith('https://') || String(dns.primary || '').startsWith('tls://') || String(dns.secondary || '').startsWith('tls://') || String(dns.primary || '').includes('dns.');
+      const hasDoh = !!(dns.doh && dns.doh.trim());
+      const hasDot = !!(dns.dot && dns.dot.trim());
+      const isSecure = hasDoh || hasDot || lowerName.includes('doh') || lowerName.includes('dot') || String(dns.primary || '').startsWith('https://') || String(dns.secondary || '').startsWith('https://') || String(dns.primary || '').startsWith('tls://') || String(dns.secondary || '').startsWith('tls://') || String(dns.primary || '').includes('dns.');
       const isIran = IRAN_DNS_NAMES.some(k => lowerName.startsWith(k));
       const isGlobal = GLOBAL_DNS_NAMES.some(k => lowerName.startsWith(k));
       return {
@@ -1540,10 +1547,21 @@ function renderTutorialApps(osKey) {
       } else if (cleanName.includes('(Family)')) {
         displayName = cleanName.replace('(Family)', '').trim();
         badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">Family</span>';
+      } else if (dns.doh && dns.dot) {
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">DoH+DoT</span>';
+      } else if (dns.doh) {
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">DoH</span>';
+      } else if (dns.dot) {
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">DoT</span>';
       }
 
+      const hasPrimary = !!(dns.primary && dns.primary.trim());
+      const hasSecondary = !!(dns.secondary && dns.secondary.trim());
+      const hasDoh = !!(dns.doh && dns.doh.trim());
+      const hasDot = !!(dns.dot && dns.dot.trim());
+
       return `
-        <div class="tutorial-app-card rounded-2xl p-3 card-inset border border-card-border space-y-2 transition" dir="ltr">
+        <div class="tutorial-app-card rounded-2xl p-3 card-inset border border-card-border space-y-2.5 transition" dir="ltr">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2.5 min-w-0">
               <div class="w-8 h-8 rounded-xl card-inset p-1 flex items-center justify-center flex-shrink-0 shadow-inner">
@@ -1554,20 +1572,42 @@ function renderTutorialApps(osKey) {
                 ${badgeHtml}
               </div>
             </div>
+            ${hasPrimary ? `
             <button type="button" class="btn-copy-dns-pair p-2 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 transition active:scale-95 shadow-sm" data-primary="${escapeHtml(dns.primary || '')}" data-secondary="${escapeHtml(dns.secondary || '')}" title="کپی هر دو DNS">
               <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="Copy Both" />
             </button>
+            ` : ''}
           </div>
+          ${hasPrimary ? `
           <div class="${gridClass}" dir="ltr">
             <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-card-border flex items-center justify-center font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 shadow-inner truncate text-[11px] sm:text-xs" data-ip="${escapeHtml(dns.primary || '')}" title="${escapeHtml(dns.primary || '')}">
               ${escapeHtml(dns.primary || '-')}
             </button>
-            ${dns.secondary ? `
+            ${hasSecondary ? `
             <button type="button" class="btn-copy-dns py-2 px-2.5 rounded-xl card-inset border border-card-border flex items-center justify-center font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 shadow-inner truncate text-[11px] sm:text-xs" data-ip="${escapeHtml(dns.secondary || '')}" title="${escapeHtml(dns.secondary || '')}">
               ${escapeHtml(dns.secondary || '-')}
             </button>
             ` : ''}
           </div>
+          ` : ''}
+          ${hasDoh ? `
+          <div class="flex items-center gap-1.5" dir="ltr">
+            <span class="text-[9px] px-1.5 py-1 rounded-lg font-mono font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 shrink-0">DoH</span>
+            <button type="button" class="btn-copy-dns flex-1 py-1.5 px-2 rounded-xl card-inset border border-card-border flex items-center justify-between font-mono font-bold text-cyan-800 dark:text-cyan-300 hover:border-cyan-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 text-[11px] truncate" data-ip="${escapeHtml(dns.doh)}" title="${escapeHtml(dns.doh)}">
+              <span class="truncate">${escapeHtml(dns.doh)}</span>
+              <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 opacity-70 ml-1" alt="" />
+            </button>
+          </div>
+          ` : ''}
+          ${hasDot ? `
+          <div class="flex items-center gap-1.5" dir="ltr">
+            <span class="text-[9px] px-1.5 py-1 rounded-lg font-mono font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 shrink-0">DoT</span>
+            <button type="button" class="btn-copy-dns flex-1 py-1.5 px-2 rounded-xl card-inset border border-card-border flex items-center justify-between font-mono font-bold text-indigo-800 dark:text-indigo-300 hover:border-indigo-500/50 bg-slate-100/70 dark:bg-slate-900/40 transition active:scale-95 text-[11px] truncate" data-ip="${escapeHtml(dns.dot)}" title="${escapeHtml(dns.dot)}">
+              <span class="truncate">${escapeHtml(dns.dot)}</span>
+              <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 opacity-70 ml-1" alt="" />
+            </button>
+          </div>
+          ` : ''}
         </div>
       `;
     }).join('');

@@ -28,7 +28,7 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
     toast.dir = 'rtl';
     document.body.appendChild(toast);
   }
-  toast.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 z-[100] modal-card t-main px-3.5 sm:px-5 py-2.5 rounded-2xl shadow-2xl text-xs sm:text-[13px] font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none w-[94%] sm:w-auto sm:max-w-2xl md:max-w-3xl leading-relaxed flex items-center justify-center gap-2 border';
+  toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] modal-card t-main px-4 sm:px-6 py-3 rounded-2xl shadow-2xl text-xs sm:text-[13px] font-semibold text-center transition-all duration-300 opacity-0 pointer-events-none w-full max-w-lg leading-relaxed flex items-center justify-center gap-2.5 border box-border';
   if (_appToastTimer) {
     clearTimeout(_appToastTimer);
     _appToastTimer = null;
@@ -113,7 +113,7 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
     }
   }
 
-  toast.innerHTML = `${iconHtml}<span class="flex-1 text-center text-xs sm:text-[13px] leading-relaxed font-sans">${escapeHtml(text)}</span>`;
+  toast.innerHTML = `${iconHtml}<span class="flex-1 text-center text-xs sm:text-[13px] leading-relaxed font-sans whitespace-pre-line">${escapeHtml(text)}</span>`;
   toast.classList.remove('opacity-0', '-translate-y-2');
   toast.classList.add('opacity-100', 'translate-y-0');
   _appToastTimer = setTimeout(() => {

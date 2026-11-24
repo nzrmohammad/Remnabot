@@ -112,18 +112,29 @@ def test_shop_guidance_toast_and_dns_presets():
     app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
     admin_settings_js = Path("bot/web/static/js/admin_settings.js").read_text(encoding="utf-8")
 
-    # 1. Shop banner converted to toast without artificial vertical newline break
+    # 1. Shop banner converted to toast with intentional two-line layout and wide card
     assert "window.showShopGuidanceToast" in shop_js
     assert "showShopGuidanceToast" in app_js
     assert "noticeEl.innerHTML = '<div" not in shop_js
-    assert "\\n" not in shop_js.split("showShopGuidanceToast")[1].split("}")[0]
-    # utils.js toast allows horizontal width expansion
-    assert "w-[94%] sm:w-auto sm:max-w-2xl" in utils_js
+    assert "\\n" in shop_js.split("showShopGuidanceToast")[1].split("}")[0]
+    # utils.js toast allows horizontal width expansion and pre-line wrapping
+    assert "max-w-lg" in utils_js
+    assert "whitespace-pre-line" in utils_js
+
+    # DNS inputs and collapsed display in admin_settings.js and admin.html
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    assert "بارگذاری پیش‌فرض‌ها" not in admin_html
+    assert "dns-doh-inp" in admin_settings_js
+    assert "dns-dot-inp" in admin_settings_js
+    assert "dns-primary-inp" in admin_settings_js
+    assert "dns-secondary-inp" in admin_settings_js
+    # Ensure collapsed row button only shows name and badge, not primary address
+    dns_row_header = admin_settings_js.split('onclick="window.adminActions.toggleAppCard(this)"')[1].split('</button>')[0]
+    assert "item.primary" not in dns_row_header
 
     # DNS Categorization and Badges in app.js and admin_settings.js
     assert "window.setDnsCategory" in app_js
     assert "_currentDnsCategory" in app_js
-    assert "resetAdminTvDnsToDefaults" in admin_settings_js
     assert "DoH" in app_js
     assert "DoT" in app_js
 
@@ -137,30 +148,28 @@ def test_shop_guidance_toast_and_dns_presets():
         assert "2620:fe::fe" in js_code
 
         # Cloudflare
-        assert "Cloudflare (DoH)" in js_code
+        assert "Cloudflare" in js_code
         assert "https://1.1.1.1/dns-query" in js_code
-        assert "Cloudflare (DoT)" in js_code
         assert "one.one.one.one" in js_code
         assert "2606:4700:4700::1111" in js_code
 
         # Google
-        assert "Google (DoH)" in js_code
+        assert "Google" in js_code
         assert "https://dns.google/dns-query" in js_code
-        assert "Google (DoT)" in js_code
         assert "dns.google" in js_code
         assert "2001:4860:4860::8888" in js_code
 
         # AdGuard
-        assert "AdGuard (DoH)" in js_code
+        assert "AdGuard" in js_code
         assert "https://dns.adguard-dns.com/dns-query" in js_code
-        assert "AdGuard (DoT)" in js_code
+        assert "dns.adguard-dns.com" in js_code
 
         # Shecan, Electro, Radar Plus
-        assert "Shecan (DoH)" in js_code
+        assert "Shecan" in js_code
         assert "https://free.shecan.ir/dns-query" in js_code
-        assert "Electro (DoH)" in js_code
+        assert "Electro" in js_code
         assert "https://elc.elcdn.ir/dns-query" in js_code
-        assert "Radar Plus (DoH)" in js_code
+        assert "Radar Plus" in js_code
         assert "https://dns.radar.game/dns-query" in js_code
 
 
