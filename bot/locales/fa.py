@@ -146,7 +146,7 @@ FA_TEXTS: dict[str, str] = {
         "settings_expire_label": "⏰ هشدار انقضا",
         "settings_traffic_hint": "وقتی مصرف شما از این درصد عبور کند پیام هشدار می‌گیرید.",
         "settings_expire_hint": "این تعداد روز مانده به انقضای سرویس پیام هشدار می‌گیرید.",
-        "settings_percent_value": "{percent}%",
+        "settings_percent_value": "\u2066{percent}%\u2069",
         "settings_days_value": "{days} روز",
         "alerts_off": "خاموش",
         "btn_set_traffic": "🔔 تغییر هشدار حجم",
@@ -158,7 +158,7 @@ FA_TEXTS: dict[str, str] = {
         "alert_traffic": (
             "⚠️ <b>هشدار حجم</b>\n\n"
             "👤 اکانت : <code>{username}</code>\n"
-            "🔥 <b>{percent}%</b> از حجم شما مصرف شده است.\n"
+            "🔥 <b>\u2066{percent}%\u2069</b> از حجم شما مصرف شده است.\n"
             "📥 حجم باقی‌مانده : <b>{remaining}</b>\n\n"
             "برای جلوگیری از قطع شدن، همین حالا سرویس خود را تمدید یا ارتقا دهید 👇"
         ),
@@ -246,23 +246,23 @@ FA_TEXTS: dict[str, str] = {
         "weekly_title": "📊 <b>گزارش هفتگی</b>",
         "weekly_day": "📅 {day} {date}",
         "weekly_others": "سایر",
-        "weekly_total": "📊 مصرف کل این هفته : <b>\u200e{total}</b>",
+        "weekly_total": "📊 مصرف کل این هفته : <b>{total}</b>",
         "weekly_hi": "سلام {name} 👋",
-        "weekly_sum_total": "این هفته <b>\u200e{total}</b> مصرف داشتی.",
-        "weekly_sum_more": "این مصرف {percent}% بیشتر از هفته قبل بود.",
-        "weekly_sum_less": "این مصرف {percent}% کمتر از هفته قبل بود.",
+        "weekly_sum_total": "این هفته <b>{total}</b> مصرف داشتی.",
+        "weekly_sum_more": "این مصرف \u2066{percent}%\u2069 بیشتر از هفته قبل بود.",
+        "weekly_sum_less": "این مصرف \u2066{percent}%\u2069 کمتر از هفته قبل بود.",
         "weekly_sum_same": "تقریباً برابر با هفته قبل.",
         "weekly_sum_top": (
             "پرمصرف‌ترین روزت <b>{day}</b> بود و بیشترین مصرفت روی {flag} بود."
         ),
         "monthly_title": "🗓 <b>گزارش ماهانه — {month}</b>",
-        "monthly_day": "▪️ در {date} : <b>\u200e{total}</b>",
+        "monthly_day": "▪️ در {date} : <b>{total}</b>",
         "monthly_others": "سایر",
-        "monthly_total": "📊 مصرف کل این ماه : <b>\u200e{total}</b>",
+        "monthly_total": "📊 مصرف کل این ماه : <b>{total}</b>",
         "monthly_hi": "سلام {name} 👋",
-        "monthly_sum_total": "این ماه ({month}) مقدار <b>\u200e{total}</b> مصرف داشتی.",
-        "monthly_sum_more": "این مصرف {percent}% بیشتر از ماه قبل بود.",
-        "monthly_sum_less": "این مصرف {percent}% کمتر از ماه قبل بود.",
+        "monthly_sum_total": "این ماه ({month}) مقدار <b>{total}</b> مصرف داشتی.",
+        "monthly_sum_more": "این مصرف \u2066{percent}%\u2069 بیشتر از ماه قبل بود.",
+        "monthly_sum_less": "این مصرف \u2066{percent}%\u2069 کمتر از ماه قبل بود.",
         "monthly_sum_same": "تقریباً برابر با ماه قبل.",
         "monthly_sum_top": (
             "پرمصرف‌ترین روزت <b>{day}</b> بود و بیشتر از سرور "
@@ -309,7 +309,7 @@ FA_TEXTS: dict[str, str] = {
         "svc_currency": "تومان",
         "unlimited": "♾ نامحدود",
         "svc_days": "{days} روز",
-        "svc_gb": "{gb} GB",
+        "svc_gb": "\u2066{gb} GB\u2069",
         "services_policy_hint": (
             "💡 <b>نکته دوره‌های مصرف و تمدید:</b>\n"
             "در سرویس‌های با ریست ترافیک «<b>بدون ریست</b>»، چنانچه تا <b>1 روز</b> "

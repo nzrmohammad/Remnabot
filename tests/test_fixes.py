@@ -1115,8 +1115,8 @@ def test_account_button_and_view_remaining_traffic():
 
     view_text = _account_view_text(acc, "fa")
     assert "حجم باقی‌مانده" in view_text
-    assert "GB 20" in view_text
-    assert "GB 30" in view_text
+    assert "\u206620 GB\u2069" in view_text
+    assert "\u206630 GB\u2069" in view_text
 
 
 @pytest.mark.anyio
@@ -1248,7 +1248,7 @@ def test_no_double_emoji_in_account():
     }
     text = _account_view_text(acc, "fa")
     assert "📊 📥" not in text
-    assert "📥 حجم باقی‌مانده : <b>GB 225.9</b> (از GB 250)" in text
+    assert "📥 حجم باقی‌مانده : <b>\u2066225.9 GB\u2069</b> (از \u2066250 GB\u2069)" in text
 
 
 def test_support_and_report_icons_and_nightly_hint():
@@ -2113,7 +2113,7 @@ async def test_recent_ui_and_reports_fixes():
         svc_btn_text = markup.inline_keyboard[0][0].text
 
         # First: name, Second: traffic, Third: price, Fourth: indicator at right
-        assert "بسته حرفه‌ای — 50 GB — 150,000 تومان" in svc_btn_text
+        assert "بسته حرفه‌ای — \u206650 GB\u2069 — 150,000 تومان" in svc_btn_text
         assert svc_btn_text.endswith("- ✅")
 
 

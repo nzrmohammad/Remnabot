@@ -147,7 +147,10 @@ async def get_user_topup_info(request: web.Request) -> web.Response:
     user_id = user_auth["id"]
     cache = request.app.get("cache")
     cache_key = f"tma:user:{user_id}:topup_info"
-    if cache and hasattr(cache, "get"):
+    force_refresh = request.query.get("refresh") in ("1", "true")
+    if force_refresh and cache and hasattr(cache, "delete"):
+        await cache.delete(cache_key)
+    if not force_refresh and cache and hasattr(cache, "get"):
         cached_data = await cache.get(cache_key)
         if cached_data is not None:
             return web.json_response(cached_data)

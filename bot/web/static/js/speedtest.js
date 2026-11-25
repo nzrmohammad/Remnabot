@@ -187,28 +187,35 @@
     }
 
     const pings = [];
-    const probeCount = 10;
+    const probeCount = 8;
 
     for (let i = 0; i < probeCount; i++) {
       if (signal && signal.aborted) return { medianPing: 0, jitter: 0 };
       const start = performance.now();
       try {
-        const pingUrl = `https://speed.cloudflare.com/__down?bytes=0&_t=${Date.now()}_${i}`;
+        // Measure against same bot server path used for download/upload (fallback to Cloudflare only if unreachable)
         let resp = null;
         try {
-          resp = await fetch(pingUrl, { method: 'GET', cache: 'no-store', signal });
-        } catch (err) {
           resp = await fetch(`/api/user/speedtest/ping?_t=${Date.now()}_${i}`, {
             method: 'GET',
             cache: 'no-store',
             headers: getAuthHeaders(),
             signal,
           });
+        } catch (err) {
+          resp = await fetch(`https://speed.cloudflare.com/__down?bytes=0&_t=${Date.now()}_${i}`, {
+            method: 'GET',
+            cache: 'no-store',
+            signal,
+          });
         }
 
         if (resp && resp.ok) {
           const duration = performance.now() - start;
-          pings.push(duration);
+          // Drop first cold TLS handshake RTT when subsequent probes succeed
+          if (i > 0 || probeCount === 1) {
+            pings.push(duration);
+          }
           const pingEl = getEl('speedPingVal');
           if (pingEl) pingEl.innerText = Math.round(duration).toString();
         }
@@ -330,31 +337,36 @@
       }
     }
 
-    async function downloadStreamWithFallback(bytes, nonce, onChunk, signal, limitMs) {
-      const cfUrl = `https://speed.cloudflare.com/__down?bytes=${bytes}&_t=${Date.now()}_${nonce}`;
+    async function downloadStreamWithFallback(bytes, nonce, onChunkFn, signal, limitMs) {
+      const localUrl = `/api/user/speedtest/payload?bytes=${bytes}&_t=${Date.now()}_${nonce}`;
       let gotData = false;
       const startMs = performance.now();
       try {
-        await streamDownload(cfUrl, (b) => { gotData = true; onChunk(b); }, signal, limitMs, startMs);
+        await streamDownload(localUrl, (b) => { gotData = true; onChunkFn(b); }, signal, limitMs, startMs);
       } catch (e) {}
       if (!gotData && (!signal || !signal.aborted)) {
         const elapsed = performance.now() - startMs;
         const remainingForFallback = Math.max(500, limitMs - elapsed);
-        const localUrl = `/api/user/speedtest/payload?bytes=${bytes}&_t=${Date.now()}_${nonce}`;
-        await streamDownload(localUrl, onChunk, signal, remainingForFallback, performance.now());
+        const cfUrl = `https://speed.cloudflare.com/__down?bytes=${bytes}&_t=${Date.now()}_${nonce}`;
+        await streamDownload(cfUrl, onChunkFn, signal, remainingForFallback, performance.now());
       }
     }
 
-    // Step 1: Ramp-up probe (1.5MB)
-    await downloadStreamWithFallback(1572864, 'probe', onChunk, signal, 1500);
+    // Step 1: Ramp-up probe (2MB)
+    await downloadStreamWithFallback(2097152, 'probe', onChunk, signal, 1500);
 
-    // Step 2: Main measurement payload loop (continues while remaining time > 400ms)
+    // Step 2: 3 parallel measurement streams to saturate TCP BDP over VPN/TLS
     let cycle = 0;
     while (performance.now() - testStartTime < DOWNLOAD_DURATION_MS) {
       if (signal && signal.aborted) break;
       const remainingTimeMs = DOWNLOAD_DURATION_MS - (performance.now() - testStartTime);
-      if (remainingTimeMs < 400) break;
-      await downloadStreamWithFallback(15728640, `main_${cycle++}`, onChunk, signal, remainingTimeMs);
+      if (remainingTimeMs < 450) break;
+      await Promise.all([
+        downloadStreamWithFallback(8388608, `main_a_${cycle}`, onChunk, signal, remainingTimeMs),
+        downloadStreamWithFallback(8388608, `main_b_${cycle}`, onChunk, signal, remainingTimeMs),
+        downloadStreamWithFallback(8388608, `main_c_${cycle}`, onChunk, signal, remainingTimeMs),
+      ]);
+      cycle++;
     }
 
     // Precise steady-state bandwidth: total steady bytes / steady duration
@@ -406,10 +418,13 @@
 
     const testStartTime = performance.now();
     let totalUploadedBytes = 0;
+    let totalInFlightUploadedBytes = 0;
+    let steadyUlStartTime = 0;
+    let steadyUlStartBytes = 0;
     const uploadSamples = [];
     let smoothedUploadMbps = 0;
 
-    const randomBuffer = createRandomBuffer(131072); // 128KB for agile non-blocking throughput
+    const randomBuffer = createRandomBuffer(524288); // 512KB chunk reduces HTTP overhead & socket-buffer skew
     const activeXhrs = new Set();
 
     const uploadHardTimeout = setTimeout(() => {
@@ -438,7 +453,7 @@
 
         const endpoint = `/api/user/speedtest/upload?_t=${Date.now()}`;
         xhr.open('POST', endpoint, true);
-        xhr.timeout = 2500; // 2.5s timeout per chunk to avoid hanging
+        xhr.timeout = 3500;
 
         const authHeaders = getAuthHeaders();
         for (const [k, v] of Object.entries(authHeaders)) {
@@ -452,9 +467,14 @@
         xhr.upload.onprogress = function (e) {
           if (e.loaded > lastLoaded) {
             const now = performance.now();
+            const deltaBytes = e.loaded - lastLoaded;
+            totalInFlightUploadedBytes += deltaBytes;
+            if (now - testStartTime > 800 && steadyUlStartTime === 0) {
+              steadyUlStartTime = now;
+              steadyUlStartBytes = totalInFlightUploadedBytes;
+            }
             const deltaSec = (now - lastTime) / 1000;
-            if (deltaSec >= 0.20) {
-              const deltaBytes = e.loaded - lastLoaded;
+            if (deltaSec >= 0.25 && now - testStartTime > 600) {
               const instantMbps = (deltaBytes * 8) / (deltaSec * 1000000);
               uploadSamples.push(instantMbps);
 
@@ -469,7 +489,11 @@
 
         xhr.onload = function () {
           activeXhrs.delete(xhr);
-          resolve(buffer.byteLength);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(buffer.byteLength);
+          } else {
+            resolve(0);
+          }
         };
 
         xhr.onerror = function () {
@@ -510,7 +534,13 @@
     clearTimeout(uploadHardTimeout);
 
     let finalUploadMbps = 0;
-    if (uploadSamples.length >= 3) {
+    if (steadyUlStartTime > 0 && totalUploadedBytes > steadyUlStartBytes) {
+      const steadyUlSec = (performance.now() - steadyUlStartTime) / 1000;
+      if (steadyUlSec >= 0.6) {
+        finalUploadMbps = ((totalUploadedBytes - steadyUlStartBytes) * 8) / (steadyUlSec * 1000000);
+      }
+    }
+    if ((!finalUploadMbps || finalUploadMbps <= 0) && uploadSamples.length >= 3) {
       const sorted = [...uploadSamples].sort((a, b) => a - b);
       const trimCount = Math.max(1, Math.floor(sorted.length * 0.15));
       const trimmed = sorted.slice(trimCount, sorted.length - trimCount);

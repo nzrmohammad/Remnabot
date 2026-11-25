@@ -112,7 +112,8 @@ async def _monthly_text_for_user(
             acc_lines.append(t(lang, "monthly_day", date=date_str, total=human_bytes(total)))
             rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
             if len(rows) == 1:
-                acc_lines.append(f"({rows[0][0]} {human_bytes(rows[0][1])})")
+                rtl_mark = "\u200f" if lang == "fa" else ""
+                acc_lines.append(f"{rtl_mark}({rows[0][0]} {human_bytes(rows[0][1])})")
             elif len(rows) > 1:
                 top_label, top_value = rows[0]
                 rest = sum(v for _, v in rows[1:])
@@ -136,7 +137,7 @@ async def _monthly_text_for_user(
     if multi_account:
         lines.append("")
         lines.append(SEPARATOR)
-        lines.append(f"📊 <b>مجموع کل مصارف ماهانه ({len(account_data)} اکانت) : \u200e{human_bytes(grand_month_total)}</b>")
+        lines.append(f"📊 <b>مجموع کل مصارف ماهانه ({len(account_data)} اکانت) : {human_bytes(grand_month_total)}</b>")
 
     lines.append(SEPARATOR)
 

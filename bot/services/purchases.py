@@ -17,6 +17,7 @@ auto-disabled are reactivated on payment.
 """
 import asyncio
 import logging
+import re
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -128,6 +129,39 @@ def _get_purchase_lock(telegram_id: int) -> asyncio.Lock:
     return _user_purchase_locks[telegram_id]
 
 
+def filter_active_panel_users(accounts: list[dict] | None) -> list[dict]:
+    """Return deduplicated non-DELETED panel accounts preserving order."""
+    if not accounts:
+        return []
+    seen: set[str] = set()
+    active: list[dict] = []
+    for acc in accounts:
+        if str(acc.get("status", "")).upper() == "DELETED":
+            continue
+        aid = str(acc.get("id") or "").strip()
+        if aid and aid in seen:
+            continue
+        if aid:
+            seen.add(aid)
+        active.append(acc)
+    return active
+
+
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,32}$")
+
+
+def validate_panel_username(raw_username: str | None) -> tuple[str | None, str | None]:
+    """Validate optional user-supplied panel username; returns (cleaned, err_kind)."""
+    if raw_username is None:
+        return None, None
+    cleaned = str(raw_username).strip()
+    if not cleaned:
+        return None, None
+    if not _USERNAME_RE.match(cleaned):
+        return None, "username_invalid"
+    return cleaned, None
+
+
 async def execute_purchase(
     remnawave: RemnawaveClient,
     session,
@@ -141,6 +175,7 @@ async def execute_purchase(
     session_factory: Any = None,
     cache: Any = None,
     coupon_discount_amount: int | None = None,
+    custom_username: str | None = None,
 ) -> PurchaseResult:
     """Buy a service with per-user anti-concurrency lock (distributed + in-process)."""
     dist_lock = False
@@ -183,6 +218,7 @@ async def execute_purchase(
                 bot=bot,
                 session_factory=session_factory,
                 coupon_discount_amount=coupon_discount_amount,
+                custom_username=custom_username,
             )
             if res.ok and cache and hasattr(cache, "delete"):
                 try:
@@ -216,6 +252,7 @@ async def _execute_purchase_impl(
     bot: Any = None,
     session_factory: Any = None,
     coupon_discount_amount: int | None = None,
+    custom_username: str | None = None,
 ) -> PurchaseResult:
     """Buy a service implementation."""
     from bot.services.app_settings import is_maintenance
@@ -263,10 +300,11 @@ async def _execute_purchase_impl(
     # Resolve which panel account to use.
     account: dict | None = chosen_account
     if not create_new and account is None:
-        accounts = await remnawave.get_users_by_telegram_id(telegram_id)
-        if accounts is None:
+        raw_accounts = await remnawave.get_users_by_telegram_id(telegram_id)
+        if raw_accounts is None:
             await _report_purchase_err("panel_unreachable", "get_users_by_telegram_id returned None")
             return PurchaseResult(ok=False, kind="failed")
+        accounts = filter_active_panel_users(raw_accounts)
         if len(accounts) == 1:
             account = accounts[0]
         elif len(accounts) > 1:
@@ -293,10 +331,27 @@ async def _execute_purchase_impl(
     strategy = service.traffic_strategy or "NO_RESET"
     order_repo = OrderRepository(session)
 
-    # Generate username upfront for new users to eliminate crash window in reconcile
+    # Generate or validate custom username upfront for new users to eliminate crash window in reconcile
     username = None
     if account is None:
-        username = await _pick_username(remnawave, telegram_id)
+        cleaned_uname, uname_err = validate_panel_username(custom_username)
+        if uname_err:
+            return PurchaseResult(
+                ok=False,
+                kind="username_invalid",
+                message="نام کاربری نامعتبر است. فقط از حروف و اعداد انگلیسی و _ (۳ تا ۳۲ کاراکتر) استفاده کنید.",
+            )
+        if cleaned_uname:
+            existing_user = await remnawave.get_user_by_username(cleaned_uname)
+            if existing_user is not None:
+                return PurchaseResult(
+                    ok=False,
+                    kind="username_taken",
+                    message="این نام کاربری قبلاً در پنل ثبت شده است. لطفاً نام دیگری انتخاب کنید.",
+                )
+            username = cleaned_uname
+        else:
+            username = await _pick_username(remnawave, telegram_id)
 
     # 1) Commit a pending order BEFORE touching the panel. If the process
     #    dies mid-purchase, the reconcile job will find this committed row.

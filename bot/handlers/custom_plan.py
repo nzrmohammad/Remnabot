@@ -21,6 +21,7 @@ from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.menu import render_menu
 from bot.services.purchases import (
     execute_purchase,
+    filter_active_panel_users,
     maybe_reward_referrer,
     notify_admin,
     resolve_squad_name,
@@ -86,7 +87,7 @@ async def custom_plan_entry(
     if remnawave:
         try:
             accounts = await remnawave.get_users_by_telegram_id(call.from_user.id) or []
-            active_accs = [a for a in accounts if str(a.get("status", "")).upper() not in ("DELETED",)]
+            active_accs = filter_active_panel_users(accounts)
             if active_accs:
                 chosen = active_accs[0]
                 raw_sqs = chosen.get("activeInternalSquads") or chosen.get("internalSquads") or chosen.get("squads") or []
@@ -589,7 +590,7 @@ async def custom_plan_execute_purchase(
         chosen_acc = None
         create_new = False
         user_accounts = await remnawave.get_users_by_telegram_id(user.telegram_id) or []
-        valid_accs = [a for a in user_accounts if str(a.get("status", "")).upper() not in ("DELETED",)]
+        valid_accs = filter_active_panel_users(user_accounts)
         if target_acc_spec == "new":
             create_new = True
         elif target_acc_spec:

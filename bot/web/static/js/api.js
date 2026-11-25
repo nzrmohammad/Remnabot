@@ -245,12 +245,15 @@ const api = {
     return this.post('/api/user/auto-renew', { auto_renew });
   },
 
-  async purchase(service_id, coupon_code = null, account_id = null) {
-    return this.post('/api/user/purchase', {
+  async purchase(service_id, coupon_code = null, account_id = null, create_new = false, custom_username = null) {
+    const payload = {
       service_id,
       coupon_code,
       account_id,
-    });
+      create_new,
+    };
+    if (custom_username) payload.custom_username = custom_username;
+    return this.post('/api/user/purchase', payload);
   },
 
   async createGift(data) {
@@ -270,21 +273,31 @@ const api = {
     return this.get(`/api/user/invoice/${orderId}${q}`);
   },
 
-  async sendInvoiceToTelegram(orderId, type = '') {
+  async sendInvoiceToTelegram(orderId, type = '', imageBase64 = null) {
     const q = type ? `?type=${encodeURIComponent(type)}` : '';
-    return this.post(`/api/user/invoice/${orderId}/send-telegram${q}`, {});
+    const body = imageBase64 ? { image_base64: imageBase64 } : {};
+    return this.post(`/api/user/invoice/${orderId}/send-telegram${q}`, body);
   },
 
   async calculateCustomPlan(traffic_gb, duration_days, hwid_limit = 2) {
     return this.post('/api/user/custom-plan/calculate', { traffic_gb, duration_days, hwid_limit });
   },
 
-  async purchaseCustomPlan(traffic_gb, duration_days, account_id = null, hwid_limit = 2) {
-    return this.post('/api/user/custom-plan/purchase', { traffic_gb, duration_days, account_id, hwid_limit });
+  async purchaseCustomPlan(traffic_gb, duration_days, account_id = null, hwid_limit = 2, create_new = false, custom_username = null) {
+    const payload = {
+      traffic_gb,
+      duration_days,
+      account_id,
+      hwid_limit,
+      create_new,
+    };
+    if (custom_username) payload.custom_username = custom_username;
+    return this.post('/api/user/custom-plan/purchase', payload);
   },
 
-  async getTopupInfo() {
-    return this.get('/api/user/topup_info');
+  async getTopupInfo(options = {}) {
+    const qs = options?.refresh ? '?refresh=1' : '';
+    return this.get(`/api/user/topup_info${qs}`);
   },
 
   async submitCardTopup(amount, receipt_text, receipt_image = null) {

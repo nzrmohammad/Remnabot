@@ -734,6 +734,28 @@ function renderFilteredShopPlans() {
       tagThemeClass = 'badge-success';
     }
 
+    const hasMaxLimit = Number(p.max_purchases) > 0;
+    const maxCap = hasMaxLimit ? Number(p.max_purchases) : 0;
+    const remCap = hasMaxLimit
+      ? Math.max(0, Number(p.remaining_purchases ?? (maxCap - Number(p.purchases_count || 0))))
+      : 0;
+    const capPct = hasMaxLimit ? Math.max(6, Math.min(100, Math.round((remCap / maxCap) * 100))) : 0;
+    const capToneCls = remCap <= 2
+      ? 's-danger-soft border border-rose-500/35 text-rose-600 dark:text-rose-300'
+      : 's-warn-soft border border-amber-500/35 text-amber-700 dark:text-amber-300';
+    const capBarCls = remCap <= 2 ? 'bg-rose-500' : 'bg-amber-500';
+    const limitedStockBlock = hasMaxLimit ? `
+      <div class="rounded-xl px-2.5 py-1.5 my-2 ${capToneCls} space-y-1">
+        <div class="flex items-center justify-between text-[10.5px] font-bold">
+          <span class="flex items-center gap-1">${badgeIcon('flame')}<span>ظرفیت محدود فروش</span></span>
+          <span class="font-sans num-bidi" dir="ltr">${toEnglishDigits(remCap)} / ${toEnglishDigits(maxCap)} باقی‌مانده</span>
+        </div>
+        <div class="w-full h-1 rounded-full bg-slate-500/20 overflow-hidden">
+          <div class="h-full rounded-full ${capBarCls} transition-all duration-300" style="width:${capPct}%"></div>
+        </div>
+      </div>
+    ` : '';
+
     const hasDiscountBadges = Boolean(discountVal > 0 || hasLoyaltyDiscount);
     const buttonPriceText = hasAnyDiscount ? ` (${formattedFinal} تومان)` : '';
     return `
@@ -761,6 +783,7 @@ function renderFilteredShopPlans() {
             <h4 class="font-bold text-xs sm:text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
           </div>
         </div>
+        ${limitedStockBlock}
         ${hasDiscountBadges ? `
           <div class="plan-discounts-box hidden flex items-center justify-start gap-1.5 flex-wrap my-2 -ml-2" dir="ltr">
             ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>Loyalty (-${loyaltyPctEnglish}%)</span></span>` : ''}
@@ -873,6 +896,45 @@ function openCheckoutConfirmModal(plan) {
     (!activeSquad || planSquadNorm !== activeSquad)
   );
 
+  const createNewWrap = document.getElementById('checkoutCreateNewWrap');
+  const createNewCheck = document.getElementById('checkoutCreateNewCheck');
+  const customUsernameWrap = document.getElementById('checkoutCustomUsernameWrap');
+  const customUsernameInput = document.getElementById('checkoutCustomUsernameInput');
+  const customUsernameRandomBtn = document.getElementById('checkoutCustomUsernameRandomBtn');
+  const hasAccounts = Array.isArray(window.lastUserData?.accounts) && window.lastUserData.accounts.length >= 1;
+  const allowCreateNew = Boolean(!isExtraTraffic && !isTimeOnly && hasAccounts);
+  const updateCustomUsernameVisibility = (wantsNew) => {
+    const shouldShow = Boolean(!isExtraTraffic && !isTimeOnly && (!hasAccounts || wantsNew));
+    if (customUsernameWrap) customUsernameWrap.classList.toggle('hidden', !shouldShow);
+  };
+  if (customUsernameInput) customUsernameInput.value = '';
+  if (customUsernameRandomBtn && customUsernameInput) {
+    customUsernameRandomBtn.onclick = () => {
+      const rnd = Math.random().toString(36).replace(/[^a-z0-9]/g, '').slice(0, 4)
+        || String(Math.floor(1000 + Math.random() * 9000));
+      const tgU = String(window.lastUserData?.user?.username || '').replace(/[^a-zA-Z0-9_]/g, '').slice(0, 12);
+      const base = tgU.length >= 3 ? tgU : 'vpn';
+      customUsernameInput.value = `${base}_${rnd}`.slice(0, 32);
+      if (typeof hapticFeedback === 'function') hapticFeedback('selection');
+      customUsernameInput.focus();
+    };
+  }
+  if (createNewCheck) {
+    createNewCheck.checked = false;
+    createNewCheck.onchange = () => {
+      const wantsNew = Boolean(createNewCheck.checked && allowCreateNew);
+      if (switchBox) switchBox.classList.toggle('hidden', wantsNew || !isSwitch);
+      updateCustomUsernameVisibility(wantsNew);
+      if (confirmBtn) {
+        confirmBtn.innerText = wantsNew
+          ? '✅ تایید و خرید اشتراک جدید'
+          : (isSwitch ? '✅ تایید و ارتقای سرور' : '✅ تایید و خرید آنی');
+      }
+    };
+  }
+  if (createNewWrap) createNewWrap.classList.toggle('hidden', !allowCreateNew);
+  updateCustomUsernameVisibility(false);
+
   if (switchBox) {
     if (isSwitch) {
       switchBox.classList.remove('hidden');
@@ -982,21 +1044,49 @@ async function executePurchase() {
   if (!currentPendingPlan) return;
   const { id: planId, price: planPrice, name: planName, isCustom, gb, days } = currentPendingPlan;
   const confirmBtn = document.getElementById('confirmPurchaseBtn');
+  const origConfirmText = confirmBtn?.innerText || '✅ تایید و خرید آنی';
+
+  const createNewWrap = document.getElementById('checkoutCreateNewWrap');
+  const createNewCheck = document.getElementById('checkoutCreateNewCheck');
+  const createNew = Boolean(
+    createNewCheck?.checked && createNewWrap && !createNewWrap.classList.contains('hidden')
+  );
+  const customUsernameWrap = document.getElementById('checkoutCustomUsernameWrap');
+  const customUsernameInput = document.getElementById('checkoutCustomUsernameInput');
+  const isUsernameVisible = Boolean(customUsernameWrap && !customUsernameWrap.classList.contains('hidden'));
+  const customUsername = isUsernameVisible ? (customUsernameInput?.value || '').trim() : '';
+  if (isUsernameVisible && customUsername && !/^[a-zA-Z0-9_]{3,32}$/.test(customUsername)) {
+    showToast('⚠️ نام کاربری باید بین ۳ تا ۳۲ کاراکتر (فقط حروف انگلیسی، اعداد و _) باشد.');
+    hapticFeedback('error');
+    customUsernameInput?.focus();
+    return;
+  }
 
   if (confirmBtn) {
     confirmBtn.disabled = true;
     confirmBtn.innerText = 'در حال ثبت خرید...';
   }
 
+  const targetAccountId = createNew ? null : (window.currentAccountId || null);
+
   try {
     let res;
     if (isCustom) {
-      res = await window.api.purchaseCustomPlan(gb, days, window.currentAccountId || null, currentPendingPlan.hwid_limit || 2);
+      res = await window.api.purchaseCustomPlan(
+        gb,
+        days,
+        targetAccountId,
+        currentPendingPlan.hwid_limit || 2,
+        createNew,
+        customUsername || null
+      );
     } else {
       res = await window.api.purchase(
         planId,
         window.activeCoupon?.code || null,
-        window.currentAccountId || null
+        targetAccountId,
+        createNew,
+        customUsername || null
       );
     }
 
@@ -1009,15 +1099,18 @@ async function executePurchase() {
       }
     } else {
       const errMsg = res?.data?.message || res?.message || 'خطا در ثبت خرید';
+      const errCode = res?.data?.error || res?.error;
       showToast(`❌ ${errMsg}`);
       hapticFeedback('error');
-      if (res?.data?.error === 'insufficient_balance' || res?.error === 'insufficient_balance') {
+      if (errCode === 'username_invalid' || errCode === 'username_taken') {
+        customUsernameInput?.focus();
+      } else if (errCode === 'insufficient_balance') {
         closeModal('checkoutConfirmModal');
         const shortage = planPrice - (window.lastUserData?.user?.wallet_balance || 0);
         setTimeout(() => {
           if (typeof window.openTopupModal === 'function') window.openTopupModal(shortage > 0 ? shortage : null);
         }, 300);
-      } else if (res?.data?.error === 'needs_account' || res?.error === 'needs_account') {
+      } else if (errCode === 'needs_account') {
         closeModal('checkoutConfirmModal');
         const switchBtn = document.getElementById('switchAccountBtn');
         if (switchBtn) {
@@ -1030,7 +1123,7 @@ async function executePurchase() {
   } finally {
     if (confirmBtn) {
       confirmBtn.disabled = false;
-      confirmBtn.innerText = '✅ تایید و خرید آنی';
+      confirmBtn.innerText = origConfirmText;
     }
   }
 }
@@ -1194,6 +1287,7 @@ function setupBuyButtons() {
 }
 
 function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
+  window.lastPurchaseOrderId = res?.order_id || null;
   const pModal = document.getElementById('purchaseSuccessModal');
   if (!pModal) {
     showToast('🎉 خرید شما با موفقیت انجام شد!');

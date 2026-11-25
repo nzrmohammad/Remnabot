@@ -965,9 +965,9 @@ window.updateCardTopupSubmitState = function () {
   setDisabled(!(hasImage && hasValidAmount), '');
 };
 
-async function loadTopupInfo() {
+async function loadTopupInfo(options = {}) {
   try {
-    const res = await window.api.getTopupInfo();
+    const res = await window.api.getTopupInfo(options);
     if (res.ok) {
       window.storeSettings = res;
       if (Array.isArray(res.recent_paid_auto_amounts)) {
@@ -2087,7 +2087,7 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
 
   // Load/refresh settings in background (SWR pattern)
   try {
-    await loadTopupInfo();
+    await loadTopupInfo({ refresh: true });
     applyMethodTabs(window.storeSettings, false);
   } catch (e) {}
 }
@@ -2339,7 +2339,8 @@ function setupWalletListeners() {
         showToast('✅ رسید با موفقیت ثبت شد و پس از بررسی ادمین حساب شارژ می‌گردد.');
         resetSelectedReceiptImage();
         closeModal('topupModal');
-        if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+        if (typeof window.markAwaitingTopupSync === 'function') window.markAwaitingTopupSync();
+        if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId, { refresh: true });
       } else {
         const msg = String(res.message || 'خطا در ثبت رسید');
         if (res.error === 'duplicate_receipt' || (msg.includes('تکراری') && !msg.includes('خودکار')) || msg.includes('قبلاً ثبت')) {
@@ -2381,7 +2382,7 @@ function setupWalletListeners() {
               showToast('🎉 پرداخت استارز با موفقیت تایید شد و کیف پول شارژ گردید!');
               closeModal('topupModal');
               const sync = () => {
-                if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
+                if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId, { refresh: true });
               };
               sync();
               setTimeout(sync, 1500);
@@ -2840,5 +2841,32 @@ window.renderWalletTransactions = renderWalletTransactions;
 window.openTopupModal = openTopupModal;
 window.closeTopupModal = function () {
   if (typeof closeModal === 'function') closeModal('topupModal');
+};
+window.unlockTopupPhoneVerificationUI = function () {
+  _cardTopupGuardState.phoneLocked = false;
+  if (window.storeSettings && typeof window.storeSettings === 'object') {
+    window.storeSettings.is_phone_verified = true;
+  }
+  const cardPhoneWarning = document.getElementById('cardPhoneVerificationWarning');
+  const cardDetailsBox = document.getElementById('topupCardDetailsBox');
+  const cardUploadBtn = document.getElementById('uploadCardReceiptImageBtn');
+  if (cardPhoneWarning) cardPhoneWarning.classList.add('hidden');
+  if (cardDetailsBox) cardDetailsBox.classList.remove('hidden');
+  if (cardUploadBtn) {
+    cardUploadBtn.disabled = false;
+    cardUploadBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+  }
+  if (typeof window.updateCardTopupSubmitState === 'function') {
+    window.updateCardTopupSubmitState();
+  }
+};
+window.refreshTopupModalState = async function (options = { refresh: true }) {
+  await loadTopupInfo(options);
+  if (window.storeSettings?.card_auto_enabled && typeof checkActiveCardAutoInvoice === 'function') {
+    await checkActiveCardAutoInvoice();
+  }
+  if (typeof window.updateCardTopupSubmitState === 'function') {
+    window.updateCardTopupSubmitState();
+  }
 };
 window.setupWalletListeners = setupWalletListeners;

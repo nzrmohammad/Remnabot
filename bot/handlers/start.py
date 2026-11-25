@@ -359,6 +359,11 @@ async def handle_user_contact(
         )
         return
 
+    from bot.web.cache import invalidate_user_cache
+
+    with contextlib.suppress(Exception):
+        await invalidate_user_cache(getattr(bot, "cache", None), message.from_user.id)
+
     await message.answer(
         f"✅ <b>شماره تماس شما با موفقیت تأیید و ثبت شد:</b>\n<code>{phone}</code>\n\n"
         "اکنون درگاه پرداخت کارت‌به‌کارت برای حساب شما فعال گردید. می‌توانید فرآیند پرداخت را در مینی‌اپ ادامه دهید.",

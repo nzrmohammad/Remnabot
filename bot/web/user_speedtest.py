@@ -124,7 +124,7 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
             rl_key = f"tma:speedtest:limit:{user_id or client_ip}"
             if hasattr(cache, "incr"):
                 count = await cache.incr(rl_key, ttl_seconds=30)
-                if count > 10:
+                if count > 30:
                     return web.json_response(
                         {"ok": False, "error": "محدودیت تعداد درخواست تست سرعت. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
                         status=429,
@@ -137,7 +137,7 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
                     res = cache.get(rl_key)
                     req_count = (await res) if asyncio.iscoroutine(res) else res
 
-                if isinstance(req_count, (int, float)) and req_count >= 10:
+                if isinstance(req_count, (int, float)) and req_count >= 30:
                     return web.json_response(
                         {"ok": False, "error": "محدودیت تعداد درخواست تست سرعت. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
                         status=429,
@@ -205,7 +205,7 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
             rl_key = f"tma:speedtest:limit:upload:{user_id or client_ip}"
             if hasattr(cache, "incr"):
                 count = await cache.incr(rl_key, ttl_seconds=30)
-                if count > 30:
+                if count > 60:
                     return web.json_response(
                         {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
                         status=429,
@@ -218,7 +218,7 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
                     res = cache.get(rl_key)
                     req_count = (await res) if asyncio.iscoroutine(res) else res
 
-                if isinstance(req_count, (int, float)) and req_count >= 30:
+                if isinstance(req_count, (int, float)) and req_count >= 60:
                     return web.json_response(
                         {"ok": False, "error": "محدودیت تعداد درخواست تست آپلود. لطفاً 30 ثانیه دیگر تلاش فرمایید."},
                         status=429,

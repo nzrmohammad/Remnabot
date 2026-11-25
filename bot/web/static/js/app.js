@@ -2030,6 +2030,29 @@ function markTutorialAppsSeen() {
   if (badge) badge.classList.add('hidden');
 }
 
+let _phoneVerifyPollTimer = null;
+function _schedulePhoneVerifySync(attempt = 0) {
+  if (_phoneVerifyPollTimer) {
+    clearTimeout(_phoneVerifyPollTimer);
+    _phoneVerifyPollTimer = null;
+  }
+  const delays = [600, 1400, 2600, 4500];
+  if (attempt >= delays.length) return;
+  _phoneVerifyPollTimer = setTimeout(async () => {
+    _phoneVerifyPollTimer = null;
+    if (typeof syncUserDataWithApi === 'function') {
+      await syncUserDataWithApi(window.currentAccountId, { refresh: true });
+    }
+    if (typeof window.refreshTopupModalState === 'function') {
+      await window.refreshTopupModalState({ refresh: true });
+    }
+    const verifiedNow = Boolean(window.lastUserData?.user?.phone_number || window.storeSettings?.is_phone_verified);
+    if (!verifiedNow) {
+      _schedulePhoneVerifySync(attempt + 1);
+    }
+  }, delays[attempt]);
+}
+
 function verifyPhoneNative() {
   hapticFeedback('impact');
   const tg = window.Telegram?.WebApp;
@@ -2042,11 +2065,7 @@ function verifyPhoneNative() {
           console.info('[PhoneAuth] Contact permission granted by user.');
           showToast('✅ شماره تماس با موفقیت ثبت شد. در حال به‌روزرسانی...');
           hapticFeedback('success');
-          setTimeout(() => {
-            if (typeof syncUserDataWithApi === 'function') {
-              syncUserDataWithApi(window.currentAccountId);
-            }
-          }, 1200);
+          _schedulePhoneVerifySync(0);
         } else {
           console.warn('[PhoneAuth] User declined or cancelled contact sharing.');
           showToast('اشتراک‌گذاری شماره تماس لغو گردید.');
@@ -2703,9 +2722,11 @@ function renderProfileBadges(data) {
   const wheelStreak = Number(ach.wheel_streak ?? wheelStatus.streak ?? 0);
   const refCount = Number(user.referrals_count || 0);
   const totalSpent = Number(loyalty.total_spent || 0);
-  const easterClaimed = Boolean(ach.easter_egg_claimed || localStorage.getItem('remna_vip_easter_claimed') === '1');
+  const easterClaimed = Boolean(ach.easter_egg_claimed);
   if (easterClaimed) {
     localStorage.setItem('remna_vip_easter_claimed', '1');
+  } else if (ach.easter_egg_claimed === false) {
+    localStorage.removeItem('remna_vip_easter_claimed');
   }
 
   _renderedBadgesList = [
@@ -2714,7 +2735,7 @@ function renderProfileBadges(data) {
       title: 'عضو قدیمی',
       icon: 'clock',
       unlocked: membershipDays >= 30,
-      desc: `30 روز همراهی با سرویس‌های رمنا (${toEnglishDigits(membershipDays)} روز سپری‌شده)`,
+      desc: '',
       activeClass: 'border-cyan-500/50 bg-cyan-500/15 text-cyan-500 dark:text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.18)]',
     },
     {
@@ -2722,7 +2743,7 @@ function renderProfileBadges(data) {
       title: 'کاشف VIP',
       icon: 'sparkles',
       unlocked: easterClaimed,
-      desc: 'ایستراگ مخفی 5 بار لمس آواتار یا الماس کارت کیف پول را کشف کنید.',
+      desc: '',
       activeClass: 'border-amber-500/50 bg-amber-500/15 text-amber-500 dark:text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.22)]',
     },
     {
@@ -2730,7 +2751,7 @@ function renderProfileBadges(data) {
       title: 'استریک 7 روز گردونه',
       icon: 'wheel',
       unlocked: wheelStreak >= 7,
-      desc: `7 روز پیاپی گردونه شانس را بچرخانید (استریک فعلی: ${toEnglishDigits(wheelStreak)} روز)`,
+      desc: '',
       activeClass: 'border-purple-500/50 bg-purple-500/15 text-purple-500 dark:text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]',
     },
     {
@@ -2738,7 +2759,7 @@ function renderProfileBadges(data) {
       title: 'سفیر معرفی دوستان',
       icon: 'users',
       unlocked: refCount >= 3,
-      desc: `حداقل 3 دوست را با لینک اختصاصی دعوت کنید (${toEnglishDigits(refCount)} از 3 دعوت)`,
+      desc: '',
       activeClass: 'border-emerald-500/50 bg-emerald-500/15 text-emerald-500 dark:text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]',
     },
     {
@@ -2746,7 +2767,7 @@ function renderProfileBadges(data) {
       title: 'امنیت و شماره تاییدشده',
       icon: 'shield',
       unlocked: Boolean(user.is_phone_verified || user.phone_number),
-      desc: 'شماره همراه خود را جهت افزایش امنیت و فعال‌سازی کارت‌به‌کارت تایید کنید.',
+      desc: '',
       activeClass: 'border-blue-500/50 bg-blue-500/15 text-blue-500 dark:text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)]',
     },
     {
@@ -2754,7 +2775,7 @@ function renderProfileBadges(data) {
       title: 'خریدار ویژه',
       icon: 'trophy',
       unlocked: totalSpent > 0,
-      desc: 'اولین خرید یا تمدید اشتراک خود را در فروشگاه ثبت کرده باشید.',
+      desc: '',
       activeClass: 'border-rose-500/50 bg-rose-500/15 text-rose-500 dark:text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)]',
     },
   ];
@@ -2806,7 +2827,10 @@ window.showProfileBadgeDetail = function(badgeId, silent = false) {
 
   if (iconEl) iconEl.innerHTML = uiIcon(badge.icon, 'w-4 h-4 shrink-0');
   if (titleEl) titleEl.innerText = badge.title;
-  if (descEl) descEl.innerText = badge.desc;
+  if (descEl) {
+    descEl.innerText = badge.desc || '';
+    descEl.classList.toggle('hidden', !badge.desc);
+  }
   if (statusEl) {
     if (badge.unlocked) {
       statusEl.innerText = 'کسب‌شده';
@@ -4078,6 +4102,14 @@ function hydrateUserInterface(data) {
       if (phoneRewardCard) phoneRewardCard.classList.add('hidden');
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
+      const needsTopupRefresh = Boolean(window.storeSettings && window.storeSettings.is_phone_verified === false);
+      if (typeof window.unlockTopupPhoneVerificationUI === 'function') {
+        window.unlockTopupPhoneVerificationUI();
+      }
+      const topupModalEl = $('topupModal');
+      if (topupModalEl && !topupModalEl.classList.contains('hidden') && needsTopupRefresh && typeof window.refreshTopupModalState === 'function') {
+        window.refreshTopupModalState({ refresh: true }).catch(() => {});
+      }
       if (profPhone) {
         profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${escapeHtml(toEnglishDigits(user.phone_number))}</span> <span class="inline-flex items-center justify-center select-none translate-y-1" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
       }
@@ -5445,6 +5477,38 @@ function loadUserCache() {
   }
 }
 
+let _lastLiveWalletBalance = null;
+let _walletPendingPollInterval = null;
+let _awaitingTopupCreditUntil = 0;
+
+function _hasPendingTopupTransactions(data) {
+  return Array.isArray(data?.wallet_transactions)
+    && data.wallet_transactions.some((tx) => tx?.type === 'topup' && tx?.status_color === 'amber');
+}
+
+function _updatePendingTopupPoller(hasPending) {
+  const shouldPoll = Boolean(hasPending || Date.now() < _awaitingTopupCreditUntil);
+  if (shouldPoll && !_walletPendingPollInterval) {
+    _walletPendingPollInterval = setInterval(() => {
+      if (document.hidden) return;
+      if (Date.now() >= _awaitingTopupCreditUntil && !_hasPendingTopupTransactions(window.lastUserData)) {
+        clearInterval(_walletPendingPollInterval);
+        _walletPendingPollInterval = null;
+        return;
+      }
+      syncUserDataWithApi(window.currentAccountId, { refresh: true });
+    }, 8000);
+  } else if (!shouldPoll && _walletPendingPollInterval) {
+    clearInterval(_walletPendingPollInterval);
+    _walletPendingPollInterval = null;
+  }
+}
+
+window.markAwaitingTopupSync = function (durationMs = 300000) {
+  _awaitingTopupCreditUntil = Math.max(_awaitingTopupCreditUntil, Date.now() + durationMs);
+  _updatePendingTopupPoller(true);
+};
+
 function applySyncedUserData(data) {
   window.lastUserData = data;
   try {
@@ -5452,6 +5516,8 @@ function applySyncedUserData(data) {
   } catch (hydrateErr) {
     console.error('[applySyncedUserData] Error hydrating UI:', hydrateErr);
   }
+
+  _updatePendingTopupPoller(_hasPendingTopupTransactions(data));
 
   if (data.active_sub && typeof renderActiveSubAnalytics === 'function') {
     try {
@@ -5468,15 +5534,26 @@ function applySyncedUserData(data) {
 
 // 17. Stale-While-Revalidate API Sync
 let _syncUserSeq = 0;
-async function syncUserDataWithApi(accountId) {
+async function syncUserDataWithApi(accountId, options = {}) {
   const currentSeq = ++_syncUserSeq;
   try {
-    const res = await window.api.getMe(accountId);
+    const res = await window.api.getMe(accountId, { refresh: Boolean(options?.refresh) });
     if (currentSeq !== _syncUserSeq) return;
     if (res && res.ok && res.data) {
       if (typeof hideBanner === 'function') {
         hideBanner('authErrorBanner');
         hideBanner('apiErrorBanner');
+      }
+      const nextBal = Number(res.data?.user?.wallet_balance);
+      const prevBal = _lastLiveWalletBalance;
+      const hadPendingAwaiting = Date.now() < _awaitingTopupCreditUntil;
+      if (Number.isFinite(nextBal)) {
+        if ((prevBal !== null && nextBal > prevBal) || (hadPendingAwaiting && prevBal === null && nextBal > 0)) {
+          _awaitingTopupCreditUntil = 0;
+          showToast('🎉 موجودی کیف پول شما به‌روزرسانی شد!');
+          hapticFeedback('success');
+        }
+        _lastLiveWalletBalance = nextBal;
       }
       applySyncedUserData(res.data);
 
@@ -5554,6 +5631,31 @@ async function syncUserDataWithApi(accountId) {
   }
 }
 
+let _lastResumeSyncAt = 0;
+function _handleAppForegroundResume() {
+  if (document.hidden) return;
+  const now = Date.now();
+  if (now - _lastResumeSyncAt < 2000) return;
+  _lastResumeSyncAt = now;
+  if (typeof syncUserDataWithApi === 'function') {
+    syncUserDataWithApi(window.currentAccountId, { refresh: true });
+  }
+  const topupModalEl = $('topupModal');
+  if (topupModalEl && !topupModalEl.classList.contains('hidden') && typeof window.refreshTopupModalState === 'function') {
+    window.refreshTopupModalState({ refresh: true }).catch(() => {});
+  }
+}
+
+function setupLiveSyncListeners() {
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) _handleAppForegroundResume();
+  });
+  window.addEventListener('focus', _handleAppForegroundResume);
+  try {
+    window.Telegram?.WebApp?.onEvent?.('activated', _handleAppForegroundResume);
+  } catch (e) {}
+}
+
 // 18. Initialize Application
 function initApp() {
   const safeRun = (name, fn) => {
@@ -5613,6 +5715,7 @@ function initApp() {
   safeRun('setupThemeToggle', setupThemeToggle);
   safeRun('setupSupportChat', setupSupportChat);
   safeRun('setupTelegramSDK', setupTelegramSDK);
+  safeRun('setupLiveSyncListeners', setupLiveSyncListeners);
   safeRun('setupAccountSwitcher', setupAccountSwitcher);
   safeRun('setupProfileHandlers', setupProfileHandlers);
   safeRun('setupCouponInput', setupCouponInput);
@@ -5625,6 +5728,7 @@ function initApp() {
     setupAccordion('toggleCountryBreakdownBtn', 'countryBreakdownBody', 'countryChevron');
     setupAccordion('toggleSessionsAccordionBtn', 'sessionsAccordionBody', 'sessionsChevron');
     setupAccordion('toggleSubAccordionBtn', 'subAccordionBody', 'subChevron');
+    setupAccordion('toggleProfileBadgesBtn', 'profileBadgesBody', 'profileBadgesChevron');
   });
 
   safeRun('hydrateFromCache', () => {
@@ -6526,6 +6630,40 @@ async function generateInvoiceShareCard(invData) {
 
 window.generateInvoiceShareCard = generateInvoiceShareCard;
 
+async function _deliverCanvasCardToChatOrDownload(canvas, filename, { orderId = null, itemType = 'order', buttonEl = null, downloadToast = '📸 تصویر باکیفیت ذخیره شد.' } = {}) {
+  if (!canvas) return;
+  const dataUrl = canvas.toDataURL('image/png');
+  const inTelegramWebApp = Boolean(window.Telegram?.WebApp?.initData);
+
+  if (inTelegramWebApp && orderId && window.api?.sendInvoiceToTelegram) {
+    if (buttonEl) buttonEl.disabled = true;
+    try {
+      const res = await window.api.sendInvoiceToTelegram(orderId, itemType || '', dataUrl);
+      if (res && res.ok) {
+        if (typeof showToast === 'function') showToast('📸 تصویر فاکتور با موفقیت به چت تلگرام شما ارسال شد!', 'success');
+        if (window.hapticFeedback) window.hapticFeedback('success');
+        if (typeof window.playSubtleSound === 'function') window.playSubtleSound('success');
+        return;
+      }
+      if (typeof showToast === 'function') showToast(`❌ ${res?.message || 'خطا در ارسال تصویر به تلگرام'}`);
+      return;
+    } finally {
+      if (buttonEl) buttonEl.disabled = false;
+    }
+  }
+
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = dataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  if (typeof showToast === 'function') showToast(downloadToast, 'success');
+  if (window.hapticFeedback) window.hapticFeedback('success');
+  if (typeof window.playSubtleSound === 'function') window.playSubtleSound('success');
+}
+
 window.downloadInvoiceShareCard = async function() {
   if (!currentInvoiceData) return;
   if (window.hapticFeedback) window.hapticFeedback('selection');
@@ -6537,21 +6675,16 @@ window.downloadInvoiceShareCard = async function() {
       if (typeof showToast === 'function') showToast('خطا در تولید تصویر فاکتور', 'error');
       return;
     }
-    const dataUrl = canvas.toDataURL('image/png');
     const invNum = currentInvoiceData.invoice_number || `INV-${currentInvoiceData.order_id || 'receipt'}`;
-    const link = document.createElement('a');
-    link.download = `Invoice-${invNum}.png`;
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    if (typeof showToast === 'function') showToast('📸 تصویر باکیفیت فاکتور رسمی ذخیره گردید.', 'success');
-    if (window.hapticFeedback) window.hapticFeedback('success');
-    if (typeof window.playSubtleSound === 'function') window.playSubtleSound('success');
+    await _deliverCanvasCardToChatOrDownload(canvas, `Invoice-${invNum}.png`, {
+      orderId: currentInvoiceData.order_id || window.activeInvoiceModalOrderId,
+      itemType: currentInvoiceType || currentInvoiceData.type || '',
+      buttonEl: $('downloadInvoiceCardBtn'),
+      downloadToast: '📸 تصویر باکیفیت فاکتور رسمی ذخیره گردید.',
+    });
   } catch (err) {
-    console.warn('Failed to download invoice card:', err);
-    printCurrentInvoice();
+    console.warn('Failed to export invoice card:', err);
+    if (typeof showToast === 'function') showToast('❌ خطا در ارسال تصویر فاکتور.');
   }
 };
 
@@ -6566,9 +6699,10 @@ window.downloadPurchaseSuccessCard = async function() {
     const price = document.getElementById('psvcPrice')?.innerText || '';
     const user = document.getElementById('psvcUser')?.innerText || '';
 
+    const realOrderId = window.lastPurchaseOrderId || window.lastUserData?.transactions?.[0]?.id || null;
     const invMock = {
-      order_id: Date.now().toString().slice(-6),
-      invoice_number: `REC-${Date.now().toString().slice(-6)}`,
+      order_id: realOrderId || Date.now().toString().slice(-6),
+      invoice_number: `REC-${realOrderId || Date.now().toString().slice(-6)}`,
       date_jalali: new Date().toLocaleDateString('fa-IR'),
       time_jalali: '',
       item: { title: name, traffic_text: traffic, duration_text: days },
@@ -6579,18 +6713,14 @@ window.downloadPurchaseSuccessCard = async function() {
     const canvas = await generateInvoiceShareCard(invMock);
     if (!canvas) return;
 
-    const link = document.createElement('a');
-    link.download = `Receipt-${invMock.order_id}.png`;
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    if (typeof showToast === 'function') showToast('📸 تصویر رسید سفارش ذخیره شد.', 'success');
-    if (window.hapticFeedback) window.hapticFeedback('success');
-    if (typeof window.playSubtleSound === 'function') window.playSubtleSound('success');
+    await _deliverCanvasCardToChatOrDownload(canvas, `Receipt-${invMock.order_id}.png`, {
+      orderId: realOrderId,
+      itemType: 'order',
+      buttonEl: $('psvcShareCardBtn'),
+      downloadToast: '📸 تصویر رسید سفارش ذخیره شد.',
+    });
   } catch (err) {
-    console.warn('Failed downloading purchase card:', err);
+    console.warn('Failed sending purchase card:', err);
   }
 };
 
@@ -6773,7 +6903,8 @@ window.triggerLogoEasterEgg = async function() {
       window.launchCelebrationConfetti();
     }
 
-    if (localStorage.getItem('remna_vip_easter_claimed') === '1') {
+    const serverAlreadyClaimed = Boolean(window.lastUserData?.achievements?.easter_egg_claimed);
+    if (serverAlreadyClaimed && localStorage.getItem('remna_vip_easter_claimed') === '1') {
       if (typeof showToast === 'function') {
         showToast('✨ باشگاه VIP رمنا! هدیه مخفی (1 تیکت رایگان گردونه) قبلاً دریافت شده است.', 'success', 4000);
       }

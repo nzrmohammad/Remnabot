@@ -23,14 +23,9 @@ from sqlalchemy import func, or_, select
 
 from bot.common.links import ref_link as build_ref_link
 from bot.db.models import (
-    AdminLog,
-    CardAutoInvoice,
     Coupon,
     CouponUsage,
-    CryptoInvoice,
-    Order,
     Service,
-    Topup,
     User,
     Wallet,
 )
@@ -41,6 +36,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag, now_tz
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
+from bot.services.wallet_history import fetch_user_transactions, format_jalali_dt
 from bot.web.admin_overview_charts import USERS_PERIODIC_BANDWIDTH_CACHE_KEY  # noqa: F401
 
 FLAG_EMOJI_RE = re.compile(r"[\U0001F1E6-\U0001F1FF]{2}")
@@ -116,165 +112,12 @@ from bot.web.user_subscription_detail import (
     build_active_subscription as _build_active_subscription,
 )
 
-
-def _format_jalali_dt(dt: Any, tz_name: str) -> str:
-    """Format a datetime object into YYYY/MM/DD - HH:MM Jalali string in target timezone."""
-    if not dt:
-        return ""
-    j_dt = jdatetime.datetime.fromgregorian(
-        datetime=dt.astimezone(ZoneInfo(tz_name)) if dt.tzinfo else dt
-    )
-    return f"{j_dt.year}/{j_dt.month:02d}/{j_dt.day:02d} - {j_dt.hour:02d}:{j_dt.minute:02d}"
+_format_jalali_dt = format_jalali_dt
 
 
 async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: str) -> list[dict[str, Any]]:
-    """Fetch orders, topups, and admin adjustments sorted by timestamp."""
-    history_items: list[dict[str, Any]] = []
-    try:
-        orders_res = await session.execute(
-            select(Order).where(Order.telegram_id == telegram_id).order_by(Order.id.desc()).limit(50)
-        )
-        for o in orders_res.scalars().all():
-            o_dt = o.created_at
-            o_j_str = _format_jalali_dt(o_dt, tz_name)
-            raw_st = (
-                o.status.value if hasattr(o.status, "value") else str(o.status or "")
-            ).lower()
-            if raw_st == "paid":
-                st_text = "موفق"
-                st_color = "emerald"
-                is_pos = False
-            elif raw_st == "refunded":
-                st_text = "مسترد شده"
-                st_color = "purple"
-                is_pos = True
-            elif raw_st == "pending":
-                st_text = "در انتظار پرداخت"
-                st_color = "amber"
-                is_pos = False
-            else:
-                st_text = "ناموفق"
-                st_color = "rose"
-                is_pos = False
-
-            history_items.append({
-                "id": o.id,
-                "type": "order",
-                "title": f"خرید {o.service_name}",
-                "service_id": o.service_id,
-                "service_name": o.service_name,
-                "is_custom": not bool(o.service_id) and "دلخواه" in (o.service_name or ""),
-                "traffic_gb": o.traffic_gb or 0,
-                "duration_days": o.duration_days or 0,
-                "amount": o.amount,
-                "amount_formatted": f"{o.amount:,} تومان",
-                "is_positive": is_pos,
-                "status": st_text,
-                "status_color": st_color,
-                "date_jalali": o_j_str,
-                "timestamp": o_dt.timestamp() if o_dt else 0,
-            })
-
-        topups_res = await session.execute(
-            select(Topup).where(Topup.telegram_id == telegram_id).order_by(Topup.id.desc()).limit(50)
-        )
-        for t in topups_res.scalars().all():
-            t_dt = t.created_at
-            t_j_str = _format_jalali_dt(t_dt, tz_name)
-            st = (t.status or "pending").lower()
-            history_items.append({
-                "id": t.id,
-                "type": "topup",
-                "title": "افزایش موجودی (کارت به کارت)",
-                "amount": t.amount,
-                "amount_formatted": f"{t.amount:,} تومان",
-                "is_positive": st == "approved",
-                "status": "تایید شده" if st == "approved" else ("رد شده" if st == "rejected" else "در انتظار بررسی"),
-                "status_color": "emerald" if st == "approved" else ("rose" if st == "rejected" else "amber"),
-                "date_jalali": t_j_str,
-                "timestamp": t_dt.timestamp() if t_dt else 0,
-            })
-
-        admin_logs_res = await session.execute(
-            select(AdminLog).where(
-                AdminLog.action.in_(["wallet_charge", "wallet_deduct", "balance_add", "balance_sub"]),
-                AdminLog.target_user_id == telegram_id,
-            ).order_by(AdminLog.id.desc()).limit(15)
-        )
-        for al in admin_logs_res.scalars().all():
-            al_dt = al.created_at
-            al_j_str = _format_jalali_dt(al_dt, tz_name)
-
-            is_pos = al.action in ("wallet_charge", "balance_add")
-            parsed_amt = 0
-            m = re.search(r"amount=(\d+)", al.detail or "") or re.search(r"([\d,]+)\s*تومان", al.detail or "")
-            if m:
-                try:
-                    parsed_amt = int(m.group(1).replace(",", ""))
-                except Exception:
-                    parsed_amt = 0
-
-            history_items.append({
-                "id": al.id,
-                "type": "admin_adjust",
-                "title": "شارژ دستی مدیریت" if is_pos else "کسر دستی مدیریت",
-                "amount": parsed_amt,
-                "amount_formatted": f"{parsed_amt:,} تومان" if parsed_amt else "--",
-                "is_positive": is_pos,
-                "status": "ثبت شد",
-                "status_color": "emerald" if is_pos else "rose",
-                "date_jalali": al_j_str,
-                "timestamp": al_dt.timestamp() if al_dt else 0,
-            })
-
-        card_auto_res = await session.execute(
-            select(CardAutoInvoice).where(
-                CardAutoInvoice.telegram_id == telegram_id,
-                CardAutoInvoice.status == "paid",
-            ).order_by(CardAutoInvoice.id.desc()).limit(30)
-        )
-        for ca in card_auto_res.scalars().all():
-            ca_dt = ca.paid_at or ca.created_at
-            history_items.append({
-                "id": f"ca_{ca.id}",
-                "type": "card_auto",
-                "title": "افزایش موجودی (کارت به کارت خودکار)",
-                "amount": ca.exact_amount,
-                "amount_formatted": f"{ca.exact_amount:,} تومان",
-                "is_positive": True,
-                "status": "تایید خودکار",
-                "status_color": "emerald",
-                "date_jalali": _format_jalali_dt(ca_dt, tz_name),
-                "timestamp": ca_dt.timestamp() if ca_dt else 0,
-            })
-
-        crypto_res = await session.execute(
-            select(CryptoInvoice).where(
-                CryptoInvoice.telegram_id == telegram_id,
-                CryptoInvoice.status == "paid",
-            ).order_by(CryptoInvoice.id.desc()).limit(30)
-        )
-        for cr in crypto_res.scalars().all():
-            cr_dt = cr.paid_at or cr.created_at
-            cr_curr = (cr.currency or "TON").upper()
-            history_items.append({
-                "id": f"cr_{cr.id}",
-                "type": "crypto",
-                "title": f"شارژ کیف پول (رمزارز {cr_curr})",
-                "amount": cr.amount_toman,
-                "amount_formatted": f"{cr.amount_toman:,} تومان",
-                "is_positive": True,
-                "status": "تایید شده",
-                "status_color": "emerald",
-                "date_jalali": _format_jalali_dt(cr_dt, tz_name),
-                "timestamp": cr_dt.timestamp() if cr_dt else 0,
-            })
-
-        history_items.sort(key=lambda x: x["timestamp"], reverse=True)
-    except Exception as exc:
-        logger.warning("Failed to fetch transaction history for %s: %s", telegram_id, exc)
-
-    return history_items
+    """Fetch unified orders, topups, crypto, card-auto, and admin adjustments sorted by timestamp."""
+    return await fetch_user_transactions(session, telegram_id, tz_name, include_failed_orders=True, limit=50)
 
 
 async def _fetch_user_perks_and_settings(
@@ -786,6 +629,13 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "badge": s.badge or "",
                 "squad_uuid": s.squad_uuid or "",
                 "sort_order": s.sort_order or 0,
+                "max_purchases": s.max_purchases,
+                "purchases_count": int(s.purchases_count or 0),
+                "remaining_purchases": (
+                    max(0, int(s.max_purchases) - int(s.purchases_count or 0))
+                    if s.max_purchases
+                    else None
+                ),
                 "flags": plan_flags,
                 "flags_label": "اسکواد اختصاصی" if s.squad_uuid else "بدون اسکواد",
             })

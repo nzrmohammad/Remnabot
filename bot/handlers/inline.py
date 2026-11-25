@@ -23,7 +23,13 @@ from bot.common.links import ref_link
 from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.services.app_settings import get_store_settings
-from bot.services.formatting import country_flag, country_name, now_tz, parse_iso
+from bot.services.formatting import (
+    compact_traffic,
+    country_flag,
+    country_name,
+    now_tz,
+    parse_iso,
+)
 from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
@@ -33,12 +39,7 @@ router = Router(name="inline")
 def _format_traffic_compact(used: int, limit: int) -> str:
     if limit <= 0:
         return "نامحدود"
-    remaining = max(0, limit - used)
-    gb = remaining / (1024 ** 3)
-    if gb >= 1:
-        return f"{gb:.1f} GB" if round(gb, 1) != int(gb) else f"{int(gb)} GB"
-    mb = remaining / (1024 ** 2)
-    return f"{mb:.0f} MB" if mb >= 1 else "0 MB"
+    return compact_traffic(max(0, limit - used))
 
 
 def _format_days_left(expire_at_raw: str | None, tz_name: str) -> str:

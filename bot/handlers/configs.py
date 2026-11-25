@@ -19,6 +19,7 @@ from bot.keyboards.inline import welcome_keyboard
 from bot.locales.texts import t
 from bot.services.configs import fetch_subscription_configs, parse_subscription_text
 from bot.services.menu import render_menu
+from bot.services.purchases import filter_active_panel_users
 from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
@@ -46,14 +47,7 @@ async def _get_accounts(
     raw = await remnawave.get_users_by_telegram_id(telegram_id)
     if raw is None:
         return None
-    seen = set()
-    deduped = []
-    for a in raw:
-        aid = str(a.get("id"))
-        if aid not in seen and str(a.get("status", "")).upper() not in ("DELETED",):
-            seen.add(aid)
-            deduped.append(a)
-    return deduped
+    return filter_active_panel_users(raw)
 
 
 async def _verify_account(

@@ -23,6 +23,22 @@ def ltr_frag(s: str) -> str:
     return f"\u2066{s}\u2069"
 
 
+def compact_traffic(n: int | float | None, *, isolate: bool = True) -> str:
+    """Format bytes compactly ('20 GB', '225.9 GB', '500 MB') with optional BiDi isolate."""
+    if not n or n <= 0:
+        s = "0 MB"
+    elif n >= TB:
+        tb = n / TB
+        s = f"{tb:.1f} TB" if round(tb, 1) != int(tb) else f"{int(tb)} TB"
+    elif n >= GB:
+        gb = n / GB
+        s = f"{gb:.1f} GB" if round(gb, 1) != int(gb) else f"{int(gb)} GB"
+    else:
+        mb = n / MB
+        s = f"{mb:.0f} MB" if mb >= 1 else "0 MB"
+    return ltr_frag(s) if isolate else s
+
+
 def _human_bytes_plain(n: int | float | None) -> str:
     if not n or n <= 0:
         return "0 MB"

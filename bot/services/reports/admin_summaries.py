@@ -367,9 +367,9 @@ async def _send_admin_weekly_summary(
         sorted_nodes = sorted(day_nodes[d_idx].items(), key=lambda x: x[1], reverse=True)
         parts = [f"{lbl} {human_bytes(val)}" for lbl, val in sorted_nodes if val > 0]
         if parts:
-            lines.append(f"\u200e{human_bytes(d_val)} : {' '.join(parts)}")
+            lines.append(f"\u200f{human_bytes(d_val)} : {' '.join(parts)}")
         else:
-            lines.append(f"\u200e{human_bytes(d_val)}")
+            lines.append(f"\u200f{human_bytes(d_val)}")
 
     lines.append("")
     lines.append(SEPARATOR)
@@ -380,9 +380,9 @@ async def _send_admin_weekly_summary(
         if val > 0
     ]
     if weekly_parts:
-        lines.append(f"\u200e{human_bytes(week_total)} : {' '.join(weekly_parts)}")
+        lines.append(f"\u200f{human_bytes(week_total)} : {' '.join(weekly_parts)}")
     else:
-        lines.append(f"\u200e{human_bytes(week_total)}")
+        lines.append(f"\u200f{human_bytes(week_total)}")
 
     lines.append(SEPARATOR)
     lines.append("🏆 <b>گزارش هفتگی پرمصرفترین کاربران</b>")

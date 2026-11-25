@@ -25,7 +25,13 @@ from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.keyboards.inline import welcome_keyboard
 from bot.locales.texts import t
-from bot.services.formatting import format_date, format_datetime, now_tz, parse_iso
+from bot.services.formatting import (
+    compact_traffic,
+    format_date,
+    format_datetime,
+    now_tz,
+    parse_iso,
+)
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 
@@ -82,13 +88,7 @@ def _format_account_btn(account: dict, lang: str) -> str:
 
     # Traffic compact string (remaining traffic)
     if limit > 0:
-        remaining = max(0, limit - used)
-        gb = remaining / (1024 ** 3)
-        if gb >= 1:
-            traffic_str = f"{gb:.1f} GB" if round(gb, 1) != int(gb) else f"{int(gb)} GB"
-        else:
-            mb = remaining / (1024 ** 2)
-            traffic_str = f"{mb:.0f} MB" if mb >= 1 else "0 MB"
+        traffic_str = compact_traffic(max(0, limit - used))
     else:
         traffic_str = t(lang, "stats_unlimited")
 
@@ -139,13 +139,8 @@ def _account_view_text(account: dict, lang: str) -> str:
     traffic = account.get("userTraffic") or {}
     used = int(traffic.get("usedTrafficBytes") or account.get("usedTrafficBytes") or 0)
     if limit > 0:
-        remaining = max(0, limit - used)
-        rem_gb = remaining / (1024 ** 3)
-        lim_gb = limit / (1024 ** 3)
-        rem_num = f"{rem_gb:.1f}" if round(rem_gb, 1) != int(rem_gb) else f"{int(rem_gb)}"
-        lim_num = f"{lim_gb:.1f}" if round(lim_gb, 1) != int(lim_gb) else f"{int(lim_gb)}"
-        rem_str = f"GB {rem_num}" if lang == "fa" else f"{rem_num} GB"
-        lim_str = f"GB {lim_num}" if lang == "fa" else f"{lim_num} GB"
+        rem_str = compact_traffic(max(0, limit - used))
+        lim_str = compact_traffic(limit)
         lines.append(f"{t(lang, 'stats_remaining')} : <b>{rem_str}</b> (از {lim_str})")
     else:
         lines.append(f"{t(lang, 'stats_total')} : {t(lang, 'stats_unlimited')}")

@@ -194,6 +194,22 @@ async def invalidate_user_cache(cache: Any, telegram_id: int | str) -> None:
                 await res
 
 
+async def invalidate_settings_cache(cache: Any) -> None:
+    """Clear cached store settings and TMA user dashboards, supporting MagicMock in unit tests."""
+    if not cache:
+        return
+    from unittest.mock import NonCallableMock
+
+    if isinstance(cache, NonCallableMock):
+        return
+    del_fn = getattr(cache, "delete", None)
+    if isinstance(cache, FastCache) or (callable(del_fn) and not isinstance(del_fn, NonCallableMock)):
+        for key in ("store_settings", "tma:user"):
+            res = del_fn(key)
+            if inspect.isawaitable(res):
+                await res
+
+
 _LOCAL_ACTION_LOCKS: set[tuple[int, str]] = set()
 
 

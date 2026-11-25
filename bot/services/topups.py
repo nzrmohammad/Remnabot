@@ -81,13 +81,13 @@ async def decide_topup(
 
     if cache is None:
         cache = getattr(bot, "cache", None)
-    if cache and hasattr(cache, "delete"):
+    if cache:
         try:
-            if hasattr(cache, "invalidate_user"):
-                await cache.invalidate_user(topup.telegram_id)
-            else:
-                await cache.delete(f"tma:user:{topup.telegram_id}")
-            await cache.delete("tma:admin:overview")
+            from bot.web.cache import invalidate_user_cache
+
+            await invalidate_user_cache(cache, topup.telegram_id)
+            if hasattr(cache, "delete"):
+                await cache.delete("tma:admin:overview")
         except Exception as c_exc:
             logger.debug("Failed invalidating cache for topup %s: %s", topup_id, c_exc)
 

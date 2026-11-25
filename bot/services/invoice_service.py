@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 import jdatetime
 from aiogram import Bot
-from aiogram.types import FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import BufferedInputFile, FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -236,8 +236,14 @@ async def get_order_invoice_data(
     }
 
 
-async def send_invoice_to_telegram(bot: Bot, telegram_id: int, invoice: dict[str, Any], web_app_url: str = "") -> bool:
-    """Send a beautifully formatted digital invoice directly to the user's Telegram chat."""
+async def send_invoice_to_telegram(
+    bot: Bot,
+    telegram_id: int,
+    invoice: dict[str, Any],
+    web_app_url: str = "",
+    image_bytes: bytes | None = None,
+) -> bool:
+    """Send a beautifully formatted digital invoice (or rendered PNG image) directly to Telegram chat."""
     import html
     inv_num = html.escape(str(invoice.get("invoice_number", "")))
     date_str = html.escape(f"{invoice.get('date_jalali', '')} ساعت {invoice.get('time_jalali', '')}")
@@ -282,7 +288,20 @@ async def send_invoice_to_telegram(bot: Bot, telegram_id: int, invoice: dict[str
     try:
         from pathlib import Path
         photo_sent = False
-        if logo_url:
+        if image_bytes:
+            try:
+                safe_num = "".join(ch for ch in str(invoice.get("invoice_number", "receipt")) if ch.isalnum() or ch in ("-", "_")) or "receipt"
+                await bot.send_photo(
+                    chat_id=telegram_id,
+                    photo=BufferedInputFile(image_bytes, filename=f"Invoice-{safe_num}.png"),
+                    caption=msg[:1024],
+                    reply_markup=markup,
+                    parse_mode="HTML",
+                )
+                photo_sent = True
+            except Exception as img_err:
+                logger.debug("Failed sending generated invoice image: %s", img_err)
+        if not photo_sent and logo_url:
             if logo_url.startswith("http://") or logo_url.startswith("https://"):
                 try:
                     await bot.send_photo(

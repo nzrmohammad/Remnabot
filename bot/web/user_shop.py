@@ -1,6 +1,7 @@
 from bot.web.user_common import db_session, enforce_invite_only, require_user
 
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
+import base64
 import json
 import logging
 import re
@@ -17,7 +18,7 @@ from bot.services.app_settings import StoreSettings, get_store_settings
 from bot.services.gift_service import claim_gift, create_gift, get_user_gifts
 from bot.services.invoice_service import get_order_invoice_data, send_invoice_to_telegram
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
-from bot.services.purchases import execute_purchase
+from bot.services.purchases import execute_purchase, filter_active_panel_users
 from bot.web.cache import FastCache, invalidate_user_cache, user_action_lock
 
 logger = logging.getLogger(__name__)
@@ -319,6 +320,8 @@ async def post_user_purchase(request: web.Request) -> web.Response:
     service_id = body.get("service_id")
     coupon_code = (body.get("coupon_code") or "").strip().upper() or None
     account_id = body.get("account_id")
+    create_new = bool(body.get("create_new"))
+    custom_username = (body.get("custom_username") or "").strip() or None
     if coupon_code and not re.match(r"^[A-Za-z0-9_-]{3,32}$", coupon_code):
         return web.json_response({"ok": False, "message": "فرمت کد تخفیف نامعتبر است."}, status=400)
 
@@ -351,6 +354,8 @@ async def post_user_purchase(request: web.Request) -> web.Response:
             service_id=service_id,
             coupon_code=coupon_code,
             account_id=account_id,
+            create_new=create_new,
+            custom_username=custom_username,
         )
     finally:
         await _lock_stack.aclose()
@@ -365,6 +370,8 @@ async def _post_user_purchase_body(
     service_id,
     coupon_code: str | None,
     account_id,
+    create_new: bool = False,
+    custom_username: str | None = None,
 ) -> web.Response:
     async with db_session(request) as session:
         inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=remnawave)
@@ -394,32 +401,33 @@ async def _post_user_purchase_body(
             coupon_obj = await coupon_repo.get_by_code(coupon_code)
 
         chosen_acc = None
-        panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
-        if account_id:
-            chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
-            if not chosen_acc:
-                return web.json_response({
-                    "ok": False,
-                    "message": "شناسه اکانت انتخاب‌شده نامعتبر است یا متعلق به شما نیست.",
-                }, status=400)
-        else:
-            if len(panel_users) == 1:
-                chosen_acc = panel_users[0]
-            elif len(panel_users) > 1:
-                return web.json_response({
-                    "ok": False,
-                    "error": "needs_account",
-                    "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را جهت خرید یا تمدید انتخاب فرمایید.",
-                    "accounts": [
-                        {
-                            "id": u.get("id"),
-                            "username": u.get("username"),
-                            "status": u.get("status"),
-                            "expireAt": u.get("expireAt"),
-                        }
-                        for u in panel_users
-                    ],
-                }, status=400)
+        panel_users = filter_active_panel_users(await remnawave.get_users_by_telegram_id(telegram_id))
+        if not create_new:
+            if account_id:
+                chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
+                if not chosen_acc:
+                    return web.json_response({
+                        "ok": False,
+                        "message": "شناسه اکانت انتخاب‌شده نامعتبر است یا متعلق به شما نیست.",
+                    }, status=400)
+            else:
+                if len(panel_users) == 1:
+                    chosen_acc = panel_users[0]
+                elif len(panel_users) > 1:
+                    return web.json_response({
+                        "ok": False,
+                        "error": "needs_account",
+                        "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را جهت خرید یا تمدید انتخاب فرمایید.",
+                        "accounts": [
+                            {
+                                "id": u.get("id"),
+                                "username": u.get("username"),
+                                "status": u.get("status"),
+                                "expireAt": u.get("expireAt"),
+                            }
+                            for u in panel_users
+                        ],
+                    }, status=400)
 
         bot = request.app.get("bot")
         session_factory = request.app.get("session_factory")
@@ -435,12 +443,14 @@ async def _post_user_purchase_body(
             service=service,
             telegram_id=telegram_id,
             chosen_account=chosen_acc,
+            create_new=create_new,
             discount_amount=total_discount,
             coupon_code=coupon_code,
             bot=bot,
             session_factory=session_factory,
             cache=cache,
             coupon_discount_amount=discount_amount,
+            custom_username=custom_username,
         )
 
         effective_price = max(0, service.price - total_discount)
@@ -482,6 +492,12 @@ async def _post_user_purchase_body(
                     "ok": False,
                     "error": "needs_active_sub",
                     "message": "برای خرید بسته افزایش حجم یا افزایش زمان، داشتن یک اشتراک فعال الزامی است.",
+                }, status=400)
+            elif result.kind in ("username_invalid", "username_taken"):
+                return web.json_response({
+                    "ok": False,
+                    "error": result.kind,
+                    "message": result.message or "نام کاربری انتخابی معتبر یا در دسترس نیست.",
                 }, status=400)
             elif result.kind == "squad_mismatch":
                 return web.json_response({
@@ -802,6 +818,8 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
     except (ValueError, TypeError):
         return web.json_response({"ok": False, "message": "مقادیر حجم و روز نامعتبر است."}, status=400)
     account_id = data.get("account_id")
+    create_new = bool(data.get("create_new"))
+    custom_username = (data.get("custom_username") or "").strip() or None
     remnawave = request.app["remnawave"]
     cache = request.app.get("cache")
 
@@ -829,6 +847,8 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
             duration_days=duration_days,
             hwid_limit=hwid_limit,
             account_id=account_id,
+            create_new=create_new,
+            custom_username=custom_username,
         )
     finally:
         await _lock_stack.aclose()
@@ -845,6 +865,8 @@ async def _post_user_custom_plan_purchase_body(
     duration_days: int,
     hwid_limit: int,
     account_id,
+    create_new: bool = False,
+    custom_username: str | None = None,
 ) -> web.Response:
     async with db_session(request) as session:
         inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=remnawave)
@@ -894,29 +916,30 @@ async def _post_user_custom_plan_purchase_body(
         disc_amt, final_price = apply_loyalty_discount(base_price, loyalty_pct)
 
         chosen_acc = None
-        panel_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
-        if account_id:
-            chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
-            if not chosen_acc:
-                return web.json_response({"ok": False, "message": "اشتراک انتخابی جهت تمدید یافت نشد."}, status=400)
-        else:
-            if len(panel_users) == 1:
-                chosen_acc = panel_users[0]
-            elif len(panel_users) > 1:
-                return web.json_response({
-                    "ok": False,
-                    "error": "needs_account",
-                    "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را انتخاب فرمایید.",
-                    "accounts": [
-                        {
-                            "id": u.get("id"),
-                            "username": u.get("username"),
-                            "status": u.get("status"),
-                            "expireAt": u.get("expireAt"),
-                        }
-                        for u in panel_users
-                    ],
-                }, status=400)
+        panel_users = filter_active_panel_users(await remnawave.get_users_by_telegram_id(telegram_id))
+        if not create_new:
+            if account_id:
+                chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
+                if not chosen_acc:
+                    return web.json_response({"ok": False, "message": "اشتراک انتخابی جهت تمدید یافت نشد."}, status=400)
+            else:
+                if len(panel_users) == 1:
+                    chosen_acc = panel_users[0]
+                elif len(panel_users) > 1:
+                    return web.json_response({
+                        "ok": False,
+                        "error": "needs_account",
+                        "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را انتخاب فرمایید.",
+                        "accounts": [
+                            {
+                                "id": u.get("id"),
+                                "username": u.get("username"),
+                                "status": u.get("status"),
+                                "expireAt": u.get("expireAt"),
+                            }
+                            for u in panel_users
+                        ],
+                    }, status=400)
 
         from types import SimpleNamespace
 
@@ -976,10 +999,12 @@ async def _post_user_custom_plan_purchase_body(
             service=custom_svc,
             telegram_id=telegram_id,
             chosen_account=chosen_acc,
+            create_new=create_new,
             discount_amount=disc_amt,
             bot=bot,
             session_factory=session_factory,
             cache=cache,
+            custom_username=custom_username,
         )
 
         if not result.ok:
@@ -1006,6 +1031,12 @@ async def _post_user_custom_plan_purchase_body(
                         }
                         for u in (panel_users or [])
                     ],
+                }, status=400)
+            if result.kind in ("username_invalid", "username_taken"):
+                return web.json_response({
+                    "ok": False,
+                    "error": result.kind,
+                    "message": result.message or "نام کاربری انتخابی معتبر یا در دسترس نیست.",
                 }, status=400)
             if result.kind in ("failed", "error") or not result.message:
                 bot = request.app.get("bot")
@@ -1115,8 +1146,28 @@ async def get_user_invoice(request: web.Request) -> web.Response:
         return web.json_response({"ok": True, "data": inv_data})
 
 
+def _decode_optional_invoice_image(raw_value: object) -> bytes | None:
+    """Decode and validate an optional base64 PNG/JPEG invoice card image (max 2 MB)."""
+    if not isinstance(raw_value, str):
+        return None
+    raw_str = raw_value.strip()
+    if not raw_str or len(raw_str) > 3_000_000:
+        return None
+    if "," in raw_str and raw_str.lower().startswith("data:image/"):
+        raw_str = raw_str.split(",", 1)[1].strip()
+    try:
+        decoded = base64.b64decode(raw_str, validate=True)
+    except Exception:
+        return None
+    if not (0 < len(decoded) <= 2 * 1024 * 1024):
+        return None
+    if not (decoded.startswith(b"\x89PNG\r\n\x1a\n") or decoded.startswith(b"\xff\xd8\xff")):
+        return None
+    return decoded
+
+
 async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
-    """Send official receipt and digital invoice directly to user's Telegram chat."""
+    """Send official receipt and digital invoice (with optional PNG image) directly to user's Telegram chat."""
     user_auth, err = require_user(request)
     if err:
         return err
@@ -1131,6 +1182,14 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
     bot: Bot | None = request.app.get("bot")
     if not bot:
         return web.json_response({"ok": False, "message": "ربات در دسترس نیست."}, status=503)
+
+    image_bytes: bytes | None = None
+    try:
+        body = await request.json()
+        if isinstance(body, dict):
+            image_bytes = _decode_optional_invoice_image(body.get("image_base64"))
+    except Exception:
+        image_bytes = None
 
     inv_type = request.query.get("type", "").lower() or None
     async with db_session(request) as session:
@@ -1155,13 +1214,14 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
             bot=bot,
             telegram_id=telegram_id,
             invoice=inv_data,
+            image_bytes=image_bytes,
         )
         if not sent:
             return web.json_response({"ok": False, "message": "خطا در ارسال پیام به تلگرام شما."}, status=500)
 
         return web.json_response({
             "ok": True,
-            "message": "فاکتور رسمی با موفقیت به پیوی تلگرام شما ارسال شد!",
+            "message": "تصویر فاکتور رسمی با موفقیت به چت تلگرام شما ارسال شد!" if image_bytes else "فاکتور رسمی با موفقیت به پیوی تلگرام شما ارسال شد!",
         })
 
 

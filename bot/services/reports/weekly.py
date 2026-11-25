@@ -110,10 +110,11 @@ async def _weekly_text_for_user(
             acc_lines.append(t(lang, "weekly_day", day=d_name, date=date_str))
             rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
             parts = [f"{lbl} {human_bytes(val)}" for lbl, val in rows if val > 0]
+            rtl_mark = "\u200f" if lang == "fa" else ""
             if parts:
-                acc_lines.append(f"\u200e{human_bytes(total)} : {' • '.join(parts)}")
+                acc_lines.append(f"{rtl_mark}{human_bytes(total)} : {' • '.join(parts)}")
             else:
-                acc_lines.append(f"\u200e{human_bytes(total)}")
+                acc_lines.append(f"{rtl_mark}{human_bytes(total)}")
 
         acc_lines.append("")
         acc_lines.append(t(lang, "weekly_total", total=human_bytes(acc_week_total)))
@@ -129,7 +130,7 @@ async def _weekly_text_for_user(
     if multi_account:
         lines.append("")
         lines.append(SEPARATOR)
-        lines.append(f"📊 <b>مجموع کل مصارف ({len(account_data)} اکانت) : \u200e{human_bytes(grand_week_total)}</b>")
+        lines.append(f"📊 <b>مجموع کل مصارف ({len(account_data)} اکانت) : {human_bytes(grand_week_total)}</b>")
 
     lines.append(SEPARATOR)
 

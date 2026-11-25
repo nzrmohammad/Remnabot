@@ -37,7 +37,7 @@ from bot.handlers.shop_purchase_views import (
 from bot.locales.texts import t
 from bot.services.app_settings import is_maintenance
 from bot.services.menu import render_menu
-from bot.services.purchases import execute_purchase
+from bot.services.purchases import execute_purchase, filter_active_panel_users
 from bot.services.remnawave import RemnawaveClient
 from bot.services.service_display import service_block
 from bot.web.cache import user_action_lock
@@ -226,13 +226,7 @@ async def service_buy(
         await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
-    valid_accounts = []
-    seen = set()
-    for a in accounts:
-        aid = str(a.get("id"))
-        if aid not in seen and str(a.get("status", "")).upper() not in ("DELETED",):
-            seen.add(aid)
-            valid_accounts.append(a)
+    valid_accounts = filter_active_panel_users(accounts)
 
     if valid_accounts:
         kb = InlineKeyboardBuilder()

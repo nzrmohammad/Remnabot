@@ -14,7 +14,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, fmt, parse_int
-from bot.db.repositories.order_repo import OrderRepository
+from bot.config import get_settings
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.handlers.wallet_card import (
@@ -42,6 +42,7 @@ from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.formatting import format_datetime
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.render import render_wallet
+from bot.services.wallet_history import fetch_user_transactions
 from bot.states.wallet import TopupStates
 from bot.web.cache import FastCache
 
@@ -86,35 +87,16 @@ async def topup_history(
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language or "fa"
     currency = t(lang, "svc_currency")
+    tz_name = getattr(get_settings(), "TIMEZONE", "Asia/Tehran")
 
-    topups = await WalletRepository(session).list_for_user(user.telegram_id, limit=20)
-    orders = await OrderRepository(session).list_for_user(user.telegram_id, limit=20)
-
-    transactions = []
-    for tp in topups:
-        transactions.append({
-            "kind": "topup",
-            "id": tp.id,
-            "amount": tp.amount,
-            "status": tp.status,
-            "created_at": tp.created_at,
-            "receipt_hash": getattr(tp, "receipt_hash", None),
-        })
-
-    for od in orders:
-        if od.status == "failed":
-            continue
-        transactions.append({
-            "kind": "order",
-            "id": od.id,
-            "amount": od.amount,
-            "service_name": od.service_name,
-            "status": od.status,
-            "created_at": od.created_at,
-        })
-
-    epoch = datetime.min.replace(tzinfo=timezone.utc)
-    transactions.sort(key=lambda x: x["created_at"] or epoch, reverse=True)
+    transactions = await fetch_user_transactions(
+        session,
+        user.telegram_id,
+        tz_name,
+        include_failed_orders=False,
+        limit=15,
+        lang=lang,
+    )
     transactions = transactions[:15]
 
     lines = [
@@ -125,40 +107,24 @@ async def topup_history(
         lines.append(t(lang, "topups_history_empty"))
     else:
         for tx in transactions:
-            when = format_datetime(tx["created_at"], lang) if tx["created_at"] else "—"
-            amt_str = _fmt(tx["amount"])
-            if tx["kind"] == "topup":
-                status = tx["status"]
-                receipt = str(tx.get("receipt_hash") or "")
-                if receipt.startswith("stars:"):
-                    method_name = "⭐️ تلگرام استارز"
-                elif receipt.startswith("ton:"):
-                    method_name = "💎 تون (TON)"
-                elif receipt.startswith("trx:"):
-                    method_name = "🔴 ترون (TRX)"
-                elif receipt.startswith("pol:"):
-                    method_name = "🟣 پلیگان (POL)"
-                elif receipt.startswith("voucher:"):
-                    method_name = "🎟 کارت شارژ"
-                elif receipt.startswith("admin:"):
-                    method_name = "👤 شارژ دستی"
-                elif receipt.startswith("c2c:") or receipt.startswith("auto_c2c:"):
-                    method_name = "⚡️ کارت‌به‌کارت آنی"
-                else:
-                    method_name = "💳 کارت به کارت"
+            ts = tx.get("timestamp") or 0
+            when = (
+                format_datetime(datetime.fromtimestamp(ts, tz=timezone.utc), lang)
+                if ts
+                else (tx.get("date_jalali") or "—")
+            )
+            amt_str = _fmt(tx["amount"]) if tx.get("amount") else "—"
+            tx_type = tx.get("type")
 
-                if status == "approved":
-                    badge = "✅ تایید شده"
-                    sign = "+"
-                    icon = "🟢"
-                elif status == "pending":
-                    badge = "⏳ در انتظار بررسی"
-                    sign = ""
-                    icon = "🟡"
+            if tx_type == "topup":
+                raw_st = tx.get("raw_status", "pending")
+                method_name = tx.get("method_label") or "💳 کارت به کارت"
+                if raw_st == "approved":
+                    badge, sign, icon = "✅ تایید شده", "+", "🟢"
+                elif raw_st == "pending":
+                    badge, sign, icon = "⏳ در انتظار بررسی", "", "🟡"
                 else:
-                    badge = "❌ رد شده"
-                    sign = ""
-                    icon = "🔴"
+                    badge, sign, icon = "❌ رد شده", "", "🔴"
 
                 lines.append(
                     f"{icon} <b>{badge}</b> ({method_name})\n"
@@ -166,11 +132,35 @@ async def topup_history(
                     f"   🕒 زمان: <code>{when}</code>\n"
                     f"   🔖 شناسه: <code>\u200e#{tx['id']}\u200e</code>"
                 )
-                lines.append("──────────────────")
-            elif tx["kind"] == "order":
+            elif tx_type == "card_auto":
+                lines.append(
+                    f"🟢 <b>✅ تایید خودکار</b> (⚡️ کارت‌به‌کارت آنی)\n"
+                    f"   💰 مبلغ: <b>\u200e+{amt_str}\u200e {currency}</b>\n"
+                    f"   🕒 زمان: <code>{when}</code>\n"
+                    f"   🔖 شناسه: <code>\u200e#{tx['id']}\u200e</code>"
+                )
+            elif tx_type == "crypto":
+                curr = tx.get("currency", "TON")
+                lines.append(
+                    f"🟢 <b>✅ تایید شده</b> (💎 رمزارز {curr})\n"
+                    f"   💰 مبلغ: <b>\u200e+{amt_str}\u200e {currency}</b>\n"
+                    f"   🕒 زمان: <code>{when}</code>\n"
+                    f"   🔖 شناسه: <code>\u200e#{tx['id']}\u200e</code>"
+                )
+            elif tx_type == "admin_adjust":
+                icon = "🟢" if tx.get("is_positive") else "🔴"
+                sign = "+" if tx.get("is_positive") else "-"
+                amt_disp = f"\u200e{sign}{amt_str}\u200e {currency}" if tx.get("amount") else "—"
+                lines.append(
+                    f"{icon} <b>{escape(tx.get('title') or 'تغییر دستی موجودی')}</b>\n"
+                    f"   💰 مبلغ: <b>{amt_disp}</b>\n"
+                    f"   🕒 زمان: <code>{when}</code>\n"
+                    f"   🔖 شناسه: <code>\u200e#{tx['id']}\u200e</code>"
+                )
+            elif tx_type == "order":
                 raw_name = tx.get("service_name") or t(lang, "services_title")
                 svc_title = _format_service_title_with_badge(raw_name)
-                if tx["status"] == "refunded":
+                if tx.get("raw_status") == "refunded":
                     lines.append(
                         f"🔵 <b>↩️ بازگشت وجه {svc_title}</b>\n"
                         f"   💰 مبلغ: <b>\u200e+{amt_str}\u200e {currency}</b>\n"
@@ -184,7 +174,7 @@ async def topup_history(
                         f"   🕒 زمان: <code>{when}</code>\n"
                         f"   🔖 سفارش: <code>\u200e#{tx['id']}\u200e</code>"
                     )
-                lines.append("──────────────────")
+            lines.append("──────────────────")
 
     kb = InlineKeyboardBuilder()
     kb.button(text=t(lang, "btn_back"), callback_data="menu:wallet")

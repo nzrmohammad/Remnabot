@@ -301,7 +301,7 @@ function updateWheelUIState(canSpin, hasActiveSub, nextSeconds, streak, multipli
 
   if (!hasActiveSub) {
     spinBtn.disabled = true;
-    spinBtn.innerHTML = '<span class="text-[11px] font-bold">🔒 نیاز به اشتراک</span>';
+    spinBtn.innerHTML = '<span class="text-[9.5px] font-extrabold leading-[1.15] text-center block">🔒<br/>نیاز به<br/>اشتراک</span>';
     if (warningBox) warningBox.classList.remove('hidden');
     if (timerBox) timerBox.classList.add('hidden');
     if (resultBox) resultBox.classList.add('hidden');

@@ -16,6 +16,7 @@ from bot.db.repositories.alert_repo import AlertRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
+from bot.services.formatting import ltr_frag
 from bot.services.menu import render_menu
 
 logger = logging.getLogger(__name__)
@@ -230,7 +231,7 @@ async def pick_traffic(
     kb = InlineKeyboardBuilder()
     for percent in TRAFFIC_CHOICES:
         mark = " ✅" if prefs.traffic_percent == percent else ""
-        kb.button(text=f"{percent}%{mark}", callback_data=f"set:tp:{percent}")
+        kb.button(text=f"{ltr_frag(f'{percent}%')}{mark}", callback_data=f"set:tp:{percent}")
     mark = " ✅" if prefs.traffic_percent <= 0 else ""
     kb.button(text=f"{t(lang, 'alerts_off')}{mark}", callback_data="set:tp:0")
     kb.button(text=t(lang, "btn_back"), callback_data="menu:settings")

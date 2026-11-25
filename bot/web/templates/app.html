@@ -1343,14 +1343,14 @@
         
         <!-- User Avatar & Identity Card -->
         <div class="profile-hero-card card p-5 shadow-xl text-center relative overflow-hidden">
-          <div class="relative w-20 h-20 mx-auto mb-3">
+          <div id="profileAvatarBtn" onclick="if (window.triggerLogoEasterEgg) window.triggerLogoEasterEgg();" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); if (window.triggerLogoEasterEgg) window.triggerLogoEasterEgg(); }" role="button" tabindex="0" aria-label="آواتار کاربری" class="relative w-20 h-20 mx-auto mb-3 cursor-pointer active:scale-95 transition select-none">
             <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center overflow-hidden">
-              <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" referrerpolicy="no-referrer" width="80" height="80">
-              <div id="profileAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl font-extrabold text-white">
+              <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden pointer-events-none" alt="Avatar" referrerpolicy="no-referrer" width="80" height="80">
+              <div id="profileAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl font-extrabold text-white pointer-events-none">
                 U
               </div>
             </div>
-            <span class="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-0.5 border-2 border-card-border flex items-center justify-center"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></span>
+            <span class="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-0.5 border-2 border-card-border flex items-center justify-center pointer-events-none"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></span>
           </div>
 
           <h3 id="profileFullName" class="text-base font-extrabold t-main">کاربر گرامی</h3>
@@ -1361,25 +1361,28 @@
           </div>
         </div>
 
-        <!-- User Achievements & Milestone Badges Strip (نوار دستاوردها و مدال‌های کاربری) -->
-        <div id="profileBadgesCard" class="card p-3.5 shadow-sm space-y-2.5">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-1.5">
+        <!-- User Achievements & Milestone Badges Strip (نوار دستاوردها و مدال‌های کاربری - آکاردئونی) -->
+        <div id="profileBadgesCard" class="card shadow-sm overflow-hidden transition-all duration-300">
+          <button id="toggleProfileBadgesBtn" type="button" class="w-full p-3.5 flex items-center justify-between text-right hover:bg-slate-500/10 transition active:scale-[0.99]">
+            <div class="flex items-center gap-2">
+              <span id="profileBadgesChevron" class="text-xs t-muted transition-transform duration-300 transform">◀</span>
               <img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
               <b class="text-xs t-main">دستاوردها و مدال‌های کاربری</b>
             </div>
             <span id="profileBadgesCount" dir="ltr" class="text-[11px] font-sans font-bold px-2 py-0.5 rounded-full card-inset border border-card-border t-accent">0 / 6</span>
-          </div>
-          <div id="profileBadgesGrid" class="grid grid-cols-6 gap-1.5 sm:gap-2"></div>
-          <div id="profileBadgeDetailBox" class="hidden card-inset rounded-xl p-2.5 border border-card-border text-right space-y-1 animate-fadeIn">
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-1.5 min-w-0">
-                <span id="profileBadgeDetailIcon" class="shrink-0 inline-flex items-center"></span>
-                <b id="profileBadgeDetailTitle" class="text-xs t-main truncate">--</b>
+          </button>
+          <div id="profileBadgesBody" class="hidden px-3.5 pb-3.5 pt-2.5 border-t border-card-border space-y-2.5">
+            <div id="profileBadgesGrid" class="grid grid-cols-6 gap-1.5 sm:gap-2"></div>
+            <div id="profileBadgeDetailBox" class="hidden card-inset rounded-xl p-2.5 border border-card-border text-right animate-fadeIn">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span id="profileBadgeDetailIcon" class="shrink-0 inline-flex items-center"></span>
+                  <b id="profileBadgeDetailTitle" class="text-xs t-main truncate">--</b>
+                </div>
+                <span id="profileBadgeDetailStatus" class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">--</span>
               </div>
-              <span id="profileBadgeDetailStatus" class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">--</span>
+              <p id="profileBadgeDetailDesc" class="hidden text-[11px] t-muted leading-relaxed"></p>
             </div>
-            <p id="profileBadgeDetailDesc" class="text-[11px] t-muted leading-relaxed">--</p>
           </div>
         </div>
 
@@ -2692,6 +2695,22 @@
           </div>
         </div>
 
+        <!-- New Account Option (shown when user already has panel accounts on full/custom plans) -->
+        <label id="checkoutCreateNewWrap" class="hidden flex items-center gap-2 card-inset rounded-xl p-2.5 cursor-pointer select-none border border-card-border">
+          <input type="checkbox" id="checkoutCreateNewCheck" class="w-4 h-4 accent-sky-500 rounded cursor-pointer shrink-0" />
+          <span class="text-[11px] font-medium t-main leading-snug">خرید به عنوان اشتراک جدید (بدون تمدید اکانت فعلی)</span>
+        </label>
+
+        <!-- Custom Panel Username Box (shown when provisioning a new subscription) -->
+        <div id="checkoutCustomUsernameWrap" class="hidden card-inset rounded-xl p-2.5 border border-card-border space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <label for="checkoutCustomUsernameInput" class="text-[11px] font-bold t-main">نام کاربری اشتراک جدید:</label>
+            <button type="button" id="checkoutCustomUsernameRandomBtn" class="text-[10.5px] font-bold t-accent hover:underline bg-transparent border-0 p-0 cursor-pointer">🎲 پیشنهاد تصادفی</button>
+          </div>
+          <input type="text" id="checkoutCustomUsernameInput" dir="ltr" maxlength="32" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="مثلاً: ali_vpn" class="input-base w-full text-xs font-sans px-3 py-2 text-left" />
+          <p class="text-[10px] t-muted leading-tight">فقط حروف انگلیسی، اعداد و _ (بین 3 تا 32 کاراکتر) — در صورت خالی بودن خودکار ساخته می‌شود</p>
+        </div>
+
         <!-- Squad Switch Warning Box (shown only when switching to another squad) -->
         <div id="checkoutSwitchWarningBox" class="hidden card-inset border border-amber-500/40 rounded-xl p-2.5 text-xs text-amber-700 dark:text-amber-300 space-y-1.5">
           <div class="flex items-center gap-1.5 font-bold t-warn">
@@ -3111,9 +3130,9 @@
             مشاهده در داشبورد
           </button>
         </div>
-        <button id="psvcShareCardBtn" type="button" onclick="window.downloadPurchaseSuccessCard()" class="btn btn-secondary w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
+          <button id="psvcShareCardBtn" type="button" onclick="window.downloadPurchaseSuccessCard()" class="btn btn-secondary w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
           <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />
-          <span>ذخیره تصویر رسید خرید (کارت دیجیتال)</span>
+          <span>ارسال تصویر رسید در چت تلگرام</span>
         </button>
       </div>
     </div>
@@ -4118,7 +4137,7 @@
         <div class="pt-1 space-y-2">
           <button id="downloadInvoiceCardBtn" type="button" onclick="window.downloadInvoiceShareCard()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5 active:scale-[0.98]">
             <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" />
-            <span>ذخیره تصویر فاکتور رسمی (PNG)</span>
+            <span>ارسال تصویر فاکتور رسمی در چت</span>
           </button>
           <button id="sendInvoiceTelegramBtn" type="button" onclick="window.sendCurrentInvoiceTelegram()" class="btn btn-secondary w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.98]">
             <span><img src="/static/img/icons/chat.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>

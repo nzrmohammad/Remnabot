@@ -25,6 +25,7 @@ from bot.services.app_settings import (
     set_maintenance,
 )
 from bot.services.formatting import ltr_frag
+from bot.web.cache import invalidate_settings_cache
 
 logger = logging.getLogger(__name__)
 
@@ -288,6 +289,7 @@ async def setting_toggle_boolean(
     await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"{field}={new_str}"
     )
+    await invalidate_settings_cache(getattr(bot, "cache", None))
 
     if field == "trial_enabled":
         await _render_trial_settings(bot, user, user_repo, session)
@@ -318,6 +320,7 @@ async def maintenance_toggle(
 
     enabled = not await is_maintenance(session)
     await set_maintenance(session, enabled)
+    await invalidate_settings_cache(getattr(bot, "cache", None))
     await AdminLogRepository(session).log(
         call.from_user.id, "maintenance",
         detail="on" if enabled else "off",

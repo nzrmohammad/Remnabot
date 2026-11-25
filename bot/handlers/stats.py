@@ -30,6 +30,7 @@ from bot.services.formatting import (
     format_date,
     format_datetime,
     human_bytes,
+    ltr_frag,
     now_tz,
     parse_iso,
     progress_bar,
@@ -166,7 +167,7 @@ def _account_block(
             f"{t(lang, 'stats_total')} : <b>{human_bytes(limit)}</b>",
             f"{t(lang, 'stats_used')} : <b>{human_bytes(used)}</b>",
             f"{t(lang, 'stats_remaining')} : <b>{human_bytes(remaining)}</b>",
-            f"{progress_bar(percent)} {percent:.0f}%",
+            f"{progress_bar(percent)} {ltr_frag(f'{percent:.0f}%')}",
         ]
     else:
         lines += [

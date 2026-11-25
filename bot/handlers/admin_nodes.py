@@ -10,7 +10,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.common import SEPARATOR, is_admin
 from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
-from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag
+from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag, human_bytes
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 
@@ -202,9 +202,9 @@ async def admin_nodes_monitor(
                     uptime_str = str(uptime_raw)
 
             daily_traffic = n.get("trafficDailyBytes") or n.get("dailyTrafficBytes") or n.get("todayTrafficBytes")
-            daily_str = f"{daily_traffic / (1024**3):.2f} GB" if daily_traffic else None
+            daily_str = human_bytes(daily_traffic) if daily_traffic else None
             traffic_used = n.get("trafficUsedBytes") or n.get("usedTrafficBytes")
-            traf_str = f"{traffic_used / (1024**3):.2f} GB" if traffic_used else None
+            traf_str = human_bytes(traffic_used) if traffic_used else None
             online_users = n.get("usersOnline") or n.get("connectionCount")
 
             node_desc = [
