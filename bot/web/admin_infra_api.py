@@ -24,6 +24,12 @@ from bot.services.ssl_checker import (
 )
 from bot.web.admin_common import _check_admin as _default_check_admin
 from bot.web.admin_common import db_session
+from bot.web.admin_overview_nodes import (
+    compute_due_metadata,
+    extract_node_panel_fields,
+    extract_panel_billing_map,
+    fetch_panel_billing_nodes,
+)
 
 try:
     import jdatetime
@@ -65,7 +71,15 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
             costs_by_uuid = {str(c.node_uuid): c for c in all_costs}
             costs_by_id = {str(c.node_id): c for c in all_costs if c.node_id is not None}
 
-            nodes = await remnawave.get_nodes() or []
+            nodes_res, raw_billing_nodes = await asyncio.gather(
+                remnawave.get_nodes(),
+                fetch_panel_billing_nodes(remnawave),
+                return_exceptions=True,
+            )
+            nodes = nodes_res if isinstance(nodes_res, list) else []
+            panel_billing_map = extract_panel_billing_map(
+                raw_billing_nodes if isinstance(raw_billing_nodes, list) else []
+            )
             total_infra_cost_toman = sum(c.monthly_cost_toman for c in all_costs)
             total_infra_cost_eur = round(math.fsum(float(c.monthly_cost_eur or 0.0) for c in all_costs), 2)
             net_profit_toman = monthly_revenue - total_infra_cost_toman
@@ -82,27 +96,23 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
                 total_traffic_gb += traffic_gb
 
                 cost_item = costs_by_uuid.get(n_uuid) or costs_by_id.get(str(n_id) if n_id else "")
-                due_date_str = None
-                due_date_jalali = None
-                days_left = None
-                if cost_item and cost_item.due_date:
-                    due_date_str = cost_item.due_date.strftime("%Y-%m-%d")
-                    days_left = (cost_item.due_date.date() - now_utc.date()).days
-                    if jdatetime:
-                        try:
-                            due_date_jalali = jdatetime.datetime.fromgregorian(datetime=cost_item.due_date).strftime("%Y/%m/%d")
-                        except Exception:
-                            due_date_jalali = due_date_str
-                    else:
-                        due_date_jalali = due_date_str
+                panel_billing = panel_billing_map.get(n_uuid)
+                _eff_dt, due_date_str, due_date_jalali, days_left, due_date_source = compute_due_metadata(
+                    cost_item, now_utc, panel_billing=panel_billing
+                )
 
                 cost_toman = cost_item.monthly_cost_toman if cost_item else 0
                 cost_eur = cost_item.monthly_cost_eur if cost_item else 0.0
-                from bot.web.admin_overview_nodes import extract_node_panel_fields
 
                 currency = getattr(cost_item, "currency", "EUR") or "EUR" if cost_item else "EUR"
                 panel_meta = extract_node_panel_fields(n)
-                provider = (cost_item.provider if cost_item else None) or panel_meta.get("panel_provider_name")
+                provider = (
+                    (cost_item.provider if cost_item else None)
+                    or panel_meta.get("panel_provider_name")
+                    or (panel_billing.get("provider_name") if panel_billing else None)
+                )
+                if not panel_meta.get("provider_uuid") and panel_billing and panel_billing.get("provider_uuid"):
+                    panel_meta["provider_uuid"] = panel_billing["provider_uuid"]
                 notes = cost_item.notes if cost_item else None
                 cost_per_gb = round(cost_toman / traffic_gb, 0) if (cost_toman > 0 and traffic_gb > 0) else 0.0
 
@@ -124,6 +134,7 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
                     "due_date": due_date_str,
                     "due_date_jalali": due_date_jalali,
                     "days_until_due": days_left,
+                    "due_date_source": due_date_source,
                     "cost_per_gb": cost_per_gb,
                     "notes": notes,
                     **panel_meta,
@@ -331,6 +342,14 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
         await session.commit()
 
     await _invalidate_node_caches(request)
+
+    eff_prov_uuid = str(body.get("provider_uuid") or "").strip()
+    if due_date and eff_prov_uuid and remnawave and hasattr(remnawave, "sync_infra_billing_node"):
+        try:
+            next_billing_iso = due_date.isoformat().replace("+00:00", "Z")
+            await remnawave.sync_infra_billing_node(eff_prov_uuid, node_uuid, next_billing_at=next_billing_iso)
+        except Exception as sync_exc:
+            logger.debug("Optional panel infra-billing sync skipped for %s: %s", node_uuid, sync_exc)
 
     bot_obj = request.app.get("bot")
     sf_obj = request.app.get("session_factory")

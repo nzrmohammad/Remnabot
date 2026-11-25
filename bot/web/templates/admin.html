@@ -656,9 +656,6 @@
                 <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>ریستارت همه</span>
               </button>
-              <button id="refreshNodesTabBtn" class="p-2 bg-transparent hover:bg-cyan-500/10 t-accent hover:text-cyan-300 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center justify-center active:scale-95" title="تازه‌سازی فوری سرورها">
-                <svg id="refreshNodesTabIcon" class="w-4 h-4 t-accent transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              </button>
             </div>
           </div>
           <div id="adminNodesFullList" class="space-y-3">
@@ -863,7 +860,6 @@
                 <svg class="w-4 h-4 t-purple shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                 <span>مرکز کنترل پنل Remnawave</span>
               </h3>
-              <span class="text-[11px] t-muted mt-0.5 block truncate">هاست‌ها، پروفایل Xray، اسنیپت‌ها، اسکواد خارجی و تنظیمات ساب</span>
             </div>
             <button id="refreshPanelControlBtn" type="button" onclick="window.panelCtrl.fetchOverview(true)" class="p-2 bg-transparent hover:bg-cyan-500/10 t-accent rounded-xl border border-cyan-500/30 transition flex items-center justify-center active:scale-95 shrink-0" title="به‌روزرسانی اطلاعات پنل">
               <svg id="refreshPanelControlIcon" class="w-4 h-4 t-accent transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -967,7 +963,7 @@
           <div id="panelCtrlPane_configs" class="space-y-3 hidden">
             <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
               <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">پروفایل‌های کانفیگ Xray (Config Profiles)</b>
+                <b class="text-xs t-main">پروفایل‌های کانفیگ Xray</b>
                 <span class="text-[10.5px] t-muted">اینباندها و هسته</span>
               </div>
               <div id="panelConfigProfilesList" class="space-y-2">
@@ -990,11 +986,21 @@
           <div id="panelCtrlPane_infra" class="space-y-3 hidden">
             <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
               <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">ارائه‌دهندگان زیرساخت (Infra Providers)</b>
+                <b class="text-xs t-main">ارائه‌دهندگان زیرساخت</b>
                 <button type="button" onclick="window.panelCtrl.openProviderModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ ارائه‌دهنده جدید</button>
               </div>
               <div id="panelProvidersManageList" class="space-y-2">
                 <div class="p-4 text-center text-xs t-muted">در حال دریافت ارائه‌دهندگان...</div>
+              </div>
+            </div>
+
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">سوابق پرداخت (Bill Records)</b>
+                <button type="button" onclick="window.panelCtrl.openBillModal()" class="btn btn-secondary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ ثبت پرداخت جدید</button>
+              </div>
+              <div id="panelBillsList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال دریافت سوابق پرداخت...</div>
               </div>
             </div>
 
@@ -3574,7 +3580,7 @@
           <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
             <div>
               <label for="planModalName" class="text-[11px] t-main font-bold block mb-1">نام تعرفه در فروشگاه:</label>
-              <input type="text" id="planModalName" dir="rtl" placeholder="مثلاً: سرویس طلایی 50 گیگ" class="input-base w-full px-3 py-2 text-xs text-right font-bold t-main outline-none focus:border-blue-500" />
+              <input type="text" id="planModalName" dir="ltr" placeholder="🥈 Silver" class="input-base w-full px-3 py-2 text-xs text-left font-en font-bold t-main outline-none focus:border-blue-500" />
             </div>
             <div id="planModalDescContainer">
               <div class="flex items-center justify-between mb-1">
@@ -3592,34 +3598,34 @@
               <span class="text-[10px] t-muted">مقادیر اصلی بسته</span>
             </div>
             <div class="grid grid-cols-2 gap-2" id="planModalPriceMetricRow">
-              <div>
+              <div class="min-w-0">
                 <label for="planModalPrice" class="text-[11px] t-muted block mb-1">قیمت فروش:</label>
-                <div class="relative flex items-center">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalPrice" placeholder="95000" min="0" step="1000" class="input-base w-full pl-12 pr-3 py-2 text-xs font-sans num-bidi font-bold t-success outline-none" />
-                  <span class="absolute left-2.5 text-[10px] t-muted font-medium select-none pointer-events-none">تومان</span>
+                <div class="input-base flex items-center gap-2 py-2 px-2.5 min-w-0">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalPrice" dir="ltr" placeholder="95000" min="0" step="1000" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-success text-left outline-none" />
+                  <span class="text-[10px] t-muted font-medium select-none shrink-0">تومان</span>
                 </div>
               </div>
-              <div id="planModalTrafficContainer">
+              <div id="planModalTrafficContainer" class="min-w-0">
                 <label id="planModalTrafficLabel" for="planModalTraffic" class="text-[11px] t-muted block mb-1">حجم ترافیک:</label>
-                <div class="relative flex items-center">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalTraffic" placeholder="50" min="0" class="input-base w-full pl-8 pr-3 py-2 text-xs font-sans num-bidi font-bold t-accent outline-none" />
-                  <span class="absolute left-2.5 text-[10px] t-muted font-sans font-semibold select-none pointer-events-none">GB</span>
+                <div class="input-base flex items-center gap-2 py-2 px-2.5 min-w-0">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalTraffic" dir="ltr" placeholder="50" min="0" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-accent text-left outline-none" />
+                  <span class="text-[10px] t-muted font-sans font-semibold select-none shrink-0">GB</span>
                 </div>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-2" id="planModalDurationHwidRow">
-              <div id="planModalDurationContainer">
+              <div id="planModalDurationContainer" class="min-w-0">
                 <label id="planModalDurationLabel" for="planModalDuration" class="text-[11px] t-muted block mb-1">مدت اعتبار:</label>
-                <div class="relative flex items-center">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalDuration" placeholder="30" min="0" class="input-base w-full pl-8 pr-3 py-2 text-xs font-sans num-bidi font-bold t-warn outline-none" />
-                  <span class="absolute left-2.5 text-[10px] t-muted font-medium select-none pointer-events-none">روز</span>
+                <div class="input-base flex items-center gap-2 py-2 px-2.5 min-w-0">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalDuration" dir="ltr" placeholder="30" min="0" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-warn text-left outline-none" />
+                  <span class="text-[10px] t-muted font-medium select-none shrink-0">روز</span>
                 </div>
               </div>
-              <div id="planModalHwidContainer">
+              <div id="planModalHwidContainer" class="min-w-0">
                 <label for="planModalHwid" class="text-[11px] t-muted block mb-1">محدودیت کاربر:</label>
-                <div class="relative flex items-center">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalHwid" placeholder="0" min="0" class="input-base w-full pl-10 pr-3 py-2 text-xs font-sans num-bidi font-bold t-main outline-none" />
-                  <span class="absolute left-2.5 text-[10px] t-muted font-medium select-none pointer-events-none">کاربر</span>
+                <div class="input-base flex items-center gap-2 py-2 px-2.5 min-w-0">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalHwid" dir="ltr" placeholder="0" min="0" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-main text-left outline-none" />
+                  <span class="text-[10px] t-muted font-medium select-none shrink-0">کاربر</span>
                 </div>
               </div>
             </div>
@@ -4385,16 +4391,16 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div class="min-w-0">
                     <label for="nodeBillingCostToman" class="text-[11px] t-muted block mb-1 truncate">هزینه معادل (تومان):</label>
-                    <div class="relative flex items-center min-w-0">
-                      <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="2500000" class="input-base h-10 pl-12 pr-3 rounded-xl text-xs font-sans num-bidi font-bold t-accent w-full min-w-0 text-left" />
-                      <span class="absolute left-2.5 text-[10px] t-muted font-medium select-none pointer-events-none">تومان</span>
+                    <div class="input-base flex items-center gap-2 h-10 px-3 min-w-0">
+                      <input type="number" id="nodeBillingCostToman" dir="ltr" placeholder="2500000" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-accent text-left outline-none" />
+                      <span class="text-[10px] t-muted font-medium select-none shrink-0">تومان</span>
                     </div>
                   </div>
                   <div class="min-w-0">
                     <label for="nodeBillingCostEur" class="text-[11px] t-muted block mb-1 truncate">مبلغ ارزی پایه:</label>
-                    <div class="relative flex items-center min-w-0">
-                      <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="35.00" class="input-base h-10 pl-8 pr-3 rounded-xl text-xs font-sans num-bidi font-bold t-info w-full min-w-0 text-left" />
-                      <span id="nodeBillingCurrencySymbol" class="absolute left-2.5 text-xs font-bold t-muted font-sans select-none pointer-events-none">€</span>
+                    <div class="input-base flex items-center gap-2 h-10 px-3 min-w-0">
+                      <input type="number" step="0.01" id="nodeBillingCostEur" dir="ltr" placeholder="35.00" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-info text-left outline-none" />
+                      <span id="nodeBillingCurrencySymbol" class="text-xs font-bold t-muted font-sans select-none shrink-0">€</span>
                     </div>
                   </div>
                 </div>
@@ -4412,6 +4418,7 @@
                   <div class="flex items-center gap-1.5">
                     <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                     <label for="nodeBillingDueDate" class="text-[11px] t-main font-bold">تاریخ سررسید بعدی</label>
+                    <span id="nodeBillingDueSourceBadge" class="hidden badge badge-info text-[10px] px-1.5 py-0" title="خوانده‌شده از Infra Billing پنل">از پنل</span>
                   </div>
                   <span id="nodeBillingJalaliPreview" class="text-[11px] font-sans num-bidi t-warn font-bold px-2 py-0.5 rounded-lg card border border-amber-500/20 empty:hidden" title="تاریخ به شمسی"></span>
                 </div>
@@ -4435,7 +4442,10 @@
                 <div class="min-w-0">
                   <div class="flex items-center justify-between gap-2 mb-1">
                     <label class="text-[11px] t-muted">ارائه‌دهنده سرور:</label>
-                    <button type="button" id="syncNodePanelBillingBtn" onclick="window.adminActions.syncNodeBillingToPanel()" class="text-[10.5px] t-accent font-bold hover:underline" title="همگام‌سازی ارائه‌دهنده و سررسید در بخش Infra Billing پنل">سینک در پنل</button>
+                    <div class="flex items-center gap-2.5 shrink-0">
+                      <button type="button" onclick="window.adminActions.openBillFromNodeModal()" class="text-[10.5px] t-success font-bold hover:underline" title="ثبت رکورد پرداخت (Bill Record) در پنل">+ ثبت پرداخت</button>
+                      <button type="button" id="syncNodePanelBillingBtn" onclick="window.adminActions.syncNodeBillingToPanel()" class="text-[10.5px] t-accent font-bold hover:underline" title="همگام‌سازی ارائه‌دهنده و سررسید در بخش Infra Billing پنل">سینک در پنل</button>
+                    </div>
                   </div>
                   <input type="hidden" id="nodeBillingProviderUuid" value="" />
                   <button type="button" id="nodeBillingProviderPickerBtn" onclick="window.adminActions.openNodeProviderModal()" class="input-base h-10 px-3 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-2 hover:border-cyan-500/50 transition active:scale-[0.99]">
@@ -4635,24 +4645,22 @@
             <input type="text" id="panelHostRemark" dir="ltr" placeholder="DE VLESS" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
           </div>
           <div class="grid grid-cols-3 gap-2">
-            <div class="col-span-2 min-w-0">
-              <label for="panelHostAddress" class="text-[11px] t-muted block mb-1">آدرس دامنه / IP:</label>
-              <input type="text" id="panelHostAddress" dir="ltr" placeholder="de.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
-            </div>
             <div class="min-w-0">
               <label for="panelHostPort" class="text-[11px] t-muted block mb-1">پورت:</label>
               <input type="number" id="panelHostPort" min="1" max="65535" dir="ltr" placeholder="443" class="input-base h-9 px-3 rounded-xl text-xs num-bidi w-full text-left" required />
             </div>
+            <div class="col-span-2 min-w-0">
+              <label for="panelHostAddress" class="text-[11px] t-muted block mb-1">آدرس دامنه / IP:</label>
+              <input type="text" id="panelHostAddress" dir="ltr" placeholder="de.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
+            </div>
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="min-w-0">
-              <label for="panelHostSni" class="text-[11px] t-muted block mb-1">SNI:</label>
-              <input type="text" id="panelHostSni" dir="ltr" placeholder="sni.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
-            </div>
-            <div class="min-w-0">
-              <label for="panelHostHeader" class="text-[11px] t-muted block mb-1">Host Header:</label>
-              <input type="text" id="panelHostHeader" dir="ltr" placeholder="host.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
-            </div>
+          <div class="min-w-0">
+            <label for="panelHostHeader" dir="ltr" class="text-[11px] t-muted block mb-1 text-left font-en">Host Header:</label>
+            <input type="text" id="panelHostHeader" dir="ltr" placeholder="host.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
+          </div>
+          <div class="min-w-0">
+            <label for="panelHostSni" dir="ltr" class="text-[11px] t-muted block mb-1 text-left font-en">SNI:</label>
+            <input type="text" id="panelHostSni" dir="ltr" placeholder="sni.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
           </div>
           <div>
             <label class="text-[11px] t-muted block mb-1">اینباند پروفایل (برای هاست جدید):</label>
@@ -4663,15 +4671,14 @@
               <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
           </div>
-          <div class="card-inset p-2.5 rounded-xl border border-card-border space-y-2">
-            <div class="flex items-center justify-between gap-2">
-              <label for="panelHostSquadModeSelect" class="text-[11px] font-semibold t-main shrink-0">نمایش در اسکوادها (Squads):</label>
-              <select id="panelHostSquadModeSelect" class="select-base h-8 px-2 rounded-lg text-[11px] min-w-0 max-w-[175px]">
-                <option value="EXCLUDE">مخفی برای انتخاب‌شده‌ها</option>
-                <option value="ALLOW_ONLY">فقط نمایش در انتخاب‌شده‌ها</option>
-              </select>
-            </div>
-            <div id="panelHostSquadsList" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto custom-scroll py-0.5"></div>
+          <div>
+            <label class="text-[11px] t-muted block mb-1">نمایش در اسکوادها (Squads):</label>
+            <input type="hidden" id="panelHostSquadModeSelect" value="EXCLUDE" />
+            <input type="hidden" id="panelHostSquadUuidsInput" value="" />
+            <button type="button" id="panelHostSquadsPickerBtn" onclick="window.panelCtrl.openHostSquadsModal()" class="input-base h-9 px-3 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-2 hover:border-cyan-500/50 transition active:scale-[0.99]">
+              <span id="panelHostSquadsDisplay" class="t-main font-semibold truncate">نمایش در همه اسکوادها (بدون محدودیت)</span>
+              <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
           </div>
           <label class="card-inset p-2.5 rounded-xl border border-card-border flex items-center justify-between cursor-pointer">
             <span class="text-[11px] t-main font-semibold">غیرفعال کردن موقت هاست</span>
@@ -4691,6 +4698,38 @@
         </div>
         <div id="panelHostInboundPickerList" dir="ltr" class="space-y-1.5 overflow-y-auto custom-scroll flex-1 py-0.5 pr-1 text-xs">
           <div class="p-4 text-center text-xs t-muted" dir="rtl">در حال بارگذاری اینباندها...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Panel Host Internal Squads Picker -->
+    <div id="panelHostSquadsModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[400px] space-y-3 shadow-2xl relative max-h-[85vh] flex flex-col overflow-hidden">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
+          <h4 class="text-xs font-bold t-main">تنظیم نمایش هاست در اسکوادها</h4>
+          <button type="button" onclick="window.panelCtrl.closeHostSquadsModal()" class="modal-close-btn shrink-0" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <div class="space-y-2 shrink-0">
+          <button type="button" id="hostSquadModeOptExclude" onclick="window.panelCtrl.setHostSquadMode('EXCLUDE')" class="w-full text-right p-2.5 rounded-2xl border border-cyan-500/45 bg-cyan-500/10 transition space-y-0.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-bold t-main text-[11px]">مخفی برای اسکوادهای انتخاب‌شده (Exclude)</span>
+              <span id="hostSquadModeDotExclude" class="w-3.5 h-3.5 rounded-full bg-cyan-500 ring-2 ring-cyan-500/30 shrink-0"></span>
+            </div>
+            <p class="text-[10.5px] t-muted leading-relaxed">این هاست برای تمام کاربران نمایش داده می‌شود به‌جز اسکوادهایی که تیک می‌زنید.</p>
+          </button>
+          <button type="button" id="hostSquadModeOptAllow" onclick="window.panelCtrl.setHostSquadMode('ALLOW_ONLY')" class="w-full text-right p-2.5 rounded-2xl border border-card-border card-inset transition space-y-0.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-bold t-main text-[11px]">فقط نمایش در اسکوادهای انتخاب‌شده (Allow Only)</span>
+              <span id="hostSquadModeDotAllow" class="w-3.5 h-3.5 rounded-full border border-card-border shrink-0"></span>
+            </div>
+            <p class="text-[10.5px] t-muted leading-relaxed">این هاست منحصراً در اشتراک اسکوادهای انتخاب‌شده قرار می‌گیرد.</p>
+          </button>
+        </div>
+        <div id="panelHostSquadsModalList" dir="ltr" class="space-y-1.5 overflow-y-auto custom-scroll flex-1 py-0.5 pr-1 text-xs">
+          <div class="p-4 text-center text-xs t-muted" dir="rtl">در حال دریافت اسکوادها...</div>
+        </div>
+        <div class="pt-2 border-t border-card-border shrink-0">
+          <button type="button" onclick="window.panelCtrl.applyHostSquadsModal()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">تأیید و اعمال اسکوادها</button>
         </div>
       </div>
     </div>
@@ -4731,14 +4770,45 @@
             <input type="text" id="panelProviderName" dir="ltr" placeholder="Hetzner Cloud" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
           </div>
           <div>
-            <label for="panelProviderLoginUrl" class="text-[11px] t-muted block mb-1">آدرس پنل یا اکانت ورود (اختیاری):</label>
+            <div class="flex items-center justify-between mb-1">
+              <label for="panelProviderLoginUrl" class="text-[11px] t-muted">آدرس پنل یا اکانت ورود:</label>
+              <span class="badge-optional">اختیاری</span>
+            </div>
             <input type="text" id="panelProviderLoginUrl" dir="ltr" placeholder="https://console.hetzner.cloud" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
           </div>
           <div>
-            <label for="panelProviderFaviconUrl" class="text-[11px] t-muted block mb-1">لینک آیکون (اختیاری):</label>
+            <div class="flex items-center justify-between mb-1">
+              <label for="panelProviderFaviconUrl" class="text-[11px] t-muted">لینک آیکون:</label>
+              <span class="badge-optional">اختیاری</span>
+            </div>
             <input type="text" id="panelProviderFaviconUrl" dir="ltr" placeholder="https://hetzner.com/favicon.ico" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
           </div>
           <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ذخیره ارائه‌دهنده</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Panel Bill Record Creator -->
+    <div id="panelBillCreateModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[380px] space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5">
+          <h4 class="text-xs font-bold t-main">ثبت پرداخت جدید (Bill Record)</h4>
+          <button type="button" onclick="window.panelCtrl.closeBillModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <form onsubmit="event.preventDefault(); window.panelCtrl.createBill();" class="space-y-2.5 text-xs">
+          <div>
+            <label for="panelBillProviderSelect" class="text-[11px] t-muted block mb-1">ارائه‌دهنده زیرساخت:</label>
+            <select id="panelBillProviderSelect" class="select-base h-9 rounded-xl text-xs w-full font-en" dir="ltr" required></select>
+          </div>
+          <div>
+            <label for="panelBillAmount" class="text-[11px] t-muted block mb-1">مبلغ پرداختی (مطابق پنل):</label>
+            <input type="number" step="0.01" min="0.01" id="panelBillAmount" dir="ltr" placeholder="35.00" class="input-base h-9 px-3 rounded-xl text-xs num-bidi w-full text-left" required />
+          </div>
+          <div>
+            <label for="panelBillDate" class="text-[11px] t-muted block mb-1">تاریخ پرداخت:</label>
+            <input type="date" id="panelBillDate" dir="ltr" class="node-date-input input-base h-9 px-3 rounded-xl text-xs w-full text-center" required />
+          </div>
+          <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ثبت سابقه پرداخت در پنل</button>
         </form>
       </div>
     </div>

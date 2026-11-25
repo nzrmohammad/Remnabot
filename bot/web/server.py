@@ -843,6 +843,8 @@ def create_web_app(
     app.router.add_post("/api/admin/infra/providers/save", routes_admin.post_admin_infra_provider_save)
     app.router.add_post("/api/admin/infra/providers/delete", routes_admin.post_admin_infra_provider_delete)
     app.router.add_post("/api/admin/infra/node/sync", routes_admin.post_admin_infra_node_sync)
+    app.router.add_post("/api/admin/infra/bills/create", routes_admin.post_admin_infra_bill_create)
+    app.router.add_post("/api/admin/infra/bills/delete", routes_admin.post_admin_infra_bill_delete)
     app.router.add_get("/api/admin/panel/control", routes_admin.get_admin_panel_control)
     app.router.add_post("/api/admin/panel/hosts/save", routes_admin.post_admin_panel_host_save)
     app.router.add_post("/api/admin/panel/hosts/bulk", routes_admin.post_admin_panel_hosts_bulk)

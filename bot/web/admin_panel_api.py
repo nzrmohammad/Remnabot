@@ -101,6 +101,7 @@ async def get_admin_panel_control(request: web.Request) -> web.Response:
         sub_settings_res,
         providers_res,
         billing_nodes_res,
+        billing_history_res,
         tokens_res,
     ) = await asyncio.gather(
         remnawave.get_hosts(),
@@ -111,6 +112,7 @@ async def get_admin_panel_control(request: web.Request) -> web.Response:
         remnawave.get_subscription_settings(),
         remnawave.get_infra_providers(),
         remnawave.get_infra_billing_nodes(),
+        remnawave.get_infra_billing_history() if hasattr(remnawave, "get_infra_billing_history") else asyncio.sleep(0, result=[]),
         remnawave.get_api_tokens(),
         return_exceptions=True,
     )
@@ -129,6 +131,7 @@ async def get_admin_panel_control(request: web.Request) -> web.Response:
             "subscription_settings": _safe(sub_settings_res, {}),
             "infra_providers": _safe(providers_res, []),
             "infra_billing_nodes": _safe(billing_nodes_res, []),
+            "infra_billing_history": _safe(billing_history_res, []),
             "api_tokens_info": _safe(tokens_res, {"ok": False, "tokens": [], "jwt_required": False}),
         },
     })
@@ -391,6 +394,60 @@ async def post_admin_infra_node_sync(request: web.Request) -> web.Response:
 
     await _audit_and_refresh(request, admin["id"], "sync_infra_node", f"سینک بیلینگ نود {node_uuid}")
     return web.json_response({"ok": True, "message": "اطلاعات بیلینگ نود با پنل همگام شد.", "data": res})
+
+
+async def post_admin_infra_bill_create(request: web.Request) -> web.Response:
+    """Create a billing history record in Remnawave `/api/infra-billing/history`."""
+    admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+
+    body = await _parse_json(request)
+    provider_uuid = str(body.get("provider_uuid") or "").strip()
+    if not provider_uuid:
+        return web.json_response({"ok": False, "error": "انتخاب ارائه‌دهنده الزامی است."}, status=400)
+    try:
+        amount = float(body.get("amount") or 0)
+    except (TypeError, ValueError):
+        return web.json_response({"ok": False, "error": "مبلغ پرداختی معتبر نیست."}, status=400)
+    if amount <= 0:
+        return web.json_response({"ok": False, "error": "مبلغ پرداختی باید بیشتر از صفر باشد."}, status=400)
+
+    raw_billed_at = str(body.get("billed_at") or "").strip()
+    if raw_billed_at:
+        try:
+            dt = datetime.strptime(raw_billed_at[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            billed_at_iso = dt.isoformat().replace("+00:00", "Z")
+        except ValueError:
+            return web.json_response({"ok": False, "error": "فرمت تاریخ پرداخت نامعتبر است."}, status=400)
+    else:
+        billed_at_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    ok, res = await remnawave.create_infra_billing_record(provider_uuid, amount, billed_at_iso)
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+
+    await _audit_and_refresh(request, admin["id"], "create_infra_bill", f"ثبت فاکتور پرداخت {amount} برای {provider_uuid}")
+    return web.json_response({"ok": True, "message": "سابقه پرداخت در پنل ثبت شد.", "bill": res})
+
+
+async def post_admin_infra_bill_delete(request: web.Request) -> web.Response:
+    """Delete an infra billing history record in Remnawave."""
+    admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+
+    body = await _parse_json(request)
+    record_uuid = str(body.get("uuid") or "").strip()
+    if not record_uuid:
+        return web.json_response({"ok": False, "error": "شناسه رکورد پرداخت الزامی است."}, status=400)
+
+    ok, res = await remnawave.delete_infra_billing_record(record_uuid)
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+
+    await _audit_and_refresh(request, admin["id"], "delete_infra_bill", f"حذف رکورد پرداخت {record_uuid}")
+    return web.json_response({"ok": True, "message": "رکورد پرداخت حذف شد."})
 
 
 # --- 7. API Tokens ---

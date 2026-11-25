@@ -312,6 +312,7 @@ html.theme-light .btn-danger:hover {
 }
 
 .input-base:focus,
+.input-base:focus-within,
 .select-base:focus,
 .textarea-base:focus {
   border-color: var(--c-accent);
@@ -326,6 +327,7 @@ html.theme-light .textarea-base {
 }
 
 html.theme-light .input-base:focus,
+html.theme-light .input-base:focus-within,
 html.theme-light .select-base:focus,
 html.theme-light .textarea-base:focus {
   background-color: var(--card-bg);
@@ -682,6 +684,8 @@ input.node-date-input::-webkit-calendar-picker-indicator:hover {
 .ui-icon-img {
   display: inline-block;
   object-fit: contain;
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
   vertical-align: middle;
   user-select: none;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));

@@ -25,8 +25,10 @@ from bot.web.admin_overview_nodes import (
     calc_nodes_overview,
     extract_cpu,
     extract_node_item,
+    extract_panel_billing_map,
     extract_ram,
     extract_speeds,
+    fetch_panel_billing_nodes,
 )
 from bot.web.cache import FastCache
 
@@ -71,8 +73,23 @@ async def _fetch_and_build_overview(
         if isinstance(panel_snapshot, dict) and isinstance(panel_snapshot.get("hwid_stats"), dict)
         else (await remnawave.get_hwid_stats() or {})
     )
+    raw_billing_nodes = (
+        panel_snapshot.get("infra_billing_nodes")
+        if isinstance(panel_snapshot, dict) and isinstance(panel_snapshot.get("infra_billing_nodes"), list)
+        else None
+    )
+    if raw_billing_nodes is None:
+        raw_billing_nodes = await fetch_panel_billing_nodes(remnawave)
+    panel_billing_by_node = extract_panel_billing_map(raw_billing_nodes or [])
+
     nodes_overview, online_devices, offline_nodes = calc_nodes_overview(
-        nodes, costs_by_uuid, costs_by_id, hwid_stats, now_utc, avg_revenue_per_gb=avg_revenue_per_gb
+        nodes,
+        costs_by_uuid,
+        costs_by_id,
+        hwid_stats,
+        now_utc,
+        avg_revenue_per_gb=avg_revenue_per_gb,
+        panel_billing_by_node=panel_billing_by_node,
     )
     kpis["online_devices"] = online_devices
     kpis["offline_nodes"] = offline_nodes

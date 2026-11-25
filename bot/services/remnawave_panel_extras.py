@@ -255,6 +255,28 @@ class RemnawavePanelExtrasMixin:
         ok, res, _ = await self._panel_call("POST", "/api/infra-billing/nodes", json=body)
         return ok, res
 
+    async def get_infra_billing_history(self) -> list[dict[str, Any]]:
+        """Fetch infra billing history records (Bill Records) from Remnawave."""
+        ok, data, _ = await self._panel_call("GET", "/api/infra-billing/history")
+        return self._extract_list(data, "records", "bills", "history", "billingHistory") if ok else []
+
+    async def create_infra_billing_record(
+        self, provider_uuid: str, amount: float, billed_at: str
+    ) -> tuple[bool, Any]:
+        """Create a billing payment record in Remnawave /api/infra-billing/history."""
+        body = {
+            "providerUuid": str(provider_uuid).strip(),
+            "amount": round(float(amount), 4),
+            "billedAt": str(billed_at).strip(),
+        }
+        ok, res, _ = await self._panel_call("POST", "/api/infra-billing/history", json=body)
+        return ok, res
+
+    async def delete_infra_billing_record(self, record_uuid: str) -> tuple[bool, Any]:
+        """Delete an infra billing history record by UUID."""
+        ok, res, _ = await self._panel_call("DELETE", f"/api/infra-billing/history/{record_uuid}")
+        return ok, res
+
     # --- API Tokens (requires Admin JWT on panel) ---
     async def get_api_tokens(self) -> dict[str, Any]:
         """Fetch API tokens from panel, distinguishing Admin-JWT restriction."""

@@ -608,6 +608,14 @@ const api = {
     return this.post('/api/admin/infra/node/sync', { node_uuid, provider_uuid, due_date });
   },
 
+  async createInfraBill(data) {
+    return this.post('/api/admin/infra/bills/create', data);
+  },
+
+  async deleteInfraBill(uuid) {
+    return this.post('/api/admin/infra/bills/delete', { uuid });
+  },
+
   async getPanelControlOverview() {
     return this.get('/api/admin/panel/control');
   },

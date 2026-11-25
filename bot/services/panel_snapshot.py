@@ -55,14 +55,17 @@ async def refresh_panel_snapshot(
             nodes_res = await remnawave.get_nodes()
             return nodes_res, round((time.monotonic() - t_ping) * 1000.0, 1)
 
+        from bot.web.admin_overview_nodes import fetch_panel_billing_nodes
+
         t0 = time.monotonic()
         results = await asyncio.gather(
             _probe_nodes(),
             remnawave.get_all_panel_users(size=1000),
             remnawave.get_hwid_stats(),
+            fetch_panel_billing_nodes(remnawave),
             return_exceptions=True,
         )
-        nodes_probe, raw_users, raw_hwid = results
+        nodes_probe, raw_users, raw_hwid, raw_infra_billing = results
         if isinstance(nodes_probe, Exception):
             raw_nodes = nodes_probe
             latency_ms = round((time.monotonic() - t0) * 1000.0, 1)
@@ -73,6 +76,7 @@ async def refresh_panel_snapshot(
         nodes = raw_nodes if nodes_ok else []
         panel_users = raw_users if users_ok else []
         hwid_stats = raw_hwid if isinstance(raw_hwid, dict) else {}
+        infra_billing_nodes = raw_infra_billing if isinstance(raw_infra_billing, list) else []
 
         nodes_online = sum(1 for n in nodes if n.get("isConnected") and not n.get("isDisabled"))
         active_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
@@ -82,6 +86,7 @@ async def refresh_panel_snapshot(
             "nodes": nodes,
             "panel_users": panel_users,
             "hwid_stats": hwid_stats,
+            "infra_billing_nodes": infra_billing_nodes,
             "latency_ms": latency_ms,
             "healthy": healthy,
             "nodes_online": nodes_online,

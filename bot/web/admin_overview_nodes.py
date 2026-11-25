@@ -1,4 +1,5 @@
 """Node metrics, telemetry extraction, and cluster KPIs for admin overview."""
+import inspect
 import math
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -171,31 +172,114 @@ def _extract_node_metrics(raw_sys: dict, n: dict, is_connected: bool) -> tuple[f
     return cpu_val, ram_val, dl_speed, ul_speed
 
 
+def _parse_iso_dt(raw: Any) -> datetime | None:
+    """Parse an ISO-8601 date or timestamp into a UTC-aware datetime cleanly."""
+    if not raw:
+        return None
+    if isinstance(raw, datetime):
+        return raw if raw.tzinfo else raw.replace(tzinfo=timezone.utc)
+    s = str(raw).strip()
+    if not s:
+        return None
+    try:
+        normalized = s[:-1] + "+00:00" if s.endswith("Z") else s
+        dt = datetime.fromisoformat(normalized)
+        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    except ValueError:
+        try:
+            return datetime.strptime(s[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except ValueError:
+            return None
+
+
+def extract_panel_billing_map(billing_nodes: Any) -> dict[str, dict[str, Any]]:
+    """Map Remnawave `/api/infra-billing/nodes` entries by `nodeUuid` (SSOT)."""
+    if not isinstance(billing_nodes, list):
+        return {}
+    mapped: dict[str, dict[str, Any]] = {}
+    for entry in billing_nodes:
+        if not isinstance(entry, dict):
+            continue
+        node_obj = entry.get("node") if isinstance(entry.get("node"), dict) else {}
+        node_uuid = str(entry.get("nodeUuid") or node_obj.get("uuid") or "").strip()
+        if not node_uuid:
+            continue
+        prov_obj = entry.get("provider") if isinstance(entry.get("provider"), dict) else {}
+        next_dt = _parse_iso_dt(entry.get("nextBillingAt"))
+        last_dt = _parse_iso_dt(entry.get("lastBillingAt"))
+        mapped[node_uuid] = {
+            "panel_billing_node_uuid": str(entry.get("uuid") or "").strip() or None,
+            "provider_uuid": str(entry.get("providerUuid") or prov_obj.get("uuid") or "").strip() or None,
+            "provider_name": str(prov_obj.get("name") or "").strip() or None,
+            "next_billing_dt": next_dt,
+            "last_billing_dt": last_dt,
+        }
+    return mapped
+
+
+async def fetch_panel_billing_nodes(remnawave: Any) -> list[dict[str, Any]]:
+    """Safely fetch `/api/infra-billing/nodes` from Remnawave, tolerating sync/partial test mocks."""
+    fn = getattr(remnawave, "get_infra_billing_nodes", None)
+    if not callable(fn):
+        return []
+    try:
+        res = fn()
+        if inspect.isawaitable(res):
+            res = await res
+        return res if isinstance(res, list) else []
+    except Exception:
+        return []
+
+
+def compute_due_metadata(
+    cost_entry: Any,
+    now_utc: datetime,
+    panel_billing: dict[str, Any] | None = None,
+) -> tuple[datetime | None, str | None, str | None, int | None, str | None]:
+    """Resolve effective renewal date (Panel `nextBillingAt` prioritized, fallback local DB) + Jalali & countdown."""
+    panel_dt = panel_billing.get("next_billing_dt") if isinstance(panel_billing, dict) else None
+    local_dt = cost_entry.due_date if (cost_entry and getattr(cost_entry, "due_date", None)) else None
+    if isinstance(local_dt, datetime) and not local_dt.tzinfo:
+        local_dt = local_dt.replace(tzinfo=timezone.utc)
+
+    if panel_dt is not None:
+        effective_dt, source = panel_dt, "panel"
+    elif local_dt is not None:
+        effective_dt, source = local_dt, "local"
+    else:
+        return None, None, None, None, None
+
+    due_date_str = effective_dt.strftime("%Y-%m-%d")
+    days_until_due = (effective_dt.date() - now_utc.date()).days
+    if jdatetime:
+        try:
+            due_date_jalali = jdatetime.datetime.fromgregorian(datetime=effective_dt).strftime("%Y/%m/%d")
+        except Exception:
+            due_date_jalali = due_date_str
+    else:
+        due_date_jalali = due_date_str
+    return effective_dt, due_date_str, due_date_jalali, days_until_due, source
+
+
 def _extract_node_costs(
     cost_entry: Any,
     now_utc: datetime,
     traffic_used_gb: float,
     avg_revenue_per_gb: float = 0.0,
+    panel_billing: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Format node financial cost, estimated revenue, ROI, and due date info."""
-    due_date_str = None
-    due_date_jalali = None
-    days_until_due = None
-    if cost_entry and cost_entry.due_date:
-        due_date_str = cost_entry.due_date.strftime("%Y-%m-%d")
-        days_until_due = (cost_entry.due_date.date() - now_utc.date()).days
-        if jdatetime:
-            try:
-                due_date_jalali = jdatetime.datetime.fromgregorian(datetime=cost_entry.due_date).strftime("%Y/%m/%d")
-            except Exception:
-                due_date_jalali = due_date_str
-        else:
-            due_date_jalali = due_date_str
+    _eff_dt, due_date_str, due_date_jalali, days_until_due, due_date_source = compute_due_metadata(
+        cost_entry, now_utc, panel_billing=panel_billing
+    )
 
     cost_toman = cost_entry.monthly_cost_toman if cost_entry else 0
     cost_eur = cost_entry.monthly_cost_eur if cost_entry else 0.0
     currency = getattr(cost_entry, "currency", "EUR") or "EUR" if cost_entry else "EUR"
-    provider = cost_entry.provider if cost_entry else None
+    provider = (
+        (cost_entry.provider if cost_entry else None)
+        or (panel_billing.get("provider_name") if isinstance(panel_billing, dict) else None)
+    )
     notes = cost_entry.notes if cost_entry else None
     cost_per_gb = round(cost_toman / traffic_used_gb, 0) if (cost_toman > 0 and traffic_used_gb > 0) else 0.0
 
@@ -210,6 +294,8 @@ def _extract_node_costs(
         "due_date": due_date_str,
         "due_date_jalali": due_date_jalali,
         "days_until_due": days_until_due,
+        "due_date_source": due_date_source,
+        "panel_billing_node_uuid": panel_billing.get("panel_billing_node_uuid") if isinstance(panel_billing, dict) else None,
         "cost_per_gb": cost_per_gb,
         "provider": provider,
         "notes": notes,
@@ -301,6 +387,7 @@ def extract_node_item(
     costs_by_id: dict,
     now_utc: datetime,
     avg_revenue_per_gb: float = 0.0,
+    panel_billing_by_node: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Parse telemetry, hardware metrics, country flag, and financials for one node."""
     raw_name = str(n.get("name") or f"Node {i}").strip()
@@ -329,10 +416,13 @@ def extract_node_item(
     n_uuid = str(n.get("uuid") or n.get("id") or "")
     n_id_str = str(n.get("id") or "")
     cost_entry = costs_by_uuid.get(n_uuid) or costs_by_id.get(n_id_str)
-    cost_data = _extract_node_costs(cost_entry, now_utc, traffic_used_gb, avg_revenue_per_gb)
+    panel_billing = (panel_billing_by_node or {}).get(n_uuid)
+    cost_data = _extract_node_costs(cost_entry, now_utc, traffic_used_gb, avg_revenue_per_gb, panel_billing=panel_billing)
     panel_meta = extract_node_panel_fields(n)
     if not cost_data.get("provider") and panel_meta.get("panel_provider_name"):
         cost_data["provider"] = panel_meta["panel_provider_name"]
+    if not panel_meta.get("provider_uuid") and isinstance(panel_billing, dict) and panel_billing.get("provider_uuid"):
+        panel_meta["provider_uuid"] = panel_billing["provider_uuid"]
 
     return {
         "id": n.get("id"),
@@ -361,10 +451,19 @@ def calc_nodes_overview(
     hwid_stats: dict,
     now_utc: datetime,
     avg_revenue_per_gb: float = 0.0,
+    panel_billing_by_node: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[list[dict], int, int]:
     """Return nodes overview list, total online devices, and offline nodes count."""
     nodes_overview = [
-        extract_node_item(n, i, costs_by_uuid, costs_by_id, now_utc, avg_revenue_per_gb)
+        extract_node_item(
+            n,
+            i,
+            costs_by_uuid,
+            costs_by_id,
+            now_utc,
+            avg_revenue_per_gb,
+            panel_billing_by_node=panel_billing_by_node,
+        )
         for i, n in enumerate(nodes, start=1)
     ]
     sum_node_online = sum(n["connected_users"] for n in nodes_overview)

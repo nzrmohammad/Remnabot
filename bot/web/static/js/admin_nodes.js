@@ -450,7 +450,10 @@
                   <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
                   <span>موعد سررسید تمدید:</span>
                 </span>
-                <div>${dueBadgeHtml}</div>
+                <div class="flex items-center gap-1.5">
+                  ${n.due_date_source === 'panel' ? '<span class="badge badge-info text-[9.5px] px-1.5 py-0" title="خوانده‌شده از Infra Billing پنل">پنل</span>' : ''}
+                  ${dueBadgeHtml}
+                </div>
               </div>
 
               <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
@@ -567,6 +570,7 @@
                   data-notify-percent="${n.notify_percent != null ? Number(n.notify_percent) : ''}"
                   data-config-profile-uuid="${escapeHtml(n.active_config_profile_uuid || '')}"
                   data-active-inbounds="${escapeHtml((n.active_inbounds || []).join(','))}"
+                  data-due-source="${escapeHtml(n.due_date_source || '')}"
                   data-cost-toman="${Number(n.monthly_cost_toman || 0)}"
                   data-cost-eur="${Number(n.monthly_cost_eur || 0)}"
                   data-due="${escapeHtml(n.due_date || '')}"
@@ -576,12 +580,12 @@
                   <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   <span class="truncate">تنظیمات سرور</span>
                 </button>
-                <button type="button" class="btn-restart-node bg-transparent hover:bg-amber-500/10 t-warn py-1.5 px-2 rounded-xl border border-amber-500/35 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
+                <button type="button" class="btn-reset-node-traffic bg-transparent hover:bg-indigo-500/10 t-info py-1.5 px-2 rounded-xl border border-indigo-500/35 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
-                  title="ریستارت سرور">
-                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span class="truncate">ریستارت</span>
+                  title="ریست ترافیک مصرفی سرور">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <span class="truncate">ریست ترافیک</span>
                 </button>
                 <button type="button" class="btn-toggle-node-state bg-transparent ${n.is_disabled ? 'hover:bg-emerald-500/10 t-success border-emerald-500/35' : 'hover:bg-rose-500/10 t-danger border-rose-500/35'} py-1.5 px-2 rounded-xl border transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
@@ -591,12 +595,12 @@
                   <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/></svg>
                   <span class="truncate">${n.is_disabled ? 'فعال‌سازی' : 'غیرفعال'}</span>
                 </button>
-                <button type="button" class="btn-reset-node-traffic bg-transparent hover:bg-indigo-500/10 t-info py-1.5 px-2 rounded-xl border border-indigo-500/35 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
+                <button type="button" class="btn-restart-node bg-transparent hover:bg-amber-500/10 t-warn py-1.5 px-2 rounded-xl border border-amber-500/35 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
-                  title="ریست ترافیک مصرفی سرور">
-                  <img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
-                  <span class="truncate">ریست ترافیک</span>
+                  title="ریستارت سرور">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span class="truncate">ریستارت</span>
                 </button>
               </div>
             </div>
@@ -1181,6 +1185,10 @@ openEditSslDomainModal(domain) {
       if (jalaliPreview) {
         jalaliPreview.innerText = dueDate ? (window.formatDateToJalali ? window.formatDateToJalali(dueDate) : dueDate.slice(0, 10)) : '';
       }
+      const dueSourceBadge = $('nodeBillingDueSourceBadge');
+      if (dueSourceBadge) {
+        dueSourceBadge.classList.toggle('hidden', (meta.dueSource || '') !== 'panel');
+      }
 
       this.setNodeBillingCurrency(currency || 'EUR', false);
       this.updateNodeBillingConversion(false);
@@ -1323,6 +1331,15 @@ openEditSslDomainModal(domain) {
       }
     },
 
+    openBillFromNodeModal() {
+      const provUuid = $('nodeBillingProviderUuid')?.value?.trim() || '';
+      const cleanProvUuid = provUuid === '__custom__' ? '' : provUuid;
+      const amountVal = $('nodeBillingCostEur')?.value?.trim() || '';
+      if (window.panelCtrl?.openBillModal) {
+        window.panelCtrl.openBillModal(cleanProvUuid, amountVal);
+      }
+    },
+
     closeNodeBillingModal() {
       const modal = $('nodeBillingModal');
       if (modal) modal.classList.add('hidden');
@@ -1454,20 +1471,26 @@ openEditSslDomainModal(domain) {
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  $('refreshNodesTabBtn')?.addEventListener('click', async () => {
-    const icon = $('refreshNodesTabIcon');
-    if (icon) icon.classList.add('animate-spin');
+  // Auto-refresh Nodes Status every 15 seconds while Servers subtab is active & visible
+  let _nodesAutoPollInFlight = false;
+  setInterval(async () => {
+    if (_nodesAutoPollInFlight) return;
+    if (document.visibilityState !== 'visible') return;
+    const tabPane = $('tab-admin-nodes');
+    const serversPane = $('subtabContentNodesServers');
+    if (!tabPane || tabPane.classList.contains('hidden')) return;
+    if (!serversPane || serversPane.classList.contains('hidden')) return;
+    if (document.querySelector('.modal-backdrop:not(.hidden)')) return;
+    if (!window.syncAdminOverview) return;
+    _nodesAutoPollInFlight = true;
     try {
-      if (window.syncAdminOverview) await window.syncAdminOverview(true);
-      await fetchAdminSslHealth();
-      if (window.showToast) window.showToast('🔄 وضعیت سرورها و گواهی‌های SSL به‌روزرسانی شد');
-      if (window.hapticFeedback) window.hapticFeedback('success');
+      await window.syncAdminOverview(true);
+    } catch (_err) {
+      // Silent background telemetry poll
     } finally {
-      setTimeout(() => {
-        if (icon) icon.classList.remove('animate-spin');
-      }, 500);
+      _nodesAutoPollInFlight = false;
     }
-  });
+  }, 15000);
 
   $('refreshSslHealthBtn')?.addEventListener('click', async () => {
     const icon = $('refreshSslHealthIcon');
@@ -1515,7 +1538,9 @@ openEditSslDomainModal(domain) {
     contentSsl?.classList.toggle('hidden', subtab !== 'ssl');
     contentTools?.classList.toggle('hidden', subtab !== 'tools');
 
-    if (subtab === 'ssl') {
+    if (subtab === 'servers') {
+      if (window.syncAdminOverview) window.syncAdminOverview(true);
+    } else if (subtab === 'ssl') {
       fetchAdminSslHealth();
     } else if (subtab === 'panel') {
       window.panelCtrl?.fetchOverview?.(false);

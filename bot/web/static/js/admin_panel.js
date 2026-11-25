@@ -19,8 +19,12 @@
     subscription_settings: {},
     infra_providers: [],
     infra_billing_nodes: [],
+    infra_billing_history: [],
     api_tokens_info: { ok: false, tokens: [], jwt_required: false },
   };
+  let hostSquadTempMode = 'EXCLUDE';
+  let hostSquadTempSet = new Set();
+  const TRASH_ICON_SVG = '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
   let selectedHostUuids = new Set();
   let hostSearchQuery = '';
   let activeSubSection = 'hosts';
@@ -85,6 +89,7 @@
     renderConfigProfiles();
     renderSnippets();
     renderInfraProviders();
+    renderBillingHistory();
     renderApiTokens();
   }
 
@@ -198,11 +203,13 @@
         : (sqList.length > 0
             ? `<span class="badge badge-warn text-[10px]">بجز ${sqList.length} اسکواد</span>`
             : `<span class="badge badge-neutral text-[10px]">همه اسکوادها</span>`);
+      const statusIcon = disabled
+        ? '<span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-rose-500/15 border border-rose-500/40 t-danger shrink-0" title="غیرفعال"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></span>'
+        : '<span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500/15 border border-emerald-500/40 t-success shrink-0" title="فعال"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>';
       return `
         <div class="card p-3 rounded-2xl border border-card-border space-y-2">
           <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-1.5 shrink-0 pt-0.5">
-              <input type="checkbox" aria-label="انتخاب هاست" class="rounded accent-cyan-500 cursor-pointer" ${checked ? 'checked' : ''} onchange="window.panelCtrl.toggleHostSelection('${escapeHtml(uuid)}', this.checked)" />
+            <div class="flex items-center gap-1 shrink-0 pt-0.5">
               <button type="button" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش هاست">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
@@ -212,11 +219,12 @@
             </div>
             <div class="min-w-0 flex-1 text-left cursor-pointer" dir="ltr" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}')">
               <div class="flex items-center justify-start gap-1.5 flex-wrap">
+                ${statusIcon}
                 <b class="text-xs t-main truncate font-en">${escapeHtml(h.remark || 'Host')}</b>
-                <span class="badge ${disabled ? 'badge-danger' : 'badge-success'} text-[10px]" dir="rtl">${disabled ? 'غیرفعال' : 'فعال'}</span>
               </div>
               <div class="text-[11px] t-accent font-sans num-bidi truncate mt-0.5">${escapeHtml(h.address || '—')}:${Number(h.port || 443)}</div>
             </div>
+            <input type="checkbox" aria-label="انتخاب هاست" class="mt-1 rounded accent-cyan-500 cursor-pointer shrink-0" ${checked ? 'checked' : ''} onchange="window.panelCtrl.toggleHostSelection('${escapeHtml(uuid)}', this.checked)" />
           </div>
           <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t border-card-border text-[10.5px] t-muted">
             <div class="flex flex-wrap items-center gap-1">
@@ -345,27 +353,89 @@
     haptic('selection');
   }
 
-  function _renderHostSquadCheckboxes(mode = 'EXCLUDE', selectedUuids = []) {
+  function _syncHostSquadDisplay(mode, uuids) {
     const modeEl = $('panelHostSquadModeSelect');
-    const listEl = $('panelHostSquadsList');
-    if (modeEl) modeEl.value = mode === 'ALLOW_ONLY' ? 'ALLOW_ONLY' : 'EXCLUDE';
+    const uuidsEl = $('panelHostSquadUuidsInput');
+    const dispEl = $('panelHostSquadsDisplay');
+    const normMode = mode === 'ALLOW_ONLY' ? 'ALLOW_ONLY' : 'EXCLUDE';
+    const arr = Array.isArray(uuids) ? uuids.filter(Boolean) : [];
+    if (modeEl) modeEl.value = normMode;
+    if (uuidsEl) uuidsEl.value = arr.join(',');
+    if (dispEl) {
+      if (normMode === 'ALLOW_ONLY') {
+        dispEl.innerText = arr.length ? `فقط نمایش در ${arr.length} اسکواد انتخاب‌شده` : 'فقط نمایش (هیچ اسکوادی انتخاب نشده)';
+      } else {
+        dispEl.innerText = arr.length ? `مخفی برای ${arr.length} اسکواد انتخاب‌شده` : 'نمایش در همه اسکوادها (بدون محدودیت)';
+      }
+    }
+  }
+
+  function _renderHostSquadsModalState() {
+    const listEl = $('panelHostSquadsModalList');
+    const optEx = $('hostSquadModeOptExclude');
+    const optAl = $('hostSquadModeOptAllow');
+    const dotEx = $('hostSquadModeDotExclude');
+    const dotAl = $('hostSquadModeDotAllow');
+    const isAllow = hostSquadTempMode === 'ALLOW_ONLY';
+    if (optEx) optEx.className = !isAllow ? 'w-full text-right p-2.5 rounded-2xl border border-cyan-500/45 bg-cyan-500/10 transition space-y-0.5' : 'w-full text-right p-2.5 rounded-2xl border border-card-border card-inset transition space-y-0.5';
+    if (optAl) optAl.className = isAllow ? 'w-full text-right p-2.5 rounded-2xl border border-cyan-500/45 bg-cyan-500/10 transition space-y-0.5' : 'w-full text-right p-2.5 rounded-2xl border border-card-border card-inset transition space-y-0.5';
+    if (dotEx) dotEx.className = !isAllow ? 'w-3.5 h-3.5 rounded-full bg-cyan-500 ring-2 ring-cyan-500/30 shrink-0' : 'w-3.5 h-3.5 rounded-full border border-card-border shrink-0';
+    if (dotAl) dotAl.className = isAllow ? 'w-3.5 h-3.5 rounded-full bg-cyan-500 ring-2 ring-cyan-500/30 shrink-0' : 'w-3.5 h-3.5 rounded-full border border-card-border shrink-0';
+
     if (!listEl) return;
     const squads = Array.isArray(panelState.internal_squads) ? panelState.internal_squads : [];
     if (!squads.length) {
-      listEl.innerHTML = '<span class="text-[10.5px] t-muted">اسکواد داخلی در پنل یافت نشد.</span>';
+      listEl.innerHTML = '<div class="p-4 text-center text-xs t-muted card-inset rounded-2xl border border-card-border" dir="rtl">اسکواد داخلی در پنل یافت نشد.</div>';
       return;
     }
-    const picked = new Set((selectedUuids || []).map(String));
     listEl.innerHTML = squads.map(sq => {
       const u = String(sq.uuid || '');
-      const checked = picked.has(u) ? 'checked' : '';
-      return `
-        <label class="card px-2 py-1 rounded-lg border border-card-border text-[10.5px] font-en flex items-center gap-1.5 cursor-pointer" dir="ltr">
-          <input type="checkbox" class="panel-host-squad-chk accent-cyan-500 rounded" value="${escapeHtml(u)}" ${checked} />
-          <span class="t-main">${escapeHtml(sq.name || u)}</span>
-        </label>
-      `;
+      const selected = hostSquadTempSet.has(u);
+      return renderModalPickerRow({
+        onClick: `window.panelCtrl.toggleHostSquadSelection('${escapeHtml(u)}')`,
+        title: sq.name || u,
+        sub: u.slice(0, 12),
+        selected,
+        isEnglish: true,
+        rowDir: 'ltr',
+        subDir: 'ltr',
+      });
     }).join('');
+  }
+
+  function openHostSquadsModal() {
+    const modal = $('panelHostSquadsModal');
+    if (!modal) return;
+    hostSquadTempMode = $('panelHostSquadModeSelect')?.value === 'ALLOW_ONLY' ? 'ALLOW_ONLY' : 'EXCLUDE';
+    const raw = $('panelHostSquadUuidsInput')?.value || '';
+    hostSquadTempSet = new Set(raw.split(',').map(x => x.trim()).filter(Boolean));
+    _renderHostSquadsModalState();
+    modal.classList.remove('hidden');
+    haptic('selection');
+  }
+
+  function closeHostSquadsModal() {
+    $('panelHostSquadsModal')?.classList.add('hidden');
+  }
+
+  function setHostSquadMode(mode = 'EXCLUDE') {
+    hostSquadTempMode = mode === 'ALLOW_ONLY' ? 'ALLOW_ONLY' : 'EXCLUDE';
+    _renderHostSquadsModalState();
+    haptic('selection');
+  }
+
+  function toggleHostSquadSelection(uuid) {
+    if (!uuid) return;
+    if (hostSquadTempSet.has(uuid)) hostSquadTempSet.delete(uuid);
+    else hostSquadTempSet.add(uuid);
+    _renderHostSquadsModalState();
+    haptic('selection');
+  }
+
+  function applyHostSquadsModal() {
+    _syncHostSquadDisplay(hostSquadTempMode, Array.from(hostSquadTempSet));
+    closeHostSquadsModal();
+    haptic('success');
   }
 
   function openHostModal(hostUuid = '') {
@@ -391,7 +461,7 @@
     const sqUuids = sqObj
       ? (Array.isArray(sqObj.squads) ? sqObj.squads : [])
       : (Array.isArray(h?.excludedInternalSquads) ? h.excludedInternalSquads : []);
-    _renderHostSquadCheckboxes(sqMode, sqUuids);
+    _syncHostSquadDisplay(sqMode, sqUuids);
 
     modal.classList.remove('hidden');
     haptic('selection');
@@ -429,9 +499,10 @@
       config_profile_uuid,
     };
     const squadsAvailable = Array.isArray(panelState.internal_squads) && panelState.internal_squads.length > 0;
-    if (squadsAvailable || document.querySelectorAll('.panel-host-squad-chk').length > 0) {
+    const rawSqUuids = ($('panelHostSquadUuidsInput')?.value || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (squadsAvailable || rawSqUuids.length > 0) {
       payload.squad_mode = $('panelHostSquadModeSelect')?.value || 'EXCLUDE';
-      payload.squad_uuids = Array.from(document.querySelectorAll('.panel-host-squad-chk:checked')).map(c => c.value);
+      payload.squad_uuids = rawSqUuids;
     }
 
     const res = await window.api?.savePanelHost?.(payload);
@@ -488,11 +559,11 @@
       const count = sq.info?.membersCount ?? sq.membersCount ?? 0;
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
-          <div class="min-w-0">
-            <b class="text-xs t-main block truncate" dir="ltr">${escapeHtml(sq.name || 'Squad')}</b>
+          <button type="button" onclick="window.panelCtrl.openExtSquadUsersModal('${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="btn btn-secondary px-2.5 py-1.5 text-[11px] rounded-xl font-bold shrink-0">مدیریت اعضا</button>
+          <div class="min-w-0 flex-1 text-left" dir="ltr">
+            <b class="text-xs t-main block truncate font-en">${escapeHtml(sq.name || 'Squad')}</b>
             <span class="text-[10.5px] t-muted block mt-0.5">${Number(count)} عضو در اسکواد</span>
           </div>
-          <button type="button" onclick="window.panelCtrl.openExtSquadUsersModal('${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="btn btn-secondary px-2.5 py-1.5 text-[11px] rounded-xl font-bold shrink-0">مدیریت اعضا</button>
         </div>
       `;
     }).join('');
@@ -579,7 +650,7 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
               <button type="button" onclick="window.panelCtrl.deleteSnippet('${escapeHtml(name)}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسنیپت">
-                <img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
+                ${TRASH_ICON_SVG}
               </button>
             </div>
           </div>
@@ -676,7 +747,7 @@
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
             <button type="button" onclick="window.panelCtrl.deleteProvider('${escapeHtml(uuid)}', '${escapeHtml(p.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف ارائه‌دهنده">
-              <img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
+              ${TRASH_ICON_SVG}
             </button>
           </div>
           <div class="min-w-0 text-left flex-1" dir="ltr">
@@ -771,7 +842,7 @@
           <span class="text-[10px] t-muted block truncate">${escapeHtml(t.uuid || '')}</span>
         </div>
         <button type="button" onclick="window.panelCtrl.deleteToken('${escapeHtml(t.uuid || '')}', '${escapeHtml(t.tokenName || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="ابطال توکن">
-          <img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
+          ${TRASH_ICON_SVG}
         </button>
       </div>
     `).join('');
@@ -829,6 +900,97 @@
     });
   }
 
+  function renderBillingHistory() {
+    const listEl = $('panelBillsList');
+    if (!listEl) return;
+    const bills = Array.isArray(panelState.infra_billing_history) ? panelState.infra_billing_history : [];
+    const providers = Array.isArray(panelState.infra_providers) ? panelState.infra_providers : [];
+    const provMap = new Map(providers.map(p => [String(p.uuid), p.name]));
+
+    if (!bills.length) {
+      listEl.innerHTML = '<div class="p-4 text-center text-xs t-muted card-inset rounded-2xl border border-card-border">سابقه پرداختی ثبت نشده است.</div>';
+      return;
+    }
+    listEl.innerHTML = bills.map(b => {
+      const uuid = String(b.uuid || '');
+      const provName = b.provider?.name || provMap.get(String(b.providerUuid || '')) || 'ارائه‌دهنده';
+      const billedDate = b.billedAt ? String(b.billedAt).slice(0, 10) : '';
+      const jalaliStr = billedDate && window.formatDateToJalali ? window.formatDateToJalali(billedDate) : billedDate;
+      return `
+        <div class="card p-2.5 rounded-2xl border border-card-border flex items-center justify-between gap-2">
+          <button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="حذف رکورد پرداخت">
+            ${TRASH_ICON_SVG}
+          </button>
+          <div class="min-w-0 flex-1 text-left" dir="ltr">
+            <div class="flex items-center justify-between gap-2">
+              <b class="text-xs t-main truncate font-en">${escapeHtml(provName)}</b>
+              <span class="badge badge-success text-[10px] num-bidi">${Number(b.amount || 0).toLocaleString('en-US')}</span>
+            </div>
+            <span class="text-[10.5px] t-muted block mt-0.5 num-bidi">${escapeHtml(jalaliStr || billedDate || '—')}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function openBillModal(prefillProviderUuid = '', prefillAmount = '') {
+    const modal = $('panelBillCreateModal');
+    const provSel = $('panelBillProviderSelect');
+    if (!modal || !provSel) return;
+    if (!panelState.loaded) await fetchOverview(false);
+    const providers = Array.isArray(panelState.infra_providers) ? panelState.infra_providers : [];
+    provSel.innerHTML = providers.length
+      ? providers.map(p => `<option value="${escapeHtml(p.uuid)}">${escapeHtml(p.name)}</option>`).join('')
+      : '<option value="">ابتدا ارائه‌دهنده تعریف کنید</option>';
+    if (prefillProviderUuid) provSel.value = prefillProviderUuid;
+    if ($('panelBillAmount')) $('panelBillAmount').value = prefillAmount || '';
+    const todayIso = new Date().toISOString().slice(0, 10);
+    if ($('panelBillDate')) $('panelBillDate').value = todayIso;
+    modal.classList.remove('hidden');
+    haptic('selection');
+  }
+
+  function closeBillModal() {
+    $('panelBillCreateModal')?.classList.add('hidden');
+  }
+
+  async function createBill() {
+    const provider_uuid = $('panelBillProviderSelect')?.value?.trim() || '';
+    const amount = parseFloat($('panelBillAmount')?.value || '0');
+    const billed_at = $('panelBillDate')?.value?.trim() || '';
+    if (!provider_uuid || isNaN(amount) || amount <= 0) {
+      toast('ارائه‌دهنده و مبلغ معتبر الزامی است.');
+      return;
+    }
+    const res = await window.api?.createInfraBill?.({ provider_uuid, amount, billed_at });
+    if (res && res.ok) {
+      toast(`✅ ${res.message}`);
+      closeBillModal();
+      haptic('success');
+      await fetchOverview(true);
+    } else {
+      toast(`⚠️ ${res?.error || 'خطا در ثبت پرداخت'}`);
+    }
+  }
+
+  function deleteBill(uuid) {
+    confirmAction({
+      title: 'حذف سابقه پرداخت',
+      message: 'آیا از حذف این رکورد پرداخت (Bill Record) از پنل مطمئن هستید؟',
+      btnText: 'حذف رکورد',
+      onConfirm: async () => {
+        const res = await window.api?.deleteInfraBill?.(uuid);
+        if (res && res.ok) {
+          toast(`✅ ${res.message}`);
+          haptic('success');
+          await fetchOverview(true);
+        } else {
+          toast(`⚠️ ${res?.error || 'خطا در حذف رکورد'}`);
+        }
+      },
+    });
+  }
+
   window.panelCtrl = {
     fetchOverview,
     switchSubSection,
@@ -842,6 +1004,11 @@
     openHostInboundModal,
     closeHostInboundModal,
     selectHostInbound,
+    openHostSquadsModal,
+    closeHostSquadsModal,
+    setHostSquadMode,
+    toggleHostSquadSelection,
+    applyHostSquadsModal,
     saveHost,
     saveSubSettings,
     openExtSquadUsersModal,
@@ -855,6 +1022,10 @@
     closeProviderModal,
     saveProvider,
     deleteProvider,
+    openBillModal,
+    closeBillModal,
+    createBill,
+    deleteBill,
     openTokenModal,
     closeTokenModal,
     createToken,

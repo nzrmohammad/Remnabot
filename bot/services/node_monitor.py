@@ -123,21 +123,60 @@ async def check_nodes_health_once(
                 await _notify_admins(bot, msg, session_factory=session_factory)
 
 
-async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
+# Track panel-only infra-billing alerts to avoid duplicate notifications per due day
+_PANEL_BILLING_ALERTED: dict[str, str] = {}
+
+
+async def check_nodes_billing_due_dates(
+    bot: Bot, session_factory: Any, remnawave: Any = None
+) -> None:
     """Check if any nodes are approaching their billing due date (<= 3 days) and alert admins."""
     if not session_factory:
         return
     try:
         from bot.db.repositories.node_cost_repo import NodeCostRepository
+        from bot.web.admin_overview_nodes import (
+            extract_panel_billing_map,
+            fetch_panel_billing_nodes,
+        )
+
         settings = get_settings()
         raw_tz = getattr(settings, "TIMEZONE", "Asia/Tehran")
         tz_name = raw_tz if isinstance(raw_tz, str) and raw_tz else "Asia/Tehran"
         now_local = now_tz(tz_name)
+
+        panel_billing_map: dict[str, dict[str, Any]] = {}
+        panel_node_names: dict[str, str] = {}
+        raw_bn = await fetch_panel_billing_nodes(remnawave) if remnawave else []
+        if raw_bn:
+            panel_billing_map = extract_panel_billing_map(raw_bn)
+            if panel_billing_map and hasattr(remnawave, "get_nodes"):
+                try:
+                    raw_nodes = await remnawave.get_nodes() or []
+                    if isinstance(raw_nodes, list):
+                        for rn in raw_nodes:
+                            if isinstance(rn, dict) and rn.get("uuid"):
+                                panel_node_names[str(rn["uuid"])] = str(rn.get("name") or "")
+                except Exception as panel_exc:
+                    logger.debug("Panel node name fetch skipped: %s", panel_exc)
+
         async with session_factory() as session:
             repo = NodeCostRepository(session)
+            all_local = await repo.list_all()
+            local_by_uuid = {str(n.node_uuid): n for n in all_local}
+
+            # Sync panel nextBillingAt updates into local NodeCost rows if dates differ
+            for nuuid, pinfo in panel_billing_map.items():
+                p_dt = pinfo.get("next_billing_dt")
+                existing = local_by_uuid.get(nuuid)
+                if p_dt is not None and existing is not None:
+                    if existing.due_date is None or existing.due_date.date() != p_dt.date():
+                        existing.due_date = p_dt
+                        existing.alert_notified = False
+                        if pinfo.get("provider_name") and not existing.provider:
+                            existing.provider = pinfo["provider_name"]
+
             due_nodes = await repo.list_due_soon(days_threshold=3, reference_date=now_local)
-            if not due_nodes:
-                return
 
             for node in due_nodes:
                 if not node.due_date:
@@ -177,6 +216,35 @@ async def check_nodes_billing_due_dates(bot: Bot, session_factory: Any) -> None:
                     await repo.mark_alert_sent(node.node_uuid, True)
                 else:
                     logger.warning("Node billing due alert delivery failed for %s; will retry next cycle.", node.node_uuid)
+
+            # Also notify for panel-only infra-billing nodes not yet saved in local node_costs
+            for nuuid, pinfo in panel_billing_map.items():
+                if nuuid in local_by_uuid:
+                    continue
+                p_dt = pinfo.get("next_billing_dt")
+                if p_dt is None:
+                    continue
+                days_left = (p_dt.date() - now_local.date()).days
+                due_date_str = p_dt.strftime("%Y-%m-%d")
+                if days_left > 3 or _PANEL_BILLING_ALERTED.get(nuuid) == due_date_str:
+                    continue
+                node_name = html.escape(panel_node_names.get(nuuid) or nuuid[:8])
+                provider = html.escape(pinfo.get("provider_name") or "پنل Remnawave")
+                status_text = (
+                    f"🚨 <b>سررسید منقضی شده است! ({abs(days_left)} روز گذشته)</b>"
+                    if days_left < 0
+                    else ("⚠️ <b>موعد سررسید امروز است!</b>" if days_left == 0 else f"⏳ <b>فقط {days_left} روز تا موعد تمدید باقی مانده</b>")
+                )
+                msg = (
+                    f"💳 <b>هشدار موعد تمدید سرور (Infra Billing پنل)</b>\n\n"
+                    f"سرور: <b>🖥️ {node_name}</b>\n"
+                    f"ارائه‌دهنده: <b>{provider}</b>\n"
+                    f"تاریخ سررسید: <code>{due_date_str}</code>\n"
+                    f"وضعیت: {status_text}\n\n"
+                    f"لطفاً جهت جلوگیری از مسدود شدن سرور نسبت به ثبت پرداخت و تمدید اقدام فرمایید."
+                )
+                if await _notify_admins(bot, msg, session_factory=session_factory):
+                    _PANEL_BILLING_ALERTED[nuuid] = due_date_str
 
             await session.commit()
     except Exception as exc:
@@ -261,7 +329,7 @@ async def nodes_monitor_loop(
             now_ts = datetime.now(timezone.utc).timestamp()
             if session_factory and (now_ts - last_billing_check_ts >= 3600):
                 last_billing_check_ts = now_ts
-                await check_nodes_billing_due_dates(bot, session_factory)
+                await check_nodes_billing_due_dates(bot, session_factory, remnawave=remnawave)
                 await check_ssl_certificates_due_dates(bot, session_factory, remnawave)
         except asyncio.CancelledError:
             logger.info("Nodes monitor loop canceled.")

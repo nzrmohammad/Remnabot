@@ -38,11 +38,11 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
 [dir="rtl"] .text-\[10px\],
 [dir="rtl"] .text-\[10\.5px\],
 [dir="rtl"] .text-\[11px\] {
-  word-spacing: 0.105em;
+  word-spacing: 0.22em;
 }
 
 [dir="rtl"] .text-xs {
-  word-spacing: 0.055em;
+  word-spacing: 0.12em;
 }
 
 [dir="ltr"], .num-bidi, .font-en {

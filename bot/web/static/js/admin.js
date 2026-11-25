@@ -463,6 +463,7 @@
           notifyPercent: d.notifyPercent || '',
           configProfileUuid: d.configProfileUuid || '',
           activeInbounds: d.activeInbounds || '',
+          dueSource: d.dueSource || '',
         }
       );
       return;

@@ -41,6 +41,8 @@ from bot.web.admin_infra_api import (
 from bot.web.admin_overview import get_admin_overview
 from bot.web.admin_panel_api import (
     get_admin_panel_control,
+    post_admin_infra_bill_create,
+    post_admin_infra_bill_delete,
     post_admin_infra_node_sync,
     post_admin_infra_provider_delete,
     post_admin_infra_provider_save,
@@ -168,6 +170,8 @@ __all__ = [
     "post_admin_infra_provider_save",
     "post_admin_infra_provider_delete",
     "post_admin_infra_node_sync",
+    "post_admin_infra_bill_create",
+    "post_admin_infra_bill_delete",
     "post_admin_panel_token_create",
     "post_admin_panel_token_delete",
     "get_admin_ssl_health",

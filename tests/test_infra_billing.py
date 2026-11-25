@@ -556,12 +556,19 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
     finance_js = Path("bot/web/static/js/admin_finance.js").read_text(encoding="utf-8")
 
-    assert "word-spacing: 0.105em" in base_css
-    assert "word-spacing: 0.055em" in base_css
+    assert "word-spacing: 0.22em" in base_css
+    assert "word-spacing: 0.12em" in base_css
     assert "word-spacing: 0.14em" not in base_css
     assert "پورسانت نقدی دعوت (%)" in admin_html
     assert "پورسانت نقدی دعوت (٪)" not in admin_html
     assert "پایش لحظه‌ای مصرف منابع، سرعت و کنترل نودها" not in admin_html
+    assert "هاست‌ها، پروفایل Xray، اسنیپت‌ها، اسکواد خارجی و تنظیمات ساب" not in admin_html
+    assert "(Config Profiles)" not in admin_html
+    assert "(Infra Providers)" not in admin_html
+    assert 'id="refreshNodesTabBtn"' not in admin_html
+    assert 'id="panelHostSquadsModal"' in admin_html
+    assert 'id="panelBillCreateModal"' in admin_html
+    assert admin_html.find('id="panelHostPort"') < admin_html.find('id="panelHostAddress"')
     assert admin_html.find('id="subtabBtnNodesPanel"') < admin_html.find('id="subtabBtnNodesServers"')
     assert 'id="panelHostInboundPickerModal"' in admin_html
     assert 'id="nodeConfigProfilePickerModal"' in admin_html
@@ -573,6 +580,7 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     assert "ضریب مصرف سرور:" in nodes_js
     assert "ردیابی ترافیک:" in nodes_js
     assert "ریست ترافیک" in nodes_js and "غیرفعال" in nodes_js
+    assert nodes_js.find("btn-reset-node-traffic") < nodes_js.find("btn-restart-node")
     assert "هزینه و تمدید:" not in admin_html
     assert "هزینه و تمدید:" not in nodes_js
     assert "titleEl.querySelector('span')" in finance_js
@@ -581,6 +589,7 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
     assert "window.panelCtrl?.fetchOverview" in admin_js
     assert "internalSquads" in panel_js
+    assert "panelCtrl.openHostSquadsModal()" in admin_html
     assert panel_js.find("${inbounds.length} اینباند") < panel_js.find("${escapeHtml(p.name || 'Profile')}")
     assert panel_js.find("openProviderModal(") < panel_js.find("renderInfraProviders") or (
         panel_js[panel_js.find("function renderInfraProviders"):].find("openProviderModal")
@@ -598,6 +607,8 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
     from bot.services.remnawave import RemnawaveClient
     from bot.web.admin_panel_api import (
         get_admin_panel_control,
+        post_admin_infra_bill_create,
+        post_admin_infra_bill_delete,
         post_admin_infra_provider_save,
         post_admin_panel_external_squad_users,
         post_admin_panel_host_save,
@@ -641,7 +652,9 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         if path == "/api/infra-billing/providers":
             return FakeResp(200, {"response": {"providers": [{"uuid": "p-1", "name": "Hetzner"}]}})
         if path == "/api/infra-billing/nodes":
-            return FakeResp(200, {"response": {"nodes": []}})
+            return FakeResp(200, {"response": {"nodes": [{"uuid": "bn-1", "nodeUuid": "n-1", "providerUuid": "p-1", "nextBillingAt": "2026-12-01T00:00:00Z"}]}})
+        if path == "/api/infra-billing/history":
+            return FakeResp(200, {"response": {"records": [{"uuid": "bill-1", "providerUuid": "p-1", "amount": 25.5, "billedAt": "2026-11-20T00:00:00Z"}]}})
         return FakeResp(200, {"response": {"ok": True}})
 
     client._client.request = fake_request
@@ -676,6 +689,8 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         "/api/admin/infra/providers/save",
         "/api/admin/infra/providers/delete",
         "/api/admin/infra/node/sync",
+        "/api/admin/infra/bills/create",
+        "/api/admin/infra/bills/delete",
         "/api/admin/panel/control",
         "/api/admin/panel/hosts/save",
         "/api/admin/panel/hosts/bulk",
@@ -696,7 +711,26 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         assert len(ctrl_data["hosts"]) == 1
         assert len(ctrl_data["config_profiles"]) == 1
         assert len(ctrl_data["internal_squads"]) == 1
+        assert len(ctrl_data["infra_billing_history"]) == 1
         assert ctrl_data["api_tokens_info"]["jwt_required"] is True
+
+        # Verify panel nextBillingAt automatically resolves due_date when local DB lacks an entry
+        from bot.web.admin_overview_nodes import compute_due_metadata, extract_panel_billing_map
+        pb_map = extract_panel_billing_map(ctrl_data["infra_billing_nodes"])
+        _dt, p_due_str, _p_jal, _p_days, p_src = compute_due_metadata(None, datetime.now(timezone.utc), pb_map.get("n-1"))
+        assert p_due_str == "2026-12-01" and p_src == "panel"
+
+        req_bill = make_mocked_request("POST", "/api/admin/infra/bills/create", app=app_state)
+        req_bill.json = AsyncMock(return_value={"provider_uuid": "p-1", "amount": 35.0, "billed_at": "2026-11-25"})
+        assert (await post_admin_infra_bill_create(req_bill)).status == 200
+        assert any(
+            m == "POST" and p == "/api/infra-billing/history" and j and j.get("providerUuid") == "p-1" and j.get("amount") == 35.0
+            for m, p, j in calls
+        )
+
+        req_bill_del = make_mocked_request("POST", "/api/admin/infra/bills/delete", app=app_state)
+        req_bill_del.json = AsyncMock(return_value={"uuid": "bill-1"})
+        assert (await post_admin_infra_bill_delete(req_bill_del)).status == 200
 
         req_act = make_mocked_request("POST", "/api/admin/infra/node/action", app=app_state)
         req_act.json = AsyncMock(return_value={"action": "reset_traffic", "node_uuid": "n-1", "node_name": "DE"})
@@ -757,6 +791,25 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         req_prov = make_mocked_request("POST", "/api/admin/infra/providers/save", app=app_state)
         req_prov.json = AsyncMock(return_value={"name": "Hetzner"})
         assert (await post_admin_infra_provider_save(req_prov)).status == 200
+
+        # Panel-driven due alert when node only has nextBillingAt in Remnawave infra-billing
+        from datetime import timedelta
+
+        from bot.services.node_monitor import _PANEL_BILLING_ALERTED, check_nodes_billing_due_dates
+
+        _PANEL_BILLING_ALERTED.clear()
+        soon_iso = (datetime.now(timezone.utc) + timedelta(days=2)).strftime("%Y-%m-%dT00:00:00Z")
+        panel_rw = AsyncMock()
+        panel_rw.get_infra_billing_nodes = AsyncMock(
+            return_value=[{"uuid": "bn-p", "nodeUuid": "panel-only-n1", "nextBillingAt": soon_iso, "provider": {"name": "Leaseweb"}}]
+        )
+        panel_rw.get_nodes = AsyncMock(return_value=[{"uuid": "panel-only-n1", "name": "FI-Panel"}])
+        panel_bot = AsyncMock()
+        with patch("bot.services.node_monitor.get_settings") as mock_settings:
+            mock_settings.return_value.ADMIN_IDS = [123]
+            await check_nodes_billing_due_dates(panel_bot, session_factory, remnawave=panel_rw)
+        assert panel_bot.send_message.called
+        assert _PANEL_BILLING_ALERTED.get("panel-only-n1") == soon_iso[:10]
 
 
 
