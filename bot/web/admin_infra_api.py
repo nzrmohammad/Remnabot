@@ -98,8 +98,11 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
 
                 cost_toman = cost_item.monthly_cost_toman if cost_item else 0
                 cost_eur = cost_item.monthly_cost_eur if cost_item else 0.0
+                from bot.web.admin_overview_nodes import extract_node_panel_fields
+
                 currency = getattr(cost_item, "currency", "EUR") or "EUR" if cost_item else "EUR"
-                provider = cost_item.provider if cost_item else None
+                panel_meta = extract_node_panel_fields(n)
+                provider = (cost_item.provider if cost_item else None) or panel_meta.get("panel_provider_name")
                 notes = cost_item.notes if cost_item else None
                 cost_per_gb = round(cost_toman / traffic_gb, 0) if (cost_toman > 0 and traffic_gb > 0) else 0.0
 
@@ -123,6 +126,7 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
                     "days_until_due": days_left,
                     "cost_per_gb": cost_per_gb,
                     "notes": notes,
+                    **panel_meta,
                 })
 
             avg_cost_per_gb = round(total_infra_cost_toman / total_traffic_gb, 0) if total_traffic_gb > 0 else 0.0
@@ -145,8 +149,65 @@ async def get_admin_infra_billing(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": str(exc)}, status=500)
 
 
+async def _invalidate_node_caches(request: web.Request) -> None:
+    """Clear overview and Remnawave cluster caches after node mutations."""
+    cache = request.app.get("cache")
+    if not cache:
+        return
+    await cache.delete("tma:admin:overview")
+    from bot.services.panel_snapshot import SNAPSHOT_CLUSTER_KEY
+    await cache.delete(SNAPSHOT_CLUSTER_KEY)
+
+
+def _build_node_panel_payload(body: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
+    """Validate and map requested panel node fields to Remnawave UpdateNodeRequestDto keys."""
+    panel_payload: dict[str, Any] = {}
+    for body_key, dto_key in (
+        ("consumption_multiplier", "consumptionMultiplier"),
+        ("node_consumption_multiplier", "nodeConsumptionMultiplier"),
+    ):
+        if body_key in body and body[body_key] not in (None, ""):
+            try:
+                val = float(body[body_key])
+            except (TypeError, ValueError):
+                return {}, f"مقدار {dto_key} معتبر نیست."
+            if math.isnan(val) or math.isinf(val) or val < 0 or val > 100:
+                return {}, f"ضریب {dto_key} باید بین 0 تا 100 باشد."
+            panel_payload[dto_key] = round(val, 4)
+
+    if "is_traffic_tracking_active" in body and body["is_traffic_tracking_active"] is not None:
+        raw_track = body["is_traffic_tracking_active"]
+        if isinstance(raw_track, str):
+            panel_payload["isTrafficTrackingActive"] = raw_track.strip().lower() in ("1", "true", "yes", "on")
+        else:
+            panel_payload["isTrafficTrackingActive"] = bool(raw_track)
+
+    if "description" in body:
+        desc_val = str(body.get("description") or "").strip()
+        panel_payload["description"] = desc_val or None
+
+    if "provider_uuid" in body:
+        prov_val = str(body.get("provider_uuid") or "").strip()
+        panel_payload["providerUuid"] = prov_val or None
+
+    return panel_payload, None
+
+
+async def get_admin_infra_providers(request: web.Request) -> web.Response:
+    """Return configured hosting/infra providers from Remnawave panel."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    remnawave = request.app.get("remnawave")
+    providers: list[dict[str, Any]] = []
+    if remnawave and hasattr(remnawave, "get_infra_providers"):
+        providers = await remnawave.get_infra_providers()
+    return web.json_response({"ok": True, "providers": providers})
+
+
 async def post_admin_node_cost(request: web.Request) -> web.Response:
-    """Save or update infrastructure costs and renewal date for a server node."""
+    """Save or update infrastructure costs, renewal date, and optional panel settings for a node."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
@@ -161,6 +222,19 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
     node_uuid = str(body.get("node_uuid") or body.get("uuid") or "").strip()
     if not node_uuid:
         return web.json_response({"ok": False, "error": "شناسه نود الزامی است."}, status=400)
+
+    panel_payload, validation_err = _build_node_panel_payload(body)
+    if validation_err:
+        return web.json_response({"ok": False, "error": validation_err}, status=400)
+
+    remnawave = request.app.get("remnawave")
+    if panel_payload and remnawave and hasattr(remnawave, "update_node"):
+        ok_panel, panel_res = await remnawave.update_node(node_uuid, panel_payload)
+        if not ok_panel:
+            return web.json_response(
+                {"ok": False, "error": f"خطا در بروزرسانی تنظیمات پنل Remnawave: {panel_res}"},
+                status=502,
+            )
 
     node_id = body.get("node_id")
     if node_id is not None:
@@ -215,14 +289,12 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
             AdminLog(
                 admin_id=admin["id"],
                 action="update_node_cost",
-                detail=f"بروزرسانی هزینه‌های سرور {node_name or node_uuid}: {monthly_cost_toman:,} تومان, ارائه‌دهنده: {provider}",
+                detail=f"بروزرسانی تنظیمات و هزینه سرور {node_name or node_uuid}: {monthly_cost_toman:,} تومان، ارائه‌دهنده: {provider or '—'}",
             )
         )
         await session.commit()
 
-    cache = request.app.get("cache")
-    if cache:
-        await cache.delete("tma:admin:overview")
+    await _invalidate_node_caches(request)
 
     bot_obj = request.app.get("bot")
     sf_obj = request.app.get("session_factory")
@@ -236,15 +308,57 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
 
     return web.json_response({
         "ok": True,
-        "message": "اطلاعات مالی و سررسید سرور با موفقیت ثبت شد.",
+        "message": "اطلاعات سرور و تنظیمات پنل با موفقیت ثبت شد.",
         "data": {
             "node_uuid": item.node_uuid,
             "monthly_cost_toman": item.monthly_cost_toman,
             "monthly_cost_eur": item.monthly_cost_eur,
             "due_date": item.due_date.strftime("%Y-%m-%d") if item.due_date else None,
             "provider": item.provider,
+            **({"panel_updated": True} if panel_payload else {}),
         }
     })
+
+
+async def post_admin_node_restart(request: web.Request) -> web.Response:
+    """Restart a single Remnawave node on admin request."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    node_uuid = str(body.get("node_uuid") or body.get("uuid") or "").strip()
+    if not node_uuid:
+        return web.json_response({"ok": False, "error": "شناسه نود الزامی است."}, status=400)
+
+    node_name = str(body.get("node_name") or "").strip()
+    force_restart = bool(body.get("force_restart", False))
+    remnawave = request.app.get("remnawave")
+    if not remnawave or not hasattr(remnawave, "restart_node"):
+        return web.json_response({"ok": False, "error": "سرویس پنل در دسترس نیست."}, status=503)
+
+    ok_restart, message = await remnawave.restart_node(node_uuid, force_restart=force_restart)
+    if not ok_restart:
+        return web.json_response({"ok": False, "error": f"خطا در ریستارت سرور: {message}"}, status=502)
+
+    async with db_session(request) as session:
+        session.add(
+            AdminLog(
+                admin_id=admin["id"],
+                action="restart_node",
+                detail=f"ریستارت سرور {node_name or node_uuid} (force={force_restart})",
+            )
+        )
+        await session.commit()
+
+    await _invalidate_node_caches(request)
+    return web.json_response({"ok": True, "message": message})
 
 
 async def get_admin_ssl_health(request: web.Request) -> web.Response:

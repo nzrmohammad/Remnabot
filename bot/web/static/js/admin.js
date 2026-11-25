@@ -448,8 +448,21 @@
       const d = nodeBillingBtn.dataset;
       window.adminActions.openNodeBillingModal(
         d.uuid, d.name, d.provider, Number(d.costToman || 0), Number(d.costEur || 0),
-        d.due, d.notes, d.flag, d.currency
+        d.due, d.notes, d.flag, d.currency,
+        {
+          providerUuid: d.providerUuid || '',
+          description: d.description || '',
+          trackingActive: d.trackingActive || '',
+          userMultiplier: d.userMultiplier || '',
+          nodeMultiplier: d.nodeMultiplier || '',
+        }
       );
+      return;
+    }
+    const restartNodeBtn = e.target.closest('.btn-restart-node');
+    if (restartNodeBtn) {
+      e.stopPropagation();
+      window.adminActions.openRestartNodeModal(restartNodeBtn.dataset.uuid, restartNodeBtn.dataset.name);
       return;
     }
     const copyIpBtn = e.target.closest('.btn-copy-ip-direct');

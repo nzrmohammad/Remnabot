@@ -2301,11 +2301,11 @@ function openAlertPickerModal(type) {
     }
     const currentVal = parseInt($('settingTrafficPercentSelect')?.value || '80', 10);
     const options = [
-      { val: 70, label: '70% — هشدار زودهنگام', desc: 'ارسال هشدار هنگام مصرف 70٪ حجم بسته' },
+      { val: 70, label: '70% — هشدار زودهنگام', desc: 'ارسال هشدار هنگام مصرف 70% حجم بسته' },
       { val: 75, label: '75% — سه‌چهارم حجم', desc: 'ارسال هشدار هنگام مصرف سه‌چهارم ترافیک' },
       { val: 80, label: '80% — حد استاندارد (پیشنهادی ⭐)', desc: 'بهترین تعادل برای خرید یا تمدید به‌موقع' },
       { val: 85, label: '85% — مصرف بالا', desc: 'ارسال هشدار در آستانه اتمام حجم' },
-      { val: 90, label: '90% — نزدیک به پایان کامل', desc: 'هشدار فوری هنگام باقی‌ماندن 10٪ حجم' },
+      { val: 90, label: '90% — نزدیک به پایان کامل', desc: 'هشدار فوری هنگام باقی‌ماندن 10% حجم' },
       { val: 95, label: '95% — هشدار اضطراری', desc: 'آخرین فرصت پیش از قطع دسترسی اینترنت' },
     ];
     listEl.innerHTML = options.map(opt => `
@@ -2371,7 +2371,7 @@ async function selectAlertSetting(type, val) {
     try {
       const res = await window.api.saveSetting('traffic_percent', val);
       if (res && res.ok) {
-        showToast(`✅ درصد هشدار مصرف روی ${val}٪ تنظیم شد.`);
+        showToast(`✅ درصد هشدار مصرف روی ${val}% تنظیم شد.`);
         hapticFeedback('success');
       } else {
         showToast('❌ خطا در ذخیره تنظیمات');
@@ -4452,7 +4452,7 @@ function hydrateUserInterface(data) {
         try {
           const res = await window.api.saveSetting('traffic_percent', val);
           if (res && res.ok) {
-            showToast(`✅ درصد هشدار مصرف روی ${val}٪ تنظیم شد.`);
+            showToast(`✅ درصد هشدار مصرف روی ${val}% تنظیم شد.`);
             hapticFeedback('success');
           } else {
             showToast('❌ خطا در ذخیره تنظیمات');

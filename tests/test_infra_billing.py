@@ -377,4 +377,162 @@ def test_extract_github_downloads_per_platform():
     assert "url" not in dl_v2rayn["windows"]
 
 
+@pytest.mark.anyio
+async def test_remnawave_node_update_providers_and_restart():
+    """Verify RemnawaveClient provider fetch, node patch fallbacks, and node restart."""
+    from bot.services.remnawave import RemnawaveClient
+
+    client = RemnawaveClient("https://panel.example.com", "secret-token")
+
+    class FakeResp:
+        def __init__(self, status_code, body):
+            self.status_code = status_code
+            self._body = body
+
+        def json(self):
+            return self._body
+
+    # 1. Providers listing
+    client._client.get = AsyncMock(return_value=FakeResp(200, {
+        "response": {
+            "total": 1,
+            "providers": [{"uuid": "prov-1", "name": "Hetzner", "login": "ops"}],
+        }
+    }))
+    providers = await client.get_infra_providers()
+    assert providers == [{"uuid": "prov-1", "name": "Hetzner", "login": "ops", "icon_url": ""}]
+
+    # 2. update_node strips nodeConsumptionMultiplier when older panel rejects it
+    patch_calls = []
+
+    async def fake_patch(path, json=None):
+        patch_calls.append((path, dict(json or {})))
+        if len(patch_calls) == 1:
+            return FakeResp(400, {"message": ["property nodeConsumptionMultiplier should not exist"]})
+        return FakeResp(200, {"response": {"uuid": "node-1", "consumptionMultiplier": 1.5}})
+
+    client._client.patch = fake_patch
+    ok, res = await client.update_node(
+        "node-1",
+        {"consumptionMultiplier": 1.5, "nodeConsumptionMultiplier": 2.0, "isTrafficTrackingActive": True},
+    )
+    assert ok is True
+    assert len(patch_calls) == 2
+    assert "nodeConsumptionMultiplier" not in patch_calls[1][1]
+    assert patch_calls[1][1]["consumptionMultiplier"] == 1.5
+
+    # 3. restart_node sends forceRestart and falls back cleanly on old panel
+    post_calls = []
+
+    async def fake_post(path, json=None):
+        post_calls.append((path, dict(json or {})))
+        if len(post_calls) == 1:
+            return FakeResp(400, {"message": "property forceRestart should not exist"})
+        return FakeResp(200, {"response": {"eventSent": True}})
+
+    client._client.post = fake_post
+    ok_r, msg_r = await client.restart_node("node-1", force_restart=True)
+    assert ok_r is True
+    assert post_calls[0] == ("/api/nodes/node-1/actions/restart", {"forceRestart": True})
+    assert post_calls[1] == ("/api/nodes/node-1/actions/restart", {})
+
+
+@pytest.mark.anyio
+async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
+    """Verify node panel update forwarding, validation, restart endpoint, and UI guards."""
+    import json
+    from pathlib import Path
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.admin_infra_api import (
+        get_admin_infra_providers,
+        post_admin_node_cost,
+        post_admin_node_restart,
+    )
+    from bot.web.cache import FastCache
+    from bot.web.server import create_web_app
+
+    settings = MagicMock()
+    settings.BOT_TOKEN = "123:abc"
+    settings.ADMIN_IDS = [12345]
+    app = create_web_app(
+        bot=MagicMock(),
+        session_factory=session_factory,
+        remnawave=MagicMock(),
+        settings=settings,
+        cache=FastCache(),
+    )
+    paths = {r.resource.canonical for r in app.router.routes() if r.resource}
+    assert "/api/admin/infra/providers" in paths
+    assert "/api/admin/infra/node/restart" in paths
+
+    remna = MagicMock()
+    remna.get_infra_providers = AsyncMock(return_value=[{"uuid": "p-1", "name": "OVH"}])
+    remna.update_node = AsyncMock(return_value=(True, {"uuid": "n-1"}))
+    remna.restart_node = AsyncMock(return_value=(True, "دستور ریستارت ارسال شد"))
+
+    cache = FastCache()
+    app_state = {"session_factory": session_factory, "cache": cache, "remnawave": remna}
+
+    with patch("bot.web.admin_infra_api._check_admin", return_value={"id": 1, "is_admin": True}):
+        # Providers endpoint
+        prov_req = make_mocked_request("GET", "/api/admin/infra/providers", app=app_state)
+        prov_resp = await get_admin_infra_providers(prov_req)
+        assert prov_resp.status == 200
+        assert json.loads(prov_resp.text)["providers"] == [{"uuid": "p-1", "name": "OVH"}]
+
+        # Reject invalid multiplier
+        bad_req = make_mocked_request("POST", "/api/admin/infra/node-cost", app=app_state)
+        bad_req.json = AsyncMock(return_value={"node_uuid": "n-1", "consumption_multiplier": -2})
+        bad_resp = await post_admin_node_cost(bad_req)
+        assert bad_resp.status == 400
+        remna.update_node.assert_not_awaited()
+
+        # Forward valid panel fields + persist local cost
+        ok_req = make_mocked_request("POST", "/api/admin/infra/node-cost", app=app_state)
+        ok_req.json = AsyncMock(return_value={
+            "node_uuid": "n-1",
+            "node_name": "Germany-01",
+            "provider": "OVH",
+            "provider_uuid": "p-1",
+            "monthly_cost_toman": 1500000,
+            "consumption_multiplier": 1.25,
+            "node_consumption_multiplier": 1.5,
+            "is_traffic_tracking_active": True,
+            "description": "Main EU Edge",
+        })
+        ok_resp = await post_admin_node_cost(ok_req)
+        assert ok_resp.status == 200
+        remna.update_node.assert_awaited_once_with(
+            "n-1",
+            {
+                "consumptionMultiplier": 1.25,
+                "nodeConsumptionMultiplier": 1.5,
+                "isTrafficTrackingActive": True,
+                "description": "Main EU Edge",
+                "providerUuid": "p-1",
+            },
+        )
+
+        # Restart endpoint
+        rst_req = make_mocked_request("POST", "/api/admin/infra/node/restart", app=app_state)
+        rst_req.json = AsyncMock(return_value={"node_uuid": "n-1", "node_name": "Germany-01", "force_restart": True})
+        rst_resp = await post_admin_node_restart(rst_req)
+        assert rst_resp.status == 200
+        remna.restart_node.assert_awaited_once_with("n-1", force_restart=True)
+
+    # UI assertions for pulsing icon-only due badge, English %, word-spacing, and Stars title fix
+    base_css = Path("bot/web/static/css/base.css").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
+    finance_js = Path("bot/web/static/js/admin_finance.js").read_text(encoding="utf-8")
+
+    assert "word-spacing: 0.14em" in base_css
+    assert "پورسانت نقدی دعوت (%)" in admin_html
+    assert "پورسانت نقدی دعوت (٪)" not in admin_html
+    assert "animate-ping" in nodes_js and "سررسید!" not in nodes_js
+    assert "titleEl.querySelector('span')" in finance_js
+
+
 

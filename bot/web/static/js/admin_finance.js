@@ -491,7 +491,15 @@ openCryptoRatesModal() {
       const fragment = Math.round(p * 0.015);
 
       const titleEl = $('modalStarsBenchmarkTitle');
-      if (titleEl) titleEl.textContent = `⭐️ نرخ پیشنهادی استارز تلگرام (بر اساس دلار ${formatNumber(p)} ت):`;
+      if (titleEl) {
+        const titleSpan = titleEl.querySelector('span');
+        const label = `نرخ پیشنهادی استارز تلگرام (بر اساس دلار ${formatNumber(p)} ت):`;
+        if (titleSpan) {
+          titleSpan.textContent = label;
+        } else {
+          titleEl.textContent = label;
+        }
+      }
 
       const losslessPriceEl = $('modalStarsLosslessPrice');
       if (losslessPriceEl) losslessPriceEl.innerHTML = `${formatNumber(lossless)} <span class="text-[11px] text-slate-400 font-sans">تومان</span>`;

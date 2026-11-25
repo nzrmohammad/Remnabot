@@ -575,8 +575,16 @@ const api = {
     return this.get('/api/admin/infra/billing');
   },
 
+  async getInfraProviders() {
+    return this.get('/api/admin/infra/providers');
+  },
+
   async saveNodeCost(data) {
     return this.post('/api/admin/infra/node-cost', data);
+  },
+
+  async restartNode(node_uuid, force_restart = false) {
+    return this.post('/api/admin/infra/node/restart', { node_uuid, force_restart: Boolean(force_restart) });
   },
 
   async getSslHealth() {

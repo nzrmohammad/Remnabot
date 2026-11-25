@@ -120,7 +120,7 @@ async def _do_user_spin(
                     if chosen.get("type") == "coupon":
                         msg_text = (
                             f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n\n"
-                            f"🎟 <b>کد تخفیف 10٪ اختصاصی شما:</b> <code>{chosen.get('code')}</code>\n\n"
+                            f"🎟 <b>کد تخفیف 10% اختصاصی شما:</b> <code>{chosen.get('code')}</code>\n\n"
                             f"🗓 <b>مهلت استفاده:</b> 7 روز\n"
                             f"💡 این کد اختصاصی شماست و برای خرید از فروشگاه قابل استفاده است."
                         )

@@ -34,6 +34,15 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
   font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
 }
 
+/* Ensure clear word separation for small Vazirmatn Persian copy without bloating LTR numbers */
+body, [dir="rtl"] {
+  word-spacing: 0.14em;
+}
+
+[dir="ltr"], .num-bidi, .font-en {
+  word-spacing: normal;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;

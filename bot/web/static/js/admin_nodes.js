@@ -312,9 +312,9 @@
             <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
             <div class="flex items-center gap-2 flex-shrink-0">
               ${(n.days_until_due !== null && n.days_until_due <= 3) ? `
-                <span class="badge badge-warn flex items-center gap-1">
-                  ${uiIcon('clock', 'w-3 h-3 text-amber-500')}
-                  <span>${n.days_until_due <= 0 ? 'سررسید!' : n.days_until_due + ' روز'}</span>
+                <span class="relative inline-flex items-center justify-center w-6 h-6 rounded-full ${n.days_until_due <= 0 ? 'bg-rose-500/15 border border-rose-500/40 text-rose-400' : 'bg-amber-500/15 border border-amber-500/40 text-amber-400'}" title="${n.days_until_due <= 0 ? 'سررسید پرداخت!' : 'سررسید تا ' + n.days_until_due + ' روز آینده'}" aria-label="هشدار سررسید">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${n.days_until_due <= 0 ? 'bg-rose-400' : 'bg-amber-400'} opacity-45"></span>
+                  ${uiIcon('clock', 'relative w-3.5 h-3.5')}
                 </span>
               ` : ''}
               ${isOnline && (dlSpeed > 0 || ulSpeed > 0) ? `
@@ -474,6 +474,28 @@
                 </div>
               </div>
 
+              <!-- Panel Config & Multipliers Summary -->
+              ${(n.consumption_multiplier != null || n.node_consumption_multiplier != null || n.is_traffic_tracking_active != null || n.description) ? `
+                <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
+                  <div class="flex flex-wrap items-center justify-between gap-1.5">
+                    <span class="t-muted flex items-center gap-1" dir="ltr">User / Node Multiplier:</span>
+                    <div class="flex items-center gap-1.5 font-sans num-bidi font-bold" dir="ltr">
+                      <span class="badge badge-info text-[10px]">${n.consumption_multiplier ?? 1}x User</span>
+                      <span class="badge badge-purple text-[10px]">${n.node_consumption_multiplier ?? 1}x Node</span>
+                      ${n.is_traffic_tracking_active === true
+                        ? '<span class="badge badge-success text-[10px]">Track Traffic: ON</span>'
+                        : (n.is_traffic_tracking_active === false ? '<span class="badge badge-neutral text-[10px]">Track Traffic: OFF</span>' : '')}
+                    </div>
+                  </div>
+                  ${n.description ? `
+                    <div class="flex items-center justify-between gap-2 min-w-0">
+                      <span class="t-muted shrink-0">توضیحات پنل:</span>
+                      <span class="t-main truncate text-left">${escapeHtml(n.description)}</span>
+                    </div>
+                  ` : ''}
+                </div>
+              ` : ''}
+
               <!-- Node Profit / Loss & Estimated Revenue Strip -->
               <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
                 <div class="flex items-center justify-between gap-2">
@@ -499,20 +521,32 @@
                 </div>
               </div>
 
-              <!-- Button to configure node billing -->
-              <div class="pt-1">
-                <button type="button" class="btn-node-billing w-full bg-transparent hover:bg-cyan-500/10 t-accent py-1.5 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm"
+              <!-- Buttons to configure node & restart -->
+              <div class="pt-1 flex items-center gap-1.5">
+                <button type="button" class="btn-node-billing flex-1 bg-transparent hover:bg-cyan-500/10 t-accent py-1.5 px-2 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
                   data-provider="${escapeHtml(n.provider || '')}"
+                  data-provider-uuid="${escapeHtml(n.provider_uuid || '')}"
+                  data-description="${escapeHtml(n.description || '')}"
+                  data-tracking-active="${n.is_traffic_tracking_active === true ? '1' : (n.is_traffic_tracking_active === false ? '0' : '')}"
+                  data-user-multiplier="${n.consumption_multiplier != null ? Number(n.consumption_multiplier) : ''}"
+                  data-node-multiplier="${n.node_consumption_multiplier != null ? Number(n.node_consumption_multiplier) : ''}"
                   data-cost-toman="${Number(n.monthly_cost_toman || 0)}"
                   data-cost-eur="${Number(n.monthly_cost_eur || 0)}"
                   data-due="${escapeHtml(n.due_date || '')}"
                   data-notes="${escapeHtml(n.notes || '')}"
                   data-flag="${escapeHtml(flag || '')}"
                   data-currency="${escapeHtml(n.currency || 'EUR')}">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  <span>مدیریت هزینه و تمدید سرور</span>
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  <span class="truncate">تنظیمات و هزینه سرور</span>
+                </button>
+                <button type="button" class="btn-restart-node bg-transparent hover:bg-amber-500/10 t-warn py-1.5 px-2.5 rounded-xl border border-amber-500/35 transition flex items-center justify-center gap-1 font-bold active:scale-95 shadow-sm shrink-0"
+                  data-uuid="${escapeHtml(n.uuid || n.id || '')}"
+                  data-name="${escapeHtml(n.name || '')}"
+                  title="ریستارت سرور">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span>ریستارت</span>
                 </button>
               </div>
             </div>
@@ -647,8 +681,136 @@ openEditSslDomainModal(domain) {
       this.openDeleteSslDomainModal(domain);
     },
 
-// --- Node Infra-Billing & Cost Actions ---
-    openNodeBillingModal(nodeUuid, nodeName, provider = '', costToman = 0, costEur = 0, dueDate = '', notes = '', flag = '', currency = 'EUR') {
+// --- Node Infra-Billing & Panel Config Actions ---
+    async loadInfraProviders(selectedUuid = '', fallbackName = '') {
+      const selectEl = $('nodeBillingProviderSelect');
+      const customWrap = $('nodeBillingProviderCustomWrap');
+      const customInput = $('nodeBillingProvider');
+      if (!selectEl) return;
+
+      const applyOptions = (providers) => {
+        const list = Array.isArray(providers) ? providers : [];
+        let html = '<option value="">بدون ارائه‌دهنده</option>';
+        for (const p of list) {
+          html += `<option value="${escapeHtml(p.uuid)}">${escapeHtml(p.name)}</option>`;
+        }
+        html += '<option value="__custom__">سایر / وارد کردن دستی...</option>';
+        selectEl.innerHTML = html;
+
+        const cleanUuid = String(selectedUuid || '').trim();
+        const cleanName = String(fallbackName || '').trim();
+        const matchByUuid = cleanUuid ? list.find(p => String(p.uuid) === cleanUuid) : null;
+        const matchByName = !matchByUuid && cleanName
+          ? list.find(p => String(p.name || '').trim().toLowerCase() === cleanName.toLowerCase())
+          : null;
+
+        if (matchByUuid) {
+          selectEl.value = matchByUuid.uuid;
+          if (customWrap) customWrap.classList.add('hidden');
+          if (customInput) customInput.value = matchByUuid.name;
+        } else if (matchByName) {
+          selectEl.value = matchByName.uuid;
+          if (customWrap) customWrap.classList.add('hidden');
+          if (customInput) customInput.value = matchByName.name;
+        } else if (cleanName) {
+          selectEl.value = '__custom__';
+          if (customWrap) customWrap.classList.remove('hidden');
+          if (customInput) customInput.value = cleanName;
+        } else {
+          selectEl.value = '';
+          if (customWrap) customWrap.classList.add('hidden');
+          if (customInput) customInput.value = '';
+        }
+      };
+
+      if (Array.isArray(this._cachedInfraProviders)) {
+        applyOptions(this._cachedInfraProviders);
+        return;
+      }
+
+      applyOptions([]);
+      try {
+        const res = await window.api?.getInfraProviders?.();
+        if (res && res.ok && Array.isArray(res.providers)) {
+          this._cachedInfraProviders = res.providers;
+          applyOptions(res.providers);
+        }
+      } catch (err) {
+        console.warn('Could not load panel infra providers:', err);
+      }
+    },
+
+    onNodeProviderSelectChange() {
+      const selectEl = $('nodeBillingProviderSelect');
+      const customWrap = $('nodeBillingProviderCustomWrap');
+      const customInput = $('nodeBillingProvider');
+      if (!selectEl) return;
+      if (selectEl.value === '__custom__') {
+        if (customWrap) customWrap.classList.remove('hidden');
+        if (customInput) customInput.focus();
+      } else if (selectEl.value) {
+        if (customWrap) customWrap.classList.add('hidden');
+        const label = selectEl.options[selectEl.selectedIndex]?.text || '';
+        if (customInput) customInput.value = label;
+      } else {
+        if (customWrap) customWrap.classList.add('hidden');
+        if (customInput) customInput.value = '';
+      }
+    },
+
+    openRestartNodeModal(nodeUuid, nodeName = '') {
+      const modal = $('restartNodeConfirmModal');
+      if (!modal || !nodeUuid) return;
+      if ($('restartNodeTargetUuid')) $('restartNodeTargetUuid').value = nodeUuid;
+      if ($('restartNodeTargetName')) $('restartNodeTargetName').innerText = nodeName || nodeUuid;
+      if ($('restartNodeForceToggle')) $('restartNodeForceToggle').checked = false;
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('warning');
+    },
+
+    openRestartNodeFromModal() {
+      const uuid = $('nodeBillingUuid')?.value?.trim();
+      const name = $('nodeBillingName')?.value?.trim();
+      if (!uuid) return;
+      this.openRestartNodeModal(uuid, name);
+    },
+
+    closeRestartNodeModal() {
+      const modal = $('restartNodeConfirmModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    async executeRestartNode() {
+      const nodeUuid = $('restartNodeTargetUuid')?.value?.trim();
+      const forceRestart = Boolean($('restartNodeForceToggle')?.checked);
+      const btn = $('confirmRestartNodeBtn');
+      if (!nodeUuid) return;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'در حال ریستارت...';
+      }
+      try {
+        const res = await window.api?.restartNode?.(nodeUuid, forceRestart);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ ${res.message || 'سرور با موفقیت ریستارت شد'}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeRestartNodeModal();
+          if (window.syncAdminOverview) window.syncAdminOverview(true);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ریستارت سرور'}`);
+          if (window.hapticFeedback) window.hapticFeedback('error');
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast('خطای ارتباط در ارسال دستور ریستارت');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'ریستارت فوری';
+        }
+      }
+    },
+
+    openNodeBillingModal(nodeUuid, nodeName, provider = '', costToman = 0, costEur = 0, dueDate = '', notes = '', flag = '', currency = 'EUR', panelMeta = {}) {
       const modal = $('nodeBillingModal');
       if (!modal) return;
       $('nodeBillingUuid').value = nodeUuid || '';
@@ -665,6 +827,28 @@ openEditSslDomainModal(domain) {
       $('nodeBillingCostEur').value = costEur || '';
       $('nodeBillingDueDate').value = dueDate ? dueDate.slice(0, 10) : '';
       $('nodeBillingNotes').value = notes || '';
+
+      const meta = panelMeta || {};
+      const userMult = meta.userMultiplier !== undefined && meta.userMultiplier !== '' ? String(meta.userMultiplier) : '';
+      const nodeMult = meta.nodeMultiplier !== undefined && meta.nodeMultiplier !== '' ? String(meta.nodeMultiplier) : '';
+      const descVal = meta.description || '';
+      const trackingStr = String(meta.trackingActive ?? '');
+      const trackingBool = trackingStr === '1' || trackingStr === 'true';
+      const providerUuid = meta.providerUuid || '';
+
+      if ($('nodeBillingUserMultiplier')) $('nodeBillingUserMultiplier').value = userMult;
+      if ($('nodeBillingNodeMultiplier')) $('nodeBillingNodeMultiplier').value = nodeMult;
+      if ($('nodeBillingPanelDescription')) $('nodeBillingPanelDescription').value = descVal;
+      if ($('nodeBillingTrafficTracking')) $('nodeBillingTrafficTracking').checked = trackingBool;
+
+      this._nodePanelSnapshot = {
+        userMultiplier: userMult,
+        nodeMultiplier: nodeMult,
+        description: descVal,
+        trackingActive: trackingStr === '' ? null : trackingBool,
+        providerUuid,
+      };
+      this.loadInfraProviders(providerUuid, provider);
 
       const jalaliPreview = $('nodeBillingJalaliPreview');
       if (jalaliPreview) {
@@ -820,7 +1004,12 @@ openEditSslDomainModal(domain) {
     async saveNodeBilling() {
       const node_uuid = $('nodeBillingUuid')?.value?.trim();
       const node_name = $('nodeBillingName')?.value?.trim();
-      const provider = $('nodeBillingProvider')?.value?.trim();
+      const selectEl = $('nodeBillingProviderSelect');
+      const selectedProvVal = selectEl?.value ?? '';
+      let provider = $('nodeBillingProvider')?.value?.trim() || '';
+      if (selectedProvVal && selectedProvVal !== '__custom__') {
+        provider = selectEl.options[selectEl.selectedIndex]?.text?.trim() || provider;
+      }
       const monthly_cost_toman = parseInt($('nodeBillingCostToman')?.value || '0', 10);
       const monthly_cost_eur = parseFloat($('nodeBillingCostEur')?.value || '0');
       const currency = ($('nodeBillingCurrency')?.value || 'EUR').toUpperCase();
@@ -849,14 +1038,40 @@ openEditSslDomainModal(domain) {
           due_date,
           notes,
         };
+
+        const snap = this._nodePanelSnapshot || {};
+        const userMultStr = $('nodeBillingUserMultiplier')?.value?.trim() ?? '';
+        const nodeMultStr = $('nodeBillingNodeMultiplier')?.value?.trim() ?? '';
+        const descVal = $('nodeBillingPanelDescription')?.value?.trim() ?? '';
+        const trackingChecked = Boolean($('nodeBillingTrafficTracking')?.checked);
+        const providerUuidVal = selectedProvVal === '__custom__' ? null : (selectedProvVal || null);
+
+        if (userMultStr !== String(snap.userMultiplier ?? '') && userMultStr !== '') {
+          payload.consumption_multiplier = parseFloat(userMultStr);
+        }
+        if (nodeMultStr !== String(snap.nodeMultiplier ?? '') && nodeMultStr !== '') {
+          payload.node_consumption_multiplier = parseFloat(nodeMultStr);
+        }
+        if (descVal !== String(snap.description ?? '')) {
+          payload.description = descVal;
+        }
+        if (snap.trackingActive !== null && trackingChecked !== snap.trackingActive) {
+          payload.is_traffic_tracking_active = trackingChecked;
+        } else if (snap.trackingActive === null && trackingChecked) {
+          payload.is_traffic_tracking_active = true;
+        }
+        if (selectedProvVal !== '__custom__' && (providerUuidVal || '') !== String(snap.providerUuid || '')) {
+          payload.provider_uuid = providerUuidVal;
+        }
+
         const res = await window.api.saveNodeCost(payload);
         if (res && res.ok) {
-          if (window.showToast) window.showToast('✅ اطلاعات مالی و تمدید سرور با موفقیت ثبت شد');
+          if (window.showToast) window.showToast('✅ اطلاعات سرور و تنظیمات با موفقیت ثبت شد');
           if (window.hapticFeedback) window.hapticFeedback('success');
           this.closeNodeBillingModal();
           if (window.syncAdminOverview) window.syncAdminOverview(true);
         } else {
-          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ذخیره هزینه‌های سرور'}`);
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ذخیره تنظیمات سرور'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');
         }
       } catch (err) {
@@ -1332,15 +1547,13 @@ openEditSslDomainModal(domain) {
     if (chev) {
       chev.classList.toggle('rotate-180', willOpen);
     }
-    if (forceOpen === null && window.hapticFeedback) window.hapticFeedback('selection');
+    if (forceOpen === null) {
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+      if (willOpen) fetchAdminSystemHealth(true);
+    }
   };
 
   async function fetchAdminSystemHealth(forceRefresh = false) {
-    const icon = $('refreshSystemHealthIcon');
-    if (forceRefresh) {
-      window.toggleSystemHealthAccordion(true);
-      if (icon) icon.classList.add('animate-spin');
-    }
     try {
       const res = await window.api?.getSystemHealth?.(forceRefresh);
       if (res && res.ok && res.health) {
@@ -1349,8 +1562,6 @@ openEditSslDomainModal(domain) {
       }
     } catch (err) {
       console.error('System health fetch error:', err);
-    } finally {
-      if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 400);
     }
     return false;
   }

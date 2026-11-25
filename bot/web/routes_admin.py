@@ -28,12 +28,14 @@ from bot.web.admin_health_api import (
 from bot.web.admin_infra_api import (
     get_admin_github_releases,
     get_admin_infra_billing,
+    get_admin_infra_providers,
     get_admin_ssl_health,
     get_admin_tools_asn_prefixes,
     get_admin_tools_check_host,
     post_admin_add_ssl_domain,
     post_admin_delete_ssl_domain,
     post_admin_node_cost,
+    post_admin_node_restart,
     post_admin_ssl_check,
 )
 from bot.web.admin_overview import get_admin_overview
@@ -135,9 +137,11 @@ __all__ = [
     "get_admin_crypto_rates",
     "post_admin_upload_store_logo",
     "get_admin_infra_billing",
+    "get_admin_infra_providers",
     "get_admin_system_health",
     "post_admin_reconcile_run",
     "post_admin_node_cost",
+    "post_admin_node_restart",
     "get_admin_ssl_health",
     "post_admin_ssl_check",
     "post_admin_add_ssl_domain",

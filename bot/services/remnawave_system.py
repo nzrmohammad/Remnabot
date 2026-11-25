@@ -282,3 +282,129 @@ class RemnawaveSystemMixin:
                 logger.warning("Failed to fetch system recap from %s: %s", path, exc)
                 continue
         return None
+
+    async def get_infra_providers(self) -> list[dict[str, Any]]:
+        """Fetch configured infrastructure billing providers from the Remnawave panel."""
+        for path in ("/api/infra-billing/providers", "/api/infra/providers"):
+            try:
+                resp = await self._client.get(path)
+                if resp.status_code != 200:
+                    continue
+                body = resp.json()
+                inner = body.get("response") if isinstance(body, dict) else body
+                if isinstance(inner, dict):
+                    items = inner.get("providers") or inner.get("items") or []
+                elif isinstance(inner, list):
+                    items = inner
+                else:
+                    items = body.get("providers") or [] if isinstance(body, dict) else []
+                providers = []
+                for p in items:
+                    if not isinstance(p, dict):
+                        continue
+                    p_uuid = str(p.get("uuid") or p.get("id") or "").strip()
+                    p_name = str(p.get("name") or "").strip()
+                    if p_uuid and p_name:
+                        providers.append({
+                            "uuid": p_uuid,
+                            "name": p_name,
+                            "login": p.get("login") or "",
+                            "icon_url": p.get("iconUrl") or "",
+                        })
+                return providers
+            except Exception as exc:
+                logger.warning("Failed to fetch infra providers from %s: %s", path, exc)
+                continue
+        return []
+
+    @staticmethod
+    def _extract_panel_error(resp: Any) -> str:
+        """Extract readable error detail from a Remnawave HTTP response."""
+        try:
+            data = resp.json()
+            if isinstance(data, dict):
+                msg = data.get("message") or data.get("error") or ""
+                if isinstance(msg, list):
+                    return ", ".join(str(x) for x in msg)
+                if msg:
+                    return str(msg)
+        except Exception:
+            pass
+        return f"HTTP {getattr(resp, 'status_code', '?')}"
+
+    async def update_node(
+        self, node_uuid: str, fields: dict[str, Any]
+    ) -> tuple[bool, dict[str, Any] | str]:
+        """Update Remnawave node settings (multipliers, tracking, description, providerUuid)."""
+        node_uuid = str(node_uuid or "").strip()
+        if not node_uuid:
+            return False, "شناسه نود معتبر نیست."
+
+        payload: dict[str, Any] = {"uuid": node_uuid}
+        payload.update(fields)
+
+        async def _patch(body: dict[str, Any]):
+            return await self._client.patch("/api/nodes", json=body)
+
+        try:
+            resp = await _patch(payload)
+            if resp.status_code in (200, 201):
+                data = resp.json()
+                node_obj = data.get("response") if isinstance(data, dict) else {}
+                return True, node_obj if isinstance(node_obj, dict) else {}
+
+            err_text = self._extract_panel_error(resp)
+            # Older Remnawave panels (< v2.8.1) reject unknown nodeConsumptionMultiplier
+            if resp.status_code in (400, 422) and "nodeConsumptionMultiplier" in payload and "nodeConsumptionMultiplier" in err_text:
+                retry_payload = {k: v for k, v in payload.items() if k != "nodeConsumptionMultiplier"}
+                resp = await _patch(retry_payload)
+                if resp.status_code in (200, 201):
+                    data = resp.json()
+                    node_obj = data.get("response") if isinstance(data, dict) else {}
+                    return True, node_obj if isinstance(node_obj, dict) else {}
+                err_text = self._extract_panel_error(resp)
+                payload = retry_payload
+
+            # Some panel schemas require name/address/port alongside updated fields
+            if resp.status_code in (400, 422) and any(k in err_text for k in ("name", "address", "port")):
+                nodes = await self.get_nodes() or []
+                current = next(
+                    (n for n in nodes if str(n.get("uuid") or n.get("id") or "") == node_uuid),
+                    None,
+                )
+                if isinstance(current, dict):
+                    merged = dict(payload)
+                    for req_key in ("name", "address", "port"):
+                        if req_key not in merged and current.get(req_key) is not None:
+                            merged[req_key] = current.get(req_key)
+                    resp = await _patch(merged)
+                    if resp.status_code in (200, 201):
+                        data = resp.json()
+                        node_obj = data.get("response") if isinstance(data, dict) else {}
+                        return True, node_obj if isinstance(node_obj, dict) else {}
+                    err_text = self._extract_panel_error(resp)
+
+            return False, err_text
+        except httpx.HTTPError as exc:
+            logger.error("Remnawave update_node error (uuid=%s): %s", node_uuid, exc)
+            return False, str(exc)
+
+    async def restart_node(
+        self, node_uuid: str, *, force_restart: bool = False
+    ) -> tuple[bool, str]:
+        """Restart a single Remnawave node via panel REST API."""
+        node_uuid = str(node_uuid or "").strip()
+        if not node_uuid:
+            return False, "شناسه نود معتبر نیست."
+
+        url = f"/api/nodes/{node_uuid}/actions/restart"
+        try:
+            resp = await self._client.post(url, json={"forceRestart": bool(force_restart)})
+            if resp.status_code == 400 and "forceRestart" in self._extract_panel_error(resp):
+                resp = await self._client.post(url, json={})
+            if resp.status_code in (200, 201, 202, 204):
+                return True, "دستور ریستارت سرور با موفقیت به پنل ارسال شد."
+            return False, self._extract_panel_error(resp)
+        except httpx.HTTPError as exc:
+            logger.error("Remnawave restart_node error (uuid=%s): %s", node_uuid, exc)
+            return False, str(exc)

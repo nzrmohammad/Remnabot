@@ -220,6 +220,36 @@ def _extract_node_costs(
     }
 
 
+def extract_node_panel_fields(n: dict) -> dict[str, Any]:
+    """Extract panel-managed node configuration fields consistently across API endpoints."""
+    raw_provider = n.get("provider") if isinstance(n.get("provider"), dict) else {}
+    provider_uuid = str(n.get("providerUuid") or raw_provider.get("uuid") or "").strip() or None
+    panel_provider_name = str(raw_provider.get("name") or "").strip() or None
+
+    desc_raw = n.get("description")
+    description = str(desc_raw).strip() if desc_raw is not None else ""
+
+    raw_track = n.get("isTrafficTrackingActive")
+    is_traffic_tracking_active = bool(raw_track) if raw_track is not None else None
+
+    def _parse_mult(val: Any) -> float | None:
+        if val is None or val == "":
+            return None
+        try:
+            return round(float(val), 4)
+        except (TypeError, ValueError):
+            return None
+
+    return {
+        "provider_uuid": provider_uuid,
+        "panel_provider_name": panel_provider_name,
+        "description": description,
+        "is_traffic_tracking_active": is_traffic_tracking_active,
+        "consumption_multiplier": _parse_mult(n.get("consumptionMultiplier")),
+        "node_consumption_multiplier": _parse_mult(n.get("nodeConsumptionMultiplier")),
+    }
+
+
 def extract_node_item(
     n: dict,
     i: int,
@@ -256,6 +286,9 @@ def extract_node_item(
     n_id_str = str(n.get("id") or "")
     cost_entry = costs_by_uuid.get(n_uuid) or costs_by_id.get(n_id_str)
     cost_data = _extract_node_costs(cost_entry, now_utc, traffic_used_gb, avg_revenue_per_gb)
+    panel_meta = extract_node_panel_fields(n)
+    if not cost_data.get("provider") and panel_meta.get("panel_provider_name"):
+        cost_data["provider"] = panel_meta["panel_provider_name"]
 
     return {
         "id": n.get("id"),
@@ -273,6 +306,7 @@ def extract_node_item(
         "address": addr_str,
         "traffic_used_gb": traffic_used_gb,
         **cost_data,
+        **panel_meta,
     }
 
 

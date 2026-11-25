@@ -321,6 +321,8 @@ def test_admin_health_sub_and_redesigned_modals():
     health_block = admin_html[health_start:health_end]
     assert "<span>سلامت سیستم</span>" in health_block
     assert "آشتی حسابداری (Reconcile)" not in health_block
+    assert 'id="runAdminReconcileBtn"' not in health_block
+    assert 'id="refreshSystemHealthBtn"' not in health_block
     assert 'id="toggleSystemHealthBtn"' in health_block
     assert 'id="systemHealthChevron"' in health_block
     assert 'id="adminSystemHealthBody" class="hidden' in health_block
@@ -334,7 +336,7 @@ def test_admin_health_sub_and_redesigned_modals():
     assert "absolute right-2 top-1/2 -translate-y-1/2" in sub_block
     assert "$('subModalTitleText') || $('subModalTitle')" in users_js
 
-    # Plan modal & Node billing modal redesign + theme-safe toggles
+    # Plan modal & Node billing modal redesign + theme-safe toggles + Remnawave node controls
     plan_block = admin_html[admin_html.find('id="planModal"'):admin_html.find('id="couponModal"')]
     assert 'max-w-[400px]' in plan_block
     assert 'class="sr-only switch-checkbox" id="planModalActive" checked' in plan_block
@@ -343,6 +345,13 @@ def test_admin_health_sub_and_redesigned_modals():
 
     billing_block = admin_html[admin_html.find('id="nodeBillingModal"'):admin_html.find('id="campaignDetailModal"')]
     assert 'w-[124px]' in billing_block
-    assert 'grid-cols-2 gap-2.5' in billing_block
+    assert 'grid-cols-1 sm:grid-cols-2 gap-2.5' in billing_block
+    assert 'min-w-0' in billing_block
+    assert 'id="nodeBillingUserMultiplier"' in billing_block
+    assert 'id="nodeBillingNodeMultiplier"' in billing_block
+    assert 'id="nodeBillingTrafficTracking"' in billing_block
+    assert 'id="nodeBillingProviderSelect"' in billing_block
+    assert 'id="nodeBillingPanelDescription"' in billing_block
+    assert 'id="restartNodeConfirmModal"' in billing_block
     assert "t-muted hover:t-main" in nodes_js
 
