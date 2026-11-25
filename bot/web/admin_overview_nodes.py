@@ -304,8 +304,9 @@ async def calc_cluster_kpis(
     session,
     remnawave,
     now_utc: datetime,
+    panel_snapshot: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], list[dict], list[dict], dict, dict]:
-    """Calculate core bot KPIs, cluster metrics, and node cost maps."""
+    """Calculate core bot KPIs, cluster metrics, and node cost maps (reusing snapshot when supplied)."""
     user_count_res = await session.execute(select(func.count(User.id)))
     total_bot_users = int(user_count_res.scalar_one() or 0)
 
@@ -323,7 +324,10 @@ async def calc_cluster_kpis(
     )
     pending_topups = int(topup_res.scalar_one() or 0)
 
-    panel_users = await remnawave.get_all_panel_users(size=1000) or []
+    if isinstance(panel_snapshot, dict) and isinstance(panel_snapshot.get("panel_users"), list):
+        panel_users = panel_snapshot["panel_users"]
+    else:
+        panel_users = await remnawave.get_all_panel_users(size=1000) or []
     active_panel_users = sum(1 for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
     active_traffic_bytes = sum(get_used_bytes(u) for u in panel_users if str(u.get("status", "")).upper() == "ACTIVE")
     total_traffic_bytes = active_traffic_bytes if active_traffic_bytes > 0 else sum(get_used_bytes(u) for u in panel_users)
@@ -367,7 +371,10 @@ async def calc_cluster_kpis(
         "profit_margin_percent": profit_margin_percent,
         "avg_cost_per_gb": avg_cost_per_gb,
     }
-    nodes = await remnawave.get_nodes() or []
+    if isinstance(panel_snapshot, dict) and isinstance(panel_snapshot.get("nodes"), list):
+        nodes = panel_snapshot["nodes"]
+    else:
+        nodes = await remnawave.get_nodes() or []
     return kpis, panel_users, nodes, costs_by_uuid, costs_by_id
 
 

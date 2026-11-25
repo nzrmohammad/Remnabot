@@ -22,7 +22,10 @@ logger = logging.getLogger(__name__)
 _ONLINE_CACHE: tuple[set[int], set[str], float] = (set(), set(), 0.0)
 
 
-async def _extract_online_data(remnawave: Any) -> tuple[set[int], set[str]]:
+async def _extract_online_data(
+    remnawave: Any,
+    panel_users: list[dict[str, Any]] | None = None,
+) -> tuple[set[int], set[str]]:
     """Collect telegram IDs and panel user IDs/UUIDs of active/connected users with 10s cache."""
     global _ONLINE_CACHE
     import time
@@ -98,8 +101,8 @@ async def _extract_online_data(remnawave: Any) -> tuple[set[int], set[str]]:
             except Exception:
                 pass
 
-        # 4. Map active_uids to telegram IDs from all panel users
-        p_users = await remnawave.get_all_panel_users() or []
+        # 4. Map active_uids to telegram IDs from all panel users (reusing bulk list when provided)
+        p_users = panel_users if panel_users is not None else (await remnawave.get_all_panel_users() or [])
         for pu in p_users:
             p_uid = str(pu.get("id") or "").lower()
             p_uuid = str(pu.get("uuid") or "").lower()
@@ -141,16 +144,8 @@ async def _extract_online_telegram_ids(remnawave: Any) -> set[int]:
     return tids
 
 
-def _serialize_user_item(
-    u: User,
-    panel_users: list[dict[str, Any]],
-    balances: dict[int, int],
-    online_ids: set[int],
-    now_utc: datetime,
-    status_filter: str,
-    active_uids: set[str] | None = None,
-) -> dict[str, Any] | None:
-    """Format single user record and apply status filtering."""
+def _classify_panel_account(panel_users: list[dict[str, Any]], now_utc: datetime) -> dict[str, Any]:
+    """Compute traffic, expiration, and status flags for a user's primary panel account."""
     p = panel_users[0] if panel_users else {}
     panel_exists = bool(panel_users)
 
@@ -178,6 +173,58 @@ def _serialize_user_item(
         except Exception:
             pass
 
+    is_expiring = False
+    is_expired = False
+    is_limited = False
+    if panel_exists:
+        status_up = str(p.get("status") or "").upper()
+        if (remaining_gb == 0.0 and limit_bytes > 0) or status_up == "LIMITED":
+            is_limited = True
+        elif (days_left is not None and days_left <= 0) or status_up == "EXPIRED":
+            is_expired = True
+
+        if not is_expired and not is_limited:
+            if (days_left is not None and 0 < days_left <= 3) or (0 <= remaining_gb <= 2.0 and limit_bytes > 0):
+                is_expiring = True
+
+    return {
+        "p": p,
+        "panel_exists": panel_exists,
+        "used_gb": used_gb,
+        "limit_gb": limit_gb,
+        "remaining_gb": remaining_gb,
+        "days_left": days_left,
+        "expire_jalali_str": expire_jalali_str,
+        "expire_at_str": expire_at_str,
+        "is_expiring": is_expiring,
+        "is_expired": is_expired,
+        "is_limited": is_limited,
+    }
+
+
+def _serialize_user_item(
+    u: User,
+    panel_users: list[dict[str, Any]],
+    balances: dict[int, int],
+    online_ids: set[int],
+    now_utc: datetime,
+    status_filter: str,
+    active_uids: set[str] | None = None,
+) -> dict[str, Any] | None:
+    """Format single user record and apply status filtering."""
+    info = _classify_panel_account(panel_users, now_utc)
+    p = info["p"]
+    panel_exists = info["panel_exists"]
+    used_gb = info["used_gb"]
+    limit_gb = info["limit_gb"]
+    remaining_gb = info["remaining_gb"]
+    days_left = info["days_left"]
+    expire_jalali_str = info["expire_jalali_str"]
+    expire_at_str = info["expire_at_str"]
+    is_expiring = info["is_expiring"]
+    is_expired = info["is_expired"]
+    is_limited = info["is_limited"]
+
     is_online = (u.telegram_id in online_ids) if online_ids else False
     if not is_online and panel_users:
         target_uids = active_uids or set()
@@ -201,19 +248,6 @@ def _serialize_user_item(
             ):
                 is_online = True
                 break
-    is_expiring = False
-    is_expired = False
-    is_limited = False
-    if panel_exists:
-        status_up = str(p.get("status") or "").upper()
-        if (remaining_gb == 0.0 and limit_bytes > 0) or status_up == "LIMITED":
-            is_limited = True
-        elif (days_left is not None and days_left <= 0) or status_up == "EXPIRED":
-            is_expired = True
-
-        if not is_expired and not is_limited:
-            if (days_left is not None and 0 < days_left <= 3) or (0 <= remaining_gb <= 2.0 and limit_bytes > 0):
-                is_expiring = True
 
     if status_filter == "expiring" and not is_expiring:
         return None
@@ -266,24 +300,72 @@ def _serialize_user_item(
     }
 
 
+def _map_panel_users_by_tid(
+    all_panel: list[dict[str, Any]],
+) -> tuple[dict[int, list[dict[str, Any]]], bool]:
+    """Index bulk panel users by telegram_id and report whether all accounts mapped."""
+    panel_by_tid: dict[int, list[dict[str, Any]]] = {}
+    all_mapped = True
+    for pu in all_panel:
+        if not isinstance(pu, dict):
+            continue
+        raw_tid = pu.get("telegramId") or pu.get("telegram_id")
+        if not raw_tid:
+            uname = str(pu.get("username") or "").lower()
+            if uname.startswith("tg_") and uname[3:].isdigit():
+                raw_tid = uname[3:]
+        if raw_tid and str(raw_tid).isdigit():
+            panel_by_tid.setdefault(int(raw_tid), []).append(pu)
+        else:
+            all_mapped = False
+    return panel_by_tid, all_mapped
+
+
 async def get_admin_users(request: web.Request) -> web.Response:
-    """Search and paginate users for admin management."""
+    """Search and paginate users for admin management without N+1 panel lookups."""
     admin = _check_admin(request)
     if not admin:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     query = request.query.get("q", "").strip()
     status_filter = request.query.get("filter", "all")
-    page = max(1, int(request.query.get("page", 1)))
-    limit = min(50, max(5, int(request.query.get("limit", 20))))
+    try:
+        page = max(1, int(request.query.get("page", 1)))
+        limit = min(50, max(5, int(request.query.get("limit", 20))))
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "مقادیر صفحه‌بندی نامعتبر هستند."}, status=400)
     offset = (page - 1) * limit
     remnawave = request.app["remnawave"]
+    now_utc = datetime.now(timezone.utc)
+
+    all_panel: list[dict[str, Any]] | None = None
+    try:
+        raw_panel = await remnawave.get_all_panel_users()
+        if isinstance(raw_panel, list):
+            all_panel = raw_panel
+    except Exception:
+        all_panel = None
+
+    panel_by_tid: dict[int, list[dict[str, Any]]] | None = None
+    all_mapped = False
+    if all_panel:
+        panel_by_tid, all_mapped = _map_panel_users_by_tid(all_panel)
+
+    condition = None
+    if not query and status_filter in ("expiring", "expired") and panel_by_tid and all_mapped:
+        matching_tids = []
+        for tid_k, accs in panel_by_tid.items():
+            c_info = _classify_panel_account(accs, now_utc)
+            if status_filter == "expiring" and c_info["is_expiring"]:
+                matching_tids.append(tid_k)
+            elif status_filter == "expired" and (c_info["is_expired"] or c_info["is_limited"]):
+                matching_tids.append(tid_k)
+        condition = User.telegram_id.in_(matching_tids or [-1])
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
-        online_ids, active_uids = await _extract_online_data(remnawave)
+        online_ids, active_uids = await _extract_online_data(remnawave, panel_users=all_panel)
 
-        condition = None
         if status_filter == "banned":
             condition = User.is_banned.is_(True)
         elif status_filter == "online":
@@ -298,15 +380,23 @@ async def get_admin_users(request: web.Request) -> web.Response:
 
         balances = await user_repo.balances_for([u.telegram_id for u in users])
 
-    async def _fetch_single_panel(uid: int):
-        try:
-            return await asyncio.wait_for(remnawave.get_users_by_telegram_id(uid), timeout=4.0) or []
-        except Exception as exc:
-            logger.warning("Failed fetching panel user for %s: %s", uid, exc)
-            return []
+    if panel_by_tid is not None and all_mapped:
+        panel_fetch_results = [panel_by_tid.get(u.telegram_id, []) for u in users]
+    else:
+        sem = asyncio.Semaphore(5)
 
-    panel_fetch_results = await asyncio.gather(*[_fetch_single_panel(u.telegram_id) for u in users])
-    now_utc = datetime.now(timezone.utc)
+        async def _fetch_single_panel(uid: int):
+            if panel_by_tid is not None and uid in panel_by_tid:
+                return panel_by_tid[uid]
+            async with sem:
+                try:
+                    return await asyncio.wait_for(remnawave.get_users_by_telegram_id(uid), timeout=4.0) or []
+                except Exception as exc:
+                    logger.warning("Failed fetching panel user for %s: %s", uid, exc)
+                    return []
+
+        panel_fetch_results = await asyncio.gather(*[_fetch_single_panel(u.telegram_id) for u in users])
+
     user_items = []
     for u, p_users in zip(users, panel_fetch_results, strict=True):
         item = _serialize_user_item(u, p_users if isinstance(p_users, list) else [], balances, online_ids, now_utc, status_filter, active_uids)

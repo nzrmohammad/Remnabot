@@ -1,14 +1,17 @@
 """Shop renewal and account selection handlers."""
 import logging
+from contextlib import AsyncExitStack
 from html import escape
 
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import SEPARATOR, parse_int
+from bot.db.models import Order, OrderStatus
 from bot.db.repositories.service_repo import ServiceRepository
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
@@ -25,6 +28,7 @@ from bot.services.menu import render_menu
 from bot.services.purchases import execute_purchase, resolve_squad_name
 from bot.services.remnawave import RemnawaveClient
 from bot.services.render import render_services
+from bot.web.cache import user_action_lock
 
 logger = logging.getLogger(__name__)
 router = Router(name="shop_renew")
@@ -217,10 +221,17 @@ async def confirm_for_account(
     if service_id is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
-    if call.from_user.id in _PURCHASE_LOCKS:
+    effective_cache = cache if cache is not None else getattr(bot, "cache", None)
+    _lock_stack = AsyncExitStack()
+    acquired = await _lock_stack.enter_async_context(
+        user_action_lock(
+            effective_cache, call.from_user.id, "purchase", ttl_seconds=45, local_locks=_PURCHASE_LOCKS
+        )
+    )
+    if not acquired:
+        await _lock_stack.aclose()
         await call.answer()
         return
-    _PURCHASE_LOCKS.add(call.from_user.id)
     try:
         user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
         lang = user.language
@@ -270,7 +281,7 @@ async def confirm_for_account(
         )
         await call.answer()
     finally:
-        _PURCHASE_LOCKS.discard(call.from_user.id)
+        await _lock_stack.aclose()
 
 
 @router.callback_query(F.data.startswith("svc:acc:"))
@@ -288,10 +299,17 @@ async def service_choose_account(
     if service_id is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
-    if call.from_user.id in _PURCHASE_LOCKS:
+    effective_cache = cache if cache is not None else getattr(bot, "cache", None)
+    _lock_stack = AsyncExitStack()
+    acquired = await _lock_stack.enter_async_context(
+        user_action_lock(
+            effective_cache, call.from_user.id, "purchase", ttl_seconds=45, local_locks=_PURCHASE_LOCKS
+        )
+    )
+    if not acquired:
+        await _lock_stack.aclose()
         await call.answer()
         return
-    _PURCHASE_LOCKS.add(call.from_user.id)
     try:
         user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
         lang = user.language
@@ -343,4 +361,98 @@ async def service_choose_account(
         )
         await call.answer()
     finally:
-        _PURCHASE_LOCKS.discard(call.from_user.id)
+        await _lock_stack.aclose()
+
+
+@router.callback_query(F.data.startswith("renquick:"))
+async def quick_renew_account(
+    call: CallbackQuery,
+    bot: Bot,
+    user_repo: UserRepository,
+    session: AsyncSession,
+    remnawave: RemnawaveClient,
+    state: FSMContext | None = None,
+    cache=None,
+):
+    """1-click renewal entrypoint: pre-selects the account's latest paid plan."""
+    user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
+    lang = user.language
+
+    if await is_maintenance(session):
+        await call.answer(t(lang, "maintenance_user"), show_alert=True)
+        return
+
+    if not await _ensure_can_buy(bot, user, user_repo, remnawave):
+        await call.answer()
+        return
+
+    panel_user_id = (call.data or "").split(":", 1)[1]
+    chosen = await _verify_account(remnawave, user.telegram_id, panel_user_id)
+    if chosen is None:
+        await call.answer(t(lang, "acc_error"), show_alert=True)
+        return
+
+    panel_id_int = _safe_int(str(chosen.get("id", panel_user_id)))
+    latest_order = None
+    if panel_id_int is not None:
+        res = await session.execute(
+            select(Order)
+            .where(
+                Order.telegram_id == user.telegram_id,
+                Order.panel_user_id == panel_id_int,
+                Order.status == OrderStatus.PAID.value,
+                Order.service_id.is_not(None),
+            )
+            .order_by(Order.id.desc())
+            .limit(1)
+        )
+        latest_order = res.scalar_one_or_none()
+
+    if latest_order is None and chosen.get("username"):
+        res = await session.execute(
+            select(Order)
+            .where(
+                Order.telegram_id == user.telegram_id,
+                Order.panel_username == str(chosen["username"]),
+                Order.status == OrderStatus.PAID.value,
+                Order.service_id.is_not(None),
+            )
+            .order_by(Order.id.desc())
+            .limit(1)
+        )
+        latest_order = res.scalar_one_or_none()
+
+    service = (
+        await ServiceRepository(session).get(int(latest_order.service_id))
+        if latest_order and latest_order.service_id is not None
+        else None
+    )
+    if service is None or not service.is_active:
+        await call.answer(t(lang, "renquick_no_plan"))
+        await render_services(
+            bot, user, user_repo, session,
+            renew_account_id=str(chosen["id"]), remnawave=remnawave,
+        )
+        return
+
+    state_data = await state.get_data() if state else {}
+    coupon_code = state_data.get("coupon_code")
+    discount_amount = state_data.get("discount_amount", 0) if coupon_code else 0
+    wallet = await WalletRepository(session).get_wallet(user.telegram_id)
+    username = escape(str(chosen.get("username", "—")))
+
+    await _render_buy_confirm(
+        bot, user, user_repo, session, service, wallet.balance,
+        confirm_callback=f"svc:confirma:{service.id}:{chosen['id']}",
+        lang=lang,
+        target_name=username,
+        back_callback=f"svc:renacc:{chosen['id']}",
+        flow_type="a",
+        target_id=str(chosen["id"]),
+        coupon_code=coupon_code,
+        discount_amount=discount_amount,
+        account=chosen,
+        remnawave=remnawave,
+        cache=cache,
+    )
+    await call.answer(t(lang, "buy_for_account_toast", username=username))

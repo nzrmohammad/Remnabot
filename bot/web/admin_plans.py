@@ -34,6 +34,20 @@ def _parse_bool(val: object, default: bool = True) -> bool:
     return str(val).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _parse_int_id(raw_val: object, missing_msg: str = "شناسه الزامی است.", invalid_msg: str = "شناسه نامعتبر است.") -> tuple[int | None, web.Response | None]:
+    if raw_val is None or raw_val == "":
+        return None, web.json_response({"ok": False, "error": missing_msg}, status=400)
+    if isinstance(raw_val, bool):
+        return None, web.json_response({"ok": False, "error": invalid_msg}, status=400)
+    try:
+        val = int(raw_val)
+    except (ValueError, TypeError):
+        return None, web.json_response({"ok": False, "error": invalid_msg}, status=400)
+    if val <= 0:
+        return None, web.json_response({"ok": False, "error": invalid_msg}, status=400)
+    return val, None
+
+
 async def _invalidate_plans_cache(request: web.Request) -> None:
     """Clear node overview, squad, and user dashboard caches after plan mutations."""
     cache = request.app.get("cache")
@@ -124,9 +138,11 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
         price = int(body.get("price", 0))
         traffic_gb = int(body.get("traffic_gb", 0))
         duration_days = int(body.get("duration_days", 0))
-        hwid_limit = int(body.get("hwid_limit", 0)) if body.get("hwid_limit") else None
+        hwid_limit = int(body.get("hwid_limit", 0)) if body.get("hwid_limit") not in (None, "", 0) else None
     except (ValueError, TypeError):
         return web.json_response({"ok": False, "error": "مقادیر عددی نامعتبر هستند."}, status=400)
+    if price < 0 or traffic_gb < 0 or duration_days < 0 or (hwid_limit is not None and hwid_limit < 0):
+        return web.json_response({"ok": False, "error": "مقادیر عددی نمی‌توانند منفی باشند."}, status=400)
 
     raw_max = body.get("max_purchases")
     max_purchases = None
@@ -153,9 +169,15 @@ async def post_admin_plan_save(request: web.Request) -> web.Response:
         except (ValueError, TypeError):
             return web.json_response({"ok": False, "error": "ترتیب نمایش نامعتبر است."}, status=400)
 
+    parsed_plan_id = None
+    if plan_id not in (None, ""):
+        parsed_plan_id, err_resp = _parse_int_id(plan_id, invalid_msg="شناسه پلن نامعتبر است.")
+        if err_resp:
+            return err_resp
+
     async with db_session(request) as session:
-        if plan_id:
-            service = await session.get(Service, int(plan_id))
+        if parsed_plan_id:
+            service = await session.get(Service, parsed_plan_id)
             if not service:
                 return web.json_response({"ok": False, "error": "پلن مورد نظر یافت نشد."}, status=404)
             service.name = name
@@ -279,12 +301,12 @@ async def post_admin_plan_toggle(request: web.Request) -> web.Response:
     if not isinstance(body, dict):
         body = {}
 
-    plan_id = body.get("id")
-    if not plan_id:
-        return web.json_response({"ok": False, "error": "شناسه پلن الزامی است."}, status=400)
+    plan_id, err_resp = _parse_int_id(body.get("id"), "شناسه پلن الزامی است.", "شناسه پلن نامعتبر است.")
+    if err_resp:
+        return err_resp
 
     async with db_session(request) as session:
-        service = await session.get(Service, int(plan_id))
+        service = await session.get(Service, plan_id)
         if not service:
             return web.json_response({"ok": False, "error": "پلن یافت نشد."}, status=404)
 
@@ -309,12 +331,12 @@ async def post_admin_plan_delete(request: web.Request) -> web.Response:
     if not isinstance(body, dict):
         body = {}
 
-    plan_id = body.get("id")
-    if not plan_id:
-        return web.json_response({"ok": False, "error": "شناسه پلن الزامی است."}, status=400)
+    plan_id, err_resp = _parse_int_id(body.get("id"), "شناسه پلن الزامی است.", "شناسه پلن نامعتبر است.")
+    if err_resp:
+        return err_resp
 
     async with db_session(request) as session:
-        service = await session.get(Service, int(plan_id))
+        service = await session.get(Service, plan_id)
         if not service:
             return web.json_response({"ok": False, "error": "پلن یافت نشد."}, status=404)
 
@@ -436,12 +458,12 @@ async def post_admin_coupon_toggle(request: web.Request) -> web.Response:
     if not isinstance(body, dict):
         body = {}
 
-    coupon_id = body.get("id")
-    if not coupon_id:
-        return web.json_response({"ok": False, "error": "شناسه کوپن الزامی است."}, status=400)
+    coupon_id, err_resp = _parse_int_id(body.get("id"), "شناسه کوپن الزامی است.", "شناسه کوپن نامعتبر است.")
+    if err_resp:
+        return err_resp
 
     async with db_session(request) as session:
-        coupon = await session.get(Coupon, int(coupon_id))
+        coupon = await session.get(Coupon, coupon_id)
         if not coupon:
             return web.json_response({"ok": False, "error": "کوپن یافت نشد."}, status=404)
 
@@ -464,12 +486,12 @@ async def post_admin_coupon_delete(request: web.Request) -> web.Response:
     if not isinstance(body, dict):
         body = {}
 
-    coupon_id = body.get("id")
-    if not coupon_id:
-        return web.json_response({"ok": False, "error": "شناسه کوپن الزامی است."}, status=400)
+    coupon_id, err_resp = _parse_int_id(body.get("id"), "شناسه کوپن الزامی است.", "شناسه کوپن نامعتبر است.")
+    if err_resp:
+        return err_resp
 
     async with db_session(request) as session:
-        coupon = await session.get(Coupon, int(coupon_id))
+        coupon = await session.get(Coupon, coupon_id)
         if not coupon:
             return web.json_response({"ok": False, "error": "کوپن یافت نشد."}, status=404)
 

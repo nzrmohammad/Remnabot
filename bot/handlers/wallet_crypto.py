@@ -322,13 +322,20 @@ async def crypto_tx_hash_message(
         )
         return
 
+    from bot.services.crypto.pol import notify_pol_credit
+    from bot.services.crypto.trx import notify_trx_credit
+
     if curr == "TRX":
-        ok, new_bal, msg = await verify_and_credit_trx_invoice(session, inv, tx_hash, bot=bot)
+        ok, new_bal, msg = await verify_and_credit_trx_invoice(session, inv, tx_hash, bot=bot, notify=False)
     else:
-        ok, new_bal, msg = await verify_and_credit_pol_invoice(session, inv, tx_hash, bot=bot)
+        ok, new_bal, msg = await verify_and_credit_pol_invoice(session, inv, tx_hash, bot=bot, notify=False)
 
     if ok:
         await session.commit()
+        if curr == "TRX":
+            await notify_trx_credit(bot, session, inv, new_bal, tx_hash, send_user=False)
+        else:
+            await notify_pol_credit(bot, session, inv, new_bal, tx_hash, send_user=False)
         await state.clear()
         if cache and hasattr(cache, "invalidate_user"):
             await cache.invalidate_user(user.telegram_id)

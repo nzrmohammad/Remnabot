@@ -184,11 +184,42 @@ async def verify_polygon_transaction(
     return False, "تراکنش هنوز در شبکه پالیگان یافت یا تأیید نشده است. لطفاً 1 دقیقه صبر کرده و مجدداً امتحان نمایید.", 0
 
 
+async def notify_pol_credit(
+    bot: Any,
+    session: Any,
+    invoice: Any,
+    new_bal: int,
+    tx_hash: str,
+    *,
+    send_user: bool = True,
+) -> None:
+    """Send Telegram notifications to user and admin topic AFTER DB commit."""
+    from bot.services.crypto.notifications import notify_crypto_credit
+
+    clean_tx = (tx_hash or "").strip().lower()
+    if clean_tx and not clean_tx.startswith("0x"):
+        clean_tx = "0x" + clean_tx
+    await notify_crypto_credit(
+        bot,
+        session,
+        invoice,
+        new_bal,
+        currency_code="POL",
+        currency_fa="پالیگان",
+        emoji="🟣",
+        explorer_label="PolygonScan",
+        tx_url=f"https://polygonscan.com/tx/{clean_tx}",
+        send_user=send_user,
+    )
+
+
 async def verify_and_credit_pol_invoice(
     session: Any,
     invoice: Any,
     tx_hash: str,
     bot: Any = None,
+    *,
+    notify: bool = True,
 ) -> tuple[bool, int, str]:
     """Atomically verify and credit a POL invoice."""
     clean_tx = tx_hash.strip().lower()
@@ -265,38 +296,7 @@ async def verify_and_credit_pol_invoice(
         invoice.id, invoice.telegram_id, clean_tx, invoice.amount_toman, new_bal, confirmed_wei,
     )
 
-    if bot:
-        try:
-            from bot.common import admin_thread_kwargs
-            from bot.config import get_settings
-            from bot.services.app_settings import get_store_settings
-            settings = get_settings()
-            store = await get_store_settings(session)
-
-            # User confirmation message
-            user_msg = (
-                f"✅ <b>شارژ موفق حساب با پالیگان (POL)</b>\n\n"
-                f"🟣 مقدار واریزی: <code>{invoice.amount_ton} POL</code>\n"
-                f"💰 مبلغ شارژ: <b>{invoice.amount_toman:,} تومان</b>\n"
-                f"👛 موجودی جدید: <b>{new_bal:,} تومان</b>"
-            )
-            await bot.send_message(invoice.telegram_id, user_msg)
-
-            # Admin notification
-            if settings.ADMIN_CHAT_ID:
-                topic_id = store.topic_crypto or settings.ADMIN_TOPIC_CRYPTO or store.topic_topups or settings.ADMIN_TOPIC_TOPUPS
-                thread_kwargs = admin_thread_kwargs(topic_id=topic_id)
-                admin_msg = (
-                    f"🟣 <b>واریز جدید با ارز پالیگان (POL)</b>\n"
-                    f"──────────────────\n"
-                    f"👤 کاربر: <code>{invoice.telegram_id}</code>\n"
-                    f"💰 مبلغ تومانی: <b>{invoice.amount_toman:,} تومان</b>\n"
-                    f"🟣 مقدار دریافتی: <code>{invoice.amount_ton} POL</code>\n"
-                    f"🔗 <a href=\"https://polygonscan.com/tx/{clean_tx}\">مشاهده در PolygonScan</a>\n\n"
-                    f"👛 موجودی جدید: <b>{new_bal:,} تومان</b>"
-                )
-                await bot.send_message(settings.ADMIN_CHAT_ID, admin_msg, **thread_kwargs)
-        except Exception as n_err:
-            logger.warning("Failed notifying user/admin of POL topup: %s", n_err)
+    if bot and notify:
+        await notify_pol_credit(bot, session, invoice, new_bal, clean_tx)
 
     return True, new_bal, "پرداخت پالیگان (POL) با موفقیت تأیید شد و کیف پول شارژ گردید!"

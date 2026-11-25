@@ -192,29 +192,35 @@ async def service_trial_username(
         await render_menu(bot, user, user_repo, t(lang, "trial_already_claimed"), kb.as_markup())
         return
 
-    existing = await remnawave.get_user_by_username(raw_name)
-    if existing is not None:
+    created = None
+    try:
+        existing = await remnawave.get_user_by_username(raw_name)
+        if existing is not None:
+            await user_repo.set_claimed_trial(user.telegram_id, False)
+            kb = InlineKeyboardBuilder()
+            kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
+            kb.adjust(1)
+            await render_menu(bot, user, user_repo, t(lang, "trial_username_taken"), kb.as_markup())
+            return
+
+        now = datetime.now(timezone.utc)
+        dur_days = store.trial_duration_days if store.trial_duration_days > 0 else 1
+        expire_at_iso = (now + timedelta(days=dur_days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        traffic_bytes = max(1, store.trial_traffic_gb) * (1024 ** 3)
+        squad_uuid = store.default_squad_uuid or None
+
+        created = await remnawave.create_user(
+            username=raw_name,
+            expire_at_iso=expire_at_iso,
+            traffic_limit_bytes=traffic_bytes,
+            telegram_id=user.telegram_id,
+            traffic_limit_strategy="NO_RESET",
+            internal_squads=[squad_uuid] if squad_uuid else None,
+        )
+    except Exception:
+        logger.exception("Unexpected error during trial provisioning for %s", user.telegram_id)
         await user_repo.set_claimed_trial(user.telegram_id, False)
-        kb = InlineKeyboardBuilder()
-        kb.button(text=t(lang, "btn_cancel"), callback_data="nav:welcome")
-        kb.adjust(1)
-        await render_menu(bot, user, user_repo, t(lang, "trial_username_taken"), kb.as_markup())
-        return
-
-    now = datetime.now(timezone.utc)
-    dur_days = store.trial_duration_days if store.trial_duration_days > 0 else 1
-    expire_at_iso = (now + timedelta(days=dur_days)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    traffic_bytes = max(1, store.trial_traffic_gb) * (1024 ** 3)
-    squad_uuid = store.default_squad_uuid or None
-
-    created = await remnawave.create_user(
-        username=raw_name,
-        expire_at_iso=expire_at_iso,
-        traffic_limit_bytes=traffic_bytes,
-        telegram_id=user.telegram_id,
-        traffic_limit_strategy="NO_RESET",
-        internal_squads=[squad_uuid] if squad_uuid else None,
-    )
+        raise
 
     if created is None:
         await user_repo.set_claimed_trial(user.telegram_id, False)

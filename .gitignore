@@ -52,6 +52,7 @@ desktop.ini
 scratch/
 data/
 node_modules/
+bot/web/static/js/dist/
 
 # Agent configuration (Local only - do not push to GitHub)
 AGENTS.md

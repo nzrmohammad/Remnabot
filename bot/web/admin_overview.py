@@ -5,6 +5,7 @@ Decomposed into focused modules:
 - `bot.web.admin_overview_charts`: Sales, network traffic, and strategic analytics charts.
 - `get_admin_overview`: Lightweight async controller orchestrating admin dashboard data.
 """
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -12,6 +13,7 @@ from zoneinfo import ZoneInfo
 from aiohttp import web
 
 from bot.services.app_settings import get_store_settings
+from bot.services.panel_snapshot import get_cached_panel_snapshot
 from bot.web.admin_common import _check_admin, db_session
 from bot.web.admin_overview_charts import (
     calc_sales_and_traffic_charts,
@@ -27,6 +29,8 @@ from bot.web.admin_overview_nodes import (
     extract_speeds,
 )
 from bot.web.cache import FastCache
+
+_OVERVIEW_BUILD_LOCK = asyncio.Lock()
 
 # Backward-compatibility aliases
 _extract_cpu = extract_cpu
@@ -53,15 +57,20 @@ async def _fetch_and_build_overview(
     now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
     days_list = [now_tehran - timedelta(days=i) for i in range(6, -1, -1)]
 
+    panel_snapshot = await get_cached_panel_snapshot(remnawave, cache, force_refresh=is_refresh)
     kpis, panel_users, nodes, costs_by_uuid, costs_by_id = await calc_cluster_kpis(
-        session, remnawave, now_utc
+        session, remnawave, now_utc, panel_snapshot=panel_snapshot
     )
 
     month_traffic = kpis.get("month_traffic_gb") or 0.0
     monthly_rev = kpis.get("monthly_revenue_toman") or 0
     avg_revenue_per_gb = round(monthly_rev / month_traffic, 1) if month_traffic > 0 else 0.0
 
-    hwid_stats = await remnawave.get_hwid_stats() or {}
+    hwid_stats = (
+        panel_snapshot.get("hwid_stats")
+        if isinstance(panel_snapshot, dict) and isinstance(panel_snapshot.get("hwid_stats"), dict)
+        else (await remnawave.get_hwid_stats() or {})
+    )
     nodes_overview, online_devices, offline_nodes = calc_nodes_overview(
         nodes, costs_by_uuid, costs_by_id, hwid_stats, now_utc, avg_revenue_per_gb=avg_revenue_per_gb
     )
@@ -117,9 +126,15 @@ async def get_admin_overview(request: web.Request) -> web.Response:
             return web.json_response({"ok": True, "data": cached_data, "cached": True})
 
     remnawave = request.app["remnawave"]
-    now_utc = datetime.now(timezone.utc)
 
-    async with db_session(request) as session:
-        data = await _fetch_and_build_overview(session, remnawave, cache, now_utc, is_refresh)
-        await cache.set(cache_key, data, ttl_seconds=30)
-        return web.json_response({"ok": True, "data": data, "cached": False})
+    async with _OVERVIEW_BUILD_LOCK:
+        if not is_refresh:
+            cached_data = await cache.get(cache_key)
+            if cached_data:
+                return web.json_response({"ok": True, "data": cached_data, "cached": True})
+
+        now_utc = datetime.now(timezone.utc)
+        async with db_session(request) as session:
+            data = await _fetch_and_build_overview(session, remnawave, cache, now_utc, is_refresh)
+            await cache.set(cache_key, data, ttl_seconds=30)
+            return web.json_response({"ok": True, "data": data, "cached": False})

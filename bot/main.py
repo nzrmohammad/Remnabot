@@ -138,7 +138,7 @@ async def main() -> None:
     bot.session_factory = session_factory
     bot.cache = fast_cache
     # Rate-limit first (drops floods before DB sessions are opened).
-    dp.update.outer_middleware(RateLimitMiddleware())
+    dp.update.outer_middleware(RateLimitMiddleware(redis_client=redis_client, cache=fast_cache))
     dp.update.outer_middleware(DbSessionMiddleware(session_factory))
     dp.update.outer_middleware(BanCheckMiddleware())
 
@@ -287,25 +287,48 @@ async def main() -> None:
         ),
     ]
 
-    web_runner = None
-    if settings.WEB_ENABLED:
-        try:
-            from bot.web.server import create_web_app, start_web_server
-            web_app = create_web_app(
-                bot=bot,
-                session_factory=session_factory,
-                remnawave=remnawave,
-                settings=settings,
-                redis_client=redis_client,
-                cache=fast_cache,
+    try:
+        from bot.services.panel_snapshot import remnawave_snapshot_loop
+        background_tasks.append(
+            asyncio.create_task(
+                remnawave_snapshot_loop(remnawave, fast_cache),
+                name="remnawave-snapshot-loop",
             )
-            web_runner = await start_web_server(
-                web_app, host=settings.WEB_HOST, port=settings.WEB_PORT
-            )
-        except Exception:
-            logger.exception("Failed to start TMA web server")
+        )
+    except Exception as exc:
+        logger.warning("Could not schedule remnawave_snapshot_loop: %s", exc)
 
     try:
+        from bot.services.task_queue import recover_pending_broadcasts
+        background_tasks.append(
+            asyncio.create_task(
+                recover_pending_broadcasts(bot, session_factory=session_factory, cache=fast_cache),
+                name="recover-pending-broadcasts",
+            )
+        )
+    except Exception as exc:
+        logger.warning("Could not schedule broadcast queue recovery: %s", exc)
+
+    web_runner = None
+    try:
+        if settings.WEB_ENABLED:
+            try:
+                from bot.web.server import create_web_app, start_web_server
+                web_app = create_web_app(
+                    bot=bot,
+                    session_factory=session_factory,
+                    remnawave=remnawave,
+                    settings=settings,
+                    redis_client=redis_client,
+                    cache=fast_cache,
+                )
+                web_runner = await start_web_server(
+                    web_app, host=settings.WEB_HOST, port=settings.WEB_PORT
+                )
+            except Exception:
+                logger.critical("Failed to start TMA web server; aborting startup")
+                raise
+
         logger.info("Bot started.")
         # Keep pending updates: dropping them would silently lose top-up
         # receipts / support messages sent while the bot was restarting.
@@ -338,8 +361,40 @@ async def main() -> None:
                     await redis_client.delete(lock_key)
             except Exception:
                 pass
-        for task in background_tasks:
+
+        extra_tasks: list[asyncio.Task] = []
+        try:
+            from bot.web.admin_campaigns import _BACKGROUND_TASKS as _CAMP_TASKS
+            extra_tasks.extend(_CAMP_TASKS)
+        except Exception:
+            pass
+        try:
+            from bot.handlers.admin_broadcast import _BACKGROUND_TASKS as _BCAST_TASKS
+            extra_tasks.extend(_BCAST_TASKS)
+        except Exception:
+            pass
+        try:
+            from bot.services.task_queue import _ACTIVE_TASK_REGISTRY as _QUEUE_TASKS
+            extra_tasks.extend(_QUEUE_TASKS)
+        except Exception:
+            pass
+
+        tasks_to_drain: list[asyncio.Task] = []
+        if lock_refresh_task:
+            tasks_to_drain.append(lock_refresh_task)
+        tasks_to_drain.extend(background_tasks)
+        tasks_to_drain.extend(t for t in extra_tasks if not t.done())
+        for task in tasks_to_drain:
             task.cancel()
+        if tasks_to_drain:
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*tasks_to_drain, return_exceptions=True),
+                    timeout=10.0,
+                )
+            except TimeoutError:
+                logger.warning("Timed out waiting for %d background tasks to cancel", len(tasks_to_drain))
+
         if web_runner:
             await web_runner.cleanup()
         await remnawave.close()

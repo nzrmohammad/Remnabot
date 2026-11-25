@@ -6,6 +6,8 @@ about to expire or exhausted, and auto-renews them using their wallet balance.
 import asyncio
 import logging
 from datetime import datetime, timezone
+from html import escape
+from types import SimpleNamespace
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -69,45 +71,77 @@ async def process_auto_renewals(
                 # Each renewal attempt runs in its own session to guarantee safe transaction boundary
                 async with session_factory() as session:
                     from bot.db.models import Service
-                    # Find full base plan (skip traffic-only or time-only add-ons) for this panel account
-                    stmt = (
-                        select(Order)
-                        .join(Service, Order.service_id == Service.id)
-                        .where(
-                            Order.telegram_id == tid,
-                            Order.status == "paid",
-                            Order.duration_days > 0,
-                            Order.traffic_gb > 0,
-                            (Service.badge.is_(None)) | (Service.badge != "time"),
-                        )
+                    from bot.services.app_settings import get_store_settings
+                    from bot.web.user_shop import compute_custom_plan_price
+
+                    # Find full base plan (including custom plans where service_id IS NULL; skip add-ons)
+                    base_filters = (
+                        Order.telegram_id == tid,
+                        Order.status == "paid",
+                        Order.duration_days > 0,
+                        Order.traffic_gb > 0,
+                        (Order.service_id.is_(None)) | (Service.badge.is_(None)) | (Service.badge != "time"),
                     )
+                    stmt = select(Order).outerjoin(Service, Order.service_id == Service.id).where(*base_filters)
                     acc_id_int = int(acc_id) if (acc_id and str(acc_id).isdigit()) else None
                     if acc_id_int is not None:
                         stmt = stmt.where(Order.panel_user_id == acc_id_int)
                     last_order = (await session.execute(stmt.order_by(Order.id.desc()).limit(1))).scalar_one_or_none()
-                    if not last_order or not last_order.service_id:
-                        # Fallback to user's general last paid base order
+                    if not last_order:
                         gen_stmt = (
                             select(Order)
-                            .join(Service, Order.service_id == Service.id)
-                            .where(
-                                Order.telegram_id == tid,
-                                Order.status == "paid",
-                                Order.duration_days > 0,
-                                Order.traffic_gb > 0,
-                                (Service.badge.is_(None)) | (Service.badge != "time"),
-                            )
+                            .outerjoin(Service, Order.service_id == Service.id)
+                            .where(*base_filters)
                             .order_by(Order.id.desc())
                             .limit(1)
                         )
                         last_order = (await session.execute(gen_stmt)).scalar_one_or_none()
 
-                    if not last_order or not last_order.service_id:
+                    if not last_order:
                         continue
 
-                    service_repo = ServiceRepository(session)
-                    service = await service_repo.get(last_order.service_id)
-                    if not service or not service.is_active:
+                    if last_order.service_id:
+                        service_repo = ServiceRepository(session)
+                        service = await service_repo.get(last_order.service_id)
+                    else:
+                        store_settings = await get_store_settings(session)
+                        if not store_settings.custom_plan_enabled:
+                            service = None
+                        else:
+                            raw_hwid = acc.get("hwidDeviceLimit")
+                            hwid_lim = max(1, int(raw_hwid)) if isinstance(raw_hwid, (int, float)) and raw_hwid > 0 else 1
+                            _, _, custom_price = compute_custom_plan_price(
+                                last_order.traffic_gb,
+                                last_order.duration_days,
+                                store_settings,
+                                hwid_limit=hwid_lim,
+                            )
+                            if custom_price <= 0:
+                                service = None
+                            else:
+                                acc_squad = None
+                                for sq in (acc.get("activeInternalSquads") or acc.get("internalSquads") or acc.get("squads") or []):
+                                    if isinstance(sq, dict):
+                                        acc_squad = sq.get("uuid") or sq.get("id")
+                                    elif sq:
+                                        acc_squad = str(sq)
+                                    if acc_squad:
+                                        break
+                                service = SimpleNamespace(
+                                    id=None,
+                                    name=last_order.service_name or "بسته دلخواه",
+                                    price=custom_price,
+                                    duration_days=last_order.duration_days,
+                                    traffic_gb=last_order.traffic_gb,
+                                    hwid_limit=hwid_lim,
+                                    squad_uuid=acc_squad or store_settings.default_squad_uuid or None,
+                                    badge="custom",
+                                    traffic_strategy="NO_RESET",
+                                    max_purchases=None,
+                                    purchases_count=0,
+                                )
+
+                    if not service or (last_order.service_id and not getattr(service, "is_active", False)):
                         discontinued_dedup = f"auto_renew_discontinued:{tid}:{acc_id}"
                         if cache and not await cache.get(discontinued_dedup):
                             await cache.set(discontinued_dedup, "1", ttl_seconds=86400)
@@ -154,7 +188,7 @@ async def process_auto_renewals(
                                     await bot.send_message(
                                         tid,
                                         f"🔄 <b>تمدید خودکار اشتراک شما با موفقیت انجام شد!</b>\n\n"
-                                        f"📦 پلن: <b>{service.name}</b>\n"
+                                        f"📦 پلن: <b>{escape(str(service.name))}</b>\n"
                                         f"💳 مبلغ پرداختی: <b>{final_price:,} تومان</b>\n"
                                         f"👛 موجودی باقیمانده: <b>{pur_res.new_balance:,} تومان</b>\n\n"
                                         f"از همراهی و اعتماد شما سپاسگزاریم.",
@@ -163,8 +197,6 @@ async def process_auto_renewals(
                                     pass
                                 if bot:
                                     try:
-                                        from types import SimpleNamespace
-
                                         from bot.services.purchases import notify_admin
 
                                         db_user = (
@@ -187,17 +219,21 @@ async def process_auto_renewals(
                         else:
                             await session.rollback()
                     else:
-                        # Insufficient balance notice
+                        # Insufficient balance: allow retry after 1h if topped up, limit warning DM to once per 24h
                         if cache:
                             await cache.set(dedup_key, "1", ttl_seconds=3600)
-                        if bot:
+                        low_bal_key = f"auto_renew_low_bal:{tid}:{acc_id}"
+                        already_warned = bool(cache and await cache.get(low_bal_key))
+                        if not already_warned and bot:
+                            if cache:
+                                await cache.set(low_bal_key, "1", ttl_seconds=86400)
                             try:
                                 shortage = final_price - balance
                                 await bot.send_message(
                                     tid,
                                     f"⚠️ <b>هشدار تمدید خودکار اشتراک</b>\n\n"
                                     f"اعتبار سرویس شما رو به اتمام است اما موجودی کیف پول شما جهت تمدید خودکار کافی نمی‌باشد.\n\n"
-                                    f"📦 پلن مورد نیاز: <b>{service.name}</b> ({service.price:,} تومان)\n"
+                                    f"📦 پلن مورد نیاز: <b>{escape(str(service.name))}</b> ({service.price:,} تومان)\n"
                                     f"👛 موجودی فعلی شما: <b>{balance:,} تومان</b>\n"
                                     f"کسری موجودی: <b>{shortage:,} تومان</b>\n\n"
                                     f"لطفاً جهت جلوگیری از قطع شدن اتصال، نسبت به شارژ کیف پول خود اقدام فرمایید.",

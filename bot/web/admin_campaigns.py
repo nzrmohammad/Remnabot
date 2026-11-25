@@ -1,17 +1,14 @@
 """Admin Broadcasts, Marketing Campaigns, and Announcements API endpoints."""
 import asyncio
-import base64
 import logging
 from datetime import datetime, timezone
 from typing import Any
 
-# Bot instance resolved dynamically from request.app["bot"]
-from aiogram.exceptions import TelegramRetryAfter
-from aiogram.types import BufferedInputFile
 from aiohttp import web
 
 from bot.common.links import ad_link
 from bot.services.broadcast import resolve_broadcast_recipients as _resolve_broadcast_recipients
+from bot.services.task_queue import execute_broadcast_job, save_broadcast_job
 from bot.web.admin_common import _check_admin, db_session
 
 logger = logging.getLogger(__name__)
@@ -79,90 +76,50 @@ async def post_admin_broadcast(request: web.Request) -> web.Response:
         except Exception:
             pass
 
-    async def _broadcast_worker_with_cache():
-        st = _BROADCAST_STATUSES[broadcast_id]
-        counter = 0
+    job_payload = {
+        "job_id": broadcast_id,
+        "kind": "web",
+        "admin_id": int(admin.get("id") or 0),
+        "target": target,
+        "target_label": label,
+        "lang": "fa",
+        "draft": "",
+        "text": text,
+        "photo_id": None,
+        "photo_raw": photo_raw,
+        "recipient_ids": [int(x) for x in recipients],
+        "cursor_idx": 0,
+        "ok": 0,
+        "fail": 0,
+        "sent": [],
+        "status": "running",
+        "start_time": _BROADCAST_STATUSES[broadcast_id]["start_time"],
+    }
+    await save_broadcast_job(cache, job_payload)
 
-        # Resolve initial photo object if provided
-        initial_photo = None
-        if photo_raw:
-            if photo_raw.startswith("data:image/") and "base64," in photo_raw:
-                try:
-                    header, b64_str = photo_raw.split("base64,", 1)
-                    img_bytes = base64.b64decode(b64_str)
-                    ext = "jpg" if ("jpeg" in header or "jpg" in header) else ("webp" if "webp" in header else "png")
-                    initial_photo = BufferedInputFile(img_bytes, filename=f"broadcast.{ext}")
-                except Exception as b64_err:
-                    logger.warning("Failed to decode base64 broadcast photo: %s", b64_err)
-                    initial_photo = None
-            else:
-                initial_photo = photo_raw
-
-        reusable_photo_id: str | None = None
-        for tid in recipients:
+    async def _sync_web_status(_job: dict, is_done: bool) -> None:
+        if cache and hasattr(cache, "set") and broadcast_id in _BROADCAST_STATUSES:
             try:
-                if initial_photo:
-                    p = reusable_photo_id or initial_photo
-                    sent_msg = await bot.send_photo(
-                        chat_id=tid,
-                        photo=p,
-                        caption=text or None,
-                        parse_mode="HTML"
-                    )
-                    if sent_msg.photo and not reusable_photo_id:
-                        reusable_photo_id = sent_msg.photo[-1].file_id
-                else:
-                    await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
-                st["sent"] += 1
-                await asyncio.sleep(0.04)  # ~25 messages/sec rate limit
-            except TelegramRetryAfter as retry_err:
-                try:
-                    await asyncio.sleep(retry_err.retry_after + 1)
-                    if initial_photo:
-                        p = reusable_photo_id or initial_photo
-                        sent_msg = await bot.send_photo(
-                            chat_id=tid,
-                            photo=p,
-                            caption=text or None,
-                            parse_mode="HTML"
-                        )
-                        if sent_msg.photo and not reusable_photo_id:
-                            reusable_photo_id = sent_msg.photo[-1].file_id
-                    else:
-                        await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
-                    st["sent"] += 1
-                except Exception as retry_exc:
-                    st["failed"] += 1
-                    logger.debug("Broadcast retry error for user %s: %s", tid, retry_exc)
-            except Exception as exc:
-                # Fallback to sending text if photo sending failed
-                if initial_photo and text:
-                    try:
-                        await bot.send_message(chat_id=tid, text=text, parse_mode="HTML")
-                        st["sent"] += 1
-                    except Exception:
-                        st["failed"] += 1
-                else:
-                    st["failed"] += 1
-                logger.debug("Broadcast send error for user %s: %s", tid, exc)
-            counter += 1
-            if counter % 25 == 0 and cache and hasattr(cache, "set"):
-                try:
-                    await cache.set(f"bcast:{broadcast_id}", st, ttl_seconds=86400)
-                except Exception:
-                    pass
-        st["is_completed"] = True
-        if cache and hasattr(cache, "set"):
-            try:
-                await cache.set(f"bcast:{broadcast_id}", st, ttl_seconds=86400)
+                await cache.set(f"bcast:{broadcast_id}", _BROADCAST_STATUSES[broadcast_id], ttl_seconds=86400)
             except Exception:
                 pass
-        logger.info(
-            "Admin broadcast completed: id=%s target=%s sent=%d failed=%d",
-            broadcast_id, target, st["sent"], st["failed"]
-        )
+        if is_done:
+            st = _BROADCAST_STATUSES.get(broadcast_id, {})
+            logger.info(
+                "Admin broadcast completed: id=%s target=%s sent=%d failed=%d",
+                broadcast_id, target, int(st.get("sent") or 0), int(st.get("failed") or 0),
+            )
 
-    task = asyncio.create_task(_broadcast_worker_with_cache())
+    task = asyncio.create_task(
+        execute_broadcast_job(
+            bot,
+            job_payload,
+            cache=cache,
+            in_memory_ref=_BROADCAST_STATUSES[broadcast_id],
+            sync_status_fn=_sync_web_status,
+        ),
+        name=f"web-broadcast-{broadcast_id}",
+    )
     _BACKGROUND_TASKS.add(task)
     task.add_done_callback(_BACKGROUND_TASKS.discard)
     return web.json_response({
@@ -244,7 +201,12 @@ async def post_admin_campaign_create(request: web.Request) -> web.Response:
 
     name = str(body.get("name") or "").strip()
     code = str(body.get("code") or "").strip().lower()
-    cost = int(body.get("cost") or 0)
+    try:
+        cost = int(body.get("cost") or 0)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "مقدار هزینه کمپین نامعتبر است."}, status=400)
+    if cost < 0:
+        return web.json_response({"ok": False, "error": "هزینه کمپین نمی‌تواند منفی باشد."}, status=400)
 
     if not name or not code:
         return web.json_response({"ok": False, "error": "نام و شناسه کمپین الزامی است."}, status=400)
@@ -275,6 +237,7 @@ async def post_admin_campaign_create(request: web.Request) -> web.Response:
             return web.json_response({"ok": False, "error": "این شناسه کمپین قبلاً تعریف شده است."}, status=400)
 
         created = await repo.create(code=code, name=name, cost=cost)
+        await session.commit()
         deep_link = ad_link(bot_username, created.code)
         return web.json_response({
             "ok": True,
@@ -305,10 +268,18 @@ async def post_admin_campaign_delete(request: web.Request) -> web.Response:
     cid = body.get("id")
     if not cid:
         return web.json_response({"ok": False, "error": "شناسه کمپین الزامی است."}, status=400)
+    try:
+        cid_int = int(cid)
+    except (ValueError, TypeError):
+        return web.json_response({"ok": False, "error": "شناسه کمپین نامعتبر است."}, status=400)
+    if cid_int <= 0:
+        return web.json_response({"ok": False, "error": "شناسه کمپین نامعتبر است."}, status=400)
 
     from bot.db.repositories.campaign_repo import CampaignRepository
 
     async with db_session(request) as session:
         repo = CampaignRepository(session)
-        ok = await repo.delete(int(cid))
+        ok = await repo.delete(cid_int)
+        if ok:
+            await session.commit()
         return web.json_response({"ok": ok})

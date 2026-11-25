@@ -57,6 +57,8 @@ async def get_admin_settings(request: web.Request) -> web.Response:
             "trial_duration_days": store_settings.trial_duration_days,
             "referral_enabled": store_settings.referral_enabled,
             "referral_reward_gb": store_settings.referral_reward_gb,
+            "referral_commission_percent": store_settings.referral_commission_percent,
+            "referral_renew_commission_enabled": store_settings.referral_renew_commission_enabled,
             "support_contact": store_settings.support_contact,
             "support_direct_enabled": store_settings.support_direct_enabled,
             "topic_topups": store_settings.topic_topups,
@@ -142,7 +144,7 @@ async def post_admin_settings(request: web.Request) -> web.Response:
         # Boolean flags
         bool_keys = (
             "card_enabled", "card_auto_enabled", "crypto_enabled", "trial_enabled",
-            "referral_enabled", "support_direct_enabled", "maintenance",
+            "referral_enabled", "referral_renew_commission_enabled", "support_direct_enabled", "maintenance",
             "stars_enabled", "trx_enabled", "pol_enabled",
             "card_require_phone_verification", "card_phone_iran_only", "birthday_reward_enabled",
             "card_graphical_view_enabled",
@@ -182,6 +184,13 @@ async def post_admin_settings(request: web.Request) -> web.Response:
                 if isinstance(v, (dict, list)):
                     v = json.dumps(v, ensure_ascii=False)
                 await app_repo.set(rk, str(v).strip())
+
+        if "referral_commission_percent" in body and body["referral_commission_percent"] is not None:
+            try:
+                pct = max(0, min(50, int(body["referral_commission_percent"])))
+            except (TypeError, ValueError):
+                pct = 0
+            await app_repo.set("referral_commission_percent", str(pct))
 
         if "timezone" in body and body["timezone"]:
             try:
@@ -249,7 +258,6 @@ async def post_admin_upload_store_logo(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     img_bytes = None
-    ext = "png"
 
     if request.content_type.startswith("application/json"):
         try:
@@ -258,11 +266,7 @@ async def post_admin_upload_store_logo(request: web.Request) -> web.Response:
                 body = {}
             logo_data = body.get("logo_image") or ""
             if "base64," in logo_data:
-                header, b64_data = logo_data.split("base64,", 1)
-                if "jpeg" in header or "jpg" in header:
-                    ext = "jpg"
-                elif "webp" in header:
-                    ext = "webp"
+                _, b64_data = logo_data.split("base64,", 1)
                 import base64
                 img_bytes = base64.b64decode(b64_data)
         except Exception as e:
@@ -275,11 +279,6 @@ async def post_admin_upload_store_logo(request: web.Request) -> web.Response:
                 if part is None:
                     break
                 if part.name == "file":
-                    fn = (part.filename or "").lower()
-                    if fn.endswith(".jpg") or fn.endswith(".jpeg"):
-                        ext = "jpg"
-                    elif fn.endswith(".webp"):
-                        ext = "webp"
                     img_bytes = await part.read()
                     break
         except Exception as e:
@@ -292,19 +291,43 @@ async def post_admin_upload_store_logo(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "حجم تصویر نباید بیشتر از 5 مگابایت باشد."}, status=400)
 
     import asyncio
+    from io import BytesIO
     from pathlib import Path
-    dest_dir = Path("bot/web/static/img")
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    dest_file = dest_dir / f"store_logo.{ext}"
 
-    def _write_file():
-        with open(dest_file, "wb") as f:
-            f.write(img_bytes)
+    from PIL import Image, UnidentifiedImageError
 
-    await asyncio.to_thread(_write_file)
+    def _validate_and_save() -> str | None:
+        fmt_ext_map = {"PNG": "png", "JPEG": "jpg", "WEBP": "webp"}
+        try:
+            with Image.open(BytesIO(img_bytes)) as img:
+                img.verify()
+            with Image.open(BytesIO(img_bytes)) as img:
+                detected_fmt = (img.format or "").upper()
+        except (UnidentifiedImageError, OSError, ValueError):
+            return None
+
+        resolved_ext = fmt_ext_map.get(detected_fmt)
+        if not resolved_ext:
+            return None
+
+        dest_dir = Path("data/uploads")
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        for old_logo in dest_dir.glob("store_logo.*"):
+            if old_logo.is_file():
+                old_logo.unlink(missing_ok=True)
+        dest_file = dest_dir / f"store_logo.{resolved_ext}"
+        dest_file.write_bytes(img_bytes)
+        return resolved_ext
+
+    safe_ext = await asyncio.to_thread(_validate_and_save)
+    if not safe_ext:
+        return web.json_response(
+            {"ok": False, "error": "فایل تصویر نامعتبر است. فقط فرمت‌های PNG، JPEG و WEBP مجاز هستند."},
+            status=400,
+        )
 
     import time
-    logo_url = f"/static/img/store_logo.{ext}?v={int(time.time())}"
+    logo_url = f"/media/uploads/store_logo.{safe_ext}?v={int(time.time())}"
 
     async with db_session(request) as session:
         app_repo = AppSettingRepository(session)

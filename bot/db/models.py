@@ -644,6 +644,21 @@ class GiftCard(Base):
     )
 
 
+class SupportChatMessage(Base):
+    """Persistent support chat message transcript stored in PostgreSQL."""
+
+    __tablename__ = "support_chat_messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    external_msg_id: Mapped[str] = mapped_column(String(64), default="")
+    sender: Mapped[str] = mapped_column(String(16))  # "user" | "admin" | "system"
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
+
+
 
 
 

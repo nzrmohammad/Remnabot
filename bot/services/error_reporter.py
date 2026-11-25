@@ -24,6 +24,27 @@ _is_reporting_var: contextvars.ContextVar[bool] = contextvars.ContextVar("_is_re
 
 # In-memory resilient cache for topic_errors (persists across transient DB connection drops)
 _cached_topic_errors: int | None = None
+_SENTRY_ACTIVE: bool = False
+
+
+def init_sentry_if_configured() -> bool:
+    """Optionally initialize Sentry SDK when SENTRY_DSN is set in configuration."""
+    global _SENTRY_ACTIVE
+    try:
+        dsn = (getattr(get_settings(), "SENTRY_DSN", "") or "").strip()
+        if not dsn:
+            return False
+        import sentry_sdk
+        sentry_sdk.init(dsn=dsn, traces_sample_rate=0.05)
+        _SENTRY_ACTIVE = True
+        logger.info("Sentry SDK initialized for error reporting.")
+        return True
+    except ImportError:
+        logger.warning("SENTRY_DSN is configured, but sentry-sdk package is not installed.")
+        return False
+    except Exception as exc:
+        logger.warning("Failed to initialize Sentry SDK: %s", exc)
+        return False
 
 
 def update_cached_topic_errors(topic_id: int | None) -> None:
@@ -100,6 +121,16 @@ async def report_error(
     is_exc = isinstance(exc, Exception)
     exc_type = type(exc).__name__ if is_exc else "Error"
     exc_msg = str(exc) or "—"
+
+    if _SENTRY_ACTIVE:
+        try:
+            import sentry_sdk
+            if is_exc:
+                sentry_sdk.capture_exception(exc)
+            else:
+                sentry_sdk.capture_message(f"[{context}] {exc_msg}", level="error")
+        except Exception:
+            pass
 
     # Ignore client-side protocol/scanner noise & transient polling network drops
     if exc_type in (
@@ -491,7 +522,8 @@ class TelegramErrorLogHandler(logging.Handler):
 
 
 def setup_telegram_error_logging(bot: Bot, session_factory: async_sessionmaker) -> TelegramErrorLogHandler:
-    """Attaches TelegramErrorLogHandler to the root logger to capture all system errors."""
+    """Attaches TelegramErrorLogHandler to the root logger and initializes optional Sentry."""
+    init_sentry_if_configured()
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:

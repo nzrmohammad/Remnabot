@@ -483,7 +483,9 @@ async def _execute_purchase_impl(
         hwid_changed = False
         if is_squad_switch:
             try:
-                await remnawave.set_user_squads(int(account["id"]), [service.squad_uuid])
+                sq_res = await remnawave.set_user_squads(int(account["id"]), [service.squad_uuid])
+                if sq_res is None:
+                    raise RuntimeError("Remnawave set_user_squads returned None")
                 squads_changed = True
             except Exception as sq_err:
                 logger.warning("Failed to update user squad on squad switch: %s", sq_err)
@@ -772,73 +774,117 @@ async def record_coupon_usage_if_any(
 
 
 async def maybe_reward_referrer(
-    bot: Any, session: Any, remnawave: RemnawaveClient, user: Any,
+    bot: Any,
+    session: Any,
+    remnawave: RemnawaveClient,
+    user: Any,
+    paid_amount: int = 0,
+    cache: Any = None,
 ) -> None:
-    """Reward user's inviter with extra traffic and spin tickets upon first purchase/trial."""
+    """Reward user's inviter with first-purchase GB + spin ticket and optional Affiliate wallet commission."""
     if not getattr(user, "referred_by_id", None):
         return
     store = await get_store_settings(session)
-    if not store.referral_enabled or store.referral_reward_gb <= 0:
+    if not store.referral_enabled:
         return
-    from bot.db.repositories.referral_repo import ReferralRepository
-    referral_repo = ReferralRepository(session)
-    if await referral_repo.has_rewarded(user.telegram_id):
-        return
-
-    reward_gb = store.referral_reward_gb
-    reward = await referral_repo.record_reward(user.referred_by_id, user.telegram_id, reward_gb)
-
-    inviter_accs = await remnawave.get_users_by_telegram_id(user.referred_by_id)
-    traffic_rewarded = False
-    if inviter_accs:
-        metered_acc = next(
-            (a for a in inviter_accs if int(a.get("trafficLimitBytes") or 0) > 0),
-            None,
-        )
-        if metered_acc:
-            cur_limit = int(metered_acc.get("trafficLimitBytes") or 0)
-            new_limit = cur_limit + reward_gb * (1024 ** 3)
-            try:
-                await remnawave.update_user_subscription(
-                    int(metered_acc["id"]), metered_acc.get("expireAt"), new_limit
-                )
-                traffic_rewarded = True
-            except Exception:
-                logger.exception("Failed to add referral traffic to panel user %s", metered_acc.get("id"))
-                reward.applied = False
-        else:
-            reward.applied = False
 
     from bot.db.models import User
+    from bot.db.repositories.referral_repo import ReferralRepository
     from bot.db.repositories.user_repo import UserRepository
-    inviter_user = await UserRepository(session).get_by_telegram_id(user.referred_by_id)
-    if inviter_user:
+    from bot.db.repositories.wallet_repo import WalletRepository
+    from bot.locales.texts import t
+    from bot.web.cache import invalidate_user_cache
+
+    inviter_tid = int(user.referred_by_id)
+    referral_repo = ReferralRepository(session)
+    already_rewarded = await referral_repo.has_rewarded(user.telegram_id)
+
+    raw_pct = getattr(store, "referral_commission_percent", 0)
+    commission_pct = (
+        max(0, min(50, int(raw_pct)))
+        if isinstance(raw_pct, (int, str)) and not isinstance(raw_pct, bool) and str(raw_pct).lstrip("-").isdigit()
+        else 0
+    )
+    raw_renew = getattr(store, "referral_renew_commission_enabled", False)
+    commission_on_renew = raw_renew if isinstance(raw_renew, bool) else False
+    commission_toman = 0
+    if paid_amount > 0 and commission_pct > 0 and (not already_rewarded or commission_on_renew):
+        commission_toman = (int(paid_amount) * commission_pct) // 100
+
+    reward_gb = int(store.referral_reward_gb or 0)
+    should_give_gb = not already_rewarded and reward_gb > 0
+    if not should_give_gb and commission_toman <= 0:
+        return
+
+    traffic_rewarded = False
+    inviter_accs = None
+    if should_give_gb:
+        reward = await referral_repo.record_reward(inviter_tid, user.telegram_id, reward_gb)
+        inviter_accs = await remnawave.get_users_by_telegram_id(inviter_tid)
+        if inviter_accs:
+            metered_acc = next(
+                (a for a in inviter_accs if int(a.get("trafficLimitBytes") or 0) > 0),
+                None,
+            )
+            if metered_acc:
+                cur_limit = int(metered_acc.get("trafficLimitBytes") or 0)
+                new_limit = cur_limit + reward_gb * (1024 ** 3)
+                try:
+                    await remnawave.update_user_subscription(
+                        int(metered_acc["id"]), metered_acc.get("expireAt"), new_limit
+                    )
+                    traffic_rewarded = True
+                except Exception:
+                    logger.exception("Failed to add referral traffic to panel user %s", metered_acc.get("id"))
+                    reward.applied = False
+            else:
+                reward.applied = False
+
         await session.execute(
             update(User)
-            .where(User.telegram_id == user.referred_by_id)
+            .where(User.telegram_id == inviter_tid)
             .values(spin_tickets=func.coalesce(User.spin_tickets, 0) + 1)
         )
+
+    if commission_toman > 0:
+        await WalletRepository(session).add_balance_atomic(inviter_tid, commission_toman)
+
+    inviter_user = await UserRepository(session).get_by_telegram_id(inviter_tid)
     await session.commit()
+
+    if cache or getattr(bot, "cache", None):
+        await invalidate_user_cache(cache or getattr(bot, "cache", None), inviter_tid)
+
     inv_lang = (inviter_user.language if inviter_user else None) or "fa"
     try:
-        from bot.locales.texts import t
-        if traffic_rewarded or inviter_accs is None:
-            ticket_note = (
-                "\n\n🎫 <b>+1 شانس چرخش گردونه (تیکت اسپین)</b> نیز به حساب شما اضافه شد!"
+        parts: list[str] = []
+        if should_give_gb:
+            if traffic_rewarded or inviter_accs is None:
+                ticket_note = (
+                    "\n\n🎫 <b>+1 شانس چرخش گردونه (تیکت اسپین)</b> نیز به حساب شما اضافه شد!"
+                    if inv_lang == "fa"
+                    else "\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has also been credited to your account!"
+                )
+                parts.append(t(inv_lang, "referral_reward_notify", reward_gb=reward_gb) + ticket_note)
+            else:
+                parts.append(
+                    "🎉 یکی از دوستان شما با لینک دعوتتان خرید خود را تکمیل کرد!\n\n"
+                    "🎫 <b>+1 شانس چرخش گردونه (تیکت اسپین)</b> به حساب شما اضافه شد!"
+                    if inv_lang == "fa"
+                    else "🎉 A friend you invited completed their purchase!\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has also been credited to your account!"
+                )
+        if commission_toman > 0:
+            parts.append(
+                f"💰 <b>پورسانت بازاریابی (Affiliate {commission_pct}%):</b> "
+                f"<b>{commission_toman:,} تومان</b> به کیف پول شما واریز شد!"
                 if inv_lang == "fa"
-                else "\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has also been credited to your account!"
+                else f"💰 <b>Affiliate Commission ({commission_pct}%):</b> "
+                f"<b>{commission_toman:,} Toman</b> credited to your wallet!"
             )
-            msg = t(inv_lang, "referral_reward_notify", reward_gb=reward_gb) + ticket_note
-        else:
-            msg = (
-                "🎉 یکی از دوستان شما با لینک دعوتتان خرید خود را تکمیل کرد!\n\n"
-                "🎫 <b>+1 شانس چرخش گردونه (تیکت اسپین)</b> به حساب شما اضافه شد!"
-                if inv_lang == "fa"
-                else "🎉 A friend you invited completed their purchase!\n\n🎫 <b>+1 Lucky Wheel spin ticket</b> has been credited to your account!"
-            )
-        await bot.send_message(user.referred_by_id, msg)
+        if parts:
+            await bot.send_message(inviter_tid, "\n\n".join(parts))
     except Exception:
-        logger.exception("Failed to notify inviter %s of referral reward", user.referred_by_id)
+        logger.exception("Failed to notify inviter %s of referral reward", inviter_tid)
 
 
 async def notify_admin(

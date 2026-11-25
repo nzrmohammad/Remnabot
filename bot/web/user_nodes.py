@@ -223,8 +223,10 @@ async def post_user_settings(request: web.Request) -> web.Response:
             except (ValueError, TypeError):
                 pass
 
+        from bot.web.cache import invalidate_user_cache
+
         await session.commit()
-        await cache.delete(f"tma:user:{telegram_id}:dashboard")
+        await invalidate_user_cache(cache, telegram_id)
 
         return web.json_response({
             "ok": True,
@@ -364,10 +366,19 @@ async def get_user_avatar(request: web.Request) -> web.Response:
 
 
 async def get_qr_code(request: web.Request) -> web.Response:
-    """Generate self-hosted QR code image on-the-fly to prevent leaking VPN credentials to 3rd-party APIs."""
+    """Generate self-hosted QR code image for authenticated users or signed URLs."""
+    from bot.web.auth import get_authenticated_user, verify_qr_token
+
     text = (request.query.get("text") or "").strip()
     if not text or len(text) > 4096:
         return web.Response(status=400, text="Invalid or missing text parameter")
+
+    is_dev = bool(request.app.get("is_dev", False))
+    bot_token = str(request.app.get("bot_token", "") or "")
+    has_auth = bool(get_authenticated_user(request))
+    has_sig = verify_qr_token(text, request.query.get("exp"), request.query.get("sig"), bot_token)
+    if not (is_dev or has_auth or has_sig):
+        return web.Response(status=401, text="Unauthorized")
 
     try:
         import asyncio
@@ -394,8 +405,7 @@ async def get_qr_code(request: web.Request) -> web.Response:
             body=img_bytes,
             content_type="image/png",
             headers={
-                "Cache-Control": "public, max-age=86400, immutable",
-                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "private, max-age=86400",
             },
         )
     except Exception as exc:

@@ -181,11 +181,42 @@ async def verify_tron_transaction(
     return False, "تراکنش هنوز در شبکه ترون تأیید نشده است یا یافت نشد. لطفاً چند لحظه بعد مجدداً امتحان کنید.", 0
 
 
+async def notify_trx_credit(
+    bot: Any,
+    session: Any,
+    invoice: Any,
+    new_bal: int,
+    tx_hash: str,
+    *,
+    send_user: bool = True,
+) -> None:
+    """Send Telegram notifications to user and admin topic AFTER DB commit."""
+    from bot.services.crypto.notifications import notify_crypto_credit
+
+    clean_tx = (tx_hash or "").strip().lower()
+    if clean_tx.startswith("0x"):
+        clean_tx = clean_tx[2:]
+    await notify_crypto_credit(
+        bot,
+        session,
+        invoice,
+        new_bal,
+        currency_code="TRX",
+        currency_fa="ترون",
+        emoji="🔴",
+        explorer_label="TronScan",
+        tx_url=f"https://tronscan.org/#/transaction/{clean_tx}",
+        send_user=send_user,
+    )
+
+
 async def verify_and_credit_trx_invoice(
     session: Any,
     invoice: Any,
     tx_hash: str,
     bot: Any = None,
+    *,
+    notify: bool = True,
 ) -> tuple[bool, int, str]:
     """Atomically verify and credit a TRX invoice."""
     clean_tx = tx_hash.strip().lower()
@@ -262,4 +293,6 @@ async def verify_and_credit_trx_invoice(
         "TRX invoice paid and credited: invoice_id=%s tg_id=%s tx_hash=%s amount_toman=%s new_balance=%s confirmed_sun=%s",
         invoice.id, invoice.telegram_id, clean_tx, invoice.amount_toman, new_bal, confirmed_sun,
     )
+    if bot and notify:
+        await notify_trx_credit(bot, session, invoice, new_bal, clean_tx)
     return True, new_bal, "پرداخت ترون (TRX) با موفقیت تأیید شد و کیف پول شارژ گردید!"

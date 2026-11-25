@@ -21,6 +21,10 @@ from bot.web.admin_campaigns import (
     post_admin_campaign_delete,
 )
 from bot.web.admin_common import _check_admin as _check_admin
+from bot.web.admin_health_api import (
+    get_admin_system_health,
+    post_admin_reconcile_run,
+)
 from bot.web.admin_infra_api import (
     get_admin_github_releases,
     get_admin_infra_billing,
@@ -131,6 +135,8 @@ __all__ = [
     "get_admin_crypto_rates",
     "post_admin_upload_store_logo",
     "get_admin_infra_billing",
+    "get_admin_system_health",
+    "post_admin_reconcile_run",
     "post_admin_node_cost",
     "get_admin_ssl_health",
     "post_admin_ssl_check",

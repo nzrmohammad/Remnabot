@@ -1,5 +1,3 @@
-from bot.web.user_common import db_session, require_user
-
 """Support chat message endpoints for Telegram Mini App."""
 import logging
 import time
@@ -11,21 +9,27 @@ from aiohttp import web
 from bot.common import admin_thread_kwargs
 from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.services.app_settings import get_store_settings
+from bot.services.support_chat import append_support_message, get_support_messages
 from bot.web.cache import FastCache
+from bot.web.user_common import db_session, require_user
 
 logger = logging.getLogger(__name__)
 
 
 async def get_user_support_messages(request: web.Request) -> web.Response:
-    """Fetch existing chat messages for authenticated user from support Redis thread."""
+    """Fetch existing chat messages for authenticated user from Redis cache or PostgreSQL."""
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err or web.json_response({"ok": False, "error": "Unauthorized"}, status=401)
 
     telegram_id = int(user_auth["id"])
     cache: FastCache = request.app["cache"]
-    chat_key = f"support:chat:{telegram_id}"
-    messages = await cache.get(chat_key) or []
+    messages: list[dict] = []
+    if request.app.get("session_factory"):
+        async with db_session(request) as session:
+            messages = await get_support_messages(telegram_id, cache=cache, session=session)
+    else:
+        messages = await get_support_messages(telegram_id, cache=cache)
     return web.json_response({"ok": True, "messages": messages})
 
 
@@ -51,28 +55,17 @@ async def post_user_support_message(request: web.Request) -> web.Response:
     now_dt = datetime.fromtimestamp(now_ts)
     msg_id = f"user_{int(now_ts * 1000)}"
 
-    user_msg = {
-        "id": msg_id,
-        "sender": "user",
-        "text": text,
-        "created_at": now_dt.strftime("%H:%M"),
-        "timestamp": now_ts,
-    }
-
     cache: FastCache = request.app["cache"]
-    chat_key = f"support:chat:{telegram_id}"
-    messages = await cache.get(chat_key) or []
-    messages.append(user_msg)
-    if len(messages) > 50:
-        messages = messages[-50:]
-    await cache.set(chat_key, messages, ttl_seconds=86400 * 30)
-
-    active_ids = await cache.get("support:active_thread_ids") or []
-    if telegram_id not in active_ids:
-        active_ids.insert(0, telegram_id)
-        if len(active_ids) > 100:
-            active_ids = active_ids[:100]
-        await cache.set("support:active_thread_ids", active_ids, ttl_seconds=86400 * 30)
+    session_factory = request.app.get("session_factory")
+    user_msg = await append_support_message(
+        telegram_id,
+        sender="user",
+        text=text,
+        msg_id=msg_id,
+        created_dt=now_dt,
+        cache=cache,
+        session_factory=session_factory,
+    )
 
     # Forward to Telegram admin chat
     bot = request.app.get("bot")

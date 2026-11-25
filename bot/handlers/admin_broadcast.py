@@ -1,7 +1,9 @@
 """Admin broadcast messaging with audience targeting."""
 import asyncio
 import logging
+from datetime import datetime, timezone
 from html import escape
+from typing import Any
 
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
@@ -15,6 +17,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.menu import delete_message_silently, render_menu
 from bot.services.remnawave import RemnawaveClient
+from bot.services.task_queue import execute_broadcast_job, request_job_stop
 from bot.states.admin import BroadcastStates
 
 logger = logging.getLogger(__name__)
@@ -129,6 +132,8 @@ async def broadcast_text(
 
 
 ACTIVE_BROADCASTS: dict[str, dict] = {}
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+_BROADCAST_TTL_SECONDS = 86400 * 7
 
 
 def _prune_active_broadcasts(max_keep: int = 5) -> None:
@@ -143,10 +148,209 @@ def _prune_active_broadcasts(max_keep: int = 5) -> None:
         ACTIVE_BROADCASTS.pop(k, None)
 
 
+def _normalize_broadcast_state(raw: dict) -> dict:
+    sent_raw = raw.get("sent") or []
+    normalized_sent = [
+        (int(item[0]), int(item[1]))
+        for item in sent_raw
+        if isinstance(item, (list, tuple)) and len(item) == 2
+    ]
+    return {
+        "status": str(raw.get("status") or "finished"),
+        "sent": normalized_sent,
+        "ok": int(raw.get("ok") or 0),
+        "fail": int(raw.get("fail") or 0),
+        "total": int(raw.get("total") or 0),
+        "target": str(raw.get("target") or "all"),
+        "admin_id": int(raw.get("admin_id") or 0),
+    }
+
+
+async def _persist_broadcast_state(bot: Bot, bcast_id: str) -> None:
+    """Sync in-memory broadcast state to Redis so stop/revoke survives restarts."""
+    state = ACTIVE_BROADCASTS.get(bcast_id)
+    cache = getattr(bot, "cache", None)
+    if not state or not (cache and hasattr(cache, "set")):
+        return
+    try:
+        payload = {
+            **state,
+            "sent": [[int(cid), int(mid)] for cid, mid in (state.get("sent") or [])],
+        }
+        await cache.set(f"bcast:bot:{bcast_id}", payload, ttl_seconds=_BROADCAST_TTL_SECONDS)
+    except Exception as exc:
+        logger.debug("Failed persisting broadcast state %s: %s", bcast_id, exc)
+
+
+async def _load_broadcast_state(bot: Bot, bcast_id: str) -> dict | None:
+    """Load broadcast state from memory or fall back to Redis after restart."""
+    if bcast_id in ACTIVE_BROADCASTS:
+        return ACTIVE_BROADCASTS[bcast_id]
+    cache = getattr(bot, "cache", None)
+    if not (cache and hasattr(cache, "get")):
+        return None
+    try:
+        raw = await cache.get(f"bcast:bot:{bcast_id}")
+        if isinstance(raw, dict):
+            state = _normalize_broadcast_state(raw)
+            ACTIVE_BROADCASTS[bcast_id] = state
+            return state
+    except Exception as exc:
+        logger.debug("Failed loading broadcast state %s: %s", bcast_id, exc)
+    return None
+
+
+async def _render_broadcast_admin_status(
+    bot: Bot,
+    session_factory: Any,
+    admin_id: int,
+    text: str,
+    markup: Any,
+    *,
+    log_detail: str | None = None,
+) -> None:
+    """Render progress/completion UI and optionally write AdminLog using short-lived session."""
+    if session_factory is not None:
+        try:
+            async with session_factory() as bg_session:
+                if log_detail:
+                    await AdminLogRepository(bg_session).log(admin_id, "broadcast", detail=log_detail)
+                bg_user_repo = UserRepository(bg_session)
+                admin_user = await bg_user_repo.get_by_telegram_id(admin_id)
+                if admin_user is not None:
+                    await render_menu(bot, admin_user, bg_user_repo, text, markup)
+                else:
+                    await bot.send_message(admin_id, text, reply_markup=markup)
+                await bg_session.commit()
+                return
+        except Exception as exc:
+            logger.debug("Broadcast status render via session_factory failed: %s", exc)
+    try:
+        await bot.send_message(admin_id, text, reply_markup=markup)
+    except Exception:
+        pass
+
+
+async def _sync_bot_status(bot: Bot, bcast_id: str) -> None:
+    await _persist_broadcast_state(bot, bcast_id)
+
+
+async def _on_recovered_bot_complete(
+    bot: Bot,
+    session_factory: Any,
+    job: dict[str, Any],
+) -> None:
+    """Finalize recovered/completed bot broadcast UI & AdminLog."""
+    bcast_id = str(job["job_id"])
+    admin_id = int(job.get("admin_id") or 0)
+    lang = str(job.get("lang") or "fa")
+    target = str(job.get("target") or "all")
+    target_label = str(job.get("target_label") or t(lang, f"bcast_target_{target}"))
+    final_state = job.get("status", "finished")
+    final_ok = int(job.get("ok") or 0)
+    final_fail = int(job.get("fail") or 0)
+    sent_pairs = job.get("sent") or []
+
+    kb_done = InlineKeyboardBuilder()
+    if len(sent_pairs) > 0:
+        kb_done.button(text="🗑 پاک‌کردن پیام‌های ارسال‌شده", callback_data=f"adm:bcast:del:{bcast_id}")
+    kb_done.button(text=t(lang, "btn_back"), callback_data="menu:admin")
+    kb_done.adjust(1)
+
+    if final_state == "stopped":
+        done_text = (
+            f"🛑 <b>ارسال همگانی متوقف شد.</b>\n\n"
+            f"✅ ارسال‌شده تا توقف: {final_ok:,}\n"
+            f"❌ ناموفق: {final_fail:,}\n\n"
+            f"می‌توانید پیام‌های ارسال شده را از چت کاربران پاک کنید."
+        )
+    else:
+        done_text = (
+            f"✅ <b>ارسال همگانی با موفقیت پایان یافت.</b>\n\n"
+            f"🎯 مخاطبان: {target_label}\n"
+            f"✅ ارسال موفق: {final_ok:,}\n"
+            f"❌ ناموفق: {final_fail:,}"
+        )
+
+    await _render_broadcast_admin_status(
+        bot,
+        session_factory,
+        admin_id,
+        done_text,
+        kb_done.as_markup(),
+        log_detail=f"target={target} ok={final_ok} fail={final_fail} stopped={final_state == 'stopped'}",
+    )
+
+
+async def _run_bot_broadcast(
+    bot: Bot,
+    session_factory: Any,
+    admin_id: int,
+    lang: str,
+    target: str,
+    target_label: str,
+    draft: str,
+    photo_id: str | None,
+    recipient_ids: list[int],
+    bcast_id: str,
+    kb_cancel_markup: Any,
+) -> None:
+    """Execute bot broadcast sending loop via durable Redis task queue."""
+    cache = getattr(bot, "cache", None)
+    job = {
+        "job_id": bcast_id,
+        "kind": "bot",
+        "admin_id": admin_id,
+        "lang": lang,
+        "target": target,
+        "target_label": target_label,
+        "draft": draft,
+        "text": "",
+        "photo_id": photo_id,
+        "photo_raw": "",
+        "recipient_ids": [int(x) for x in recipient_ids],
+        "cursor_idx": 0,
+        "ok": int(ACTIVE_BROADCASTS[bcast_id].get("ok") or 0),
+        "fail": int(ACTIVE_BROADCASTS[bcast_id].get("fail") or 0),
+        "sent": [],
+        "status": "running",
+        "start_time": datetime.now(timezone.utc).isoformat(),
+    }
+
+    async def _sync_cb(_job: dict, _done: bool) -> None:
+        await _persist_broadcast_state(bot, bcast_id)
+
+    async def _progress_cb(j: dict) -> None:
+        cur_ok = int(j.get("ok") or 0)
+        cur_fail = int(j.get("fail") or 0)
+        live_text = (
+            f"🚀 <b>در حال ارسال همگانی...</b>\n\n"
+            f"🎯 مخاطبان: {target_label}\n"
+            f"👥 کل: {len(recipient_ids):,}\n"
+            f"✅ ارسال شده: {cur_ok:,} | ❌ ناموفق: {cur_fail:,}"
+        )
+        await _render_broadcast_admin_status(
+            bot, session_factory, admin_id, live_text, kb_cancel_markup
+        )
+
+    async def _complete_cb(j: dict) -> None:
+        await _on_recovered_bot_complete(bot, session_factory, j)
+
+    await execute_broadcast_job(
+        bot,
+        job,
+        cache=cache,
+        in_memory_ref=ACTIVE_BROADCASTS[bcast_id],
+        sync_status_fn=_sync_cb,
+        on_progress=_progress_cb,
+        on_complete=_complete_cb,
+    )
+
+
 @router.callback_query(F.data == BROADCAST_CONFIRM_KEY)
 async def broadcast_send(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
-    session: AsyncSession, state: FSMContext,
+    session: AsyncSession, state: FSMContext, session_factory=None,
 ):
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
@@ -178,6 +382,7 @@ async def broadcast_send(
         "target": target,
         "admin_id": call.from_user.id,
     }
+    await _persist_broadcast_state(bot, bcast_id)
 
     # Show initial running UI with Cancel button
     kb_cancel = InlineKeyboardBuilder()
@@ -194,99 +399,28 @@ async def broadcast_send(
     await call.answer("🚀 ارسال همگانی آغاز شد.")
     await render_menu(bot, user, user_repo, progress_text, kb_cancel.as_markup())
 
-    # Commit any pending session transaction before the network-heavy sending loop
-    # so the connection is not held 'idle in transaction' during broadcast.
+    # Commit and release request-scoped DB session before spawning background broadcast task.
     await session.commit()
 
-    safe_text = escape(draft) if draft else ""
-
-    for idx, tid in enumerate(recipient_ids, 1):
-        if ACTIVE_BROADCASTS[bcast_id]["status"] == "stopped":
-            break
-
-        try:
-            if photo_id:
-                sent_msg = await bot.send_photo(tid, photo=photo_id, caption=safe_text or None)
-            else:
-                sent_msg = await bot.send_message(tid, safe_text)
-            ACTIVE_BROADCASTS[bcast_id]["sent"].append((tid, sent_msg.message_id))
-            ACTIVE_BROADCASTS[bcast_id]["ok"] += 1
-        except Exception as exc:
-            from aiogram.exceptions import TelegramRetryAfter
-            if isinstance(exc, TelegramRetryAfter):
-                try:
-                    await asyncio.sleep(exc.retry_after + 1)
-                except Exception:
-                    pass
-                try:
-                    if photo_id:
-                        sent_msg = await bot.send_photo(tid, photo=photo_id, caption=safe_text or None)
-                    else:
-                        sent_msg = await bot.send_message(tid, safe_text)
-                    ACTIVE_BROADCASTS[bcast_id]["sent"].append((tid, sent_msg.message_id))
-                    ACTIVE_BROADCASTS[bcast_id]["ok"] += 1
-                    continue
-                except Exception:
-                    pass
-            # Fallback to text if photo failed
-            if photo_id and safe_text:
-                try:
-                    sent_msg = await bot.send_message(tid, safe_text)
-                    ACTIVE_BROADCASTS[bcast_id]["sent"].append((tid, sent_msg.message_id))
-                    ACTIVE_BROADCASTS[bcast_id]["ok"] += 1
-                    continue
-                except Exception:
-                    pass
-            ACTIVE_BROADCASTS[bcast_id]["fail"] += 1
-
-        if idx % 20 == 0:
-            await asyncio.sleep(1)
-            # Periodic status edit
-            if ACTIVE_BROADCASTS[bcast_id]["status"] == "running":
-                cur_ok = ACTIVE_BROADCASTS[bcast_id]["ok"]
-                cur_fail = ACTIVE_BROADCASTS[bcast_id]["fail"]
-                try:
-                    live_text = (
-                        f"🚀 <b>در حال ارسال همگانی...</b>\n\n"
-                        f"🎯 مخاطبان: {target_label}\n"
-                        f"👥 کل: {len(recipient_ids):,}\n"
-                        f"✅ ارسال شده: {cur_ok:,} | ❌ ناموفق: {cur_fail:,}"
-                    )
-                    await render_menu(bot, user, user_repo, live_text, kb_cancel.as_markup())
-                except Exception:
-                    pass
-
-    final_state = ACTIVE_BROADCASTS[bcast_id]["status"]
-    final_ok = ACTIVE_BROADCASTS[bcast_id]["ok"]
-    final_fail = ACTIVE_BROADCASTS[bcast_id]["fail"]
-    ACTIVE_BROADCASTS[bcast_id]["status"] = "finished" if final_state != "stopped" else "stopped"
-
-    await AdminLogRepository(session).log(
-        call.from_user.id, "broadcast", detail=f"target={target} ok={final_ok} fail={final_fail} stopped={final_state == 'stopped'}"
+    sf = session_factory or getattr(bot, "session_factory", None)
+    bg_task = asyncio.create_task(
+        _run_bot_broadcast(
+            bot=bot,
+            session_factory=sf,
+            admin_id=call.from_user.id,
+            lang=lang,
+            target=target,
+            target_label=target_label,
+            draft=draft,
+            photo_id=photo_id,
+            recipient_ids=recipient_ids,
+            bcast_id=bcast_id,
+            kb_cancel_markup=kb_cancel.as_markup(),
+        ),
+        name=f"bot-broadcast-{bcast_id}",
     )
-
-    kb_done = InlineKeyboardBuilder()
-    if len(ACTIVE_BROADCASTS[bcast_id]["sent"]) > 0:
-        kb_done.button(text="🗑 پاک‌کردن پیام‌های ارسال‌شده", callback_data=f"adm:bcast:del:{bcast_id}")
-    kb_done.button(text=t(lang, "btn_back"), callback_data="menu:admin")
-    kb_done.adjust(1)
-
-    if final_state == "stopped":
-        done_text = (
-            f"🛑 <b>ارسال همگانی متوقف شد.</b>\n\n"
-            f"✅ ارسال‌شده تا توقف: {final_ok:,}\n"
-            f"❌ ناموفق: {final_fail:,}\n\n"
-            f"می‌توانید پیام‌های ارسال شده را از چت کاربران پاک کنید."
-        )
-    else:
-        done_text = (
-            f"✅ <b>ارسال همگانی با موفقیت پایان یافت.</b>\n\n"
-            f"🎯 مخاطبان: {target_label}\n"
-            f"✅ ارسال موفق: {final_ok:,}\n"
-            f"❌ ناموفق: {final_fail:,}"
-        )
-
-    await render_menu(bot, user, user_repo, done_text, kb_done.as_markup())
+    _BACKGROUND_TASKS.add(bg_task)
+    bg_task.add_done_callback(_BACKGROUND_TASKS.discard)
 
 
 @router.callback_query(F.data.startswith("adm:bcast:stop:"))
@@ -297,9 +431,11 @@ async def broadcast_stop_handler(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     bcast_id = call.data.removeprefix("adm:bcast:stop:")
-    task = ACTIVE_BROADCASTS.get(bcast_id)
+    task = await _load_broadcast_state(bot, bcast_id)
     if task and task.get("status") == "running":
         task["status"] = "stopped"
+        await _persist_broadcast_state(bot, bcast_id)
+        await request_job_stop(getattr(bot, "cache", None), bcast_id)
         await call.answer("🛑 دستور توقف ارسال همگانی صادر شد.", show_alert=True)
     else:
         await call.answer("ارسال در حال اجرا نیست یا به پایان رسیده است.", show_alert=True)
@@ -313,7 +449,7 @@ async def broadcast_revoke_handler(
         await call.answer(t("fa", "not_authorized"), show_alert=True)
         return
     bcast_id = call.data.removeprefix("adm:bcast:del:")
-    task = ACTIVE_BROADCASTS.get(bcast_id)
+    task = await _load_broadcast_state(bot, bcast_id)
     if not task:
         await call.answer("اطلاعات این ارسال یافت نشد.", show_alert=True)
         return
@@ -336,6 +472,7 @@ async def broadcast_revoke_handler(
 
     task["sent"] = []
     task["status"] = "revoked"
+    await _persist_broadcast_state(bot, bcast_id)
     user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
     lang = user.language
 

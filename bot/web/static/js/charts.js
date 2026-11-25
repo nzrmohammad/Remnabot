@@ -21,7 +21,13 @@ function ensureChart() {
         return;
       }
       const s = document.createElement('script');
-      s.src = '/static/js/chart.umd.min.js';
+      let assetVer = '';
+      const refScript = document.querySelector('script[src*="/static/js/"][src*="?v="]');
+      if (refScript) {
+        const m = String(refScript.getAttribute('src') || '').match(/\?v=([a-zA-Z0-9_.-]+)/);
+        if (m) assetVer = `?v=${m[1]}`;
+      }
+      s.src = `/static/js/chart.umd.min.js${assetVer}`;
       s.async = true;
       s.onload = () => resolve(window.Chart);
       s.onerror = (e) => {

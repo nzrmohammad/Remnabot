@@ -146,24 +146,81 @@ async def stars_successful_payment_handler(
             pass
         return
 
-    # 1. Validate expiration timestamp
-    import time
+    # 1. Validate expiration timestamp (refund user if payment settled right after deadline)
     if exp_ts and time.time() > exp_ts:
         logger.warning(
             "Expired Stars payment received for charge_id %s (exp_ts=%s, now=%s)",
             sp.telegram_payment_charge_id, exp_ts, int(time.time()),
         )
+        refunded_hash = f"refunded_expired:{sp.telegram_payment_charge_id}"
+        expired_hash = f"expired:{sp.telegram_payment_charge_id}"
+        existing_exp = await session.execute(
+            select(Topup).where(Topup.receipt_hash.in_([refunded_hash, expired_hash]))
+        )
+        if existing_exp.scalar_one_or_none():
+            return
+
+        refunded = False
+        refund_err: Exception | None = None
+        if hasattr(bot, "refund_star_payment") and sp.telegram_payment_charge_id:
+            try:
+                await bot.refund_star_payment(
+                    user_id=user_tid,
+                    telegram_payment_charge_id=sp.telegram_payment_charge_id,
+                )
+                refunded = True
+            except Exception as exc:
+                refund_err = exc
+                logger.exception("Failed to refund expired Stars payment %s: %s", sp.telegram_payment_charge_id, exc)
+
         try:
-            mismatch_topup = Topup(
+            exp_topup = Topup(
                 telegram_id=user_tid,
                 amount=amount_toman,
-                status="rejected",
-                receipt_hash=f"expired:{sp.telegram_payment_charge_id}",
+                status=TopupStatus.REJECTED.value,
+                receipt_hash=refunded_hash if refunded else expired_hash,
+                decided_at=datetime.now(timezone.utc) if refunded else None,
             )
-            session.add(mismatch_topup)
+            session.add(exp_topup)
             await session.commit()
         except Exception as rec_err:
+            await session.rollback()
             logger.warning("Failed to record expired stars topup: %s", rec_err)
+
+        try:
+            if refunded:
+                await bot.send_message(
+                    chat_id=user_tid,
+                    text=(
+                        "⚠️ <b>مهلت پرداخت فاکتور استارز به پایان رسیده بود</b>\n\n"
+                        f"⭐️ مبلغ <b>{sp.total_amount:,} XTR</b> به‌صورت خودکار به حساب استارز تلگرام شما بازگردانده شد.\n"
+                        "لطفاً در صورت تمایل یک فاکتور جدید ایجاد نمایید."
+                    ),
+                )
+            else:
+                await bot.send_message(
+                    chat_id=user_tid,
+                    text=(
+                        "⚠️ <b>مهلت پرداخت فاکتور استارز به پایان رسیده بود</b>\n\n"
+                        "بازگشت خودکار استارز با خطا مواجه شد. لطفاً با ارسال شناسه زیر به پشتیبانی اطلاع دهید:\n"
+                        f"<code>{escape(str(sp.telegram_payment_charge_id))}</code>"
+                    ),
+                )
+        except Exception as msg_err:
+            logger.warning("Failed notifying user %s about expired Stars payment: %s", user_tid, msg_err)
+
+        if not refunded:
+            try:
+                from bot.services.error_reporter import report_error
+                await report_error(
+                    bot,
+                    session=session,
+                    exc=refund_err or f"Expired Stars payment without auto-refund: charge_id={sp.telegram_payment_charge_id}",
+                    context=f"Expired Stars payment refund failed for user={user_tid} amount={amount_toman}",
+                    user_id=user_tid,
+                )
+            except Exception:
+                pass
         return
 
     # 2. Idempotency guard: prevent duplicate crediting via payload nonce or telegram charge ID

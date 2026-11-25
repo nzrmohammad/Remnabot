@@ -336,7 +336,9 @@ class RemnawaveUsersMixin:
         try:
             resp = await self._client.patch("/api/users", json=payload)
             resp.raise_for_status()
-            return resp.json().get("response")
+            data = resp.json()
+            result = data.get("response") if isinstance(data, dict) else data
+            return result if result is not None else {}
         except httpx.HTTPError as exc:
             logger.error("Remnawave set_user_squads error (user_id=%s): %s", user_id, exc)
             return None

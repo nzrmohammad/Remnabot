@@ -36,15 +36,24 @@ def _mask_url(url: str) -> str:
 
 
 def _is_internal_host(hostname: str | None) -> bool:
-    """Check if host is an internal docker or private network address."""
+    """Check if host is an internal docker, local, link-local, metadata, or private network address."""
     if not hostname:
         return False
-    clean = hostname.strip().lower()
-    if clean in ("127.0.0.1", "localhost", "remnawave", "remnawave-subscription-page", "subscription-page"):
+    clean = hostname.strip().lower().rstrip(".")
+    if clean in ("127.0.0.1", "::1", "localhost", "remnawave", "remnawave-subscription-page", "subscription-page"):
+        return True
+    if clean.endswith((".local", ".internal", ".localhost")):
         return True
     try:
         ip = ipaddress.ip_address(clean)
-        return ip.is_private or ip.is_loopback
+        return (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_unspecified
+            or ip.is_multicast
+            or ip.is_reserved
+        )
     except ValueError:
         return False
 

@@ -84,6 +84,7 @@ class Settings(BaseSettings):
 
     # --- Backup & Security ---
     BACKUP_PASSWORD: str = ""
+    SENTRY_DSN: str = ""               # Optional Sentry DSN for production error tracking
 
     @field_validator("ADMIN_IDS", mode="before")
     @classmethod

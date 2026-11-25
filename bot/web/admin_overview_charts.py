@@ -63,26 +63,34 @@ async def _calc_sales_trends(session, now_utc: datetime) -> tuple[list[str], lis
     return sales_7d_labels, sales_7d_data, sales_30d_labels, sales_30d_data
 
 
+_MAX_BW_SERIES_USERS = 40
+_BW_SERIES_TIMEOUT_SECONDS = 12.0
+
+
 async def _fetch_user_bandwidth_series(remnawave, panel_users: list[dict], start_ds: str, end_ds: str):
-    """Fetch live 7-day bandwidth stats for top active users concurrently."""
+    """Fetch live 7-day bandwidth stats for top active users concurrently (bounded)."""
     daily_bytes_sum = [0] * 7
     has_real_stats = False
     active_uids = [
         int(u["id"])
         for u in sorted(panel_users, key=lambda x: get_used_bytes(x), reverse=True)
         if u.get("id") and get_used_bytes(u) > 0
-    ]
+    ][:_MAX_BW_SERIES_USERS]
     user_today_country_bytes: dict[str, int] = {}
     user_today_total_bytes = 0
 
     if hasattr(remnawave, "get_user_bandwidth_stats") and active_uids:
         try:
             sem = asyncio.Semaphore(10)
+
             async def _fetch_bw(uid: int):
                 async with sem:
                     return await remnawave.get_user_bandwidth_stats(uid, start_ds, end_ds)
 
-            bw_results = await asyncio.gather(*[_fetch_bw(uid) for uid in active_uids], return_exceptions=True)
+            bw_results = await asyncio.wait_for(
+                asyncio.gather(*[_fetch_bw(uid) for uid in active_uids], return_exceptions=True),
+                timeout=_BW_SERIES_TIMEOUT_SECONDS,
+            )
             for r in bw_results:
                 if isinstance(r, list):
                     for s in r:
@@ -143,45 +151,73 @@ async def calc_sales_and_traffic_charts(
         traffic_total_gb = round(sum(chart_traffic_data), 2)
         is_traffic_real = bool(cached_traffic.get("is_real", True))
     else:
-        start_ds = (now_tehran - timedelta(days=6)).strftime("%Y-%m-%d")
-        end_ds = now_tehran.strftime("%Y-%m-%d")
-        daily_bytes_sum, has_real_stats, user_today_country_bytes, user_today_total_bytes = (
-            await _fetch_user_bandwidth_series(remnawave, panel_users, start_ds, end_ds)
-        )
-        for cc, val in user_today_country_bytes.items():
-            if cc:
-                country_node_bytes[cc] = max(country_node_bytes.get(cc, 0), val)
+        snapshot_daily_gb = [0.0] * 7
+        has_snapshot_7d = False
+        if not is_refresh:
+            try:
+                snap_rows = await TrafficSnapshotRepository(session).get_last_hours(24 * 7, now_utc)
+                date_to_idx = {d.strftime("%Y-%m-%d"): idx for idx, d in enumerate(days_list)}
+                daily_bytes_snap = [0] * 7
+                for row in snap_rows:
+                    r_ts = row.timestamp
+                    r_local = r_ts.astimezone(tehran_tz) if r_ts.tzinfo else r_ts.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+                    ds_key = r_local.strftime("%Y-%m-%d")
+                    if ds_key in date_to_idx:
+                        daily_bytes_snap[date_to_idx[ds_key]] += max(0, int(row.delta_bytes or 0))
+                if sum(daily_bytes_snap) > 0:
+                    snapshot_daily_gb = [round(b / (1024 ** 3), 2) for b in daily_bytes_snap]
+                    has_snapshot_7d = True
+            except Exception as snap_err:
+                logger.debug("Snapshot 7d fallback read failed: %s", snap_err)
 
-        today_cluster_bytes = sum(country_node_bytes.values()) if country_node_bytes else max(total_node_today_bytes, user_today_total_bytes)
-        today_cluster_gb = round(today_cluster_bytes / (1024 ** 3), 2)
-
-        if has_real_stats and sum(daily_bytes_sum) > 0:
-            chart_traffic_data = [round(b / (1024 ** 3), 2) for b in daily_bytes_sum]
-            chart_traffic_data[6] = today_cluster_gb
-            traffic_total_gb = round(sum(chart_traffic_data), 2)
-            is_traffic_real = True
-        else:
-            today_ds = now_tehran.strftime("%Y-%m-%d")
-            await cache.set(f"analytics:traffic:snapshot:{today_ds}", total_traffic_gb, ttl_seconds=86400 * 30)
-            snapshot_deltas: list[float] = []
-            for i in range(6, -1, -1):
-                target_ds = (now_tehran - timedelta(days=i)).strftime("%Y-%m-%d")
-                prev_ds = (now_tehran - timedelta(days=i + 1)).strftime("%Y-%m-%d")
-                s_curr = await cache.get(f"analytics:traffic:snapshot:{target_ds}")
-                s_prev = await cache.get(f"analytics:traffic:snapshot:{prev_ds}")
-                if s_curr is not None and s_prev is not None:
-                    snapshot_deltas.append(round(max(0.0, float(s_curr) - float(s_prev)), 2))
-                else:
-                    break
-
-            chart_traffic_data = [0.0] * 7
-            for idx, val in enumerate(snapshot_deltas):
-                if idx < 7:
-                    chart_traffic_data[idx] = val
+        if has_snapshot_7d:
+            today_cluster_bytes = sum(country_node_bytes.values()) if country_node_bytes else total_node_today_bytes
+            today_cluster_gb = round(today_cluster_bytes / (1024 ** 3), 2) if today_cluster_bytes > 0 else snapshot_daily_gb[6]
+            chart_traffic_data = snapshot_daily_gb
             if today_cluster_gb > 0:
                 chart_traffic_data[6] = today_cluster_gb
             traffic_total_gb = round(sum(chart_traffic_data), 2)
-            is_traffic_real = len(snapshot_deltas) >= 7
+            is_traffic_real = True
+        else:
+            start_ds = (now_tehran - timedelta(days=6)).strftime("%Y-%m-%d")
+            end_ds = now_tehran.strftime("%Y-%m-%d")
+            daily_bytes_sum, has_real_stats, user_today_country_bytes, user_today_total_bytes = (
+                await _fetch_user_bandwidth_series(remnawave, panel_users, start_ds, end_ds)
+            )
+            for cc, val in user_today_country_bytes.items():
+                if cc:
+                    country_node_bytes[cc] = max(country_node_bytes.get(cc, 0), val)
+
+            today_cluster_bytes = sum(country_node_bytes.values()) if country_node_bytes else max(total_node_today_bytes, user_today_total_bytes)
+            today_cluster_gb = round(today_cluster_bytes / (1024 ** 3), 2)
+
+            if has_real_stats and sum(daily_bytes_sum) > 0:
+                chart_traffic_data = [round(b / (1024 ** 3), 2) for b in daily_bytes_sum]
+                chart_traffic_data[6] = today_cluster_gb
+                traffic_total_gb = round(sum(chart_traffic_data), 2)
+                is_traffic_real = True
+            else:
+                today_ds = now_tehran.strftime("%Y-%m-%d")
+                await cache.set(f"analytics:traffic:snapshot:{today_ds}", total_traffic_gb, ttl_seconds=86400 * 30)
+                snapshot_deltas: list[float] = []
+                for i in range(6, -1, -1):
+                    target_ds = (now_tehran - timedelta(days=i)).strftime("%Y-%m-%d")
+                    prev_ds = (now_tehran - timedelta(days=i + 1)).strftime("%Y-%m-%d")
+                    s_curr = await cache.get(f"analytics:traffic:snapshot:{target_ds}")
+                    s_prev = await cache.get(f"analytics:traffic:snapshot:{prev_ds}")
+                    if s_curr is not None and s_prev is not None:
+                        snapshot_deltas.append(round(max(0.0, float(s_curr) - float(s_prev)), 2))
+                    else:
+                        break
+
+                chart_traffic_data = [0.0] * 7
+                for idx, val in enumerate(snapshot_deltas):
+                    if idx < 7:
+                        chart_traffic_data[idx] = val
+                if today_cluster_gb > 0:
+                    chart_traffic_data[6] = today_cluster_gb
+                traffic_total_gb = round(sum(chart_traffic_data), 2)
+                is_traffic_real = len(snapshot_deltas) >= 7
 
         await cache.set(
             "analytics:traffic:7day_series",

@@ -548,6 +548,37 @@ function hydrateAuthAvatars(rootEl) {
   });
 }
 
+const _qrBlobPromiseCache = new Map();
+function setAuthQrImage(imgEl, text) {
+  if (!imgEl || !text) return;
+  const qrUrl = `/api/user/qr?text=${encodeURIComponent(text)}`;
+  if (imgEl.dataset.qrKey === qrUrl && imgEl.src) return;
+  imgEl.dataset.qrKey = qrUrl;
+
+  if (!window.api || typeof window.api.getBlob !== 'function') {
+    imgEl.src = qrUrl;
+    return;
+  }
+
+  let promise = _qrBlobPromiseCache.get(qrUrl);
+  if (!promise) {
+    if (_qrBlobPromiseCache.size >= 40) {
+      const oldest = _qrBlobPromiseCache.keys().next().value;
+      _qrBlobPromiseCache.delete(oldest);
+    }
+    promise = window.api.getBlob(qrUrl).then(blob => (blob && blob.size > 0 ? URL.createObjectURL(blob) : '')).catch(() => '');
+    _qrBlobPromiseCache.set(qrUrl, promise);
+  }
+  promise.then(blobUrl => {
+    if (imgEl.dataset.qrKey !== qrUrl) return;
+    if (blobUrl) {
+      imgEl.src = blobUrl;
+    } else {
+      _qrBlobPromiseCache.delete(qrUrl);
+    }
+  });
+}
+
 if (typeof window !== 'undefined') {
   window.hapticFeedback = hapticFeedback;
   window.playSubtleSound = playSubtleSound;
@@ -556,6 +587,7 @@ if (typeof window !== 'undefined') {
   window.initScratchCard = initScratchCard;
   window.loadAvatarWithFallback = loadAvatarWithFallback;
   window.hydrateAuthAvatars = hydrateAuthAvatars;
+  window.setAuthQrImage = setAuthQrImage;
 }
 
 // Global delegated haptic feedback on switch toggles

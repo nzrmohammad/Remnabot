@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 
 from bot.db.models import AdminLog, Order
 from bot.db.repositories.node_cost_repo import NodeCostRepository
+from bot.services.configs import _is_internal_host
 from bot.services.ssl_checker import (
     add_custom_ssl_domain,
     check_domain_ssl,
@@ -671,26 +672,37 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
 
     original_host = host.strip()
     is_https = original_host.startswith("https://")
-    clean_host = original_host.replace("http://", "").replace("https://", "").split("/")[0].split(":")[0].strip()
+    clean_host = original_host.replace("http://", "").replace("https://", "").split("/")[0].split(":")[0].strip("[] ")
     if not clean_host:
         return web.json_response({"ok": False, "error": "آدرس نامعتبر است."}, status=400)
+    if _is_internal_host(clean_host):
+        return web.json_response({"ok": False, "error": "بررسی آدرس‌های داخلی و خصوصی مجاز نیست."}, status=400)
 
     logger.info(
         "Admin network check requested: admin_id=%s host=%s check_type=%s port=%s",
         admin.get("id"), clean_host, check_type, port_val,
     )
 
-    # Validate DNS existence for hostnames before testing
+    # Validate DNS existence and block internal/metadata SSRF targets for hostnames before testing
     is_ip = False
     try:
         socket.inet_aton(clean_host)
         is_ip = True
     except OSError:
-        pass
+        try:
+            socket.inet_pton(socket.AF_INET6, clean_host)
+            is_ip = True
+        except OSError:
+            pass
 
     if not is_ip:
         try:
-            await asyncio.get_running_loop().getaddrinfo(clean_host, None)
+            addr_info = await asyncio.get_running_loop().getaddrinfo(clean_host, None)
+            if any(_is_internal_host(str(entry[4][0])) for entry in addr_info if entry and entry[4]):
+                return web.json_response(
+                    {"ok": False, "error": "دامنه به آدرس داخلی یا خصوصی اشاره دارد و مجاز نیست."},
+                    status=400,
+                )
         except Exception:
             return web.json_response({
                 "ok": True,

@@ -59,13 +59,10 @@ def _as_utc(dt: datetime | None) -> datetime:
 
 
 async def _invalidate_user_caches(cache: FastCache | None, telegram_id: int | str) -> None:
-    """Invalidate profile, dashboard, and top-up caches for a user across top-up actions."""
-    if not cache:
-        return
-    await cache.delete(f"tma:user:{telegram_id}:profile")
-    await cache.delete(f"tma:user:{telegram_id}:dashboard")
-    await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
-    await cache.delete(f"tma:user:{telegram_id}:topup_info")
+    """Invalidate all per-user TMA caches across top-up actions."""
+    from bot.web.cache import invalidate_user_cache
+
+    await invalidate_user_cache(cache, telegram_id)
 
 
 def _manual_block_payload(block_info: dict | None) -> dict[str, Any]:
@@ -1113,15 +1110,17 @@ async def post_user_topup_trx_verify(request: web.Request) -> web.Response:
             w = await wallet_repo.get_wallet(telegram_id)
             return web.json_response({"ok": True, "paid": True, "new_balance": (w.balance if w else 0), "message": "این فاکتور قبلاً تسویه شده است."})
 
-        from bot.services.crypto.trx import verify_and_credit_trx_invoice
+        from bot.services.crypto.trx import notify_trx_credit, verify_and_credit_trx_invoice
         ok, new_bal, msg = await verify_and_credit_trx_invoice(
             session=session,
             invoice=inv,
             tx_hash=tx_hash,
             bot=request.app.get("bot"),
+            notify=False,
         )
         if ok:
             await session.commit()
+            await notify_trx_credit(request.app.get("bot"), session, inv, new_bal, tx_hash)
             await _invalidate_user_caches(cache, telegram_id)
             return web.json_response({
                 "ok": True,
@@ -1283,15 +1282,17 @@ async def post_user_topup_pol_verify(request: web.Request) -> web.Response:
             w = await wallet_repo.get_wallet(telegram_id)
             return web.json_response({"ok": True, "paid": True, "new_balance": (w.balance if w else 0), "message": "این فاکتور قبلاً تسویه شده است."})
 
-        from bot.services.crypto.pol import verify_and_credit_pol_invoice
+        from bot.services.crypto.pol import notify_pol_credit, verify_and_credit_pol_invoice
         ok, new_bal, msg = await verify_and_credit_pol_invoice(
             session=session,
             invoice=inv,
             tx_hash=tx_hash,
             bot=request.app.get("bot"),
+            notify=False,
         )
         if ok:
             await session.commit()
+            await notify_pol_credit(request.app.get("bot"), session, inv, new_bal, tx_hash)
             await _invalidate_user_caches(cache, telegram_id)
             return web.json_response({
                 "ok": True,
@@ -1358,7 +1359,12 @@ async def get_user_topup_trx_redirect(request: web.Request) -> web.Response:
     safe_tron_uri = html.escape(tron_uri)
     safe_addr = html.escape(address)
     safe_amt = html.escape(amount)
-    safe_tronlink_url_js = json.dumps(tronlink_url)
+    safe_tronlink_url_js = (
+        json.dumps(tronlink_url)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+    )
 
     page_html = f"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -2025,6 +2031,13 @@ async def post_webhook_sms(request: web.Request) -> web.Response:
             "SMS webhook processed from %s (sender=%r): action=%s ok=%s",
             peer_ip, sender, result.get("action"), result.get("ok"),
         )
+        try:
+            from bot.services.panel_snapshot import record_subsystem_heartbeat
+            await record_subsystem_heartbeat(
+                cache, "sms_webhook", status="ok", detail=str(result.get("action") or "processed")
+            )
+        except Exception:
+            pass
         await session.commit()
         return web.json_response(result)
 

@@ -5,12 +5,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-remnabot}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-remnabot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-remnabot}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-remnabot}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-remnabot} -d ${POSTGRES_DB:-remnabot}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -19,7 +19,7 @@ services:
     image: redis:7-alpine
     container_name: remnawave-bot-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-remnabot_redis_secret}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
     volumes:
       - redisdata:/data
     networks:
@@ -32,8 +32,8 @@ services:
     stop_grace_period: 30s
     env_file: .env
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-remnabot}:${POSTGRES_PASSWORD:-remnabot}@db:5432/${POSTGRES_DB:-remnabot}}
-      REDIS_URL: ${REDIS_URL:-redis://:${REDIS_PASSWORD:-remnabot_redis_secret}@redis:6379/0}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-remnabot}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-remnabot}}
+      REDIS_URL: ${REDIS_URL:-redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}@redis:6379/0}
     # Connects to Remnawave panel running on host or Docker via host.docker.internal
     volumes:
       - botbackups:/app/backups

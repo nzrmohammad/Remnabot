@@ -21,7 +21,7 @@ from bot.services.formatting import format_date, format_datetime, now_tz, parse_
 from bot.services.menu import render_menu
 from bot.services.remnawave import RemnawaveClient
 from bot.states.profile import ProfileStates
-from bot.web.cache import FastCache
+from bot.web.cache import FastCache, invalidate_user_cache
 
 router = Router(name="profile")
 
@@ -231,11 +231,7 @@ async def process_birthday_input(
     user.birth_date = formatted_date
     await session.commit()
 
-    if cache and hasattr(cache, "delete"):
-        await cache.delete(f"tma:user:{user.telegram_id}")
-        await cache.delete(f"tma:user:{user.telegram_id}:dashboard:default")
-        await cache.delete(f"tma:user:{user.telegram_id}:dashboard")
-        await cache.delete(f"tma:user:{user.telegram_id}:profile")
+    await invalidate_user_cache(cache, user.telegram_id)
 
     tz = get_settings().TIMEZONE
     days_left = days_until_jalali_birthday(formatted_date, tz)

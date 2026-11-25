@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.common import admin_thread_kwargs
@@ -31,6 +31,7 @@ from bot.db.models import (
     ReportSettings,
     RetentionState,
     Service,
+    SupportChatMessage,
     SupportMessage,
     Topup,
     TopupStatus,
@@ -62,6 +63,28 @@ def _json_serializer(obj):
     return str(obj)
 
 
+_SERIAL_ID_MODELS = (
+    User, Service, Order, Topup, CryptoInvoice, Coupon, CouponUsage,
+    ReferralReward, AdminLog, KnownDevice, CardAutoInvoice, BankSmsLog,
+    NodeCost, HourlyTrafficSnapshot, Campaign, GiftCard,
+)
+
+
+async def _sync_postgres_sequences(session: AsyncSession) -> None:
+    """Advance PostgreSQL serial sequences past max(id) after explicit-ID restores."""
+    bind = session.get_bind() if hasattr(session, "get_bind") else getattr(session, "bind", None)
+    dialect = getattr(bind, "dialect", None)
+    if getattr(dialect, "name", None) != "postgresql":
+        return
+    for model in _SERIAL_ID_MODELS:
+        max_id = (await session.execute(select(func.max(model.id)))).scalar_one_or_none()
+        if max_id is not None:
+            await session.execute(
+                text("SELECT setval(pg_get_serial_sequence(:tbl, 'id'), :val, true)"),
+                {"tbl": model.__tablename__, "val": int(max_id)},
+            )
+
+
 async def _stream_all(session: AsyncSession, statement, yield_per: int = 500) -> list:
     """Fetch rows using stream_scalars with yield_per for memory efficiency, with fallback to execute."""
     if hasattr(session, "stream_scalars"):
@@ -90,16 +113,20 @@ async def create_database_backup(
             "id": u.id,
             "telegram_id": u.telegram_id,
             "username": u.username,
+            "full_name": u.full_name,
             "language": u.language,
             "is_verified": u.is_verified,
             "is_banned": u.is_banned,
             "has_claimed_trial": u.has_claimed_trial,
             "referred_by_id": u.referred_by_id,
+            "campaign_code": getattr(u, "campaign_code", None),
             "phone_number": u.phone_number,
             "birth_date": _serialize_val(u.birth_date),
             "auto_renew": u.auto_renew,
+            "menu_message_id": getattr(u, "menu_message_id", None),
             "wheel_last_spin_at": _serialize_val(u.wheel_last_spin_at),
             "wheel_streak": u.wheel_streak,
+            "spin_tickets": getattr(u, "spin_tickets", 0),
             "last_active_at": _serialize_val(u.last_active_at),
             "created_at": _serialize_val(u.created_at),
         }
@@ -142,6 +169,8 @@ async def create_database_backup(
         {
             "id": s.id,
             "name": s.name,
+            "description": getattr(s, "description", None),
+            "badge": getattr(s, "badge", None),
             "price": s.price,
             "duration_days": s.duration_days,
             "traffic_gb": s.traffic_gb,
@@ -149,6 +178,9 @@ async def create_database_backup(
             "traffic_strategy": s.traffic_strategy,
             "hwid_limit": s.hwid_limit,
             "squad_uuid": s.squad_uuid,
+            "max_purchases": getattr(s, "max_purchases", None),
+            "purchases_count": getattr(s, "purchases_count", 0),
+            "sort_order": getattr(s, "sort_order", 0),
         }
         for s in services_res.scalars().all()
     ]
@@ -250,6 +282,19 @@ async def create_database_backup(
             "created_at": _serialize_val(sm.created_at),
         }
         for sm in support_res.scalars().all()
+    ]
+
+    support_chat_res = await session.execute(select(SupportChatMessage))
+    support_chat_messages = [
+        {
+            "id": scm.id,
+            "telegram_id": scm.telegram_id,
+            "external_msg_id": scm.external_msg_id,
+            "sender": scm.sender,
+            "text": scm.text,
+            "created_at": _serialize_val(scm.created_at),
+        }
+        for scm in support_chat_res.scalars().all()
     ]
 
     # 12. AlertSettings
@@ -363,7 +408,7 @@ async def create_database_backup(
             "monthly_cost_toman": nc.monthly_cost_toman,
             "monthly_cost_eur": nc.monthly_cost_eur,
             "currency": nc.currency,
-            "due_date": nc.due_date,
+            "due_date": _serialize_val(nc.due_date),
             "notes": nc.notes,
             "alert_notified": nc.alert_notified,
             "created_at": _serialize_val(nc.created_at),
@@ -472,6 +517,7 @@ async def create_database_backup(
         "coupon_usages": coupon_usages,
         "referral_rewards": referral_rewards,
         "support_messages": support_messages,
+        "support_chat_messages": support_chat_messages,
         "alert_settings": alert_settings,
         "report_settings": report_settings,
         "admin_logs": admin_logs,
@@ -510,9 +556,11 @@ async def create_database_backup(
 
     if password:
         zip_path = await asyncio.to_thread(create_encrypted_backup_archive, file_path, password)
-        if zip_path:
+        if zip_path and zip_path.is_file():
             logger.info("Encrypted database backup created at %s", zip_path)
             return zip_path
+        file_path.unlink(missing_ok=True)
+        raise RuntimeError("Failed to create encrypted database backup archive")
 
     logger.info("Database backup created at %s", file_path)
     return file_path
@@ -576,6 +624,7 @@ async def restore_database_backup(
         "coupon_usages": 0,
         "referral_rewards": 0,
         "support_messages": 0,
+        "support_chat_messages": 0,
         "alert_settings": 0,
         "report_settings": 0,
         "admin_logs": 0,
@@ -608,30 +657,44 @@ async def restore_database_backup(
         existing_u = res.scalar_one_or_none()
         if existing_u:
             existing_u.username = u_data.get("username", existing_u.username)
+            if "full_name" in u_data:
+                existing_u.full_name = u_data.get("full_name")
             existing_u.language = u_data.get("language", existing_u.language)
             existing_u.is_verified = u_data.get("is_verified", existing_u.is_verified)
             existing_u.is_banned = u_data.get("is_banned", existing_u.is_banned)
             existing_u.has_claimed_trial = u_data.get("has_claimed_trial", existing_u.has_claimed_trial)
+            if "campaign_code" in u_data and not existing_u.campaign_code:
+                existing_u.campaign_code = u_data.get("campaign_code")
             existing_u.phone_number = u_data.get("phone_number", existing_u.phone_number)
             existing_u.birth_date = u_data.get("birth_date", existing_u.birth_date)
             existing_u.auto_renew = u_data.get("auto_renew", existing_u.auto_renew)
+            if "menu_message_id" in u_data and existing_u.menu_message_id is None:
+                existing_u.menu_message_id = u_data.get("menu_message_id")
             existing_u.wheel_streak = u_data.get("wheel_streak", existing_u.wheel_streak)
+            if "spin_tickets" in u_data:
+                existing_u.spin_tickets = int(u_data.get("spin_tickets") or 0)
             existing_u.wheel_last_spin_at = _parse_dt(u_data.get("wheel_last_spin_at")) or existing_u.wheel_last_spin_at
+            existing_u.last_active_at = _parse_dt(u_data.get("last_active_at")) or existing_u.last_active_at
         else:
             session.add(
                 User(
                     telegram_id=tid,
                     username=u_data.get("username"),
+                    full_name=u_data.get("full_name"),
                     language=u_data.get("language") or "fa",
                     is_verified=u_data.get("is_verified", False),
                     is_banned=u_data.get("is_banned", False),
                     has_claimed_trial=u_data.get("has_claimed_trial", False),
                     referred_by_id=u_data.get("referred_by_id"),
+                    campaign_code=u_data.get("campaign_code"),
                     phone_number=u_data.get("phone_number"),
                     birth_date=u_data.get("birth_date"),
                     auto_renew=u_data.get("auto_renew", False),
+                    menu_message_id=u_data.get("menu_message_id"),
                     wheel_streak=u_data.get("wheel_streak", 0),
+                    spin_tickets=int(u_data.get("spin_tickets") or 0),
                     wheel_last_spin_at=_parse_dt(u_data.get("wheel_last_spin_at")),
+                    last_active_at=_parse_dt(u_data.get("last_active_at")),
                     created_at=_parse_dt(u_data.get("created_at")),
                 )
             )
@@ -657,6 +720,10 @@ async def restore_database_backup(
         existing_s = await session.get(Service, s_id) if s_id else None
         if existing_s:
             existing_s.name = s_data.get("name", existing_s.name)
+            if "description" in s_data:
+                existing_s.description = s_data.get("description")
+            if "badge" in s_data:
+                existing_s.badge = s_data.get("badge")
             existing_s.price = s_data.get("price", existing_s.price)
             existing_s.duration_days = s_data.get("duration_days", existing_s.duration_days)
             existing_s.traffic_gb = s_data.get("traffic_gb", existing_s.traffic_gb)
@@ -664,11 +731,19 @@ async def restore_database_backup(
             existing_s.traffic_strategy = s_data.get("traffic_strategy", existing_s.traffic_strategy)
             existing_s.hwid_limit = s_data.get("hwid_limit", existing_s.hwid_limit)
             existing_s.squad_uuid = s_data.get("squad_uuid", existing_s.squad_uuid)
+            if "max_purchases" in s_data:
+                existing_s.max_purchases = s_data.get("max_purchases")
+            if "purchases_count" in s_data:
+                existing_s.purchases_count = int(s_data.get("purchases_count") or 0)
+            if "sort_order" in s_data:
+                existing_s.sort_order = int(s_data.get("sort_order") or 0)
         else:
             session.add(
                 Service(
                     id=s_id,
                     name=s_data.get("name", ""),
+                    description=s_data.get("description"),
+                    badge=s_data.get("badge"),
                     price=s_data.get("price", 0),
                     duration_days=s_data.get("duration_days", 30),
                     traffic_gb=s_data.get("traffic_gb", 0),
@@ -676,9 +751,14 @@ async def restore_database_backup(
                     traffic_strategy=s_data.get("traffic_strategy", "NO_RESET"),
                     hwid_limit=s_data.get("hwid_limit"),
                     squad_uuid=s_data.get("squad_uuid"),
+                    max_purchases=s_data.get("max_purchases"),
+                    purchases_count=int(s_data.get("purchases_count") or 0),
+                    sort_order=int(s_data.get("sort_order") or 0),
                 )
             )
         stats["services"] += 1
+
+    await session.flush()
 
     # 4. Orders
     for o_data in data.get("orders", []):
@@ -744,6 +824,8 @@ async def restore_database_backup(
                 )
             )
         stats["coupons"] += 1
+
+    await session.flush()
 
     # 6. App Settings
     settings_dict = data.get("settings", {})
@@ -848,6 +930,22 @@ async def restore_database_backup(
                 )
             )
             stats["support_messages"] += 1
+
+    for scm_data in data.get("support_chat_messages", []):
+        scm_id = scm_data.get("id")
+        existing_scm = await session.get(SupportChatMessage, scm_id) if scm_id else None
+        if not existing_scm:
+            session.add(
+                SupportChatMessage(
+                    id=scm_id,
+                    telegram_id=scm_data.get("telegram_id"),
+                    external_msg_id=scm_data.get("external_msg_id") or "",
+                    sender=scm_data.get("sender") or "user",
+                    text=scm_data.get("text") or "",
+                    created_at=_parse_dt(scm_data.get("created_at")),
+                )
+            )
+            stats["support_chat_messages"] += 1
 
     # 12. AlertSettings
     for a_data in data.get("alert_settings", []):
@@ -993,7 +1091,7 @@ async def restore_database_backup(
                     monthly_cost_toman=nc_data.get("monthly_cost_toman", 0),
                     monthly_cost_eur=nc_data.get("monthly_cost_eur", 0.0),
                     currency=nc_data.get("currency", "EUR"),
-                    due_date=nc_data.get("due_date"),
+                    due_date=_parse_dt(nc_data.get("due_date")),
                     notes=nc_data.get("notes"),
                     alert_notified=nc_data.get("alert_notified", False),
                     created_at=_parse_dt(nc_data.get("created_at")),
@@ -1061,7 +1159,33 @@ async def restore_database_backup(
             )
             stats["gift_cards"] += 1
 
-    # 23. CardAutoInvoice
+    # 23. BankSmsLog (insert without matched_invoice_id first to break circular FK)
+    deferred_sms_matches: list[tuple[int, int]] = []
+    for bsl_data in data.get("bank_sms_logs", []):
+        bsl_id = bsl_data.get("id")
+        existing_bsl = await session.get(BankSmsLog, bsl_id) if bsl_id else None
+        if not existing_bsl:
+            matched_inv_id = bsl_data.get("matched_invoice_id")
+            session.add(
+                BankSmsLog(
+                    id=bsl_id,
+                    sender=bsl_data.get("sender", ""),
+                    raw_message=bsl_data.get("raw_message", ""),
+                    sms_hash=bsl_data.get("sms_hash"),
+                    amount_toman=bsl_data.get("amount_toman"),
+                    bank_detected=bsl_data.get("bank_detected"),
+                    matched_invoice_id=None,
+                    processed=bsl_data.get("processed", False),
+                    created_at=_parse_dt(bsl_data.get("created_at")),
+                )
+            )
+            if bsl_id and matched_inv_id:
+                deferred_sms_matches.append((bsl_id, matched_inv_id))
+            stats["bank_sms_logs"] += 1
+
+    await session.flush()
+
+    # 24. CardAutoInvoice
     for cai_data in data.get("card_auto_invoices", []):
         inv_uuid = cai_data.get("invoice_uuid")
         if not inv_uuid:
@@ -1072,6 +1196,7 @@ async def restore_database_backup(
         if not existing_cai:
             session.add(
                 CardAutoInvoice(
+                    id=cai_data.get("id"),
                     invoice_uuid=inv_uuid,
                     telegram_id=cai_data.get("telegram_id"),
                     base_amount=cai_data.get("base_amount", 0),
@@ -1088,26 +1213,15 @@ async def restore_database_backup(
             )
             stats["card_auto_invoices"] += 1
 
-    # 24. BankSmsLog
-    for bsl_data in data.get("bank_sms_logs", []):
-        bsl_id = bsl_data.get("id")
-        existing_bsl = await session.get(BankSmsLog, bsl_id) if bsl_id else None
-        if not existing_bsl:
-            session.add(
-                BankSmsLog(
-                    id=bsl_id,
-                    sender=bsl_data.get("sender", ""),
-                    raw_message=bsl_data.get("raw_message", ""),
-                    sms_hash=bsl_data.get("sms_hash"),
-                    amount_toman=bsl_data.get("amount_toman"),
-                    bank_detected=bsl_data.get("bank_detected"),
-                    matched_invoice_id=bsl_data.get("matched_invoice_id"),
-                    processed=bsl_data.get("processed", False),
-                    created_at=_parse_dt(bsl_data.get("created_at")),
-                )
-            )
-            stats["bank_sms_logs"] += 1
+    if deferred_sms_matches:
+        await session.flush()
+        for bsl_id, matched_inv_id in deferred_sms_matches:
+            bsl_row = await session.get(BankSmsLog, bsl_id)
+            if bsl_row:
+                bsl_row.matched_invoice_id = matched_inv_id
 
+    await session.flush()
+    await _sync_postgres_sequences(session)
     await session.commit()
     logger.info("Database backup restored from %s: %s", path, stats)
     return stats
@@ -1212,7 +1326,6 @@ async def auto_backup_loop(bot, session_factory) -> None:
             admin_chat_id = settings.ADMIN_CHAT_ID
             if admin_chat_id:
                 async with session_factory() as session:
-                    raw_backup_path = await create_database_backup(session)
                     backup_pwd = (getattr(settings, "BACKUP_PASSWORD", "") or os.environ.get("BACKUP_PASSWORD", "") or "").strip()
                     if not backup_pwd:
                         logger.critical(
@@ -1236,7 +1349,7 @@ async def auto_backup_loop(bot, session_factory) -> None:
                             logger.warning("Failed alerting admin about missing BACKUP_PASSWORD: %s", alert_err)
                         continue
 
-                    backup_path = await asyncio.to_thread(create_encrypted_backup_archive, raw_backup_path, backup_pwd)
+                    backup_path = await create_database_backup(session, password=backup_pwd)
                     if not backup_path or not backup_path.is_file():
                         logger.error("Failed to generate encrypted backup archive.")
                         continue
@@ -1287,17 +1400,30 @@ async def auto_backup_loop(bot, session_factory) -> None:
 
                     topic_id = thread_kwargs.get("message_thread_id")
                     logger.info("Auto database backup delivered to %s (topic: %s)", admin_chat_id, topic_id)
-
-                    # Automated 7-day local backup retention cleanup
                     try:
+                        from bot.services.panel_snapshot import record_subsystem_heartbeat
+                        await record_subsystem_heartbeat(
+                            getattr(bot, "cache", None), "auto_backup", status="ok", detail=backup_path.name
+                        )
+                    except Exception:
+                        pass
+
+                    # Automated 7-day local backup & temporary receipt retention cleanup
+                    try:
+                        now_ts = datetime.now(timezone.utc).timestamp()
+                        retention_secs = 7 * 86400
                         backups_dir = Path("backups")
                         if backups_dir.exists():
-                            now_ts = datetime.now(timezone.utc).timestamp()
-                            retention_secs = 7 * 86400
                             for old_f in backups_dir.glob("remnabot_backup_*"):
                                 if old_f.is_file() and (now_ts - old_f.stat().st_mtime) > retention_secs:
                                     old_f.unlink(missing_ok=True)
                                     logger.info("Purged expired local backup file: %s", old_f.name)
+                        receipts_dir = Path("data/receipts")
+                        if receipts_dir.exists():
+                            for old_r in receipts_dir.glob("receipt_*"):
+                                if old_r.is_file() and (now_ts - old_r.stat().st_mtime) > retention_secs:
+                                    old_r.unlink(missing_ok=True)
+                                    logger.info("Purged expired local receipt file: %s", old_r.name)
                     except Exception as clean_err:
                         logger.warning("Error cleaning expired backups: %s", clean_err)
         except Exception as exc:

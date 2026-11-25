@@ -465,7 +465,11 @@ function setupConfigsModal() {
           window.currentModalQrUri = uri;
           const modalQrImg = $('modalQrImage');
           if (modalQrImg) {
-            modalQrImg.src = `/api/user/qr?text=${encodeURIComponent(uri)}`;
+            if (typeof window.setAuthQrImage === 'function') {
+              window.setAuthQrImage(modalQrImg, uri);
+            } else {
+              modalQrImg.src = `/api/user/qr?text=${encodeURIComponent(uri)}`;
+            }
           }
           openModal('qrModal');
           syncTelegramBackButton();
@@ -4074,7 +4078,7 @@ function hydrateUserInterface(data) {
       if (warningCard) warningCard.classList.add('hidden');
       if (verifyBtn) verifyBtn.classList.add('hidden');
       if (profPhone) {
-        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${toEnglishDigits(user.phone_number)}</span> <span class="inline-flex items-center justify-center select-none translate-y-1" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
+        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${escapeHtml(toEnglishDigits(user.phone_number))}</span> <span class="inline-flex items-center justify-center select-none translate-y-1" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
@@ -4552,11 +4556,19 @@ function hydrateUserInterface(data) {
       if (subDisplayEl && sub.subscription_url) subDisplayEl.innerText = sub.subscription_url;
       const qrImg = $('qrImage');
       if (qrImg && sub.subscription_url) {
-        qrImg.src = `/api/user/qr?text=${encodeURIComponent(sub.subscription_url)}`;
+        if (typeof window.setAuthQrImage === 'function') {
+          window.setAuthQrImage(qrImg, sub.subscription_url);
+        } else {
+          qrImg.src = `/api/user/qr?text=${encodeURIComponent(sub.subscription_url)}`;
+        }
       }
       const modalQrImg = $('modalQrImage');
       if (modalQrImg && sub.subscription_url) {
-        modalQrImg.src = `/api/user/qr?text=${encodeURIComponent(sub.subscription_url)}`;
+        if (typeof window.setAuthQrImage === 'function') {
+          window.setAuthQrImage(modalQrImg, sub.subscription_url);
+        } else {
+          modalQrImg.src = `/api/user/qr?text=${encodeURIComponent(sub.subscription_url)}`;
+        }
       }
     } else {
       // User has no active subscription -> Show Empty State!
@@ -4756,7 +4768,13 @@ function hydrateUserInterface(data) {
     const refLink = typeof window.buildRefLink === 'function' ? window.buildRefLink(botUsername, user.id) : '';
     window.currentReferralLink = refLink;
     if (storyQr && refLink) {
-      storyQr.src = `/api/user/qr?text=${encodeURIComponent(refLink)}`;
+      if (data.referral_qr_url) {
+        storyQr.src = data.referral_qr_url;
+      } else if (typeof window.setAuthQrImage === 'function') {
+        window.setAuthQrImage(storyQr, refLink);
+      } else {
+        storyQr.src = `/api/user/qr?text=${encodeURIComponent(refLink)}`;
+      }
     }
   });
 
@@ -4846,7 +4864,7 @@ function hydrateUserInterface(data) {
       if (repWeeklyTotal) repWeeklyTotal.innerHTML = fmtTraffic(sub.week_used_gb ?? '0.00', { html: true });
       const repWeeklyBusiest = $('repWeeklyBusiest');
       if (repWeeklyBusiest) {
-        repWeeklyBusiest.innerHTML = `${sub.busiest_day_name || '—'} <span class="font-sans t-accent font-bold num-bidi">(${fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false })})</span>`;
+        repWeeklyBusiest.innerHTML = `${escapeHtml(sub.busiest_day_name || '—')} <span class="font-sans t-accent font-bold num-bidi">(${escapeHtml(fmtTraffic(sub.busiest_day_amount || '0 GB', { html: false }))})</span>`;
       }
 
       if (typeof renderBarChart === 'function') {
@@ -5085,7 +5103,7 @@ function switchUserLbWeek(week) {
 }
 window.switchUserLbWeek = switchUserLbWeek;
 
-function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
+async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   if (leaderboardData) cachedUserLeaderboardData = leaderboardData;
 
   const avail = cachedUserLeaderboardData?.available_months || [];
@@ -5263,6 +5281,11 @@ function renderUserLeaderboard(leaderboardData, period = currentUserLbPeriod) {
   const isLight = document.documentElement.classList.contains('theme-light');
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
   const tickColor = isLight ? '#475569' : '#94a3b8';
+
+  if (typeof Chart === 'undefined' && typeof window.ensureChart === 'function') {
+    try { await window.ensureChart(); } catch (e) {}
+  }
+  if (typeof Chart === 'undefined') return;
 
   userLeaderboardChartInstance = new Chart(ctx, {
     type: 'bar',

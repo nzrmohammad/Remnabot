@@ -40,6 +40,7 @@ from bot.services.menu import render_menu
 from bot.services.purchases import execute_purchase
 from bot.services.remnawave import RemnawaveClient
 from bot.services.service_display import service_block
+from bot.web.cache import user_action_lock
 
 logger = logging.getLogger(__name__)
 router = Router(name="shop_purchase")
@@ -106,11 +107,13 @@ async def confirm_new_account(
     if service_id is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
-    if call.from_user.id in _PURCHASE_LOCKS:
-        await call.answer()
-        return
-    _PURCHASE_LOCKS.add(call.from_user.id)
-    try:
+    effective_cache = cache if cache is not None else getattr(bot, "cache", None)
+    async with user_action_lock(
+        effective_cache, call.from_user.id, "purchase", ttl_seconds=45, local_locks=_PURCHASE_LOCKS
+    ) as acquired:
+        if not acquired:
+            await call.answer()
+            return
         user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
         lang = user.language
 
@@ -152,8 +155,6 @@ async def confirm_new_account(
             cache=cache,
         )
         await call.answer()
-    finally:
-        _PURCHASE_LOCKS.discard(call.from_user.id)
 
 
 @router.callback_query(F.data.startswith("svc:view:"))
@@ -283,11 +284,13 @@ async def service_confirm(
     if service_id is None:
         await call.answer(t("fa", "acc_error"), show_alert=True)
         return
-    if call.from_user.id in _PURCHASE_LOCKS:
-        await call.answer()
-        return
-    _PURCHASE_LOCKS.add(call.from_user.id)
-    try:
+    effective_cache = cache if cache is not None else getattr(bot, "cache", None)
+    async with user_action_lock(
+        effective_cache, call.from_user.id, "purchase", ttl_seconds=45, local_locks=_PURCHASE_LOCKS
+    ) as acquired:
+        if not acquired:
+            await call.answer()
+            return
         user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
         lang = user.language
 
@@ -346,8 +349,6 @@ async def service_confirm(
             cache=cache,
         )
         await call.answer()
-    finally:
-        _PURCHASE_LOCKS.discard(call.from_user.id)
 
 __all__ = [
     "_PURCHASE_LOCKS",

@@ -97,11 +97,11 @@ class CryptoRepository:
             cand = base_units + k * step_units
             if cand not in used:
                 return cand
-        for k in range(max_steps + 1, max_steps + 300):
+        for k in range(max_steps + 1, max_steps + 500):
             cand = base_units + k * step_units
             if cand not in used:
                 return cand
-        return base_units + (1 + secrets.randbelow(max_steps)) * step_units
+        raise RuntimeError(f"Exhausted unique payment unit slots for currency={currency}")
 
     async def get_by_tx_hash(self, tx_hash: str) -> CryptoInvoice | None:
         if not tx_hash:
@@ -142,6 +142,15 @@ class CryptoRepository:
         expires_minutes: int = 60,
         currency: str = "TON",
     ) -> CryptoInvoice:
+        curr_units = nanotons
+        curr_amt_str = amount_ton
+        scale_map = {
+            "TON": (100_000, 1_000_000_000),
+            "TRX": (100, 1_000_000),
+            "POL": (100_000_000_000_000, 10**18),
+        }
+        step_units, denom = scale_map.get(currency, (1, 1))
+
         for attempt in range(5):
             comment = await self.generate_unique_comment()
             expires_at = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
@@ -149,24 +158,30 @@ class CryptoRepository:
             invoice = CryptoInvoice(
                 telegram_id=telegram_id,
                 amount_toman=amount_toman,
-                amount_ton=amount_ton,
-                nanotons=nanotons,
+                amount_ton=curr_amt_str,
+                nanotons=curr_units,
                 currency=currency,
                 comment=comment,
                 pay_address=pay_address,
                 status="pending",
                 expires_at=expires_at,
             )
-            self.session.add(invoice)
             try:
                 async with self.session.begin_nested():
+                    self.session.add(invoice)
                     await self.session.flush()
                 return invoice
             except IntegrityError:
-                self.session.expunge(invoice)
+                if invoice in self.session:
+                    self.session.expunge(invoice)
                 if attempt == 4:
                     raise
-        raise RuntimeError("Failed to generate unique comment after 5 attempts")
+                if curr_units is not None:
+                    used = await self.get_pending_nanotons(currency)
+                    if curr_units in used:
+                        curr_units = await self.allocate_unique_crypto_units(curr_units, step_units, currency)
+                        curr_amt_str = f"{curr_units / denom:.4f}"
+        raise RuntimeError("Failed to create unique crypto invoice after 5 attempts")
 
     async def mark_paid(
         self,

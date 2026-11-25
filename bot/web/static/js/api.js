@@ -4,6 +4,65 @@
  */
 
 const api = {
+  _lastSessionExpiredAt: 0,
+
+  notifySessionExpired() {
+    const now = Date.now();
+    if (now - this._lastSessionExpiredAt < 15000) return;
+    this._lastSessionExpiredAt = now;
+
+    if (typeof document !== 'undefined' && document.body && !document.getElementById('tmaSessionExpiredBanner')) {
+      const banner = document.createElement('div');
+      banner.id = 'tmaSessionExpiredBanner';
+      banner.dir = 'rtl';
+      banner.className = 'fixed top-4 left-4 right-4 z-[100] modal-card t-main border border-rose-500/30 rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3 max-w-lg mx-auto';
+
+      const textWrap = document.createElement('div');
+      textWrap.className = 'text-xs leading-relaxed font-semibold';
+      textWrap.textContent = 'نشست کاربری تلگرام منقضی شده است. لطفاً صفحه را بارگذاری مجدد کنید.';
+
+      const actions = document.createElement('div');
+      actions.className = 'flex items-center gap-2 shrink-0';
+
+      const reloadBtn = document.createElement('button');
+      reloadBtn.type = 'button';
+      reloadBtn.className = 'btn btn-primary text-xs px-3 py-1.5 rounded-xl';
+      reloadBtn.textContent = 'بارگذاری مجدد';
+      reloadBtn.addEventListener('click', () => {
+        window.location.reload();
+      });
+
+      if (window.Telegram?.WebApp?.close) {
+        const tgCloseBtn = document.createElement('button');
+        tgCloseBtn.type = 'button';
+        tgCloseBtn.className = 'btn btn-secondary text-xs px-2.5 py-1.5 rounded-xl';
+        tgCloseBtn.textContent = 'خروج';
+        tgCloseBtn.addEventListener('click', () => {
+          try { window.Telegram.WebApp.close(); } catch (e) { window.location.reload(); }
+        });
+        actions.appendChild(tgCloseBtn);
+      }
+
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'btn btn-secondary text-xs px-2.5 py-1.5 rounded-xl';
+      closeBtn.textContent = 'بستن';
+      closeBtn.addEventListener('click', () => {
+        banner.remove();
+      });
+
+      actions.appendChild(reloadBtn);
+      actions.appendChild(closeBtn);
+      banner.appendChild(textWrap);
+      banner.appendChild(actions);
+      document.body.appendChild(banner);
+    }
+
+    if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+      window.showToast('⚠️ نشست کاربری تلگرام منقضی شد. لطفاً صفحه را مجدداً باز کنید.', 'warning', 5000);
+    }
+  },
+
   getInitData() {
     if (window.Telegram?.WebApp?.initData) {
       return window.Telegram.WebApp.initData;
@@ -67,6 +126,9 @@ const api = {
         data._httpOk = response.ok;
       }
 
+      if (response.status === 401 && String(url || '').startsWith('/api/')) {
+        this.notifySessionExpired();
+      }
       if (!response.ok && response.status >= 500) {
         console.error('[api error]', options.method || 'GET', url, response.status, data);
       }
@@ -98,6 +160,9 @@ const api = {
     };
     const response = await fetch(url, { ...options, headers });
     if (!response.ok) {
+      if (response.status === 401 && String(url || '').startsWith('/api/')) {
+        this.notifySessionExpired();
+      }
       const err = new Error(`HTTP error ${response.status}`);
       err.status = response.status;
       throw err;
@@ -540,6 +605,14 @@ const api = {
 
   async getAsnPrefixes(asn) {
     return this.get(`/api/admin/tools/asn-prefixes?asn=${encodeURIComponent(asn)}`);
+  },
+
+  async getSystemHealth(forceRefresh = false) {
+    return this.get('/api/admin/system-health' + (forceRefresh ? '?refresh=1' : ''));
+  },
+
+  async runAdminReconcile() {
+    return this.post('/api/admin/reconcile/run', {});
   },
 
   haptic(type = 'success') {

@@ -48,6 +48,24 @@ def _extract_user_and_inner(
 
 
 class RateLimitMiddleware(BaseMiddleware):
+    def __init__(self, redis_client: Any = None, cache: Any = None) -> None:
+        self.redis_client = redis_client
+        self.cache = cache
+
+    def _resolve_redis(self, data: dict[str, Any]) -> Any:
+        if self.redis_client is not None:
+            return self.redis_client
+        if self.cache is not None and getattr(self.cache, "_redis", None) is not None:
+            return getattr(self.cache, "_redis", None)
+        data_cache = data.get("cache")
+        if data_cache is not None and getattr(data_cache, "_redis", None) is not None:
+            return getattr(data_cache, "_redis", None)
+        bot = data.get("bot")
+        bot_cache = getattr(bot, "cache", None) if bot is not None else None
+        if bot_cache is not None and getattr(bot_cache, "_redis", None) is not None:
+            return getattr(bot_cache, "_redis", None)
+        return None
+
     async def __call__(
         self,
         handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
@@ -65,11 +83,45 @@ class RateLimitMiddleware(BaseMiddleware):
         except Exception as exc:
             logger.warning("Failed to check admin status in rate_limit: %s", exc)
 
-        now = time.monotonic()
-        bucket = _buckets[uid]
-        while bucket and now - bucket[0] > WINDOW_SECONDS:
-            bucket.popleft()
-        if len(bucket) >= MAX_EVENTS:
+        rate_limited = False
+        redis_checked = False
+        redis = self._resolve_redis(data)
+        if redis is not None:
+            try:
+                rl_key = f"bot:rl:{uid}"
+                pipe = redis.pipeline()
+                pipe.incr(rl_key)
+                pipe.ttl(rl_key)
+                results = await pipe.execute()
+                count = int(results[0])
+                ttl = int(results[1])
+                if ttl < 0:
+                    await redis.expire(rl_key, int(WINDOW_SECONDS))
+                rate_limited = count > MAX_EVENTS
+                redis_checked = True
+            except Exception as exc:
+                logger.debug("Redis rate limit fallback to memory for user %s: %s", uid, exc)
+                redis_checked = False
+
+        if not redis_checked:
+            now = time.monotonic()
+            bucket = _buckets[uid]
+            while bucket and now - bucket[0] > WINDOW_SECONDS:
+                bucket.popleft()
+            if len(bucket) >= MAX_EVENTS:
+                rate_limited = True
+            else:
+                bucket.append(now)
+            # Bound memory: gracefully prune idle users without wiping active limits.
+            if len(_buckets) > 10000:
+                stale = [u for u, b in _buckets.items() if not b or now - b[-1] > WINDOW_SECONDS]
+                for u in stale:
+                    del _buckets[u]
+                if len(_buckets) > 10000:
+                    for u in list(_buckets.keys())[:2500]:
+                        del _buckets[u]
+
+        if rate_limited:
             logger.warning("rate-limited user %s", uid)
             if isinstance(inner, CallbackQuery):
                 try:
@@ -79,13 +131,4 @@ class RateLimitMiddleware(BaseMiddleware):
                 except Exception:
                     pass
             return None
-        bucket.append(now)
-        # Bound memory: gracefully prune idle users without wiping active limits.
-        if len(_buckets) > 10000:
-            stale = [u for u, b in _buckets.items() if not b or now - b[-1] > WINDOW_SECONDS]
-            for u in stale:
-                del _buckets[u]
-            if len(_buckets) > 10000:
-                for u in list(_buckets.keys())[:2500]:
-                    del _buckets[u]
         return await handler(event, data)

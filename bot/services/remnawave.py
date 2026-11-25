@@ -16,6 +16,8 @@ from bot.services.remnawave_users import RemnawaveUsersMixin
 
 logger = logging.getLogger(__name__)
 
+_IDEMPOTENT_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"})
+
 # Reusable tenacity retry decorator for transient network failures
 panel_retry = retry(
     stop=stop_after_attempt(3),
@@ -37,8 +39,17 @@ class RemnawaveClient(RemnawaveUsersMixin, RemnawaveHwidMixin, RemnawaveSystemMi
             },
             timeout=timeout,
         )
-        # Protect all HTTP calls across mixins with exponential backoff on transient errors
-        self._client.request = panel_retry(self._client.request)
+        # Retry idempotent requests on transient errors without duplicating non-idempotent POST calls
+        raw_request = self._client.request
+        retrying_request = panel_retry(raw_request)
+
+        async def _safe_request(method: str, *args, **kwargs):
+            if str(method).upper() in _IDEMPOTENT_METHODS:
+                return await retrying_request(method, *args, **kwargs)
+            return await raw_request(method, *args, **kwargs)
+
+        _safe_request.retry = retrying_request.retry
+        self._client.request = _safe_request
 
     async def close(self) -> None:
         await self._client.aclose()

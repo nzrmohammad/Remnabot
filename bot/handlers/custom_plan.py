@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import AsyncExitStack
 from html import escape
 from types import SimpleNamespace
 
@@ -26,7 +27,7 @@ from bot.services.purchases import (
 )
 from bot.services.remnawave import RemnawaveClient
 from bot.states.custom_plan import CustomPlanStates
-from bot.web.cache import FastCache
+from bot.web.cache import FastCache, invalidate_user_cache, user_action_lock
 from bot.web.user_shop import compute_custom_plan_price
 
 logger = logging.getLogger(__name__)
@@ -508,10 +509,17 @@ async def custom_plan_execute_purchase(
         else:
             target_acc_spec = parts[4]
 
-    if call.from_user.id in _PURCHASE_LOCKS:
+    effective_cache = cache if cache is not None else getattr(bot, "cache", None)
+    _lock_stack = AsyncExitStack()
+    acquired = await _lock_stack.enter_async_context(
+        user_action_lock(
+            effective_cache, call.from_user.id, "purchase", ttl_seconds=45, local_locks=_PURCHASE_LOCKS
+        )
+    )
+    if not acquired:
+        await _lock_stack.aclose()
         await call.answer()
         return
-    _PURCHASE_LOCKS.add(call.from_user.id)
     try:
         user = await user_repo.get_or_create(call.from_user.id, call.from_user.username)
         store_settings = await get_store_settings(session)
@@ -636,7 +644,7 @@ async def custom_plan_execute_purchase(
 
         await session.commit()
         try:
-            await maybe_reward_referrer(bot, session, remnawave, user)
+            await maybe_reward_referrer(bot, session, remnawave, user, paid_amount=final_price, cache=cache)
             await notify_admin(
                 bot,
                 user,
@@ -649,11 +657,8 @@ async def custom_plan_execute_purchase(
         except Exception as post_err:
             logger.warning("Bot custom plan post-actions failed: %s", post_err)
 
-        # Invalidate caches
-        if cache and hasattr(cache, "delete"):
-            await cache.delete(f"tma:user:{user.telegram_id}")
-            await cache.delete(f"tma:user:{user.telegram_id}:dashboard:default")
-            await cache.delete(f"tma:user:{user.telegram_id}:dashboard")
+        # Invalidate all user caches across accounts
+        await invalidate_user_cache(cache, user.telegram_id)
 
         acc_id = result.panel_user_id
         order_id = result.order_id
@@ -690,4 +695,4 @@ async def custom_plan_execute_purchase(
         await render_menu(bot, user, user_repo, "\n".join(lines), kb.as_markup())
         await call.answer("سفارش شما با موفقیت ثبت شد!", show_alert=False)
     finally:
-        _PURCHASE_LOCKS.discard(call.from_user.id)
+        await _lock_stack.aclose()

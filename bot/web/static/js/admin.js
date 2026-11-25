@@ -210,6 +210,7 @@
         if ($('adminSslHealthList')?.children.length <= 1) {
           if (window.fetchAdminSslHealth) window.fetchAdminSslHealth();
         }
+        if (window.fetchAdminSystemHealth) window.fetchAdminSystemHealth(false);
       } else if (targetId === 'tab-admin-users') {
         if ($('adminUsersList')?.children.length <= 1) {
           if (window.fetchAdminUsers) window.fetchAdminUsers(1);

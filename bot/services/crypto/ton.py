@@ -192,18 +192,18 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
         now = datetime.now(timezone.utc)
         # Check and expire overdue invoices
         active_invoice_ids: list[int] = []
-        for inv in pending_invoices:
-            if getattr(inv, "currency", "TON") != "TON":
+        for pending_inv in pending_invoices:
+            if getattr(pending_inv, "currency", "TON") != "TON":
                 continue
-            exp = inv.expires_at
+            exp = pending_inv.expires_at
             if exp and exp.tzinfo is None:
                 exp = exp.replace(tzinfo=timezone.utc)
             if exp and exp < now:
-                await crypto_repo.mark_expired(inv.id)
+                await crypto_repo.mark_expired(pending_inv.id)
                 if (now - exp) <= timedelta(hours=2):
-                    active_invoice_ids.append(inv.id)
+                    active_invoice_ids.append(pending_inv.id)
             else:
-                active_invoice_ids.append(inv.id)
+                active_invoice_ids.append(pending_inv.id)
 
         if not active_invoice_ids:
             await session.commit()
@@ -248,16 +248,16 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                 if hasattr(bot, "cache") and bot.cache:
                     try:
                         if hasattr(bot.cache, "invalidate_user"):
-                            await bot.cache.invalidate_user(inv.telegram_id)
+                            await bot.cache.invalidate_user(live_inv.telegram_id)
                         else:
-                            await bot.cache.delete(f"tma:user:{inv.telegram_id}")
+                            await bot.cache.delete(f"tma:user:{live_inv.telegram_id}")
                         await bot.cache.delete("tma:admin:overview")
                     except Exception as exc:
                         logger.debug("Failed invalidating cache after TON payment: %s", exc)
 
                 # Send user notification
                 try:
-                    user = await user_repo.get_by_telegram_id(inv.telegram_id)
+                    user = await user_repo.get_by_telegram_id(live_inv.telegram_id)
                     lang = user.language if user else "fa"
                     from aiogram.utils.keyboard import InlineKeyboardBuilder
                     kb = InlineKeyboardBuilder()
@@ -273,8 +273,8 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                         user_msg = (
                             f"🎉 <b>کیف پول شما با موفقیت شارژ شد!</b>\n"
                             f"──────────────────\n"
-                            f"💎 مقدار دریافتی : <code>{inv.amount_ton} TON</code>\n"
-                            f"💰 مبلغ شارژ : <b>{inv.amount_toman:,}</b> تومان\n"
+                            f"💎 مقدار دریافتی : <code>{live_inv.amount_ton} TON</code>\n"
+                            f"💰 مبلغ شارژ : <b>{live_inv.amount_toman:,}</b> تومان\n"
                             f"👛 موجودی جدید کیف پول : <b>{new_balance:,}</b> تومان\n\n"
                             f"💡 اکنون می‌توانید با انتخاب دکمه زیر، پلن مورد نظر خود را خریداری کنید."
                         )
@@ -282,13 +282,13 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                         user_msg = (
                             f"🎉 <b>Wallet Top-up Successful!</b>\n"
                             f"──────────────────\n"
-                            f"💎 Received : <code>{inv.amount_ton} TON</code>\n"
-                            f"💰 Credited : <b>{inv.amount_toman:,}</b> Toman\n"
+                            f"💎 Received : <code>{live_inv.amount_ton} TON</code>\n"
+                            f"💰 Credited : <b>{live_inv.amount_toman:,}</b> Toman\n"
                             f"👛 New Balance : <b>{new_balance:,}</b> Toman"
                         )
-                    await bot.send_message(inv.telegram_id, user_msg, reply_markup=kb.as_markup())
+                    await bot.send_message(live_inv.telegram_id, user_msg, reply_markup=kb.as_markup())
                 except Exception as exc:
-                    logger.warning("Failed to notify user %d of TON topup: %s", inv.telegram_id, exc)
+                    logger.warning("Failed to notify user %d of TON topup: %s", live_inv.telegram_id, exc)
 
                 # Send admin notification
                 try:
@@ -303,10 +303,10 @@ async def verify_and_process_payments(bot: Any, session_factory: Any) -> int:
                     admin_msg = (
                         f"💎 <b>شارژ خودکار کیف پول با تون (TON)</b>\n"
                         f"──────────────────\n"
-                        f"👤 کاربر : <code>{inv.telegram_id}</code>\n"
-                        f"💰 مبلغ شارژ : <b>{inv.amount_toman:,}</b> تومان\n"
-                        f"💎 مقدار دریافتی : <code>{inv.amount_ton} TON</code>\n"
-                        f"🏷 شناسه پیگیری (Comment) : <code>{inv.comment}</code>\n"
+                        f"👤 کاربر : <code>{live_inv.telegram_id}</code>\n"
+                        f"💰 مبلغ شارژ : <b>{live_inv.amount_toman:,}</b> تومان\n"
+                        f"💎 مقدار دریافتی : <code>{live_inv.amount_ton} TON</code>\n"
+                        f"🏷 شناسه پیگیری (Comment) : <code>{live_inv.comment}</code>\n"
                         f"🌐 <a href=\"{tx_url}\">مشاهده تراکنش در Tonviewer</a>\n\n"
                         f"👛 موجودی جدید : <b>{new_balance:,}</b> تومان"
                     )
@@ -325,7 +325,19 @@ async def ton_watcher_loop(bot: Any, session_factory: Any) -> None:
     while True:
         try:
             await verify_and_process_payments(bot, session_factory)
+            try:
+                from bot.services.panel_snapshot import record_subsystem_heartbeat
+                await record_subsystem_heartbeat(getattr(bot, "cache", None), "ton_watcher", status="ok")
+            except Exception:
+                pass
         except Exception as exc:
             logger.error("Error in TON payment watcher: %s", exc)
+            try:
+                from bot.services.panel_snapshot import record_subsystem_heartbeat
+                await record_subsystem_heartbeat(
+                    getattr(bot, "cache", None), "ton_watcher", status="error", detail=str(exc)
+                )
+            except Exception:
+                pass
 
         await asyncio.sleep(25)

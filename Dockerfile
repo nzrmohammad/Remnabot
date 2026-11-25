@@ -1,3 +1,12 @@
+FROM node:20-alpine AS assets
+
+WORKDIR /build
+COPY package.json package-lock.json tailwind.config.js ./
+RUN npm ci --no-audit --no-fund
+COPY bot/web/ ./bot/web/
+COPY scripts/ ./scripts/
+RUN npm run build:css && npm run build:js
+
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -9,7 +18,11 @@ RUN mkdir -p /app/backups /app/data && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY --chown=botuser:botuser alembic.ini ./
+COPY --chown=botuser:botuser alembic/ ./alembic/
 COPY --chown=botuser:botuser bot/ ./bot/
+COPY --from=assets --chown=botuser:botuser /build/bot/web/static/css/tailwind.min.css ./bot/web/static/css/tailwind.min.css
+COPY --from=assets --chown=botuser:botuser /build/bot/web/static/js/dist ./bot/web/static/js/dist
 USER botuser
 
 # Liveness: bot/services heartbeat touches /tmp/bot_heartbeat every 60s.

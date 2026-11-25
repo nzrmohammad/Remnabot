@@ -6,6 +6,8 @@
   "scripts": {
     "build:css": "tailwindcss -i ./bot/web/static/css/tailwind-input.css -o ./bot/web/static/css/tailwind.min.css --minify",
     "watch:css": "tailwindcss -i ./bot/web/static/css/tailwind-input.css -o ./bot/web/static/css/tailwind.min.css --watch",
+    "build:js": "node scripts/build_assets.mjs",
+    "build:assets": "npm run build:css && npm run build:js",
     "test:js": "node tests/js/fmt.test.js"
   },
   "devDependencies": {

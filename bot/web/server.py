@@ -19,6 +19,17 @@ logger = logging.getLogger(__name__)
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 STATIC_DIR = Path(__file__).parent / "static"
+UPLOADS_DIR = Path("data/uploads")
+
+_PRECOMPRESSED_SUFFIXES = frozenset({
+    ".woff2", ".woff", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".gz", ".zip", ".br",
+})
+_UPLOAD_CONTENT_TYPES = {
+    "png": "image/png",
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "webp": "image/webp",
+}
 
 
 _API_WINDOW = 60.0
@@ -117,7 +128,7 @@ async def api_rate_limit_middleware(request: web.Request, handler):
         return await handler(request)
 
     is_admin_path = request.path.startswith("/api/admin/")
-    is_user_path = request.path.startswith("/api/user/")
+    is_user_path = request.path.startswith("/api/user/") or request.path == "/api/qr"
     if not (is_admin_path or is_user_path):
         return await handler(request)
 
@@ -292,14 +303,19 @@ async def cors_and_security_middleware(request: web.Request, handler):
             else:
                 response.headers["Content-Type"] = "application/font-woff"
 
-    # Enable automatic gzip/deflate compression for static files and API responses > 512 bytes (exclude speedtest payloads)
-    if not request.path.startswith("/api/user/speedtest"):
-        accept_enc = request.headers.get("Accept-Encoding", "")
+    # Enable gzip/deflate compression for compressible responses > 512 bytes (skip precompressed binary/speedtest)
+    req_suffix = Path(request.path).suffix.lower()
+    if not request.path.startswith("/api/user/speedtest") and req_suffix not in _PRECOMPRESSED_SUFFIXES:
+        accept_enc = request.headers.get("Accept-Encoding", "").lower()
         if "gzip" in accept_enc or "deflate" in accept_enc:
             if isinstance(response, web.FileResponse):
                 response.enable_compression()
+                response.headers["Vary"] = "Accept-Encoding"
             elif isinstance(response, web.Response) and response.body and len(response.body) > 512:
-                response.enable_compression()
+                ctype = (response.content_type or "").lower()
+                if ctype.startswith("text/") or ctype in ("application/json", "application/javascript", "application/x-javascript"):
+                    response.enable_compression()
+                    response.headers["Vary"] = "Accept-Encoding"
 
     return response
 
@@ -354,9 +370,18 @@ def get_versioned_html(html_path: Path, is_dev: bool = False) -> str:
             pass
 
     content = html_path.read_text(encoding="utf-8")
+
+    def _rewrite_asset(match: re.Match[str]) -> str:
+        raw_path = match.group(1)
+        if not is_dev and raw_path.startswith("/static/js/") and raw_path.endswith(".js") and not raw_path.endswith(".min.js"):
+            js_name = raw_path.removeprefix("/static/js/").removesuffix(".js")
+            if (STATIC_DIR / "js" / "dist" / f"{js_name}.min.js").is_file():
+                raw_path = f"/static/js/dist/{js_name}.min.js"
+        return f"{raw_path}?v={version}"
+
     versioned_content = re.sub(
         r'(/static/(?:css|js|img)/[^"\'\s>?#]+)(?:\?v=[a-zA-Z0-9_.-]+)?',
-        rf"\g<1>?v={version}",
+        _rewrite_asset,
         content,
     )
     try:
@@ -403,11 +428,59 @@ async def health_check(request: web.Request) -> web.Response:
     return web.json_response({"status": "ok", "service": "remnabot-tma"})
 
 
+async def serve_media_upload(request: web.Request) -> web.Response:
+    """Serve persisted user/admin uploaded media safely from data/uploads."""
+    import asyncio
+
+    filename = request.match_info.get("filename", "")
+    if not filename or Path(filename).name != filename or filename.startswith("."):
+        return web.Response(text="Not found", status=404)
+    ext = Path(filename).suffix.lstrip(".").lower()
+    content_type = _UPLOAD_CONTENT_TYPES.get(ext)
+    if not content_type:
+        return web.Response(text="Not found", status=404)
+
+    base_dir = Path(request.app.get("uploads_dir") or UPLOADS_DIR).resolve()
+    target = (base_dir / filename).resolve()
+    if not target.is_relative_to(base_dir) or not target.is_file():
+        return web.Response(text="Not found", status=404)
+
+    data = await asyncio.to_thread(target.read_bytes)
+    return web.Response(
+        body=data,
+        content_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=86400",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
 async def serve_open_client(request: web.Request) -> web.Response:
-    """Serve a bridge page to launch external VPN clients from Telegram Mini App."""
+    """Serve a smart OS-detecting bridge page to launch VPN clients from Telegram/Bot."""
+    from urllib.parse import quote
+
     scheme = request.query.get("scheme", "").strip()
-    name = request.query.get("name", "نرم‌افزار").strip()
+    name = request.query.get("name", "").strip()
     sub_url = request.query.get("url", "").strip()
+    ua = request.headers.get("User-Agent", "").lower()
+
+    if sub_url and not sub_url.lower().startswith(("http://", "https://")):
+        sub_url = ""
+
+    if not scheme and sub_url:
+        encoded_sub = quote(sub_url, safe="")
+        if "iphone" in ua or "ipad" in ua or "macintosh" in ua or "darwin" in ua:
+            scheme = f"streisand://import/{sub_url}"
+            name = name or "Streisand (iOS / macOS)"
+        elif "android" in ua:
+            scheme = f"v2rayng://install-config?url={encoded_sub}"
+            name = name or "v2rayNG (Android)"
+        else:
+            scheme = f"hiddify://install-config?url={encoded_sub}"
+            name = name or "Hiddify (Desktop / Multi-OS)"
+
+    name = name or "نرم‌افزار"
 
     safe_schemes = (
         "v2rayng://",
@@ -528,9 +601,23 @@ async def serve_open_client(request: web.Request) -> web.Response:
 @web.middleware
 async def global_error_middleware(request: web.Request, handler):
     """Catch unhandled exceptions and 500 errors in TMA web routes and report them to the admin topic."""
+    async def _track_5xx_spike(status_code: int) -> None:
+        try:
+            from bot.services.system_health import record_api_error_spike
+            await record_api_error_spike(
+                request.app.get("bot"),
+                request.app.get("session_factory"),
+                request.app.get("cache"),
+                status_code=status_code,
+                path=request.path,
+            )
+        except Exception:
+            pass
+
     try:
         response = await handler(request)
         if isinstance(response, web.Response) and response.status >= 500 and request.path.startswith("/api/"):
+            await _track_5xx_spike(response.status)
             try:
                 from bot.services.error_reporter import report_error
                 bot = request.app.get("bot")
@@ -581,6 +668,7 @@ async def global_error_middleware(request: web.Request, handler):
     except Exception as exc:
         logger.exception("Unhandled TMA web error on %s %s: %s", request.method, request.path, exc)
         if request.path.startswith("/api/"):
+            await _track_5xx_spike(500)
             try:
                 from bot.services.error_reporter import report_error
                 bot = request.app.get("bot")
@@ -642,9 +730,10 @@ def create_web_app(
     app.router.add_get("/health", health_check)
     app.router.add_get("/open-client", serve_open_client)
 
-    # Static files
+    # Static & persisted uploaded media files
     if STATIC_DIR.exists():
         app.router.add_static("/static", str(STATIC_DIR), append_version=True)
+    app.router.add_get("/media/uploads/{filename}", serve_media_upload)
 
     # User APIs
     app.router.add_get("/api/user/me", routes_user.get_user_me)
@@ -745,6 +834,8 @@ def create_web_app(
     app.router.add_post("/api/admin/campaigns/delete", routes_admin.post_admin_campaign_delete)
     app.router.add_post("/api/admin/campaign/delete", routes_admin.post_admin_campaign_delete)
     app.router.add_get("/api/admin/infra/billing", routes_admin.get_admin_infra_billing)
+    app.router.add_get("/api/admin/system-health", routes_admin.get_admin_system_health)
+    app.router.add_post("/api/admin/reconcile/run", routes_admin.post_admin_reconcile_run)
     app.router.add_post("/api/admin/infra/node-cost", routes_admin.post_admin_node_cost)
     app.router.add_get("/api/admin/infra/ssl-health", routes_admin.get_admin_ssl_health)
     app.router.add_post("/api/admin/infra/ssl-check", routes_admin.post_admin_ssl_check)

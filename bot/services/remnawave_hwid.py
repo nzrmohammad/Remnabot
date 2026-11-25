@@ -85,7 +85,7 @@ class RemnawaveHwidMixin:
                         return data
             except Exception as exc:
                 logger.warning("Failed to fetch HWID stats from %s: %s", path, exc)
-                return None
+                continue
         return None
 
     async def get_all_hwid_devices(self, size: int = 500) -> list[dict[str, Any]] | None:
@@ -100,7 +100,7 @@ class RemnawaveHwidMixin:
                         return devices
             except Exception as exc:
                 logger.warning("Failed to fetch HWID devices from %s: %s", path, exc)
-                return None
+                continue
         return None
 
     async def get_srh_stats(self) -> dict[str, Any] | None:
@@ -117,7 +117,7 @@ class RemnawaveHwidMixin:
                     return resp.json().get("response") or resp.json()
             except Exception as exc:
                 logger.warning("Failed to fetch SRH stats from %s: %s", path, exc)
-                return None
+                continue
         return None
 
     @staticmethod

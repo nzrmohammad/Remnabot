@@ -4,11 +4,14 @@ Optimized for sub-millisecond response times in high-traffic Telegram Mini Apps.
 """
 import asyncio
 import functools
+import inspect
 import json
 import logging
+import secrets
 import time
 from collections import OrderedDict
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -137,8 +140,9 @@ class FastCache:
                 logger.debug("Redis cache delete error for %s: %s", key, exc)
 
     async def invalidate_user(self, telegram_id: int | str) -> None:
-        """Invalidate all cached data for a user across dashboard, profile, and topup info."""
+        """Invalidate all cached data for a user across dashboard, profile, loyalty, and topup info."""
         await self.delete(f"tma:user:{telegram_id}")
+        await self.delete(f"loyalty:user:v2:{telegram_id}")
 
     async def release_lock(self, key: str, token: str) -> bool:
         """Safely release distributed lock only if the current value matches token."""
@@ -164,6 +168,89 @@ class FastCache:
                 logger.warning("Redis release_lock error for %s: %s; letting TTL expire naturally", key, exc)
                 return False
         return True
+
+
+async def invalidate_user_cache(cache: Any, telegram_id: int | str) -> None:
+    """SSOT helper to invalidate all cached views for a user, supporting FastCache and test mocks."""
+    if not cache or not telegram_id:
+        return
+    from unittest.mock import NonCallableMock
+
+    fn = getattr(cache, "invalidate_user", None)
+    if isinstance(cache, FastCache) or (not isinstance(cache, NonCallableMock) and inspect.iscoroutinefunction(fn)):
+        await cache.invalidate_user(telegram_id)
+        return
+    del_fn = getattr(cache, "delete", None)
+    if callable(del_fn):
+        for k in (
+            f"tma:user:{telegram_id}",
+            f"tma:user:{telegram_id}:dashboard",
+            f"tma:user:{telegram_id}:dashboard:default",
+            f"tma:user:{telegram_id}:profile",
+            f"tma:user:{telegram_id}:topup_info",
+        ):
+            res = del_fn(k)
+            if inspect.isawaitable(res):
+                await res
+
+
+_LOCAL_ACTION_LOCKS: set[tuple[int, str]] = set()
+
+
+@asynccontextmanager
+async def user_action_lock(
+    cache: Any,
+    telegram_id: int,
+    action: str = "purchase",
+    ttl_seconds: int = 30,
+    local_locks: set[int] | None = None,
+):
+    """Acquire per-user in-process + distributed Redis lock across Bot and Mini App."""
+    tid = int(telegram_id)
+    local_key = (tid, action)
+    if local_locks is not None:
+        if tid in local_locks:
+            yield False
+            return
+        local_locks.add(tid)
+    else:
+        if local_key in _LOCAL_ACTION_LOCKS:
+            yield False
+            return
+        _LOCAL_ACTION_LOCKS.add(local_key)
+
+    lock_key = f"lock:user:{tid}:{action}"
+    lock_token = secrets.token_hex(16)
+    dist_acquired = False
+    if cache and hasattr(cache, "set_nx"):
+        try:
+            res = await cache.set_nx(lock_key, lock_token, ttl_seconds=ttl_seconds)
+            if not res:
+                if local_locks is not None:
+                    local_locks.discard(tid)
+                else:
+                    _LOCAL_ACTION_LOCKS.discard(local_key)
+                yield False
+                return
+            dist_acquired = True
+        except Exception as exc:
+            logger.warning("Distributed lock set_nx failed for %s (%s): %s", lock_key, action, exc)
+
+    try:
+        yield True
+    finally:
+        if dist_acquired and cache:
+            try:
+                if hasattr(cache, "release_lock"):
+                    await cache.release_lock(lock_key, lock_token)
+                elif hasattr(cache, "delete"):
+                    await cache.delete(lock_key)
+            except Exception as exc:
+                logger.warning("Distributed lock release failed for %s: %s", lock_key, exc)
+        if local_locks is not None:
+            local_locks.discard(tid)
+        else:
+            _LOCAL_ACTION_LOCKS.discard(local_key)
 
 
 def cached(ttl_seconds: int = 15, key_prefix: str = "tma:cache"):

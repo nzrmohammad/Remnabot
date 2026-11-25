@@ -1778,6 +1778,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const refSwitch = $('settingRefSwitch');
       if (refSwitch) refSwitch.checked = !!s.referral_enabled;
 
+      const refRenewCommission = $('settingRefRenewCommission');
+      if (refRenewCommission) refRenewCommission.checked = !!s.referral_renew_commission_enabled;
+
       const supDirectSwitch = $('settingSupportDirectSwitch');
       if (supDirectSwitch) supDirectSwitch.checked = !!s.support_direct_enabled;
 
@@ -2008,6 +2011,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const refReward = $('settingRefReward');
       if (refReward) refReward.value = s.referral_reward_gb ?? 5;
 
+      const refCommissionPct = $('settingRefCommissionPct');
+      if (refCommissionPct) refCommissionPct.value = s.referral_commission_percent ?? 0;
+
       const supContact = $('settingSupportContact');
       if (supContact) supContact.value = s.support_contact || '';
 
@@ -2150,6 +2156,9 @@ openUserChat(telegram_id, name, tag, topup_id) {
   $('settingRefSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('referral_enabled', e.target.checked);
   });
+  $('settingRefRenewCommission')?.addEventListener('change', (e) => {
+    updateSettingToggle('referral_renew_commission_enabled', e.target.checked);
+  });
   $('settingSupportDirectSwitch')?.addEventListener('change', (e) => {
     updateSettingToggle('support_direct_enabled', e.target.checked);
   });
@@ -2276,6 +2285,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       stars_rate_toman: parseInt($('settingStarsRate')?.value || '1500', 10),
       trial_enabled: $('settingTrialSwitch')?.checked ?? true,
       referral_enabled: $('settingRefSwitch')?.checked ?? true,
+      referral_renew_commission_enabled: $('settingRefRenewCommission')?.checked ?? false,
       support_direct_enabled: $('settingSupportDirectSwitch')?.checked ?? true,
       card_number: $('settingCardNumber')?.value?.trim() || '',
       card_holder: $('settingCardHolder')?.value?.trim() || '',
@@ -2293,6 +2303,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       trial_traffic_gb: parseInt($('settingTrialTraffic')?.value || '1', 10),
       trial_duration_days: parseInt($('settingTrialDays')?.value || '1', 10),
       referral_reward_gb: parseInt($('settingRefReward')?.value || '5', 10),
+      referral_commission_percent: Math.min(50, Math.max(0, parseInt($('settingRefCommissionPct')?.value || '0', 10) || 0)),
       support_contact: $('settingSupportContact')?.value?.trim() || '',
       topic_topups: parseTopicVal($('settingTopicTopups')?.value),
       topic_orders: parseTopicVal($('settingTopicOrders')?.value),

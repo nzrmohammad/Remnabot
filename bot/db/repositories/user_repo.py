@@ -1,7 +1,7 @@
 """Repository layer: all DB queries for the User model live here."""
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, or_, select, text
+from sqlalchemy import func, or_, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -113,10 +113,14 @@ class UserRepository:
             user.campaign_code = campaign_code.strip().lower()
 
     async def set_claimed_trial(self, user: User | int, claimed: bool = True) -> None:
-        if isinstance(user, int):
-            user = await self.get_by_telegram_id(user)
-        if user:
-            user.has_claimed_trial = claimed
+        tid = user if isinstance(user, int) else user.telegram_id
+        # Bypass stale ORM dirty-tracking after raw SQL claim_trial_atomic updates
+        await self.session.execute(
+            update(User).where(User.telegram_id == tid).values(has_claimed_trial=claimed)
+        )
+        target = await self.get_by_telegram_id(tid) if isinstance(user, int) else user
+        if target:
+            target.has_claimed_trial = claimed
 
     async def claim_trial_atomic(self, telegram_id: int) -> bool:
         """Atomically mark trial as claimed. Returns True if claimed, False if already claimed."""
@@ -130,6 +134,10 @@ class UserRepository:
         )
         val = row.scalar_one_or_none()
         await self.session.flush()
+        if val is not None and hasattr(self.session, "identity_map"):
+            for obj in self.session.identity_map.values():
+                if isinstance(obj, User) and obj.telegram_id == telegram_id:
+                    obj.has_claimed_trial = True
         return val is not None
 
     async def set_banned(self, user: User | int, banned: bool = True) -> None:

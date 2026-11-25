@@ -729,6 +729,8 @@ EN_TEXTS: dict[str, str] = {
         "receipt_balance": "New Wallet Balance",
         "receipt_footer_hint": "Tap the subscription link above to copy, or tap «Get Configs» below to view individual configs.",
         "btn_copy_sub_link": "📋 Copy Subscription Link",
+        "btn_smart_install": "🚀 Smart Install on This Device",
+        "renquick_no_plan": "No prior paid plan found for 1-click renewal; please choose a plan below.",
         # --- smart retention ---
         "retention_title": "We miss you!",
         "retention_body": "It has been {days} days since your service expired. To welcome you back, we have prepared a special 20% discount for you:",

@@ -1013,6 +1013,10 @@ async def get_user_me(request: web.Request) -> web.Response:
         except Exception as lb_err:
             logger.debug("Failed calculating user leaderboard: %s", lb_err)
 
+        from bot.web.auth import build_signed_qr_url
+        bot_token = str(request.app.get("bot_token", "") or "")
+        referral_qr_url = build_signed_qr_url(ref_link, bot_token) if (ref_link and bot_token) else ""
+
         data = {
             "partial": is_partial,
             "panel_error": panel_error,
@@ -1020,6 +1024,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "referral_reward_gb": referral_reward_gb,
             "referral_enabled": store_settings.referral_enabled,
             "referral_link": ref_link,
+            "referral_qr_url": referral_qr_url,
             "support_contact": raw_support_contact,
             "support_link": support_link,
             "support_direct_enabled": store_settings.support_direct_enabled,
@@ -1137,10 +1142,9 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
             if inspect.isawaitable(commit_res):
                 await commit_res
 
+        from bot.web.cache import invalidate_user_cache
+
         cache: FastCache = request.app.get("cache")
-        if cache:
-            await cache.delete(f"tma:user:{telegram_id}")
-            await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
-            await cache.delete(f"tma:user:{telegram_id}:dashboard")
+        await invalidate_user_cache(cache, telegram_id)
 
         return web.json_response({"ok": True, "birth_date": formatted_date})

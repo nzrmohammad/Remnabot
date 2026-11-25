@@ -203,7 +203,14 @@ async def reconcile_loop(
     logger.info("reconcile loop started (every %s s)", INTERVAL_SECONDS)
     while True:
         try:
-            await run_reconcile(bot, session_factory, remnawave=remnawave)
+            closed = await run_reconcile(bot, session_factory, remnawave=remnawave)
+            try:
+                from bot.services.panel_snapshot import record_subsystem_heartbeat
+                await record_subsystem_heartbeat(
+                    getattr(bot, "cache", None), "reconcile", status="ok", detail=f"closed={closed}"
+                )
+            except Exception:
+                pass
         except Exception as exc:  # noqa: BLE001
             logger.exception("reconcile sweep failed: %s", exc)
         await asyncio.sleep(INTERVAL_SECONDS)

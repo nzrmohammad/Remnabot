@@ -2,6 +2,7 @@
 import logging
 import re
 from datetime import datetime, timedelta, timezone
+from html import escape
 
 import jdatetime
 from aiohttp import web
@@ -13,7 +14,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.services.formatting import ltr_frag
 from bot.web.admin_common import _check_admin, db_session
-from bot.web.cache import FastCache
+from bot.web.cache import FastCache, invalidate_user_cache
 
 _DIGIT_TRANS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 
@@ -135,9 +136,7 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
         await session.commit()
 
     cache: FastCache = request.app["cache"]
-    await cache.delete(f"tma:user:{target_id}:dashboard")
-    await cache.delete(f"tma:user:{target_id}:dashboard:default")
-    await cache.delete(f"tma:user:{target_id}:profile")
+    await invalidate_user_cache(cache, target_id)
     await cache.delete("tma:admin:overview")
 
     return web.json_response({"ok": True, "message": log_detail})
@@ -219,9 +218,7 @@ async def post_admin_toggle_ban(request: web.Request) -> web.Response:
     cache: FastCache = request.app["cache"]
     await cache.delete(f"tma:ban:{tid}")
     await cache.delete(f"user:ban:{tid}")
-    await cache.delete(f"tma:user:{tid}:dashboard")
-    await cache.delete(f"tma:user:{tid}:dashboard:default")
-    await cache.delete(f"tma:user:{tid}:profile")
+    await invalidate_user_cache(cache, tid)
 
     return web.json_response({"ok": True, "banned": ban_state})
 
@@ -251,9 +248,7 @@ async def post_admin_reset_trial(request: web.Request) -> web.Response:
         await session.commit()
 
     cache: FastCache = request.app["cache"]
-    await cache.delete(f"tma:user:{target_id}:dashboard")
-    await cache.delete(f"tma:user:{target_id}:dashboard:default")
-    await cache.delete(f"tma:user:{target_id}:profile")
+    await invalidate_user_cache(cache, target_id)
     return web.json_response({"ok": True, "message": "قابلیت دریافت اشتراک تست برای این کاربر با موفقیت فعال شد."})
 
 
@@ -299,9 +294,7 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
         await session.commit()
 
     cache: FastCache = request.app["cache"]
-    await cache.delete(f"tma:user:{target_id}:dashboard")
-    await cache.delete(f"tma:user:{target_id}:dashboard:default")
-    await cache.delete(f"tma:user:{target_id}:profile")
+    await invalidate_user_cache(cache, target_id)
     await cache.delete("tma:admin:overview")
 
     bot = request.app.get("bot")
@@ -312,7 +305,7 @@ async def post_admin_user_wallet(request: web.Request) -> web.Response:
             f"🔔 <b>تغییر موجودی کیف پول</b>\n\n"
             f"مبلغ: <b>{sign}{effective_amount:,} تومان</b>\n"
             f"موجودی جدید: <b>{new_balance:,} تومان</b>\n"
-            f"توضیحات: {reason}"
+            f"توضیحات: {escape(reason)}"
         )
         try:
             await bot.send_message(chat_id=target_id, text=notif, parse_mode="HTML")
@@ -366,9 +359,7 @@ async def post_admin_user_revoke_sub(request: web.Request) -> web.Response:
         await session.commit()
 
     cache: FastCache = request.app["cache"]
-    await cache.delete(f"tma:user:{target_id}:dashboard")
-    await cache.delete(f"tma:user:{target_id}:dashboard:default")
-    await cache.delete(f"tma:user:{target_id}:profile")
+    await invalidate_user_cache(cache, target_id)
 
     new_sub = revoked.get("subscriptionUrl") or revoked.get("subscription_url") or ""
     return web.json_response({
@@ -474,10 +465,7 @@ async def post_admin_create_user(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "خطا در ثبت کاربر در پایگاه داده ربات. عملیات بازگردانده شد."}, status=500)
 
     cache: FastCache | None = request.app.get("cache")
-    if cache:
-        await cache.delete(f"tma:user:{telegram_id}:dashboard")
-        await cache.delete(f"tma:user:{telegram_id}:dashboard:default")
-        await cache.delete(f"tma:user:{telegram_id}:profile")
+    await invalidate_user_cache(cache, telegram_id)
 
     return web.json_response({
         "ok": True,
@@ -640,8 +628,7 @@ async def post_admin_update_user_profile(request: web.Request) -> web.Response:
         }
 
     cache: FastCache | None = request.app.get("cache")
-    if cache:
-        await cache.delete(f"tma:user:{target_id}")
+    await invalidate_user_cache(cache, target_id)
 
     return web.json_response({
         "ok": True,

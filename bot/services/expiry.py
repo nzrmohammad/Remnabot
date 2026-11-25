@@ -51,10 +51,12 @@ def _parse_remind_days(raw: str) -> set[int]:
 
 def _renew_keyboard(lang: str, account_id: int | str):
     kb = InlineKeyboardBuilder()
+    quick_label = "⚡ تمدید سریع (یک کلیک)" if lang == "fa" else "⚡ Quick Renew (1-Click)"
+    kb.button(text=quick_label, callback_data=f"renquick:{account_id}")
     kb.button(text=t(lang, "btn_renew_now"), callback_data=f"svc:renacc:{account_id}")
     kb.button(text=t(lang, "btn_services"), callback_data="alert:goto:services")
     kb.button(text=t(lang, "btn_wallet"), callback_data="alert:goto:wallet")
-    kb.adjust(1, 2)
+    kb.adjust(1, 1, 2)
     return kb.as_markup()
 
 

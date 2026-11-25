@@ -1129,12 +1129,13 @@ openEditSslDomainModal(domain) {
       const payload = { host: target, check_type: type, max_nodes: maxNodes };
       if (type === 'tcp') payload.port = port;
       const res = await window.api.runCheckHost(payload);
+      const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s => String(s ?? ''));
       if (!res || !res.ok) {
         if (badge) {
           badge.className = 'badge badge-danger';
           badge.innerText = 'خطا در ارزیابی';
         }
-        if (resList) resList.innerHTML = `<div class="col-span-2 p-4 text-center text-rose-500 font-bold">${res?.message || 'خطا در دریافت نتایج از Check-Host'}</div>`;
+        if (resList) resList.innerHTML = `<div class="col-span-2 p-4 text-center text-rose-500 font-bold">${esc(res?.message || 'خطا در دریافت نتایج از Check-Host')}</div>`;
         return;
       }
 
@@ -1151,19 +1152,20 @@ openEditSslDomainModal(domain) {
       resList.innerHTML = res.results.map(r => {
         const isOk = r.ok;
         const statusClass = isOk ? 'text-emerald-500 border-emerald-500/30' : 'text-rose-500 border-rose-500/30';
-        const pingTime = r.ping_ms !== undefined && r.ping_ms !== null ? `${r.ping_ms} ms` : (r.status || (isOk ? 'OK' : 'عدم دسترسی'));
+        const pingTime = r.ping_ms !== undefined && r.ping_ms !== null ? `${esc(r.ping_ms)} ms` : esc(r.status || (isOk ? 'OK' : 'عدم دسترسی'));
         return `
           <div class="card-inset p-2 rounded-xl border flex items-center justify-between ${statusClass}" dir="ltr">
             <div class="flex items-center gap-1.5 truncate">
-              <span class="text-sm">${r.flag || '🌐'}</span>
-              <span class="t-main font-bold truncate">${r.node_name || r.location}</span>
+              <span class="text-sm">${esc(r.flag || '🌐')}</span>
+              <span class="t-main font-bold truncate">${esc(r.node_name || r.location)}</span>
             </div>
             <span class="font-bold text-xs font-sans">${pingTime}</span>
           </div>
         `;
       }).join('');
     } catch (err) {
-      if (resList) resList.innerHTML = `<div class="col-span-2 p-4 text-center text-rose-500 font-bold">خطا: ${err.message || 'عدم دسترسی به سرور'}</div>`;
+      const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s => String(s ?? ''));
+      if (resList) resList.innerHTML = `<div class="col-span-2 p-4 text-center text-rose-500 font-bold">خطا: ${esc(err?.message || 'عدم دسترسی به سرور')}</div>`;
     } finally {
       if (btn) btn.disabled = false;
       if (btnText) btnText.innerText = 'شروع بررسی آنلاین';
@@ -1203,10 +1205,11 @@ openEditSslDomainModal(domain) {
     if (resultsBox) resultsBox.classList.remove('hidden');
     if (list) list.innerHTML = '<div class="col-span-4 p-4 text-center t-muted text-xs">در حال استعلام پیشوندها از RIPE Stat API...</div>';
 
+    const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s => String(s ?? ''));
     try {
       const res = await window.api.getAsnPrefixes(cleanAsn);
       if (!res || !res.ok) {
-        if (list) list.innerHTML = `<div class="col-span-4 p-4 text-center text-rose-500 font-bold">${res?.message || 'خطا در استعلام ASN'}</div>`;
+        if (list) list.innerHTML = `<div class="col-span-4 p-4 text-center text-rose-500 font-bold">${esc(res?.message || 'خطا در استعلام ASN')}</div>`;
         return;
       }
       cachedAsnPrefixes = res.prefixes || [];
@@ -1214,7 +1217,7 @@ openEditSslDomainModal(domain) {
       renderAsnPrefixes(cachedAsnPrefixes);
       if (window.showToast) window.showToast(`✅ ${cachedAsnPrefixes.length} پیشوند برای AS${cleanAsn} دریافت شد`, 'success');
     } catch (err) {
-      if (list) list.innerHTML = `<div class="col-span-4 p-4 text-center text-rose-500 font-bold">خطا: ${err.message || 'خطای شبکه'}</div>`;
+      if (list) list.innerHTML = `<div class="col-span-4 p-4 text-center text-rose-500 font-bold">خطا: ${esc(err?.message || 'خطای شبکه')}</div>`;
     } finally {
       if (btn) btn.disabled = false;
       if (btnText) btnText.innerText = 'دریافت رنج‌ها';
@@ -1256,9 +1259,112 @@ openEditSslDomainModal(domain) {
   };
 
 
+  // --- System Health & Reconciliation Audit ---
+  function renderSystemHealth(h) {
+    const box = $('adminSystemHealthBody');
+    if (!box || !h) return;
+    const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s => String(s ?? ''));
+    const dbOk = Boolean(h.db?.ok);
+    const redisSt = h.redis?.status || 'disabled';
+    const panelOk = Boolean(h.remnawave?.healthy);
+    const bkp = h.backup || {};
+    const rec = h.reconciliation || {};
+    const q = h.queue || {};
+
+    const redisBadge = redisSt === 'connected'
+      ? `<span class="t-success font-bold font-sans num-bidi">${h.redis?.latency_ms ?? 0} ms</span>`
+      : (redisSt === 'error' ? '<span class="t-danger font-bold">خطا</span>' : '<span class="t-warn font-bold">Memory</span>');
+
+    const bkpSizeStr = bkp.exists
+      ? (typeof window.fmtTraffic === 'function'
+        ? window.fmtTraffic(Math.round(Number(bkp.size_mb || 0) * 1024 * 1024), { isBytes: true, html: true, persianDigits: false })
+        : `<span class="font-sans num-bidi">${bkp.size_mb}</span>`)
+      : '';
+    const bkpText = bkp.exists
+      ? `${bkp.encrypted ? '🔐' : '📦'} ${bkpSizeStr} (${bkp.age_hours}h پیش)`
+      : '<span class="t-warn">بکاپ محلی یافت نشد</span>';
+
+    const mismatchItems = Array.isArray(rec.panel_mismatches) ? rec.panel_mismatches : [];
+    const mismatchHtml = mismatchItems.length > 0
+      ? `<div class="card-inset p-2.5 rounded-xl border border-[var(--card-border)] space-y-1.5">
+          <div class="t-danger font-bold text-[11px]">⚠️ مغایرت سفارش‌های پرداخت‌شده با پنل (${mismatchItems.length}):</div>
+          ${mismatchItems.slice(0, 5).map(m => `
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="t-main">#${esc(m.order_id)} • <span class="font-sans" dir="ltr">${esc(m.telegram_id)}</span> (${esc(m.service_name)})</span>
+              <span class="t-danger">${esc(m.issue_label)}</span>
+            </div>
+          `).join('')}
+        </div>`
+      : '';
+
+    box.innerHTML = `
+      <div class="grid grid-cols-2 gap-2 text-[11px]">
+        <div class="card-inset p-2.5 rounded-xl flex items-center justify-between">
+          <span class="t-muted">دیتابیس:</span>
+          <span class="${dbOk ? 't-success' : 't-danger'} font-bold font-sans num-bidi">${dbOk ? `${h.db?.latency_ms ?? 0} ms` : 'خطا'}</span>
+        </div>
+        <div class="card-inset p-2.5 rounded-xl flex items-center justify-between">
+          <span class="t-muted">Redis:</span>
+          ${redisBadge}
+        </div>
+        <div class="card-inset p-2.5 rounded-xl flex items-center justify-between">
+          <span class="t-muted">پنل Remnawave:</span>
+          <span class="${panelOk ? 't-success' : 't-danger'} font-bold font-sans num-bidi">${panelOk ? `${h.remnawave?.latency_ms ?? 0} ms` : 'قطع'}</span>
+        </div>
+        <div class="card-inset p-2.5 rounded-xl flex items-center justify-between">
+          <span class="t-muted">آخرین بکاپ:</span>
+          <span class="t-main font-semibold">${bkpText}</span>
+        </div>
+      </div>
+      <div class="card-inset p-2.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-[11px]">
+        <span>سفارش معلق: <b class="font-sans ${rec.stale_pending_orders > 0 ? 't-warn' : 't-success'}">${rec.stale_pending_orders || 0}</b></span>
+        <span>فاکتور منقضی باز: <b class="font-sans">${(rec.stalled_crypto_invoices || 0) + (rec.stalled_card_invoices || 0)}</b></span>
+        <span>مغایرت پنل: <b class="font-sans ${rec.panel_mismatches_count > 0 ? 't-danger' : 't-success'}">${rec.panel_mismatches_count || 0}</b></span>
+        <span>صف برادکست: <b class="font-sans">${q.in_process_running || 0} فعال / ${q.pending_queue_len || 0} صف</b></span>
+      </div>
+      ${mismatchHtml}
+    `;
+  }
+
+  async function fetchAdminSystemHealth(forceRefresh = false) {
+    const icon = $('refreshSystemHealthIcon');
+    if (icon && forceRefresh) icon.classList.add('animate-spin');
+    try {
+      const res = await window.api?.getSystemHealth?.(forceRefresh);
+      if (res && res.ok && res.health) {
+        renderSystemHealth(res.health);
+        return true;
+      }
+    } catch (err) {
+      console.error('System health fetch error:', err);
+    } finally {
+      if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 400);
+    }
+    return false;
+  }
+
+  window.runAdminReconcile = async function() {
+    const btn = $('runAdminReconcileBtn');
+    if (btn) btn.disabled = true;
+    try {
+      const res = await window.api?.runAdminReconcile?.();
+      if (res && res.ok) {
+        if (window.showToast) window.showToast(`✅ ${res.message || 'آشتی خودکار انجام شد'}`);
+        await fetchAdminSystemHealth(true);
+      } else {
+        if (window.showToast) window.showToast(`❌ ${res?.error || 'خطا در اجرای آشتی خودکار'}`);
+      }
+    } catch (err) {
+      if (window.showToast) window.showToast('❌ خطای ارتباط در آشتی خودکار');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
   // Global exports
   window.renderOverviewNodes = renderOverviewNodes;
   window.renderFullNodes = renderFullNodes;
   window.renderSslHealth = renderSslHealth;
   window.fetchAdminSslHealth = fetchAdminSslHealth;
+  window.fetchAdminSystemHealth = fetchAdminSystemHealth;
 })(window);

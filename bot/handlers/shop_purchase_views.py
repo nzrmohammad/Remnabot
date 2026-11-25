@@ -270,8 +270,20 @@ async def _render_purchase_result(
             kb.button(text=t(lang, "btn_account_mgmt"), callback_data="menu:account")
             kb.button(text=t(lang, "btn_back_to_menu"), callback_data="nav:main_menu")
 
+        # Row 4 (optional): Smart OS 1-click installer when HTTPS Mini App bridge URL is configured
+        has_smart_btn = False
+        if result.subscription_url and result.subscription_url.startswith(("http://", "https://")):
+            web_url = (get_settings().WEB_APP_URL or "").strip().rstrip("/")
+            if web_url.startswith("https://"):
+                from urllib.parse import quote
+                kb.button(
+                    text=t(lang, "btn_smart_install"),
+                    url=f"{web_url}/open-client?url={quote(result.subscription_url, safe='')}",
+                )
+                has_smart_btn = True
+
         if result.subscription_url:
-            kb.adjust(1, 2, 2)
+            kb.adjust(1, 2, 2, 1) if has_smart_btn else kb.adjust(1, 2, 2)
         else:
             kb.adjust(2, 2)
 
@@ -461,7 +473,11 @@ async def finalize_purchase(
             else:
                 await cache.delete(f"tma:user:{user.telegram_id}")
             await cache.delete(f"loyalty:user:v2:{user.telegram_id}")
-        await _maybe_reward_referrer(bot, session, remnawave, user)
+        paid_amount = max(
+            0,
+            int(service.price) - min(int(service.price), int(discount_amount or 0) + int(loyalty_discount_amount or 0)),
+        )
+        await _maybe_reward_referrer(bot, session, remnawave, user, paid_amount=paid_amount, cache=cache)
         await state.clear()
         await _notify_admin(
             bot,

@@ -25,6 +25,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
 from bot.services.menu import delete_message_silently, render_menu
+from bot.services.support_chat import append_support_message
 from bot.states.support import SupportStates
 
 logger = logging.getLogger(__name__)
@@ -123,34 +124,22 @@ async def support_forward(
         await repo.map_message(header.message_id, user.telegram_id)
         sent_to_admin = True
 
-        # Cache message for web admin chat room
+        # Persist message in PostgreSQL + Redis cache via shared atomic helper
         try:
-            redis = getattr(state.storage, "redis", None)
-            if redis:
-                import json
+            cache = getattr(bot, "cache", None)
+            redis = getattr(state.storage, "redis", None) or getattr(state.storage, "_redis", None)
+            from bot.services.formatting import now_tz
 
-                from bot.services.formatting import now_tz
-                msg_time = now_tz("Asia/Tehran")
-                user_msg = {
-                    "id": str(message.message_id),
-                    "sender": "user",
-                    "text": message.text or message.caption or "[تصویر / فایل]",
-                    "created_at": msg_time.strftime("%H:%M"),
-                    "timestamp": int(msg_time.timestamp()),
-                }
-                chat_key = f"support:chat:{user.telegram_id}"
-                raw = await redis.get(chat_key)
-                msgs = json.loads(raw) if raw else []
-                msgs.append(user_msg)
-                if len(msgs) > 50:
-                    msgs = msgs[-50:]
-                await redis.set(chat_key, json.dumps(msgs, ensure_ascii=False), ex=86400 * 30)
-
-                raw_threads = await redis.get("support:active_thread_ids")
-                threads = json.loads(raw_threads) if raw_threads else []
-                if user.telegram_id not in threads:
-                    threads.insert(0, user.telegram_id)
-                    await redis.set("support:active_thread_ids", json.dumps(threads[:100]), ex=86400 * 30)
+            await append_support_message(
+                user.telegram_id,
+                sender="user",
+                text=message.text or message.caption or "[تصویر / فایل]",
+                msg_id=str(message.message_id),
+                created_dt=now_tz("Asia/Tehran"),
+                cache=cache,
+                redis=redis,
+                session=user_repo.session,
+            )
         except Exception:
             pass
     except Exception:
@@ -219,35 +208,26 @@ async def admin_support_reply(
                 message_id=message.message_id,
             )
 
-        # Cache admin reply for web admin chat room and Mini App
+        # Persist admin reply in PostgreSQL + Redis cache via shared atomic helper
         try:
+            cache = getattr(bot, "cache", None)
             redis = getattr(state.storage, "redis", None) or getattr(state.storage, "_redis", None)
-            reply_text = message.text or message.caption or ("📷 [تصویر]" if message.photo else ("🎙 [پیام صوتی]" if message.voice else "📎 [فایل]"))
-            if redis and reply_text:
-                import json
-
+            reply_text = message.text or message.caption or (
+                "📷 [تصویر]" if message.photo else ("🎙 [پیام صوتی]" if message.voice else "📎 [فایل]")
+            )
+            if reply_text:
                 from bot.services.formatting import now_tz
-                msg_time = now_tz("Asia/Tehran")
-                admin_msg = {
-                    "id": str(message.message_id),
-                    "sender": "admin",
-                    "text": reply_text,
-                    "created_at": msg_time.strftime("%H:%M"),
-                    "timestamp": int(msg_time.timestamp()),
-                }
-                chat_key = f"support:chat:{telegram_id}"
-                raw = await redis.get(chat_key)
-                msgs = json.loads(raw) if raw else []
-                msgs.append(admin_msg)
-                if len(msgs) > 50:
-                    msgs = msgs[-50:]
-                await redis.set(chat_key, json.dumps(msgs, ensure_ascii=False), ex=86400 * 30)
 
-                raw_threads = await redis.get("support:active_thread_ids")
-                threads = json.loads(raw_threads) if raw_threads else []
-                if telegram_id not in threads:
-                    threads.insert(0, telegram_id)
-                    await redis.set("support:active_thread_ids", json.dumps(threads[:100]), ex=86400 * 30)
+                await append_support_message(
+                    telegram_id,
+                    sender="admin",
+                    text=reply_text,
+                    msg_id=str(message.message_id),
+                    created_dt=now_tz("Asia/Tehran"),
+                    cache=cache,
+                    redis=redis,
+                    session=session,
+                )
         except Exception:
             pass
     except Exception:

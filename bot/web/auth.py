@@ -10,7 +10,7 @@ import json
 import logging
 import time
 from typing import Any
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, quote
 
 from aiohttp import web
 
@@ -112,6 +112,43 @@ def get_authenticated_user(request: web.Request) -> dict[str, Any] | None:
         user["is_admin"] = int(user.get("id", 0)) in admin_ids
 
     return user
+
+
+def sign_qr_token(text: str, bot_token: str, ttl_seconds: int = 86400) -> tuple[int, str]:
+    """Sign a short-lived HMAC token authorizing public QR fetch (used by shareToStory URLs)."""
+    exp = int(time.time()) + max(60, int(ttl_seconds))
+    msg = f"qr:{exp}:{text}".encode()
+    sig = hmac.new(bot_token.encode(), msg, hashlib.sha256).hexdigest()
+    return exp, sig
+
+
+def verify_qr_token(
+    text: str,
+    exp_raw: str | int | None,
+    sig: str | None,
+    bot_token: str,
+) -> bool:
+    """Verify HMAC signature and expiry for signed QR endpoint URLs."""
+    if not text or not sig or not bot_token or exp_raw is None:
+        return False
+    try:
+        exp = int(exp_raw)
+    except (ValueError, TypeError):
+        return False
+    if exp < int(time.time()):
+        return False
+    expected = hmac.new(
+        bot_token.encode(),
+        f"qr:{exp}:{text}".encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(expected, str(sig))
+
+
+def build_signed_qr_url(text: str, bot_token: str, ttl_seconds: int = 86400) -> str:
+    """Build a relative signed `/api/user/qr` URL safe for direct image / Telegram shareToStory use."""
+    exp, sig = sign_qr_token(text, bot_token, ttl_seconds=ttl_seconds)
+    return f"/api/user/qr?text={quote(text, safe='')}&exp={exp}&sig={sig}"
 
 
 def resolve_cached_auth(

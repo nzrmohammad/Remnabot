@@ -2,6 +2,7 @@
 import logging
 import time
 from datetime import datetime
+from html import escape
 from typing import Any
 
 # Bot instance resolved dynamically from request.app["bot"]
@@ -14,6 +15,11 @@ from bot.db.models import (
 )
 from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
+from bot.services.support_chat import (
+    append_support_message,
+    get_active_thread_ids,
+    get_support_messages,
+)
 from bot.web.admin_common import _check_admin, db_session
 from bot.web.cache import FastCache
 
@@ -42,13 +48,7 @@ async def get_admin_ticket_threads(request: web.Request) -> web.Response:
         user_repo = UserRepository(session)
 
         # Batch load users to eliminate N+1 queries
-        active_ids = await cache.get("support:active_thread_ids") or []
-        parsed_active_ids = []
-        for tid in active_ids:
-            try:
-                parsed_active_ids.append(int(tid))
-            except (ValueError, TypeError):
-                pass
+        parsed_active_ids = await get_active_thread_ids(cache=cache, session=session)
 
         all_target_tids = list({t.telegram_id for t in pending_topups} | set(parsed_active_ids))
         user_map = {}
@@ -64,7 +64,7 @@ async def get_admin_ticket_threads(request: web.Request) -> web.Response:
             user = user_map.get(t.telegram_id) or await user_repo.get_by_telegram_id(t.telegram_id)
             u_name = (getattr(user, "full_name", None) or (f"@{user.username}" if user and user.username else f"کاربر {t.telegram_id}")).strip()
 
-            chat_msgs = await cache.get(f"support:chat:{t.telegram_id}") or []
+            chat_msgs = await get_support_messages(t.telegram_id, cache=cache, session=session)
             last_msg = chat_msgs[-1]["text"] if chat_msgs else f"فیش واریزی {t.id} ({t.amount:,} تومان)"
             last_time = chat_msgs[-1].get("created_at") if chat_msgs else (t.created_at.strftime("%H:%M") if t.created_at else "—")
 
@@ -80,15 +80,14 @@ async def get_admin_ticket_threads(request: web.Request) -> web.Response:
                 "timestamp": int(t.created_at.timestamp()) if t.created_at else 0,
             })
 
-        # 2. Add other active threads from cache
-        active_ids = await cache.get("support:active_thread_ids") or []
+        # 2. Add other active threads from cache / PostgreSQL
         for tid_int in parsed_active_ids:
             if tid_int in seen_ids:
                 continue
             seen_ids.add(tid_int)
             user = user_map.get(tid_int) or await user_repo.get_by_telegram_id(tid_int)
             u_name = (getattr(user, "full_name", None) or (f"@{user.username}" if user and user.username else f"کاربر {tid_int}")).strip()
-            chat_msgs = await cache.get(f"support:chat:{tid_int}") or []
+            chat_msgs = await get_support_messages(tid_int, cache=cache, session=session)
             if not chat_msgs:
                 continue
             last_msg = chat_msgs[-1]["text"]
@@ -143,7 +142,7 @@ async def get_admin_ticket_messages(request: web.Request) -> web.Response:
             )
             pending_topup = topup_res.scalar_one_or_none()
 
-        chat_msgs = await cache.get(f"support:chat:{target_id}") or []
+            chat_msgs = await get_support_messages(target_id, cache=cache, session=session)
     except Exception as exc:
         logger.error("Error in get_admin_ticket_messages for user %s: %s", target_id, exc, exc_info=True)
         return web.json_response({
@@ -203,7 +202,7 @@ async def post_admin_reply_ticket(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "شناسه کاربر نامعتبر است."}, status=400)
 
     bot = request.app["bot"]
-    msg_formatted = f"💬 <b>پاسخ پشتیبانی به پیام شما:</b>\n\n{reply_text}"
+    msg_formatted = f"💬 <b>پاسخ پشتیبانی به پیام شما:</b>\n\n{escape(reply_text)}"
     try:
         await bot.send_message(chat_id=target_id, text=msg_formatted, parse_mode="HTML")
     except Exception as exc:
@@ -213,26 +212,15 @@ async def post_admin_reply_ticket(request: web.Request) -> web.Response:
     cache: FastCache = request.app["cache"]
     now_ts = int(time.time())
     now_dt = datetime.fromtimestamp(now_ts)
-    chat_key = f"support:chat:{target_id}"
-    chat_msgs = await cache.get(chat_key) or []
-    new_msg = {
-        "id": f"admin_{int(now_ts * 1000)}",
-        "sender": "admin",
-        "text": reply_text,
-        "created_at": now_dt.strftime("%H:%M"),
-        "timestamp": now_ts,
-    }
-    chat_msgs.append(new_msg)
-    if len(chat_msgs) > 50:
-        chat_msgs = chat_msgs[-50:]
-    await cache.set(chat_key, chat_msgs, ttl_seconds=86400 * 30)
-
-    active_ids = await cache.get("support:active_thread_ids") or []
-    if target_id not in active_ids:
-        active_ids.insert(0, target_id)
-        if len(active_ids) > 100:
-            active_ids = active_ids[:100]
-        await cache.set("support:active_thread_ids", active_ids, ttl_seconds=86400 * 30)
+    new_msg = await append_support_message(
+        target_id,
+        sender="admin",
+        text=reply_text,
+        msg_id=f"admin_{int(now_ts * 1000)}",
+        created_dt=now_dt,
+        cache=cache,
+        session_factory=request.app.get("session_factory"),
+    )
 
     return web.json_response({
         "ok": True,

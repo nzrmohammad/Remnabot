@@ -277,12 +277,12 @@ async def on_channel_member_updated(
     if db_user is None or getattr(db_user, "is_banned", False):
         return
 
-    # Clear cached TMA dashboard so join gate blocks immediately
+    # Clear cached TMA dashboard across all accounts so join gate blocks immediately
+    from bot.web.cache import invalidate_user_cache
+
     bot_cache = getattr(bot, "cache", None)
-    if bot_cache and hasattr(bot_cache, "delete"):
-        for k in (f"tma:user:{tg_id}:dashboard", f"tma:user:{tg_id}:dashboard:default", f"tma:user:{tg_id}:profile"):
-            with contextlib.suppress(Exception):
-                await bot_cache.delete(k)
+    with contextlib.suppress(Exception):
+        await invalidate_user_cache(bot_cache, tg_id)
 
     channel_url = format_channel_link(gate_channel)
     from aiogram.utils.keyboard import InlineKeyboardBuilder

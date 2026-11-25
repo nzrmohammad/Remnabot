@@ -123,6 +123,7 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
         admin_msg_id = topup.admin_message_id
         topup_amount = topup.amount
         topup_tg_id = topup.telegram_id
+        topup_photo_id = str(getattr(topup, "receipt_photo_id", None) or "")
 
         changed, note = await decide_topup(
             bot=bot,
@@ -189,6 +190,14 @@ async def post_admin_topup_action(request: web.Request) -> web.Response:
                     logger.warning("Could not send admin topic sync notice for topup %s: %s", topup_id_int, exc)
 
         await session.commit()
+
+    # Delete local receipt file once resolved if Telegram already holds file_id
+    if topup_photo_id and not topup_photo_id.startswith("local:"):
+        local_file = Path("data/receipts") / f"receipt_{topup_id_int}.jpg"
+        try:
+            await asyncio.to_thread(local_file.unlink, missing_ok=True)
+        except Exception:
+            pass
 
     return web.json_response({
         "ok": True,

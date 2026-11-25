@@ -4,8 +4,7 @@ from bot.web.user_common import db_session, enforce_invite_only, require_user
 import json
 import logging
 import re
-import secrets
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack
 
 from aiogram import Bot
 from aiohttp import web
@@ -19,39 +18,16 @@ from bot.services.gift_service import claim_gift, create_gift, get_user_gifts
 from bot.services.invoice_service import get_order_invoice_data, send_invoice_to_telegram
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
 from bot.services.purchases import execute_purchase
-from bot.web.cache import FastCache
+from bot.web.cache import FastCache, invalidate_user_cache, user_action_lock
 
 logger = logging.getLogger(__name__)
 
 
 async def _invalidate_user_caches(cache, telegram_id: int) -> None:
-    if not cache or not hasattr(cache, "delete"):
-        return
-    for k in (
-        f"tma:user:{telegram_id}:dashboard",
-        f"tma:user:{telegram_id}:dashboard:default",
-        f"tma:user:{telegram_id}:profile",
-        f"tma:user:{telegram_id}:topup_info",
-    ):
-        await cache.delete(k)
+    await invalidate_user_cache(cache, telegram_id)
 
 
-@asynccontextmanager
-async def _user_action_lock(cache, telegram_id: int, action: str, ttl_seconds: int = 30):
-    """Acquire a per-user distributed cache lock, yielding True if acquired."""
-    lock_key = f"lock:user:{telegram_id}:{action}"
-    lock_token = secrets.token_hex(16)
-    if cache and hasattr(cache, "set_nx"):
-        if not await cache.set_nx(lock_key, lock_token, ttl_seconds=ttl_seconds):
-            yield False
-            return
-    try:
-        yield True
-    finally:
-        if cache and hasattr(cache, "release_lock"):
-            await cache.release_lock(lock_key, lock_token)
-        elif cache and hasattr(cache, "delete"):
-            await cache.delete(lock_key)
+_user_action_lock = user_action_lock
 
 
 async def post_user_spin(request: web.Request) -> web.Response:
@@ -353,6 +329,43 @@ async def post_user_purchase(request: web.Request) -> web.Response:
     remnawave = request.app["remnawave"]
     cache: FastCache = request.app["cache"]
 
+    _lock_stack = AsyncExitStack()
+    acquired = await _lock_stack.enter_async_context(
+        _user_action_lock(cache, telegram_id, "purchase", ttl_seconds=45)
+    )
+    if not acquired:
+        await _lock_stack.aclose()
+        return web.json_response({
+            "ok": False,
+            "error": "conflict",
+            "message": "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید.",
+        }, status=409)
+
+    try:
+        return await _post_user_purchase_body(
+            request=request,
+            user_auth=user_auth,
+            telegram_id=telegram_id,
+            remnawave=remnawave,
+            cache=cache,
+            service_id=service_id,
+            coupon_code=coupon_code,
+            account_id=account_id,
+        )
+    finally:
+        await _lock_stack.aclose()
+
+
+async def _post_user_purchase_body(
+    request: web.Request,
+    user_auth: dict,
+    telegram_id: int,
+    remnawave,
+    cache: FastCache,
+    service_id,
+    coupon_code: str | None,
+    account_id,
+) -> web.Response:
     async with db_session(request) as session:
         inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=remnawave)
         if inv_err:
@@ -502,7 +515,7 @@ async def post_user_purchase(request: web.Request) -> web.Response:
                 from bot.services.purchases import notify_admin as _notify_admin
                 db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
                 if db_user:
-                    await _maybe_reward_referrer(bot, session, remnawave, db_user)
+                    await _maybe_reward_referrer(bot, session, remnawave, db_user, paid_amount=effective_price, cache=cache)
                     user_full_name = user_auth.get("first_name", "")
                     if user_auth.get("last_name"):
                         user_full_name += f" {user_auth.get('last_name')}"
@@ -792,6 +805,47 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
     remnawave = request.app["remnawave"]
     cache = request.app.get("cache")
 
+    _lock_stack = AsyncExitStack()
+    acquired = await _lock_stack.enter_async_context(
+        _user_action_lock(cache, telegram_id, "purchase", ttl_seconds=45)
+    )
+    if not acquired:
+        await _lock_stack.aclose()
+        return web.json_response({
+            "ok": False,
+            "error": "conflict",
+            "message": "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید.",
+        }, status=409)
+
+    try:
+        return await _post_user_custom_plan_purchase_body(
+            request=request,
+            user_auth=user_auth,
+            telegram_id=telegram_id,
+            remnawave=remnawave,
+            cache=cache,
+            data=data,
+            traffic_gb=traffic_gb,
+            duration_days=duration_days,
+            hwid_limit=hwid_limit,
+            account_id=account_id,
+        )
+    finally:
+        await _lock_stack.aclose()
+
+
+async def _post_user_custom_plan_purchase_body(
+    request: web.Request,
+    user_auth: dict,
+    telegram_id: int,
+    remnawave,
+    cache,
+    data: dict,
+    traffic_gb: int,
+    duration_days: int,
+    hwid_limit: int,
+    account_id,
+) -> web.Response:
     async with db_session(request) as session:
         inv_err = await enforce_invite_only(session, telegram_id, user_auth, remnawave=remnawave)
         if inv_err:
@@ -981,7 +1035,7 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
                 from bot.services.purchases import notify_admin as _notify_admin
                 db_user = await UserRepository(session).get_by_telegram_id(telegram_id)
                 if db_user:
-                    await _maybe_reward_referrer(bot, session, remnawave, db_user)
+                    await _maybe_reward_referrer(bot, session, remnawave, db_user, paid_amount=final_price, cache=cache)
                     user_full_name = user_auth.get("first_name", "")
                     if user_auth.get("last_name"):
                         user_full_name += f" {user_auth.get('last_name')}"

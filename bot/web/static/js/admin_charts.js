@@ -297,6 +297,8 @@
           try { await window.ensureChart(); } catch (e) {}
         }
         if (typeof Chart !== 'undefined') {
+          Chart.defaults.color = isDark ? '#f8fafc' : '#0f172a';
+          Chart.defaults.font.family = 'Vazirmatn';
           renderAdminSalesChart(c.sales_labels, c.sales_data);
           renderAdminMonthlySalesChart(c.sales_30d_labels, c.sales_30d_data, c.sales_30d_total);
           renderAdminTrafficChart(c.traffic_labels, c.traffic_data, c.traffic_total_gb, c.today_traffic_gb);
