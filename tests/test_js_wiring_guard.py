@@ -167,3 +167,37 @@ def test_persian_count_badges_use_rtl_not_num_bidi():
         tag = match.group(0)
         assert "num-bidi" not in tag, f"#{elem_id} must not use LTR num-bidi on Persian unit text: {tag}"
         assert 'dir="ltr"' not in tag, f"#{elem_id} must not force dir='ltr' on Persian unit text: {tag}"
+
+
+def test_build_assets_minifier_preserves_nested_template_literal_spaces():
+    """Ensure scripts/build_assets.mjs preserves Persian spaces inside nested template literals."""
+    import shutil
+    import subprocess
+
+    node_bin = shutil.which("node") or (
+        r"C:\Program Files\nodejs\node.exe"
+        if Path(r"C:\Program Files\nodejs\node.exe").exists()
+        else None
+    )
+    if not node_bin:
+        return
+
+    probe = (
+        "import fs from 'node:fs';"
+        "import('./scripts/build_assets.mjs').then(({ minifyJs }) => {"
+        "  const src = fs.readFileSync('bot/web/static/js/admin_nodes.js', 'utf8');"
+        "  const min = minifyJs(src);"
+        "  const required = ["
+        "    'هزینه ارزی سرویس:',"
+        "    'هزینه یورویی سرور:',"
+        "    'ضریب مصرف کاربر:',"
+        "    'ضریب مصرف سرور:',"
+        "    'ردیابی ترافیک:',"
+        "  ];"
+        "  for (const s of required) {"
+        "    if (!min.includes(s)) throw new Error('Minifier stripped spaces in: ' + s);"
+        "  }"
+        "}).catch(err => { console.error(err); process.exit(1); });"
+    )
+    res = subprocess.run([node_bin, "--input-type=module", "-e", probe], capture_output=True, text=True)
+    assert res.returncode == 0, f"JS minifier regression:\n{res.stderr or res.stdout}"

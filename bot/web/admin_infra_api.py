@@ -346,7 +346,7 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
     eff_prov_uuid = str(body.get("provider_uuid") or "").strip()
     if due_date and eff_prov_uuid and remnawave and hasattr(remnawave, "sync_infra_billing_node"):
         try:
-            next_billing_iso = due_date.isoformat().replace("+00:00", "Z")
+            next_billing_iso = due_date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
             await remnawave.sync_infra_billing_node(eff_prov_uuid, node_uuid, next_billing_at=next_billing_iso)
         except Exception as sync_exc:
             logger.debug("Optional panel infra-billing sync skipped for %s: %s", node_uuid, sync_exc)

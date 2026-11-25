@@ -224,7 +224,7 @@
               </div>
               <div class="text-[11px] t-accent font-sans num-bidi truncate mt-0.5">${escapeHtml(h.address || '—')}:${Number(h.port || 443)}</div>
             </div>
-            <input type="checkbox" aria-label="انتخاب هاست" class="mt-1 rounded accent-cyan-500 cursor-pointer shrink-0" ${checked ? 'checked' : ''} onchange="window.panelCtrl.toggleHostSelection('${escapeHtml(uuid)}', this.checked)" />
+            <input type="checkbox" aria-label="انتخاب هاست" class="w-4 h-4 mt-1 rounded accent-cyan-500 cursor-pointer shrink-0" ${checked ? 'checked' : ''} onchange="window.panelCtrl.toggleHostSelection('${escapeHtml(uuid)}', this.checked)" />
           </div>
           <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t border-card-border text-[10.5px] t-muted">
             <div class="flex flex-wrap items-center gap-1">
@@ -562,7 +562,7 @@
           <button type="button" onclick="window.panelCtrl.openExtSquadUsersModal('${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="btn btn-secondary px-2.5 py-1.5 text-[11px] rounded-xl font-bold shrink-0">مدیریت اعضا</button>
           <div class="min-w-0 flex-1 text-left" dir="ltr">
             <b class="text-xs t-main block truncate font-en">${escapeHtml(sq.name || 'Squad')}</b>
-            <span class="text-[10.5px] t-muted block mt-0.5">${Number(count)} عضو در اسکواد</span>
+            <span class="text-[10.5px] t-muted block mt-0.5" dir="rtl"><span class="num-bidi">${Number(count)}</span> عضو در اسکواد</span>
           </div>
         </div>
       `;

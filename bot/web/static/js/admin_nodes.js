@@ -242,6 +242,11 @@
       return;
     }
 
+    // Preserve expanded node cards across 15s live auto-refresh cycles
+    const openNodeBoxIds = new Set(
+      Array.from(container.querySelectorAll('.node-body:not(.hidden)')).map(el => el.id).filter(Boolean)
+    );
+
     container.innerHTML = nodes.map((n, idx) => {
       const flag = n.flag || getFlagEmoji(n.country_code);
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
@@ -608,6 +613,15 @@
         </div>
       `;
     }).join('');
+
+    openNodeBoxIds.forEach(boxId => {
+      const bodyEl = document.getElementById(boxId);
+      if (!bodyEl) return;
+      bodyEl.classList.remove('hidden');
+      const card = bodyEl.closest('.node-card');
+      const chev = card ? card.querySelector('.node-chevron') : null;
+      if (chev) chev.classList.add('rotate-180');
+    });
   }
 
 
@@ -982,12 +996,28 @@ openEditSslDomainModal(domain) {
         if (window.showToast) window.showToast('ابتدا یک ارائه‌دهنده ثبت‌شده در پنل انتخاب کنید.');
         return;
       }
-      const res = await window.api?.syncInfraNodeBilling?.(nodeUuid, providerUuid, dueDate);
-      if (res && res.ok) {
-        if (window.showToast) window.showToast(`✅ ${res.message}`);
-        if (window.hapticFeedback) window.hapticFeedback('success');
-      } else {
-        if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در همگام‌سازی بیلینگ با پنل'}`);
+      const btn = $('syncNodePanelBillingBtn');
+      const prevText = btn ? btn.innerText : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'در حال سینک...';
+      }
+      try {
+        const res = await window.api?.syncInfraNodeBilling?.(nodeUuid, providerUuid, dueDate);
+        if (res && res.ok) {
+          $('nodeBillingDueSourceBadge')?.classList.remove('hidden');
+          if (window.showToast) window.showToast(`✅ ${res.message}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          if (window.syncAdminOverview) window.syncAdminOverview(true);
+          if (window.panelCtrl?.fetchOverview) window.panelCtrl.fetchOverview(true);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در همگام‌سازی بیلینگ با پنل'}`);
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = prevText || 'سینک در پنل';
+        }
       }
     },
 

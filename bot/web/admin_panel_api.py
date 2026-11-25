@@ -382,7 +382,7 @@ async def post_admin_infra_node_sync(request: web.Request) -> web.Response:
     if due_date:
         try:
             dt = datetime.strptime(due_date[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
-            next_billing_at = dt.isoformat().replace("+00:00", "Z")
+            next_billing_at = dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         except ValueError:
             return web.json_response({"ok": False, "error": "فرمت تاریخ سررسید نامعتبر است."}, status=400)
 
@@ -390,7 +390,11 @@ async def post_admin_infra_node_sync(request: web.Request) -> web.Response:
         provider_uuid, node_uuid, next_billing_at=next_billing_at
     )
     if not ok:
-        return web.json_response({"ok": False, "error": str(res)}, status=502)
+        err_msg = str(res)
+        is_client_validation = any(
+            tok in err_msg for tok in ("الزامی است", "Validation", "nextBillingAt", "providerUuid", "nodeUuid")
+        )
+        return web.json_response({"ok": False, "error": err_msg}, status=400 if is_client_validation else 502)
 
     await _audit_and_refresh(request, admin["id"], "sync_infra_node", f"سینک بیلینگ نود {node_uuid}")
     return web.json_response({"ok": True, "message": "اطلاعات بیلینگ نود با پنل همگام شد.", "data": res})
@@ -417,11 +421,11 @@ async def post_admin_infra_bill_create(request: web.Request) -> web.Response:
     if raw_billed_at:
         try:
             dt = datetime.strptime(raw_billed_at[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
-            billed_at_iso = dt.isoformat().replace("+00:00", "Z")
+            billed_at_iso = dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         except ValueError:
             return web.json_response({"ok": False, "error": "فرمت تاریخ پرداخت نامعتبر است."}, status=400)
     else:
-        billed_at_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        billed_at_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
     ok, res = await remnawave.create_infra_billing_record(provider_uuid, amount, billed_at_iso)
     if not ok:

@@ -3601,14 +3601,14 @@
               <div class="min-w-0">
                 <label for="planModalPrice" class="text-[11px] t-muted block mb-1">قیمت فروش:</label>
                 <div class="input-base flex items-center gap-2 py-2 px-2.5 min-w-0">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalPrice" dir="ltr" placeholder="95000" min="0" step="1000" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-success text-left outline-none" />
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalPrice" dir="ltr" placeholder="95000" min="0" step="1000" class="flex-1 w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-success text-left outline-none" />
                   <span class="text-[10px] t-muted font-medium select-none shrink-0">تومان</span>
                 </div>
               </div>
               <div id="planModalTrafficContainer" class="min-w-0">
                 <label id="planModalTrafficLabel" for="planModalTraffic" class="text-[11px] t-muted block mb-1">حجم ترافیک:</label>
                 <div class="input-base flex items-center gap-2 py-2 px-2.5 min-w-0">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalTraffic" dir="ltr" placeholder="50" min="0" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-accent text-left outline-none" />
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalTraffic" dir="ltr" placeholder="50" min="0" class="flex-1 w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-accent text-left outline-none" />
                   <span class="text-[10px] t-muted font-sans font-semibold select-none shrink-0">GB</span>
                 </div>
               </div>
@@ -3617,14 +3617,14 @@
               <div id="planModalDurationContainer" class="min-w-0">
                 <label id="planModalDurationLabel" for="planModalDuration" class="text-[11px] t-muted block mb-1">مدت اعتبار:</label>
                 <div class="input-base flex items-center gap-2 py-2 px-2.5 min-w-0">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalDuration" dir="ltr" placeholder="30" min="0" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-warn text-left outline-none" />
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalDuration" dir="ltr" placeholder="30" min="0" class="flex-1 w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-warn text-left outline-none" />
                   <span class="text-[10px] t-muted font-medium select-none shrink-0">روز</span>
                 </div>
               </div>
               <div id="planModalHwidContainer" class="min-w-0">
                 <label for="planModalHwid" class="text-[11px] t-muted block mb-1">محدودیت کاربر:</label>
                 <div class="input-base flex items-center gap-2 py-2 px-2.5 min-w-0">
-                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalHwid" dir="ltr" placeholder="0" min="0" class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-main text-left outline-none" />
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" id="planModalHwid" dir="ltr" placeholder="0" min="0" class="flex-1 w-full min-w-0 bg-transparent border-0 p-0 text-xs font-sans num-bidi font-bold t-main text-left outline-none" />
                   <span class="text-[10px] t-muted font-medium select-none shrink-0">کاربر</span>
                 </div>
               </div>
@@ -4491,7 +4491,7 @@
 
                 <!-- Node Config Profile & Active Inbounds -->
                 <div class="min-w-0 pt-1 border-t border-card-border space-y-1.5">
-                  <label class="text-[11px] t-muted block">پروفایل کانفیگ Xray (Config Profile):</label>
+                  <label class="text-[11px] t-muted block">پروفایل کانفیگ Xray:</label>
                   <input type="hidden" id="nodeBillingConfigProfileSelect" value="" />
                   <button type="button" id="nodeBillingConfigProfilePickerBtn" onclick="window.adminActions.openNodeConfigProfileModal()" class="input-base h-9 px-3 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-2 hover:border-cyan-500/50 transition active:scale-[0.99]">
                     <span id="nodeBillingConfigProfileDisplay" class="t-main font-semibold truncate">بدون تغییر پروفایل</span>

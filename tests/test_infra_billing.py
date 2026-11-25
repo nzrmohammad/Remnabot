@@ -564,6 +564,7 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     assert "پایش لحظه‌ای مصرف منابع، سرعت و کنترل نودها" not in admin_html
     assert "هاست‌ها، پروفایل Xray، اسنیپت‌ها، اسکواد خارجی و تنظیمات ساب" not in admin_html
     assert "(Config Profiles)" not in admin_html
+    assert "(Config Profile)" not in admin_html
     assert "(Infra Providers)" not in admin_html
     assert 'id="refreshNodesTabBtn"' not in admin_html
     assert 'id="panelHostSquadsModal"' in admin_html
@@ -573,6 +574,7 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     assert 'id="panelHostInboundPickerModal"' in admin_html
     assert 'id="nodeConfigProfilePickerModal"' in admin_html
     assert "animate-ping" in nodes_js and "سررسید!" not in nodes_js
+    assert nodes_js.count("openNodeBoxIds") == 2
     assert "User / Node Multiplier:" not in nodes_js
     assert "ورژن هسته (Xray):" in nodes_js
     assert "ورژن نود:" in nodes_js
@@ -810,6 +812,91 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
             await check_nodes_billing_due_dates(panel_bot, session_factory, remnawave=panel_rw)
         assert panel_bot.send_message.called
         assert _PANEL_BILLING_ALERTED.get("panel-only-n1") == soon_iso[:10]
+
+
+@pytest.mark.anyio
+async def test_infra_node_sync_dto_validation_and_provider_switch():
+    """Ensure sync_infra_billing_node matches Remnawave DTOs and never triggers 502 on missing due_date."""
+    import json
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.services.remnawave import RemnawaveClient
+    from bot.web.admin_panel_api import post_admin_infra_node_sync
+
+    client = RemnawaveClient("https://panel.example.com", "secret")
+
+    class FakeResp:
+        def __init__(self, status_code, body=None):
+            self.status_code = status_code
+            self._body = body
+            self.content = b"1" if body is not None else b""
+
+        def json(self):
+            return self._body
+
+    # 1. _extract_panel_error preserves detailed Zod errors alongside Validation failed
+    err_detail = client._extract_panel_error(
+        FakeResp(400, {"message": "Validation failed", "errors": [{"path": ["nextBillingAt"], "message": "Required"}]})
+    )
+    assert "Validation failed" in err_detail and "nextBillingAt: Required" in err_detail
+
+    calls = []
+    billing_nodes = [{"uuid": "bn-1", "nodeUuid": "n-1", "providerUuid": "p-1", "nextBillingAt": "2026-12-01T00:00:00.000Z"}]
+
+    async def fake_request(method, path, json=None):
+        calls.append((method, path, json))
+        if method == "GET" and path == "/api/infra-billing/nodes":
+            return FakeResp(200, {"response": {"nodes": billing_nodes}})
+        if method == "PATCH" and path == "/api/infra-billing/nodes":
+            if json and "providerUuid" in json:
+                return FakeResp(400, {"message": "Validation failed"})
+            return FakeResp(200, {"response": {"uuid": "bn-1"}})
+        return FakeResp(200, {"response": {"uuid": "bn-new"}})
+
+    client._client.request = fake_request
+
+    # Same provider: PATCH must NOT send providerUuid, and preserves existing nextBillingAt when omitted
+    ok, _ = await client.sync_infra_billing_node("p-1", "n-1")
+    assert ok is True
+    patch_calls = [c for c in calls if c[0] == "PATCH"]
+    assert len(patch_calls) == 1
+    assert patch_calls[0][2] == {"uuid": "bn-1", "nextBillingAt": "2026-12-01T00:00:00.000Z"}
+
+    # Fallback to bulk `uuids` DTO if panel rejects singular `uuid`
+    calls.clear()
+
+    async def fake_bulk_patch(method, path, json=None):
+        calls.append((method, path, json))
+        if method == "GET":
+            return FakeResp(200, {"response": {"nodes": billing_nodes}})
+        if method == "PATCH" and json and "uuid" in json:
+            return FakeResp(400, {"message": "uuids must be an array"})
+        return FakeResp(200, {"response": {"updated": 1}})
+
+    client._client.request = fake_bulk_patch
+    ok_bulk, _ = await client.sync_infra_billing_node("p-1", "n-1", next_billing_at="2026-12-15T00:00:00.000Z")
+    assert ok_bulk is True
+    assert calls[-1][2] == {"uuids": ["bn-1"], "nextBillingAt": "2026-12-15T00:00:00.000Z"}
+
+    # Different provider: DELETE old record + POST new record cleanly
+    calls.clear()
+    client._client.request = fake_request
+    ok_switch, _ = await client.sync_infra_billing_node("p-2", "n-1", next_billing_at="2026-12-20T00:00:00.000Z")
+    assert ok_switch is True
+    assert ("DELETE", "/api/infra-billing/nodes/bn-1", None) in calls
+    assert ("POST", "/api/infra-billing/nodes", {"providerUuid": "p-2", "nodeUuid": "n-1", "nextBillingAt": "2026-12-20T00:00:00.000Z"}) in calls
+
+    # Unlinked node without due_date returns 400 (not 502 Error Log alert)
+    billing_nodes.clear()
+    app_state = {"session_factory": MagicMock(), "cache": MagicMock(), "remnawave": client}
+    req_missing_due = make_mocked_request("POST", "/api/admin/infra/node/sync", app=app_state)
+    req_missing_due.json = AsyncMock(return_value={"node_uuid": "n-unlinked", "provider_uuid": "p-1", "due_date": ""})
+    with patch("bot.web.admin_panel_api._check_admin", return_value={"id": 1, "is_admin": True}):
+        resp_missing = await post_admin_infra_node_sync(req_missing_due)
+        assert resp_missing.status == 400
+        assert json.loads(resp_missing.text)["ok"] is False
+
 
 
 

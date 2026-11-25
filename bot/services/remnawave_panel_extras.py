@@ -238,21 +238,58 @@ class RemnawavePanelExtrasMixin:
         self, provider_uuid: str, node_uuid: str, *, next_billing_at: str | None = None
     ) -> tuple[bool, Any]:
         """Create or update node infra-billing linkage in Remnawave panel."""
+        clean_prov = str(provider_uuid or "").strip()
+        clean_node = str(node_uuid or "").strip()
         existing = await self.get_infra_billing_nodes()
         matched = next(
-            (x for x in existing if str(x.get("nodeUuid") or x.get("node", {}).get("uuid") or "") == str(node_uuid)),
+            (
+                x
+                for x in existing
+                if str(x.get("nodeUuid") or (x.get("node") or {}).get("uuid") or "") == clean_node
+            ),
             None,
         )
+        eff_next = next_billing_at or (matched.get("nextBillingAt") if isinstance(matched, dict) else None)
+
         if matched and matched.get("uuid"):
-            body: dict[str, Any] = {"uuid": matched["uuid"], "providerUuid": provider_uuid}
-            if next_billing_at:
-                body["nextBillingAt"] = next_billing_at
-            ok, res, _ = await self._panel_call("PATCH", "/api/infra-billing/nodes", json=body)
+            matched_prov = str(
+                matched.get("providerUuid") or (matched.get("provider") or {}).get("uuid") or ""
+            ).strip()
+            if matched_prov and matched_prov != clean_prov:
+                if not eff_next:
+                    return False, "برای تغییر ارائه‌دهنده در پنل، تاریخ سررسید بعدی الزامی است."
+                ok_del, res_del, _ = await self._panel_call(
+                    "DELETE", f"/api/infra-billing/nodes/{matched['uuid']}"
+                )
+                if not ok_del:
+                    return False, res_del
+                ok, res, _ = await self._panel_call(
+                    "POST",
+                    "/api/infra-billing/nodes",
+                    json={"providerUuid": clean_prov, "nodeUuid": clean_node, "nextBillingAt": eff_next},
+                )
+                return ok, res
+
+            if not eff_next:
+                return False, "تاریخ سررسید بعدی برای همگام‌سازی با پنل الزامی است."
+            # UpdateInfraBillingNodeRequestDto only accepts uuid (or uuids) + nextBillingAt (rejects providerUuid)
+            patch_body: dict[str, Any] = {"uuid": matched["uuid"], "nextBillingAt": eff_next}
+            ok, res, status = await self._panel_call("PATCH", "/api/infra-billing/nodes", json=patch_body)
+            if not ok and status in (400, 422) and "uuids" in str(res):
+                ok, res, _ = await self._panel_call(
+                    "PATCH",
+                    "/api/infra-billing/nodes",
+                    json={"uuids": [matched["uuid"]], "nextBillingAt": eff_next},
+                )
             return ok, res
-        body = {"providerUuid": provider_uuid, "nodeUuid": node_uuid}
-        if next_billing_at:
-            body["nextBillingAt"] = next_billing_at
-        ok, res, _ = await self._panel_call("POST", "/api/infra-billing/nodes", json=body)
+
+        if not eff_next:
+            return False, "برای ثبت اولیه سرور در Infra Billing پنل، تاریخ سررسید بعدی الزامی است."
+        ok, res, _ = await self._panel_call(
+            "POST",
+            "/api/infra-billing/nodes",
+            json={"providerUuid": clean_prov, "nodeUuid": clean_node, "nextBillingAt": eff_next},
+        )
         return ok, res
 
     async def get_infra_billing_history(self) -> list[dict[str, Any]]:

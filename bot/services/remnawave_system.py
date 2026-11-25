@@ -323,11 +323,23 @@ class RemnawaveSystemMixin:
         try:
             data = resp.json()
             if isinstance(data, dict):
-                msg = data.get("message") or data.get("error") or ""
-                if isinstance(msg, list):
-                    return ", ".join(str(x) for x in msg)
+                raw_msg = data.get("message") or data.get("error") or ""
+                msg = ", ".join(str(x) for x in raw_msg) if isinstance(raw_msg, list) else str(raw_msg or "")
+                errors = data.get("errors")
+                if isinstance(errors, list) and errors:
+                    details = []
+                    for err in errors[:3]:
+                        if isinstance(err, dict):
+                            path = ".".join(str(p) for p in (err.get("path") or []) if p is not None)
+                            emsg = str(err.get("message") or err.get("code") or err)
+                            details.append(f"{path}: {emsg}" if path else emsg)
+                        elif err:
+                            details.append(str(err))
+                    if details:
+                        detail_str = "; ".join(details)
+                        return f"{msg} ({detail_str})" if msg else detail_str
                 if msg:
-                    return str(msg)
+                    return msg
         except Exception:
             pass
         return f"HTTP {getattr(resp, 'status_code', '?')}"

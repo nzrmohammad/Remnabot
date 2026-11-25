@@ -24,106 +24,156 @@ function minifyJs(src) {
   const isIdent = ch => /[A-Za-z0-9_$]/.test(ch);
   const canStartRegex = () =>
     lastSig === '' || '([{:;,=!&|?+-*%~^<>'.includes(lastSig) ||
-    /\b(return|case|throw|in|of|typeof|delete|void|new|else|do|await|yield)$/.test(out.slice(-12));
+    /(?:^|[^\w$])(return|case|throw|in|of|typeof|delete|void|new|else|do|await|yield)\s*$/.test(out.slice(-16));
 
-  while (i < n) {
-    const ch = src[i];
-    const next = src[i + 1];
-
-    // Line comments
-    if (ch === '/' && next === '/') {
-      i += 2;
-      while (i < n && src[i] !== '\n') i++;
-      continue;
-    }
-
-    // Block comments
-    if (ch === '/' && next === '*') {
-      i += 2;
-      while (i < n && !(src[i] === '*' && src[i + 1] === '/')) i++;
-      i += 2;
-      continue;
-    }
-
-    // String & template literals
-    if (ch === "'" || ch === '"' || ch === '`') {
-      const quote = ch;
-      let lit = ch;
-      i++;
-      while (i < n) {
-        const c = src[i];
-        lit += c;
-        i++;
-        if (c === '\\' && i < n) {
-          lit += src[i];
-          i++;
-          continue;
-        }
-        if (c === quote) break;
+  function readTemplateLiteral() {
+    out += '`';
+    i++;
+    while (i < n) {
+      const c = src[i];
+      if (c === '\\' && i + 1 < n) {
+        out += c + src[i + 1];
+        i += 2;
+        continue;
       }
-      out += lit;
-      lastSig = quote;
-      continue;
-    }
-
-    // Regex literals
-    if (ch === '/' && canStartRegex()) {
-      let rx = ch;
-      let inClass = false;
+      if (c === '$' && src[i + 1] === '{') {
+        out += '${';
+        i += 2;
+        lastSig = '{';
+        scanChunk(true);
+        continue;
+      }
+      out += c;
       i++;
-      while (i < n) {
-        const c = src[i];
-        rx += c;
+      if (c === '`') {
+        lastSig = '`';
+        return;
+      }
+    }
+  }
+
+  function scanChunk(stopAtClosingBrace = false) {
+    let braceDepth = stopAtClosingBrace ? 1 : 0;
+
+    while (i < n) {
+      const ch = src[i];
+      const next = src[i + 1];
+
+      // Line comments
+      if (ch === '/' && next === '/') {
+        i += 2;
+        while (i < n && src[i] !== '\n') i++;
+        continue;
+      }
+
+      // Block comments
+      if (ch === '/' && next === '*') {
+        i += 2;
+        while (i < n && !(src[i] === '*' && src[i + 1] === '/')) i++;
+        i += 2;
+        continue;
+      }
+
+      // Template literals (preserve whitespace & recursively parse ${...})
+      if (ch === '`') {
+        readTemplateLiteral();
+        continue;
+      }
+
+      // Quoted string literals
+      if (ch === "'" || ch === '"') {
+        const quote = ch;
+        let lit = ch;
         i++;
-        if (c === '\\' && i < n) {
+        while (i < n) {
+          const c = src[i];
+          lit += c;
+          i++;
+          if (c === '\\' && i < n) {
+            lit += src[i];
+            i++;
+            continue;
+          }
+          if (c === quote) break;
+        }
+        out += lit;
+        lastSig = quote;
+        continue;
+      }
+
+      // Regex literals
+      if (ch === '/' && canStartRegex()) {
+        let rx = ch;
+        let inClass = false;
+        i++;
+        while (i < n) {
+          const c = src[i];
+          rx += c;
+          i++;
+          if (c === '\\' && i < n) {
+            rx += src[i];
+            i++;
+            continue;
+          }
+          if (c === '[') inClass = true;
+          else if (c === ']') inClass = false;
+          else if (c === '/' && !inClass) break;
+          else if (c === '\n') break;
+        }
+        while (i < n && /[gimsuvy]/.test(src[i])) {
           rx += src[i];
           i++;
+        }
+        out += rx;
+        lastSig = '/';
+        continue;
+      }
+
+      // Collapse whitespace & preserve ASI newlines conservatively
+      if (/\s/.test(ch)) {
+        let hasNewline = ch === '\n' || ch === '\r';
+        i++;
+        while (i < n && /\s/.test(src[i])) {
+          if (src[i] === '\n' || src[i] === '\r') hasNewline = true;
+          i++;
+        }
+        const nextCh = src[i] || '';
+        if (!out || !nextCh) continue;
+        const prevCh = out[out.length - 1];
+        if (hasNewline) {
+          if (!';{([,?:'.includes(prevCh) && !'}).,;:]'.includes(nextCh)) {
+            out += '\n';
+            lastSig = '\n';
+          }
+        } else if (
+          (isIdent(prevCh) && isIdent(nextCh)) ||
+          (prevCh === '+' && nextCh === '+') ||
+          (prevCh === '-' && nextCh === '-')
+        ) {
+          out += ' ';
+        }
+        continue;
+      }
+
+      if (stopAtClosingBrace) {
+        if (ch === '{') braceDepth++;
+        else if (ch === '}') {
+          braceDepth--;
+          out += ch;
+          lastSig = ch;
+          i++;
+          if (braceDepth === 0) return;
           continue;
         }
-        if (c === '[') inClass = true;
-        else if (c === ']') inClass = false;
-        else if (c === '/' && !inClass) break;
-        else if (c === '\n') break;
       }
-      while (i < n && /[gimsuvy]/.test(src[i])) {
-        rx += src[i];
-        i++;
-      }
-      out += rx;
-      lastSig = '/';
-      continue;
-    }
 
-    // Collapse whitespace & preserve ASI newlines conservatively
-    if (/\s/.test(ch)) {
-      let hasNewline = ch === '\n' || ch === '\r';
+      out += ch;
+      lastSig = ch;
       i++;
-      while (i < n && /\s/.test(src[i])) {
-        if (src[i] === '\n' || src[i] === '\r') hasNewline = true;
-        i++;
-      }
-      const nextCh = src[i] || '';
-      if (!out || !nextCh) continue;
-      const prevCh = out[out.length - 1];
-      if (hasNewline) {
-        if (!';{([,?:'.includes(prevCh) && !'}).,;:]'.includes(nextCh)) {
-          out += '\n';
-          lastSig = '\n';
-        }
-      } else if (
-        (isIdent(prevCh) && isIdent(nextCh)) ||
-        (prevCh === '+' && nextCh === '+') ||
-        (prevCh === '-' && nextCh === '-')
-      ) {
-        out += ' ';
-      }
-      continue;
     }
-
-    out += ch;
-    lastSig = ch;
-    i++;
   }
+
+  scanChunk(false);
   return out.trim() + '\n';
 }
 
