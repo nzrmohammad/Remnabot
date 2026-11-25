@@ -534,22 +534,171 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
         assert rst_resp.status == 200
         remna.restart_node.assert_awaited_once_with("n-1", force_restart=True)
 
-    # UI assertions for pulsing icon-only due badge, English %, word-spacing, 3 stacked emoji rows, and Stars title fix
+    # Node/Core version extraction across modern nested & legacy flat Remnawave DTOs
+    from bot.web.admin_overview_nodes import extract_node_panel_fields
+
+    modern_meta = extract_node_panel_fields({"versions": {"nodeVersion": "2.4.1", "xrayVersion": "25.3.6"}})
+    assert modern_meta["node_version"] == "2.4.1"
+    assert modern_meta["xray_version"] == "25.3.6"
+
+    legacy_meta = extract_node_panel_fields({"nodeVersion": "2.1.0", "xrayVersion": "24.12.31"})
+    assert legacy_meta["node_version"] == "2.1.0"
+    assert legacy_meta["xray_version"] == "24.12.31"
+
+    # UI assertions for pulsing icon-only due badge, English %, calibrated word-spacing, 3 stacked emoji rows, and versions
     base_css = Path("bot/web/static/css/base.css").read_text(encoding="utf-8")
     admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
     nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
     finance_js = Path("bot/web/static/js/admin_finance.js").read_text(encoding="utf-8")
 
-    assert "word-spacing: 0.14em" in base_css
+    assert "word-spacing: 0.065em" in base_css
+    assert "word-spacing: 0.14em" not in base_css
     assert "پورسانت نقدی دعوت (%)" in admin_html
     assert "پورسانت نقدی دعوت (٪)" not in admin_html
     assert "animate-ping" in nodes_js and "سررسید!" not in nodes_js
     assert "User / Node Multiplier:" not in nodes_js
+    assert "ورژن هسته (Xray):" in nodes_js
+    assert "ورژن نود:" in nodes_js
     assert "ضریب مصرف کاربر:" in nodes_js
     assert "ضریب مصرف سرور:" in nodes_js
     assert "ردیابی ترافیک:" in nodes_js
     assert "هزینه و تمدید:" not in nodes_js
     assert "titleEl.querySelector('span')" in finance_js
+
+
+@pytest.mark.anyio
+async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory):
+    """Verify extended Remnawave panel client methods and admin_panel_api endpoints."""
+    import json
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.services.remnawave import RemnawaveClient
+    from bot.web.admin_panel_api import (
+        get_admin_panel_control,
+        post_admin_infra_provider_save,
+        post_admin_panel_external_squad_users,
+        post_admin_panel_host_save,
+        post_admin_panel_hosts_bulk,
+        post_admin_panel_node_action,
+        post_admin_panel_snippet_save,
+        post_admin_panel_subscription_settings,
+    )
+    from bot.web.cache import FastCache
+    from bot.web.server import create_web_app
+
+    client = RemnawaveClient("https://panel.example.com", "secret")
+
+    class FakeResp:
+        def __init__(self, status_code, body=None):
+            self.status_code = status_code
+            self._body = body
+            self.content = b"1" if body is not None else b""
+
+        def json(self):
+            return self._body
+
+    calls = []
+
+    async def fake_request(method, path, json=None):
+        calls.append((method, path, json))
+        if path == "/api/tokens":
+            return FakeResp(403, {"message": "Admin JWT required"})
+        if path == "/api/hosts":
+            return FakeResp(200, {"response": [{"uuid": "h-1", "remark": "DE", "address": "de.ex", "port": 443}]})
+        if path == "/api/config-profiles":
+            return FakeResp(200, {"response": {"configProfiles": [{"uuid": "cp-1", "name": "Main", "inbounds": []}]}})
+        if path == "/api/snippets":
+            return FakeResp(200, {"response": [{"name": "Ads", "snippet": []}]})
+        if path == "/api/external-squads":
+            return FakeResp(200, {"response": {"externalSquads": [{"uuid": "es-1", "name": "VIP"}]}})
+        if path == "/api/subscription-settings":
+            return FakeResp(200, {"response": {"uuid": "sub-1", "profileTitle": "Store"}})
+        if path == "/api/infra-billing/providers":
+            return FakeResp(200, {"response": {"providers": [{"uuid": "p-1", "name": "Hetzner"}]}})
+        if path == "/api/infra-billing/nodes":
+            return FakeResp(200, {"response": {"nodes": []}})
+        return FakeResp(200, {"response": {"ok": True}})
+
+    client._client.request = fake_request
+
+    tok = await client.get_api_tokens()
+    assert tok["ok"] is False and tok["jwt_required"] is True
+
+    ok_dis, _ = await client.set_node_enabled("n-1", False)
+    assert ok_dis is True and ("POST", "/api/nodes/n-1/actions/disable", {}) in calls
+
+    ok_rst, _ = await client.restart_all_nodes(force_restart=True)
+    assert ok_rst is True and ("POST", "/api/nodes/actions/restart-all", {"forceRestart": True}) in calls
+
+    ok_bulk, _ = await client.bulk_hosts_action("enable", ["h-1"])
+    assert ok_bulk is True and ("POST", "/api/hosts/bulk/enable", {"uuids": ["h-1"]}) in calls
+
+    # Route registration + admin endpoints
+    settings = MagicMock()
+    settings.BOT_TOKEN = "123:abc"
+    settings.ADMIN_IDS = [1]
+    app = create_web_app(
+        bot=MagicMock(),
+        session_factory=session_factory,
+        remnawave=client,
+        settings=settings,
+        cache=FastCache(),
+    )
+    paths = {r.resource.canonical for r in app.router.routes() if r.resource}
+    for required_path in (
+        "/api/admin/infra/node/action",
+        "/api/admin/infra/providers/save",
+        "/api/admin/infra/providers/delete",
+        "/api/admin/infra/node/sync",
+        "/api/admin/panel/control",
+        "/api/admin/panel/hosts/save",
+        "/api/admin/panel/hosts/bulk",
+        "/api/admin/panel/snippets/save",
+        "/api/admin/panel/snippets/delete",
+        "/api/admin/panel/subscription-settings",
+        "/api/admin/panel/external-squads/users",
+        "/api/admin/panel/tokens/create",
+        "/api/admin/panel/tokens/delete",
+    ):
+        assert required_path in paths
+
+    app_state = {"session_factory": session_factory, "cache": FastCache(), "remnawave": client}
+    with patch("bot.web.admin_panel_api._check_admin", return_value={"id": 1, "is_admin": True}):
+        ctrl_resp = await get_admin_panel_control(make_mocked_request("GET", "/api/admin/panel/control", app=app_state))
+        assert ctrl_resp.status == 200
+        ctrl_data = json.loads(ctrl_resp.text)["data"]
+        assert len(ctrl_data["hosts"]) == 1
+        assert len(ctrl_data["config_profiles"]) == 1
+        assert ctrl_data["api_tokens_info"]["jwt_required"] is True
+
+        req_act = make_mocked_request("POST", "/api/admin/infra/node/action", app=app_state)
+        req_act.json = AsyncMock(return_value={"action": "reset_traffic", "node_uuid": "n-1", "node_name": "DE"})
+        assert (await post_admin_panel_node_action(req_act)).status == 200
+
+        req_host = make_mocked_request("POST", "/api/admin/panel/hosts/save", app=app_state)
+        req_host.json = AsyncMock(return_value={"uuid": "h-1", "remark": "DE", "address": "de.ex", "port": 443})
+        assert (await post_admin_panel_host_save(req_host)).status == 200
+
+        req_bulk = make_mocked_request("POST", "/api/admin/panel/hosts/bulk", app=app_state)
+        req_bulk.json = AsyncMock(return_value={"action": "disable", "uuids": ["h-1"]})
+        assert (await post_admin_panel_hosts_bulk(req_bulk)).status == 200
+
+        req_snip = make_mocked_request("POST", "/api/admin/panel/snippets/save", app=app_state)
+        req_snip.json = AsyncMock(return_value={"name": "Ads", "snippet": '[{"type": "field"}]'})
+        assert (await post_admin_panel_snippet_save(req_snip)).status == 200
+
+        req_sub = make_mocked_request("POST", "/api/admin/panel/subscription-settings", app=app_state)
+        req_sub.json = AsyncMock(return_value={"uuid": "sub-1", "profile_title": "Remna", "profile_update_interval": 12})
+        assert (await post_admin_panel_subscription_settings(req_sub)).status == 200
+
+        req_sq = make_mocked_request("POST", "/api/admin/panel/external-squads/users", app=app_state)
+        req_sq.json = AsyncMock(return_value={"squad_uuid": "es-1", "user_uuids": ["u-1"], "action": "add"})
+        assert (await post_admin_panel_external_squad_users(req_sq)).status == 200
+
+        req_prov = make_mocked_request("POST", "/api/admin/infra/providers/save", app=app_state)
+        req_prov.json = AsyncMock(return_value={"name": "Hetzner"})
+        assert (await post_admin_infra_provider_save(req_prov)).status == 200
 
 
 

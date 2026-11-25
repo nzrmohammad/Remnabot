@@ -307,6 +307,7 @@
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-2xl flex-shrink-0 filter drop-shadow">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-6 h-4 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
               <h4 class="font-bold text-xs text-white truncate">${escapeHtml(n.name || 'Server Node')}</h4>
+              ${n.is_disabled ? '<span class="badge badge-danger text-[10px] shrink-0">غیرفعال</span>' : ''}
             </div>
 
             <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
@@ -474,9 +475,23 @@
                 </div>
               </div>
 
-              <!-- Panel Config & Multipliers Summary -->
-              ${(n.consumption_multiplier != null || n.node_consumption_multiplier != null || n.is_traffic_tracking_active != null || n.description) ? `
-                <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
+              <!-- Panel Config, Versions & Multipliers Summary -->
+              <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="t-muted flex items-center gap-1.5">
+                    <span>🧩</span>
+                    <span>ورژن هسته (Xray):</span>
+                  </span>
+                  <b class="t-accent font-sans num-bidi font-bold" dir="ltr">${n.xray_version ? escapeHtml(String(n.xray_version)) : '—'}</b>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="t-muted flex items-center gap-1.5">
+                    <span>⚙️</span>
+                    <span>ورژن نود:</span>
+                  </span>
+                  <b class="t-main font-sans num-bidi font-bold" dir="ltr">${n.node_version ? escapeHtml(String(n.node_version)) : '—'}</b>
+                </div>
+                ${(n.consumption_multiplier != null || n.node_consumption_multiplier != null || n.is_traffic_tracking_active != null) ? `
                   <div class="flex items-center justify-between gap-2">
                     <span class="t-muted flex items-center gap-1.5">
                       <span>👤</span>
@@ -502,14 +517,14 @@
                         : 'غیرفعال'}
                     </b>
                   </div>
-                  ${n.description ? `
-                    <div class="flex items-center justify-between gap-2 min-w-0">
-                      <span class="t-muted shrink-0">توضیحات پنل:</span>
-                      <span class="t-main truncate text-left">${escapeHtml(n.description)}</span>
-                    </div>
-                  ` : ''}
-                </div>
-              ` : ''}
+                ` : ''}
+                ${n.description ? `
+                  <div class="flex items-center justify-between gap-2 min-w-0">
+                    <span class="t-muted shrink-0">توضیحات پنل:</span>
+                    <span class="t-main truncate text-left">${escapeHtml(n.description)}</span>
+                  </div>
+                ` : ''}
+              </div>
 
               <!-- Node Profit / Loss & Estimated Revenue Strip -->
               <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
@@ -536,9 +551,9 @@
                 </div>
               </div>
 
-              <!-- Buttons to configure node & restart -->
-              <div class="pt-1 flex items-center gap-1.5">
-                <button type="button" class="btn-node-billing flex-1 bg-transparent hover:bg-cyan-500/10 t-accent py-1.5 px-2 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
+              <!-- Buttons to configure node, restart, toggle & reset traffic -->
+              <div class="pt-1 flex flex-wrap items-center gap-1.5">
+                <button type="button" class="btn-node-billing flex-1 bg-transparent hover:bg-cyan-500/10 t-accent py-1.5 px-2 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-[140px]"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
                   data-provider="${escapeHtml(n.provider || '')}"
@@ -550,6 +565,8 @@
                   data-traffic-limit-gb="${n.traffic_limit_gb != null ? Number(n.traffic_limit_gb) : ''}"
                   data-traffic-reset-day="${n.traffic_reset_day != null ? Number(n.traffic_reset_day) : ''}"
                   data-notify-percent="${n.notify_percent != null ? Number(n.notify_percent) : ''}"
+                  data-config-profile-uuid="${escapeHtml(n.active_config_profile_uuid || '')}"
+                  data-active-inbounds="${escapeHtml((n.active_inbounds || []).join(','))}"
                   data-cost-toman="${Number(n.monthly_cost_toman || 0)}"
                   data-cost-eur="${Number(n.monthly_cost_eur || 0)}"
                   data-due="${escapeHtml(n.due_date || '')}"
@@ -557,7 +574,7 @@
                   data-flag="${escapeHtml(flag || '')}"
                   data-currency="${escapeHtml(n.currency || 'EUR')}">
                   <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  <span class="truncate">تنظیمات و هزینه سرور</span>
+                  <span class="truncate">تنظیمات سرور</span>
                 </button>
                 <button type="button" class="btn-restart-node bg-transparent hover:bg-amber-500/10 t-warn py-1.5 px-2.5 rounded-xl border border-amber-500/35 transition flex items-center justify-center gap-1 font-bold active:scale-95 shadow-sm shrink-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
@@ -565,6 +582,19 @@
                   title="ریستارت سرور">
                   <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                   <span>ریستارت</span>
+                </button>
+                <button type="button" class="btn-toggle-node-state bg-transparent ${n.is_disabled ? 'hover:bg-emerald-500/10 t-success border-emerald-500/35' : 'hover:bg-rose-500/10 t-danger border-rose-500/35'} p-1.5 rounded-xl border transition flex items-center justify-center active:scale-95 shadow-sm shrink-0"
+                  data-uuid="${escapeHtml(n.uuid || n.id || '')}"
+                  data-name="${escapeHtml(n.name || '')}"
+                  data-disabled="${n.is_disabled ? '1' : '0'}"
+                  title="${n.is_disabled ? 'فعال‌سازی سرور' : 'غیرفعال کردن سرور'}">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/></svg>
+                </button>
+                <button type="button" class="btn-reset-node-traffic bg-transparent hover:bg-indigo-500/10 t-info p-1.5 rounded-xl border border-indigo-500/35 transition flex items-center justify-center active:scale-95 shadow-sm shrink-0"
+                  data-uuid="${escapeHtml(n.uuid || n.id || '')}"
+                  data-name="${escapeHtml(n.name || '')}"
+                  title="ریست ترافیک مصرفی سرور">
+                  <img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
                 </button>
               </div>
             </div>
@@ -761,14 +791,14 @@ openEditSslDomainModal(domain) {
       const providers = Array.isArray(this._cachedInfraProviders) ? this._cachedInfraProviders : [];
       const currentVal = $('nodeBillingProviderUuid')?.value || '';
 
-      const makeRow = (val, title, sub = '') => {
+      const makeRow = (val, title, sub = '', isEnglishLeft = false) => {
         const isSelected = currentVal === val;
         const rowCls = isSelected
-          ? 'w-full text-right p-2.5 rounded-2xl border border-cyan-500/40 bg-cyan-500/10 flex items-center justify-between gap-2 transition'
-          : 'w-full text-right p-2.5 rounded-2xl border border-card-border card-inset hover:border-cyan-500/30 flex items-center justify-between gap-2 transition';
+          ? `w-full p-2.5 rounded-2xl border border-cyan-500/40 bg-cyan-500/10 flex items-center justify-between gap-2 transition ${isEnglishLeft ? 'flex-row-reverse text-left' : 'text-right'}`
+          : `w-full p-2.5 rounded-2xl border border-card-border card-inset hover:border-cyan-500/30 flex items-center justify-between gap-2 transition ${isEnglishLeft ? 'flex-row-reverse text-left' : 'text-right'}`;
         return `
           <button type="button" class="${rowCls}" onclick="window.adminActions.selectNodeProvider('${escapeHtml(val)}', '${escapeHtml(title)}')">
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1 ${isEnglishLeft ? 'text-left font-en' : 'text-right'}" dir="${isEnglishLeft ? 'ltr' : 'rtl'}">
               <span class="font-bold t-main block truncate">${escapeHtml(title)}</span>
               ${sub ? `<span class="text-[10px] t-muted block truncate" dir="ltr">${escapeHtml(sub)}</span>` : ''}
             </div>
@@ -779,12 +809,22 @@ openEditSslDomainModal(domain) {
         `;
       };
 
-      let html = makeRow('', 'بدون ارائه‌دهنده');
+      let html = makeRow('', 'بدون ارائه‌دهنده', '', false);
       for (const p of providers) {
-        html += makeRow(p.uuid, p.name, p.login || '');
+        html += makeRow(p.uuid, p.name, p.login || '', true);
       }
-      html += makeRow('__custom__', 'سایر / وارد کردن دستی...');
+      html += makeRow('__custom__', 'سایر / وارد کردن دستی...', '', false);
       listEl.innerHTML = html;
+    },
+
+    openAddProviderFromPicker() {
+      if (window.panelCtrl?.openProviderModal) {
+        window.panelCtrl.openProviderModal('', async (prov) => {
+          this._cachedInfraProviders = null;
+          await this.loadInfraProviders(prov?.uuid || '', prov?.name || '');
+          this._renderNodeProviderList();
+        });
+      }
     },
 
     async openNodeProviderModal() {
@@ -826,6 +866,118 @@ openEditSslDomainModal(domain) {
       } catch (err) {
         console.warn('Could not load panel infra providers:', err);
       }
+    },
+
+    async loadNodeConfigProfiles(selectedProfileUuid = '', selectedInbounds = []) {
+      const sel = $('nodeBillingConfigProfileSelect');
+      if (!sel) return;
+      let profiles = window.panelCtrl?.getConfigProfiles?.() || [];
+      if (!profiles.length && window.panelCtrl?.fetchOverview) {
+        const data = await window.panelCtrl.fetchOverview(false);
+        profiles = data?.config_profiles || [];
+      }
+      this._nodeConfigProfilesCache = profiles;
+      let html = '<option value="">بدون تغییر پروفایل</option>';
+      for (const prof of profiles) {
+        html += `<option value="${escapeHtml(prof.uuid)}">${escapeHtml(prof.name || prof.uuid)}</option>`;
+      }
+      sel.innerHTML = html;
+      if (selectedProfileUuid) {
+        sel.value = selectedProfileUuid;
+      }
+      this.onNodeConfigProfileChange(selectedInbounds);
+    },
+
+    onNodeConfigProfileChange(preselectedInbounds = null) {
+      const sel = $('nodeBillingConfigProfileSelect');
+      const wrap = $('nodeBillingInboundsWrap');
+      if (!sel || !wrap) return;
+      const profileUuid = sel.value;
+      const profiles = this._nodeConfigProfilesCache || window.panelCtrl?.getConfigProfiles?.() || [];
+      const prof = profiles.find(p => String(p.uuid) === String(profileUuid));
+      const inbounds = Array.isArray(prof?.inbounds) ? prof.inbounds : [];
+      if (!profileUuid || !inbounds.length) {
+        wrap.innerHTML = '';
+        wrap.classList.add('hidden');
+        return;
+      }
+      const chosenSet = new Set(
+        Array.isArray(preselectedInbounds) && preselectedInbounds.length
+          ? preselectedInbounds
+          : inbounds.map(i => String(i.uuid || '')).filter(Boolean)
+      );
+      wrap.innerHTML = inbounds.map(i => {
+        const u = String(i.uuid || '');
+        const checked = chosenSet.has(u) ? 'checked' : '';
+        return `
+          <label class="card px-2 py-1 rounded-lg border border-card-border text-[10px] font-en flex items-center gap-1 cursor-pointer">
+            <input type="checkbox" class="node-inbound-chk accent-cyan-500 rounded" value="${escapeHtml(u)}" ${checked} />
+            <span>${escapeHtml(i.tag || i.type || 'Inbound')}</span>
+          </label>
+        `;
+      }).join('');
+      wrap.classList.remove('hidden');
+    },
+
+    async syncNodeBillingToPanel() {
+      const nodeUuid = $('nodeBillingUuid')?.value?.trim() || '';
+      const providerUuid = $('nodeBillingProviderUuid')?.value?.trim() || '';
+      const dueDate = $('nodeBillingDueDate')?.value?.trim() || '';
+      if (!nodeUuid || !providerUuid || providerUuid === '__custom__') {
+        if (window.showToast) window.showToast('ابتدا یک ارائه‌دهنده ثبت‌شده در پنل انتخاب کنید.');
+        return;
+      }
+      const res = await window.api?.syncInfraNodeBilling?.(nodeUuid, providerUuid, dueDate);
+      if (res && res.ok) {
+        if (window.showToast) window.showToast(`✅ ${res.message}`);
+        if (window.hapticFeedback) window.hapticFeedback('success');
+      } else {
+        if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در همگام‌سازی بیلینگ با پنل'}`);
+      }
+    },
+
+    toggleNodeEnabledState(nodeUuid, nodeName, isCurrentlyDisabled) {
+      if (!nodeUuid) return;
+      const run = async () => {
+        const action = isCurrentlyDisabled ? 'enable' : 'disable';
+        const res = await window.api?.runNodeAction?.(action, nodeUuid, nodeName);
+        if (res && res.ok) {
+          if (window.showToast) window.showToast(`✅ ${res.message}`);
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          if (window.syncAdminOverview) window.syncAdminOverview(true);
+        } else {
+          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در تغییر وضعیت سرور'}`);
+        }
+      };
+      if (isCurrentlyDisabled) {
+        run();
+      } else if (window.panelCtrl?.confirmAction) {
+        window.panelCtrl.confirmAction({
+          title: 'غیرفعال کردن سرور',
+          message: `آیا سرور «${nodeName || nodeUuid}» در پنل غیرفعال شود؟`,
+          btnText: 'غیرفعال شود',
+          onConfirm: run,
+        });
+      }
+    },
+
+    resetNodeTrafficWithConfirm(nodeUuid, nodeName) {
+      if (!nodeUuid || !window.panelCtrl?.confirmAction) return;
+      window.panelCtrl.confirmAction({
+        title: 'ریست ترافیک مصرفی سرور',
+        message: `آمار ترافیک مصرفی سرور «${nodeName || nodeUuid}» در پنل صفر شود؟`,
+        btnText: 'ریست ترافیک',
+        onConfirm: async () => {
+          const res = await window.api?.runNodeAction?.('reset_traffic', nodeUuid, nodeName);
+          if (res && res.ok) {
+            if (window.showToast) window.showToast(`✅ ${res.message}`);
+            if (window.hapticFeedback) window.hapticFeedback('success');
+            if (window.syncAdminOverview) window.syncAdminOverview(true);
+          } else {
+            if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ریست ترافیک'}`);
+          }
+        },
+      });
     },
 
     setRestartNodeMode(forceRestart = false) {
@@ -895,7 +1047,9 @@ openEditSslDomainModal(domain) {
         btn.innerText = 'در حال ریستارت...';
       }
       try {
-        const res = await window.api?.restartNode?.(nodeUuid, forceRestart);
+        const res = nodeUuid === '__ALL__'
+          ? await window.api?.runNodeAction?.('restart_all', '', 'همه سرورها', forceRestart)
+          : await window.api?.restartNode?.(nodeUuid, forceRestart);
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ ${res.message || 'سرور با موفقیت ریستارت شد'}`);
           if (window.hapticFeedback) window.hapticFeedback('success');
@@ -920,7 +1074,7 @@ openEditSslDomainModal(domain) {
       if (!modal) return;
       $('nodeBillingUuid').value = nodeUuid || '';
       $('nodeBillingName').value = nodeName || '';
-      if ($('nodeBillingModalTitle')) $('nodeBillingModalTitle').innerText = 'تنظیمات و مدیریت سرور';
+      if ($('nodeBillingModalTitle')) $('nodeBillingModalTitle').innerText = 'تنظیمات سرور';
       if ($('nodeBillingServerNameLabel')) $('nodeBillingServerNameLabel').innerText = nodeName || 'سرور';
       const flagEl = $('nodeBillingModalFlag');
       if (flagEl) {
@@ -944,6 +1098,8 @@ openEditSslDomainModal(domain) {
       const limitGb = meta.trafficLimitGb !== undefined && meta.trafficLimitGb !== '' ? String(meta.trafficLimitGb) : '';
       const resetDay = meta.trafficResetDay !== undefined && meta.trafficResetDay !== '' ? String(meta.trafficResetDay) : '';
       const notifyPct = meta.notifyPercent !== undefined && meta.notifyPercent !== '' ? String(meta.notifyPercent) : '';
+      const configProfileUuid = meta.configProfileUuid || '';
+      const activeInbounds = String(meta.activeInbounds || '').split(',').map(x => x.trim()).filter(Boolean);
 
       if ($('nodeBillingUserMultiplier')) $('nodeBillingUserMultiplier').value = userMult;
       if ($('nodeBillingNodeMultiplier')) $('nodeBillingNodeMultiplier').value = nodeMult;
@@ -964,8 +1120,11 @@ openEditSslDomainModal(domain) {
         trafficLimitGb: limitGb,
         trafficResetDay: resetDay,
         notifyPercent: notifyPct,
+        configProfileUuid,
+        activeInboundsKey: activeInbounds.slice().sort().join(','),
       };
       this.loadInfraProviders(providerUuid, provider);
+      this.loadNodeConfigProfiles(configProfileUuid, activeInbounds);
 
       const jalaliPreview = $('nodeBillingJalaliPreview');
       if (jalaliPreview) {
@@ -1191,6 +1350,16 @@ openEditSslDomainModal(domain) {
         if (selectedProvVal !== '__custom__' && (providerUuidVal || '') !== String(snap.providerUuid || '')) {
           payload.provider_uuid = providerUuidVal;
         }
+        const cfgProfSel = $('nodeBillingConfigProfileSelect');
+        const cfgProfUuid = cfgProfSel?.value?.trim() || '';
+        const selectedInbounds = Array.from(document.querySelectorAll('#nodeBillingInboundsWrap .node-inbound-chk:checked'))
+          .map(el => el.value)
+          .filter(Boolean);
+        const inboundsKey = selectedInbounds.slice().sort().join(',');
+        if (cfgProfUuid && (cfgProfUuid !== String(snap.configProfileUuid || '') || inboundsKey !== String(snap.activeInboundsKey || ''))) {
+          payload.config_profile_uuid = cfgProfUuid;
+          payload.active_inbounds = selectedInbounds;
+        }
 
         const res = await window.api.saveNodeCost(payload);
         if (res && res.ok) {
@@ -1271,9 +1440,11 @@ openEditSslDomainModal(domain) {
   // Nodes Tab Subtabs Switcher
   window.switchNodesSubtab = function(subtab) {
     const btnServers = $('subtabBtnNodesServers');
+    const btnPanel = $('subtabBtnNodesPanel');
     const btnSsl = $('subtabBtnNodesSsl');
     const btnTools = $('subtabBtnNodesTools');
     const contentServers = $('subtabContentNodesServers');
+    const contentPanel = $('subtabContentNodesPanel');
     const contentSsl = $('subtabContentNodesSsl');
     const contentTools = $('subtabContentNodesTools');
 
@@ -1281,17 +1452,22 @@ openEditSslDomainModal(domain) {
 
     btnServers?.classList.toggle('is-active', subtab === 'servers');
     btnServers?.setAttribute('aria-selected', subtab === 'servers' ? 'true' : 'false');
+    btnPanel?.classList.toggle('is-active', subtab === 'panel');
+    btnPanel?.setAttribute('aria-selected', subtab === 'panel' ? 'true' : 'false');
     btnSsl?.classList.toggle('is-active', subtab === 'ssl');
     btnSsl?.setAttribute('aria-selected', subtab === 'ssl' ? 'true' : 'false');
     btnTools?.classList.toggle('is-active', subtab === 'tools');
     btnTools?.setAttribute('aria-selected', subtab === 'tools' ? 'true' : 'false');
 
     contentServers?.classList.toggle('hidden', subtab !== 'servers');
+    contentPanel?.classList.toggle('hidden', subtab !== 'panel');
     contentSsl?.classList.toggle('hidden', subtab !== 'ssl');
     contentTools?.classList.toggle('hidden', subtab !== 'tools');
 
     if (subtab === 'ssl') {
       fetchAdminSslHealth();
+    } else if (subtab === 'panel') {
+      window.panelCtrl?.fetchOverview?.(false);
     }
   };
 

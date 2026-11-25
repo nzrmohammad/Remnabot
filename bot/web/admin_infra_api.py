@@ -217,6 +217,15 @@ def _build_node_panel_payload(body: dict[str, Any]) -> tuple[dict[str, Any], str
         prov_val = str(body.get("provider_uuid") or "").strip()
         panel_payload["providerUuid"] = prov_val or None
 
+    if "config_profile_uuid" in body and str(body.get("config_profile_uuid") or "").strip():
+        cfg_uuid = str(body["config_profile_uuid"]).strip()
+        raw_inbounds = body.get("active_inbounds")
+        inbounds = [str(x).strip() for x in raw_inbounds if str(x).strip()] if isinstance(raw_inbounds, list) else []
+        panel_payload["configProfile"] = {
+            "activeConfigProfileUuid": cfg_uuid,
+            "activeInbounds": inbounds,
+        }
+
     return panel_payload, None
 
 

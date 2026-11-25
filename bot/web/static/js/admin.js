@@ -458,6 +458,8 @@
           trafficLimitGb: d.trafficLimitGb || '',
           trafficResetDay: d.trafficResetDay || '',
           notifyPercent: d.notifyPercent || '',
+          configProfileUuid: d.configProfileUuid || '',
+          activeInbounds: d.activeInbounds || '',
         }
       );
       return;
@@ -466,6 +468,20 @@
     if (restartNodeBtn) {
       e.stopPropagation();
       window.adminActions.openRestartNodeModal(restartNodeBtn.dataset.uuid, restartNodeBtn.dataset.name);
+      return;
+    }
+    const toggleNodeBtn = e.target.closest('.btn-toggle-node-state');
+    if (toggleNodeBtn) {
+      e.stopPropagation();
+      const d = toggleNodeBtn.dataset;
+      window.adminActions.toggleNodeEnabledState(d.uuid, d.name, d.disabled === '1');
+      return;
+    }
+    const resetTrafficNodeBtn = e.target.closest('.btn-reset-node-traffic');
+    if (resetTrafficNodeBtn) {
+      e.stopPropagation();
+      const d = resetTrafficNodeBtn.dataset;
+      window.adminActions.resetNodeTrafficWithConfirm(d.uuid, d.name);
       return;
     }
     const copyIpBtn = e.target.closest('.btn-copy-ip-direct');

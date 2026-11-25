@@ -251,6 +251,30 @@ def extract_node_panel_fields(n: dict) -> dict[str, Any]:
     limit_bytes = _parse_int(n.get("trafficLimitBytes"))
     traffic_limit_gb = round(limit_bytes / (1024 ** 3), 2) if (limit_bytes is not None and limit_bytes > 0) else (0 if limit_bytes == 0 else None)
 
+    versions = n.get("versions") if isinstance(n.get("versions"), dict) else {}
+    node_version = str(
+        versions.get("nodeVersion") or versions.get("node") or n.get("nodeVersion") or ""
+    ).strip() or None
+    xray_version = str(
+        versions.get("xrayVersion") or versions.get("xray") or n.get("xrayVersion") or ""
+    ).strip() or None
+
+    raw_profile = n.get("configProfile") if isinstance(n.get("configProfile"), dict) else {}
+    active_profile_uuid = str(
+        raw_profile.get("activeConfigProfileUuid") or n.get("activeConfigProfileUuid") or ""
+    ).strip() or None
+    active_inbounds = raw_profile.get("activeInbounds")
+    if not isinstance(active_inbounds, list):
+        active_inbounds = []
+    else:
+        active_inbounds = [
+            str(item.get("uuid") if isinstance(item, dict) else item).strip()
+            for item in active_inbounds
+            if (item.get("uuid") if isinstance(item, dict) else item)
+        ]
+
+    is_disabled = bool(n.get("isDisabled")) if n.get("isDisabled") is not None else False
+
     return {
         "provider_uuid": provider_uuid,
         "panel_provider_name": panel_provider_name,
@@ -262,6 +286,11 @@ def extract_node_panel_fields(n: dict) -> dict[str, Any]:
         "traffic_limit_gb": traffic_limit_gb,
         "traffic_reset_day": _parse_int(n.get("trafficResetDay")),
         "notify_percent": _parse_int(n.get("notifyPercent")),
+        "node_version": node_version,
+        "xray_version": xray_version,
+        "active_config_profile_uuid": active_profile_uuid,
+        "active_inbounds": active_inbounds,
+        "is_disabled": is_disabled,
     }
 
 

@@ -346,7 +346,9 @@ def test_admin_health_sub_and_redesigned_modals():
     billing_block = admin_html[admin_html.find('id="nodeBillingModal"'):admin_html.find('id="campaignDetailModal"')]
     assert 'w-[124px]' in billing_block
     assert 'grid-cols-1 sm:grid-cols-2 gap-2.5' in billing_block
+    assert 'grid-cols-2 gap-2.5' in billing_block
     assert 'min-w-0' in billing_block
+    assert 'تنظیمات سرور' in billing_block
     assert 'id="nodeBillingTabBtn_finance"' in billing_block
     assert 'id="nodeBillingTabBtn_panel"' in billing_block
     assert 'id="nodeBillingUserMultiplier"' in billing_block
@@ -356,11 +358,15 @@ def test_admin_health_sub_and_redesigned_modals():
     assert 'id="nodeBillingTrafficLimitGb"' in billing_block
     assert 'id="nodeBillingTrafficResetDay"' in billing_block
     assert 'id="nodeBillingNotifyPercent"' in billing_block
+    assert 'id="nodeBillingConfigProfileSelect"' in billing_block
     assert 'id="nodeBillingProviderPickerBtn"' in billing_block
     assert 'id="nodeProviderPickerModal"' in billing_block
     assert 'id="nodeBillingPanelDescription"' in billing_block
-    assert 'id="restartNodeConfirmModal"' in billing_block
-    assert 'id="restartModeOptSoft"' in billing_block
-    assert 'id="restartModeOptForce"' in billing_block
+    restart_block = admin_html[admin_html.find('id="restartNodeConfirmModal"'):admin_html.find('id="panelHostEditorModal"')]
+    assert 'id="restartModeOptSoft"' in restart_block
+    assert 'id="restartModeOptForce"' in restart_block
+    assert 'انصراف' not in restart_block
+    assert 'id="subtabBtnNodesPanel"' in admin_html
+    assert 'id="subtabContentNodesPanel"' in admin_html
     assert "t-muted hover:t-main" in nodes_js
 

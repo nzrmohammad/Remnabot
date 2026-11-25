@@ -11,6 +11,7 @@ import httpx
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from bot.services.remnawave_hwid import RemnawaveHwidMixin
+from bot.services.remnawave_panel_extras import RemnawavePanelExtrasMixin
 from bot.services.remnawave_system import RemnawaveSystemMixin
 from bot.services.remnawave_users import RemnawaveUsersMixin
 
@@ -27,7 +28,9 @@ panel_retry = retry(
 )
 
 
-class RemnawaveClient(RemnawaveUsersMixin, RemnawaveHwidMixin, RemnawaveSystemMixin):
+class RemnawaveClient(
+    RemnawaveUsersMixin, RemnawaveHwidMixin, RemnawaveSystemMixin, RemnawavePanelExtrasMixin
+):
     """Unified client for the Remnawave REST API."""
 
     def __init__(self, base_url: str, token: str, timeout: float = 15.0):

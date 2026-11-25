@@ -622,35 +622,45 @@
       <!-- TAB 3: CLUSTER & NODES (مدیریت سرورها)                 -->
       <!-- ===================================================== -->
       <div id="tab-admin-nodes" class="admin-tab-pane space-y-3.5 pb-8 hidden">
-        <!-- Subtab Switcher: Servers vs SSL Certificates -->
+        <!-- Subtab Switcher: Servers, SSL, Tools & Remnawave Panel Control -->
         <div class="admin-subtab-bar">
           <button id="subtabBtnNodesServers" type="button" onclick="window.switchNodesSubtab('servers')" class="admin-subtab-btn is-active group" aria-selected="true">
-            <svg class="w-4 h-4 t-info group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
-            <span>سرورها و نودها</span>
+            <svg class="w-4 h-4 t-info group-hover:scale-110 transition shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+            <span class="whitespace-nowrap">سرورها</span>
+          </button>
+          <button id="subtabBtnNodesPanel" type="button" onclick="window.switchNodesSubtab('panel')" class="admin-subtab-btn group" aria-selected="false">
+            <svg class="w-4 h-4 t-purple group-hover:scale-110 transition shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            <span class="whitespace-nowrap">کنترل‌پنل</span>
           </button>
           <button id="subtabBtnNodesSsl" type="button" onclick="window.switchNodesSubtab('ssl')" class="admin-subtab-btn group" aria-selected="false">
-            <svg class="w-4 h-4 t-success group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            <span class="whitespace-nowrap">گواهی‌های SSL</span>
+            <svg class="w-4 h-4 t-success group-hover:scale-110 transition shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span class="whitespace-nowrap">گواهی SSL</span>
           </button>
           <button id="subtabBtnNodesTools" type="button" onclick="window.switchNodesSubtab('tools')" class="admin-subtab-btn group" aria-selected="false">
-            <svg class="w-4 h-4 t-warn group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            <span>ابزار شبکه</span>
+            <svg class="w-4 h-4 t-warn group-hover:scale-110 transition shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span class="whitespace-nowrap">ابزار شبکه</span>
           </button>
         </div>
 
         <!-- Subtab 1: Servers Content -->
         <div id="subtabContentNodesServers" class="space-y-3.5">
-          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-[var(--card-border)] shadow flex items-center justify-between">
-            <div>
+          <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-[var(--card-border)] shadow flex items-center justify-between gap-2">
+            <div class="min-w-0">
               <h3 class="text-xs font-bold t-main flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
                 <span>وضعیت سرورها</span>
               </h3>
-              <span class="text-[11px] t-muted mt-0.5 block">پایش لحظه‌ای مصرف منابع، سرعت و پهنای باند</span>
+              <span class="text-[11px] t-muted mt-0.5 block truncate">پایش لحظه‌ای مصرف منابع، سرعت و کنترل نودها</span>
             </div>
-            <button id="refreshNodesTabBtn" class="p-2 bg-transparent hover:bg-cyan-500/10 t-accent hover:text-cyan-300 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center justify-center active:scale-95" title="تازه‌سازی فوری سرورها">
-              <svg id="refreshNodesTabIcon" class="w-4 h-4 t-accent transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            </button>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button id="restartAllNodesBtn" type="button" onclick="window.adminActions.openRestartNodeModal('__ALL__', 'همه سرورهای خوشه')" class="px-2.5 py-2 bg-transparent hover:bg-amber-500/10 t-warn rounded-xl border border-amber-500/35 text-[11px] font-bold transition flex items-center gap-1 active:scale-95 whitespace-nowrap" title="ریستارت یکجای همه سرورها">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>ریستارت همه</span>
+              </button>
+              <button id="refreshNodesTabBtn" class="p-2 bg-transparent hover:bg-cyan-500/10 t-accent hover:text-cyan-300 rounded-xl border border-cyan-500/30 hover:border-cyan-400/60 transition flex items-center justify-center active:scale-95" title="تازه‌سازی فوری سرورها">
+                <svg id="refreshNodesTabIcon" class="w-4 h-4 t-accent transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              </button>
+            </div>
           </div>
           <div id="adminNodesFullList" class="space-y-3">
             <div class="p-8 text-center text-xs t-muted">در حال دریافت وضعیت نودها...</div>
@@ -840,6 +850,165 @@
                 </div>
                 <div id="asnPrefixesList" class="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 text-xs font-sans max-h-60 overflow-y-auto no-scrollbar p-1.5 card-inset rounded-xl border border-[var(--card-border)]">
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subtab 4: Remnawave Panel Control Suite -->
+        <div id="subtabContentNodesPanel" class="space-y-3.5 hidden">
+          <!-- Hero Header -->
+          <div class="card p-3.5 rounded-2xl border border-card-border shadow flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <h3 class="text-xs font-bold t-main flex items-center gap-1.5">
+                <svg class="w-4 h-4 t-purple shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span>مرکز کنترل پنل Remnawave</span>
+              </h3>
+              <span class="text-[11px] t-muted mt-0.5 block truncate">هاست‌ها، پروفایل Xray، اسنیپت‌ها، اسکواد خارجی و تنظیمات ساب</span>
+            </div>
+            <button id="refreshPanelControlBtn" type="button" onclick="window.panelCtrl.fetchOverview(true)" class="p-2 bg-transparent hover:bg-cyan-500/10 t-accent rounded-xl border border-cyan-500/30 transition flex items-center justify-center active:scale-95 shrink-0" title="به‌روزرسانی اطلاعات پنل">
+              <svg id="refreshPanelControlIcon" class="w-4 h-4 t-accent transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+
+          <!-- Inner Section Pill Switcher -->
+          <div class="flex items-center gap-1 card-inset border border-card-border rounded-2xl p-1 overflow-x-auto no-scrollbar">
+            <button id="panelCtrlTabBtn_hosts" type="button" onclick="window.panelCtrl.switchSubSection('hosts')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap">هاست‌ها</button>
+            <button id="panelCtrlTabBtn_squads" type="button" onclick="window.panelCtrl.switchSubSection('squads')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap">اسکواد و ساب</button>
+            <button id="panelCtrlTabBtn_configs" type="button" onclick="window.panelCtrl.switchSubSection('configs')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap">پروفایل و اسنیپت</button>
+            <button id="panelCtrlTabBtn_infra" type="button" onclick="window.panelCtrl.switchSubSection('infra')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap">ارائه‌دهنده و توکن</button>
+          </div>
+
+          <!-- Pane 1: Hosts & Bulk Actions -->
+          <div id="panelCtrlPane_hosts" class="space-y-3">
+            <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+              <div class="card-inset p-2.5 rounded-2xl border border-card-border">
+                <span class="t-muted block">کل هاست‌ها</span>
+                <b id="panelHostsTotalBadge" class="t-main text-sm font-sans num-bidi mt-0.5 block">0</b>
+              </div>
+              <div class="card-inset p-2.5 rounded-2xl border border-card-border">
+                <span class="t-muted block">فعال</span>
+                <b id="panelHostsActiveBadge" class="t-success text-sm font-sans num-bidi mt-0.5 block">0</b>
+              </div>
+              <div class="card-inset p-2.5 rounded-2xl border border-card-border">
+                <span class="t-muted block">غیرفعال</span>
+                <b id="panelHostsDisabledBadge" class="t-danger text-sm font-sans num-bidi mt-0.5 block">0</b>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <div class="admin-search-box flex-1 min-w-0">
+                <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" oninput="window.panelCtrl.filterHosts(this.value)" placeholder="جستجوی هاست یا SNI..." class="bg-transparent text-xs placeholder:text-[11px] t-main outline-none flex-1 min-w-0" />
+              </div>
+              <button type="button" onclick="window.panelCtrl.toggleSelectAllHosts()" class="btn btn-secondary px-2.5 py-2 text-[11px] rounded-xl font-bold shrink-0">انتخاب همه</button>
+              <button type="button" onclick="window.panelCtrl.openHostModal()" class="btn btn-primary px-3 py-2 text-[11px] rounded-xl font-bold shrink-0 whitespace-nowrap">+ هاست جدید</button>
+            </div>
+
+            <div id="panelHostsBulkBar" class="hidden card-inset p-2.5 rounded-2xl border border-cyan-500/35 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+              <span id="panelHostsSelectedCount" class="font-bold t-accent">0 مورد انتخاب شده</span>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="window.panelCtrl.runBulkHosts('enable')" class="px-2.5 py-1 rounded-xl border border-emerald-500/35 t-success font-bold hover:bg-emerald-500/10 transition">فعال‌سازی</button>
+                <button type="button" onclick="window.panelCtrl.runBulkHosts('disable')" class="px-2.5 py-1 rounded-xl border border-amber-500/35 t-warn font-bold hover:bg-amber-500/10 transition">غیرفعال</button>
+                <button type="button" onclick="window.panelCtrl.runBulkHosts('delete')" class="px-2.5 py-1 rounded-xl border border-rose-500/35 t-danger font-bold hover:bg-rose-500/10 transition">حذف</button>
+              </div>
+            </div>
+
+            <div id="panelHostsList" class="space-y-2">
+              <div class="p-6 text-center text-xs t-muted">در حال دریافت هاست‌ها...</div>
+            </div>
+          </div>
+
+          <!-- Pane 2: External Squads & Global Subscription Settings -->
+          <div id="panelCtrlPane_squads" class="space-y-3 hidden">
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-3 text-xs">
+              <div class="flex items-center justify-between gap-2 border-b border-card-border pb-2">
+                <b class="t-main text-xs">تنظیمات سابسکریپشن پنل (Subscription Settings)</b>
+                <input type="hidden" id="panelSubSettingsUuid" value="" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="min-w-0">
+                  <label for="panelSubProfileTitle" class="text-[11px] t-muted block mb-1">عنوان پروفایل ساب:</label>
+                  <input type="text" id="panelSubProfileTitle" placeholder="مثلاً: RemnaStore" class="input-base h-9 px-3 rounded-xl text-xs w-full min-w-0" />
+                </div>
+                <div class="min-w-0">
+                  <label for="panelSubSupportLink" class="text-[11px] t-muted block mb-1">لینک پشتیبانی داخل کلاینت:</label>
+                  <input type="text" id="panelSubSupportLink" dir="ltr" placeholder="https://t.me/support" class="input-base h-9 px-3 rounded-xl text-xs w-full min-w-0 text-left" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-center">
+                <div class="min-w-0">
+                  <label for="panelSubUpdateInterval" class="text-[11px] t-muted block mb-1">بازه آپدیت (ساعت):</label>
+                  <input type="number" id="panelSubUpdateInterval" min="1" max="720" dir="ltr" placeholder="12" class="input-base h-9 px-3 rounded-xl text-xs num-bidi font-bold w-full min-w-0 text-left" />
+                </div>
+                <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer">
+                  <span class="text-[11px] t-main font-semibold">صفحه وب ساب</span>
+                  <input type="checkbox" id="panelSubWebpageEnabled" class="accent-cyan-500 rounded" />
+                </label>
+                <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer">
+                  <span class="text-[11px] t-main font-semibold">خروجی JSON پایه</span>
+                  <input type="checkbox" id="panelSubServeJson" class="accent-cyan-500 rounded" />
+                </label>
+              </div>
+              <button type="button" onclick="window.panelCtrl.saveSubSettings()" class="w-full btn btn-primary py-2.5 rounded-xl text-xs font-bold">ذخیره تنظیمات ساب در پنل</button>
+            </div>
+
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">اسکوادهای خارجی (External Squads)</b>
+                <span class="text-[10.5px] t-muted">گروه‌بندی و قالب ساب کاربران</span>
+              </div>
+              <div id="panelExternalSquadsList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادها...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pane 3: Config Profiles & Snippets -->
+          <div id="panelCtrlPane_configs" class="space-y-3 hidden">
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">پروفایل‌های کانفیگ Xray (Config Profiles)</b>
+                <span class="text-[10.5px] t-muted">اینباندها و هسته</span>
+              </div>
+              <div id="panelConfigProfilesList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال دریافت پروفایل‌ها...</div>
+              </div>
+            </div>
+
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">اسنیپت‌های کانفیگ (Snippets)</b>
+                <button type="button" onclick="window.panelCtrl.openSnippetModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ اسنیپت جدید</button>
+              </div>
+              <div id="panelSnippetsList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسنیپت‌ها...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pane 4: Infra Providers CRUD & API Tokens -->
+          <div id="panelCtrlPane_infra" class="space-y-3 hidden">
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">ارائه‌دهندگان زیرساخت (Infra Providers)</b>
+                <button type="button" onclick="window.panelCtrl.openProviderModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ ارائه‌دهنده جدید</button>
+              </div>
+              <div id="panelProvidersManageList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال دریافت ارائه‌دهندگان...</div>
+              </div>
+            </div>
+
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">توکن‌های API پنل (API Tokens)</b>
+                <button type="button" onclick="window.panelCtrl.openTokenModal()" class="btn btn-secondary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ توکن جدید</button>
+              </div>
+              <div id="panelTokensJwtNotice" class="hidden card-inset p-3 rounded-xl border border-amber-500/35 text-[11px] t-warn leading-relaxed">
+                بخش مدیریت توکن‌های پنل Remnawave مطابق مستندات رسمی نیازمند احراز هویت با <b>Admin JWT</b> است و در اتصال با API Token عادی توسط پنل محدود می‌شود.
+              </div>
+              <div id="panelTokensList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال بررسی توکن‌ها...</div>
               </div>
             </div>
           </div>
@@ -4163,14 +4332,15 @@
     <!-- MODAL: Node Billing, Config & Cost Settings Modal -->
     <div id="nodeBillingModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden">
       <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[440px] shadow-2xl relative max-h-[92vh] flex flex-col overflow-hidden">
-        <div class="flex justify-between items-center border-b border-card-border pb-3 shrink-0">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
+        <div class="flex justify-between items-center border-b border-card-border pb-3 shrink-0 gap-2">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <div class="w-9 h-9 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
               <span class="text-xl leading-none inline-flex items-center justify-center" id="nodeBillingModalFlag"><img src="/static/img/icons/desktop.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" /></span>
             </div>
-            <div class="min-w-0">
-              <h4 id="nodeBillingModalTitle" class="text-xs font-bold t-main truncate max-w-[245px]">تنظیمات و مدیریت سرور</h4>
-              <span id="nodeBillingServerNameLabel" class="text-[11px] t-accent font-bold block mt-0.5 truncate max-w-[245px]" dir="ltr">—</span>
+            <div class="min-w-0 flex items-center gap-1.5 flex-1">
+              <h4 id="nodeBillingModalTitle" class="text-xs font-bold t-main shrink-0">تنظیمات سرور</h4>
+              <span class="t-muted text-xs shrink-0">•</span>
+              <span id="nodeBillingServerNameLabel" class="text-[11px] t-accent font-bold truncate min-w-0" dir="ltr">—</span>
             </div>
           </div>
           <button type="button" onclick="window.adminActions.closeNodeBillingModal()" class="modal-close-btn shrink-0" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4265,7 +4435,10 @@
               <!-- Card 3: Provider Picker Button & Notes -->
               <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
                 <div class="min-w-0">
-                  <label class="text-[11px] t-muted block mb-1">ارائه‌دهنده سرور:</label>
+                  <div class="flex items-center justify-between gap-2 mb-1">
+                    <label class="text-[11px] t-muted">ارائه‌دهنده سرور:</label>
+                    <button type="button" id="syncNodePanelBillingBtn" onclick="window.adminActions.syncNodeBillingToPanel()" class="text-[10.5px] t-accent font-bold hover:underline" title="همگام‌سازی ارائه‌دهنده و سررسید در بخش Infra Billing پنل">سینک در پنل</button>
+                  </div>
                   <input type="hidden" id="nodeBillingProviderUuid" value="" />
                   <button type="button" id="nodeBillingProviderPickerBtn" onclick="window.adminActions.openNodeProviderModal()" class="input-base h-10 px-3 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-2 hover:border-cyan-500/50 transition active:scale-[0.99]">
                     <span id="nodeBillingProviderDisplay" class="t-main font-semibold truncate">بدون ارائه‌دهنده</span>
@@ -4286,16 +4459,16 @@
               </div>
             </div>
 
-            <!-- TAB 2: Panel Settings (Multipliers, Description, Track Traffic Usage) -->
+            <!-- TAB 2: Panel Settings (Multipliers, Description, Config Profile, Track Traffic Usage) -->
             <div id="nodeBillingTabPane_panel" class="space-y-3 hidden">
               <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="grid grid-cols-2 gap-2.5">
                   <div class="min-w-0">
-                    <label for="nodeBillingUserMultiplier" class="text-[11px] t-muted block mb-1">ضریب مصرف کاربر:</label>
+                    <label for="nodeBillingUserMultiplier" class="text-[11px] t-muted block mb-1 truncate">ضریب مصرف کاربر:</label>
                     <input type="number" step="0.05" min="0" max="100" id="nodeBillingUserMultiplier" dir="ltr" placeholder="1.0" class="input-base h-9 px-3 rounded-xl text-xs font-sans num-bidi font-bold t-info w-full min-w-0 text-left" />
                   </div>
                   <div class="min-w-0">
-                    <label for="nodeBillingNodeMultiplier" class="text-[11px] t-muted block mb-1">ضریب مصرف سرور:</label>
+                    <label for="nodeBillingNodeMultiplier" class="text-[11px] t-muted block mb-1 truncate">ضریب مصرف سرور:</label>
                     <input type="number" step="0.05" min="0" max="100" id="nodeBillingNodeMultiplier" dir="ltr" placeholder="1.0" class="input-base h-9 px-3 rounded-xl text-xs font-sans num-bidi font-bold t-purple w-full min-w-0 text-left" />
                   </div>
                 </div>
@@ -4306,6 +4479,15 @@
                     <span class="badge-optional">پنل</span>
                   </div>
                   <input type="text" id="nodeBillingPanelDescription" placeholder="مثلاً: Frankfurt Dedicated" class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full min-w-0" />
+                </div>
+
+                <!-- Node Config Profile & Active Inbounds -->
+                <div class="min-w-0 pt-1 border-t border-card-border space-y-1.5">
+                  <label for="nodeBillingConfigProfileSelect" class="text-[11px] t-muted block">پروفایل کانفیگ Xray (Config Profile):</label>
+                  <select id="nodeBillingConfigProfileSelect" onchange="window.adminActions.onNodeConfigProfileChange()" class="select-base h-9 rounded-xl text-xs font-sans w-full min-w-0">
+                    <option value="">بدون تغییر پروفایل</option>
+                  </select>
+                  <div id="nodeBillingInboundsWrap" class="hidden flex flex-wrap gap-1.5 pt-1" dir="ltr"></div>
                 </div>
               </div>
 
@@ -4373,6 +4555,9 @@
         <div id="nodeProviderPickerList" class="space-y-1.5 overflow-y-auto custom-scroll flex-1 py-0.5 text-xs">
           <div class="p-4 text-center text-xs t-muted">در حال دریافت لیست ارائه‌دهندگان...</div>
         </div>
+        <div class="pt-2 border-t border-card-border shrink-0">
+          <button type="button" onclick="window.adminActions.openAddProviderFromPicker()" class="w-full btn btn-secondary text-xs py-2 rounded-xl font-bold">+ افزودن ارائه‌دهنده در پنل</button>
+        </div>
       </div>
     </div>
 
@@ -4384,9 +4569,10 @@
             <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
               <svg class="w-4 h-4 t-warn shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </div>
-            <div class="min-w-0">
-              <h4 class="text-xs font-bold t-main">تأیید ریستارت سرور</h4>
-              <span id="restartNodeTargetName" class="text-[11px] t-accent font-bold block truncate" dir="ltr">—</span>
+            <div class="min-w-0 flex items-center gap-1.5">
+              <h4 class="text-xs font-bold t-main shrink-0">تأیید ریستارت سرور</h4>
+              <span class="t-muted text-xs shrink-0">•</span>
+              <span id="restartNodeTargetName" class="text-[11px] t-accent font-bold truncate" dir="ltr">—</span>
             </div>
           </div>
           <button type="button" onclick="window.adminActions.closeRestartNodeModal()" class="modal-close-btn shrink-0" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -4413,10 +4599,158 @@
           </button>
         </div>
 
-        <div class="flex items-center gap-2 pt-1">
-          <button type="button" onclick="window.adminActions.closeRestartNodeModal()" class="flex-1 btn btn-secondary text-xs py-2.5 rounded-xl font-bold">انصراف</button>
-          <button type="button" id="confirmRestartNodeBtn" onclick="window.adminActions.executeRestartNode()" class="flex-1 btn btn-primary text-xs py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5">ریستارت فوری</button>
+        <div class="pt-1">
+          <button type="button" id="confirmRestartNodeBtn" onclick="window.adminActions.executeRestartNode()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5">ریستارت نرم Xray</button>
         </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Panel Host Create / Edit -->
+    <div id="panelHostEditorModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[400px] space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5">
+          <h4 id="panelHostModalTitle" class="text-xs font-bold t-main">افزودن هاست جدید</h4>
+          <button type="button" onclick="window.panelCtrl.closeHostModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <form onsubmit="event.preventDefault(); window.panelCtrl.saveHost();" class="space-y-2.5 text-xs">
+          <input type="hidden" id="panelHostUuid" value="" />
+          <div>
+            <label for="panelHostRemark" class="text-[11px] t-muted block mb-1">نام نمایشی هاست (Remark):</label>
+            <input type="text" id="panelHostRemark" dir="ltr" placeholder="DE VLESS" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-2 min-w-0">
+              <label for="panelHostAddress" class="text-[11px] t-muted block mb-1">آدرس دامنه / IP:</label>
+              <input type="text" id="panelHostAddress" dir="ltr" placeholder="de.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
+            </div>
+            <div class="min-w-0">
+              <label for="panelHostPort" class="text-[11px] t-muted block mb-1">پورت:</label>
+              <input type="number" id="panelHostPort" min="1" max="65535" dir="ltr" placeholder="443" class="input-base h-9 px-3 rounded-xl text-xs num-bidi w-full text-left" required />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="min-w-0">
+              <label for="panelHostSni" class="text-[11px] t-muted block mb-1">SNI:</label>
+              <input type="text" id="panelHostSni" dir="ltr" placeholder="sni.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
+            </div>
+            <div class="min-w-0">
+              <label for="panelHostHeader" class="text-[11px] t-muted block mb-1">Host Header:</label>
+              <input type="text" id="panelHostHeader" dir="ltr" placeholder="host.example.com" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
+            </div>
+          </div>
+          <div>
+            <label for="panelHostInboundSelect" class="text-[11px] t-muted block mb-1">اینباند پروفایل (برای هاست جدید):</label>
+            <select id="panelHostInboundSelect" class="select-base h-9 rounded-xl text-xs w-full"></select>
+          </div>
+          <label class="card-inset p-2.5 rounded-xl border border-card-border flex items-center justify-between cursor-pointer">
+            <span class="text-[11px] t-main font-semibold">غیرفعال کردن موقت هاست</span>
+            <input type="checkbox" id="panelHostDisabled" class="accent-rose-500 rounded" />
+          </label>
+          <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ذخیره هاست</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Panel Snippet JSON Editor -->
+    <div id="panelSnippetEditorModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[420px] space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5">
+          <h4 id="panelSnippetModalTitle" class="text-xs font-bold t-main">ساخت اسنیپت جدید</h4>
+          <button type="button" onclick="window.panelCtrl.closeSnippetModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <form onsubmit="event.preventDefault(); window.panelCtrl.saveSnippet();" class="space-y-2.5 text-xs">
+          <input type="hidden" id="panelSnippetIsEdit" value="0" />
+          <div>
+            <label for="panelSnippetName" class="text-[11px] t-muted block mb-1">نام اسنیپت:</label>
+            <input type="text" id="panelSnippetName" dir="ltr" placeholder="Block Ads" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
+          </div>
+          <div>
+            <label for="panelSnippetJson" class="text-[11px] t-muted block mb-1">محتوای JSON:</label>
+            <textarea id="panelSnippetJson" rows="7" dir="ltr" class="textarea-base text-[11px] font-sans font-en rounded-xl w-full text-left custom-scroll" required></textarea>
+          </div>
+          <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ذخیره اسنیپت</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Panel Infra Provider Editor -->
+    <div id="panelProviderEditorModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[380px] space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5">
+          <h4 id="panelProviderModalTitle" class="text-xs font-bold t-main">افزودن ارائه‌دهنده جدید</h4>
+          <button type="button" onclick="window.panelCtrl.closeProviderModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <form onsubmit="event.preventDefault(); window.panelCtrl.saveProvider();" class="space-y-2.5 text-xs">
+          <input type="hidden" id="panelProviderUuid" value="" />
+          <div>
+            <label for="panelProviderName" class="text-[11px] t-muted block mb-1">نام ارائه‌دهنده:</label>
+            <input type="text" id="panelProviderName" dir="ltr" placeholder="Hetzner Cloud" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
+          </div>
+          <div>
+            <label for="panelProviderLoginUrl" class="text-[11px] t-muted block mb-1">آدرس پنل یا اکانت ورود (اختیاری):</label>
+            <input type="text" id="panelProviderLoginUrl" dir="ltr" placeholder="https://console.hetzner.cloud" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
+          </div>
+          <div>
+            <label for="panelProviderFaviconUrl" class="text-[11px] t-muted block mb-1">لینک آیکون (اختیاری):</label>
+            <input type="text" id="panelProviderFaviconUrl" dir="ltr" placeholder="https://hetzner.com/favicon.ico" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" />
+          </div>
+          <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ذخیره ارائه‌دهنده</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Panel API Token Creator -->
+    <div id="panelTokenCreateModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[380px] space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5">
+          <h4 class="text-xs font-bold t-main">ساخت توکن API جدید</h4>
+          <button type="button" onclick="window.panelCtrl.closeTokenModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <form onsubmit="event.preventDefault(); window.panelCtrl.createToken();" class="space-y-2.5 text-xs">
+          <div>
+            <label for="panelTokenName" class="text-[11px] t-muted block mb-1">نام توکن:</label>
+            <input type="text" id="panelTokenName" dir="ltr" placeholder="remnabot-automation" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
+          </div>
+          <div id="panelTokenSecretResultBox" class="hidden card-inset p-2.5 rounded-xl border border-emerald-500/40 space-y-1.5">
+            <span class="text-[11px] font-bold t-success block">توکن ساخته شد (هم‌اکنون کپی کنید):</span>
+            <div class="flex items-center gap-1.5">
+              <code id="panelTokenSecretOutput" class="flex-1 text-[10.5px] font-sans font-en break-all t-main" dir="ltr"></code>
+              <button type="button" onclick="window.copyToClipboard(document.getElementById('panelTokenSecretOutput').innerText, 'توکن کپی شد')" class="btn btn-secondary px-2 py-1 text-[10px] rounded-lg">کپی</button>
+            </div>
+          </div>
+          <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ایجاد توکن</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: External Squad Users Assign / Remove -->
+    <div id="panelExtSquadUsersModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[390px] space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5">
+          <h4 id="panelExtSquadTitle" class="text-xs font-bold t-main truncate">مدیریت اعضای اسکواد خارجی</h4>
+          <button type="button" onclick="window.panelCtrl.closeExtSquadUsersModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <input type="hidden" id="panelExtSquadUuid" value="" />
+        <div class="space-y-2 text-xs">
+          <label for="panelExtSquadUserUuids" class="text-[11px] t-muted block">UUID کاربران (با خط جدید یا کاما جدا کنید):</label>
+          <textarea id="panelExtSquadUserUuids" rows="4" dir="ltr" placeholder="uuid-1, uuid-2" class="textarea-base text-[11px] font-sans font-en rounded-xl w-full text-left"></textarea>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button type="button" onclick="window.panelCtrl.submitExtSquadUsers('add')" class="btn btn-primary text-xs py-2 rounded-xl font-bold">افزودن به اسکواد</button>
+            <button type="button" onclick="window.panelCtrl.submitExtSquadUsers('remove')" class="btn btn-secondary text-xs py-2 rounded-xl font-bold t-danger border-rose-500/35">حذف از اسکواد</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Reusable Confirmation Dialog (Panel & Node Actions) -->
+    <div id="panelActionConfirmModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[350px] space-y-3.5 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5">
+          <h4 id="panelConfirmModalTitle" class="text-xs font-bold t-main">تأیید عملیات</h4>
+          <button type="button" onclick="window.panelCtrl.closeConfirmModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <p id="panelConfirmModalMsg" class="text-xs t-muted leading-relaxed"></p>
+        <button type="button" id="panelConfirmExecuteBtn" onclick="window.panelCtrl.executeConfirmAction()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">تأیید و اجرا</button>
       </div>
     </div>
 
@@ -4995,6 +5329,7 @@
   <script src="/static/js/charts.js" defer></script>
   <script src="/static/js/admin_charts.js" defer></script>
   <script src="/static/js/admin_nodes.js" defer></script>
+  <script src="/static/js/admin_panel.js" defer></script>
   <script src="/static/js/admin_plans.js" defer></script>
   <script src="/static/js/admin_finance.js" defer></script>
   <script src="/static/js/admin_users.js" defer></script>

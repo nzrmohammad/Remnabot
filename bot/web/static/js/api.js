@@ -587,6 +587,63 @@ const api = {
     return this.post('/api/admin/infra/node/restart', { node_uuid, force_restart: Boolean(force_restart) });
   },
 
+  async runNodeAction(action, node_uuid = '', node_name = '', force_restart = false) {
+    return this.post('/api/admin/infra/node/action', {
+      action,
+      node_uuid,
+      node_name,
+      force_restart: Boolean(force_restart),
+    });
+  },
+
+  async saveInfraProvider(data) {
+    return this.post('/api/admin/infra/providers/save', data);
+  },
+
+  async deleteInfraProvider(uuid) {
+    return this.post('/api/admin/infra/providers/delete', { uuid });
+  },
+
+  async syncInfraNodeBilling(node_uuid, provider_uuid, due_date = '') {
+    return this.post('/api/admin/infra/node/sync', { node_uuid, provider_uuid, due_date });
+  },
+
+  async getPanelControlOverview() {
+    return this.get('/api/admin/panel/control');
+  },
+
+  async savePanelHost(data) {
+    return this.post('/api/admin/panel/hosts/save', data);
+  },
+
+  async bulkPanelHosts(action, uuids) {
+    return this.post('/api/admin/panel/hosts/bulk', { action, uuids });
+  },
+
+  async savePanelSnippet(name, snippet, is_edit = false) {
+    return this.post('/api/admin/panel/snippets/save', { name, snippet, is_edit: Boolean(is_edit) });
+  },
+
+  async deletePanelSnippet(name) {
+    return this.post('/api/admin/panel/snippets/delete', { name });
+  },
+
+  async savePanelSubSettings(data) {
+    return this.post('/api/admin/panel/subscription-settings', data);
+  },
+
+  async updateExternalSquadUsers(squad_uuid, user_uuids, action = 'add') {
+    return this.post('/api/admin/panel/external-squads/users', { squad_uuid, user_uuids, action });
+  },
+
+  async createPanelApiToken(token_name) {
+    return this.post('/api/admin/panel/tokens/create', { token_name });
+  },
+
+  async deletePanelApiToken(uuid) {
+    return this.post('/api/admin/panel/tokens/delete', { uuid });
+  },
+
   async getSslHealth() {
     return this.get('/api/admin/infra/ssl-health');
   },
