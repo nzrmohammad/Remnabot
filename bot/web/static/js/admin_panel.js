@@ -15,6 +15,7 @@
     config_profiles: [],
     snippets: [],
     external_squads: [],
+    internal_squads: [],
     subscription_settings: {},
     infra_providers: [],
     infra_billing_nodes: [],
@@ -187,31 +188,42 @@
       const disabled = Boolean(h.isDisabled);
       const checked = selectedHostUuids.has(uuid);
       const tags = Array.isArray(h.tags) ? h.tags : (h.tag ? [h.tag] : []);
+      const sqObj = (h.internalSquads && typeof h.internalSquads === 'object') ? h.internalSquads : null;
+      const sqMode = sqObj ? String(sqObj.mode || 'EXCLUDE').toUpperCase() : 'EXCLUDE';
+      const sqList = sqObj
+        ? (Array.isArray(sqObj.squads) ? sqObj.squads : [])
+        : (Array.isArray(h.excludedInternalSquads) ? h.excludedInternalSquads : []);
+      const squadBadge = sqMode === 'ALLOW_ONLY'
+        ? `<span class="badge badge-info text-[10px]">فقط ${sqList.length} اسکواد</span>`
+        : (sqList.length > 0
+            ? `<span class="badge badge-warn text-[10px]">بجز ${sqList.length} اسکواد</span>`
+            : `<span class="badge badge-neutral text-[10px]">همه اسکوادها</span>`);
       return `
         <div class="card p-3 rounded-2xl border border-card-border space-y-2">
           <div class="flex items-start justify-between gap-2">
-            <label class="flex items-start gap-2 min-w-0 flex-1 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 rounded accent-cyan-500" ${checked ? 'checked' : ''} onchange="window.panelCtrl.toggleHostSelection('${escapeHtml(uuid)}', this.checked)" />
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <b class="text-xs t-main truncate" dir="ltr">${escapeHtml(h.remark || 'Host')}</b>
-                  <span class="badge ${disabled ? 'badge-danger' : 'badge-success'} text-[10px]">${disabled ? 'غیرفعال' : 'فعال'}</span>
-                </div>
-                <div class="text-[11px] t-accent font-sans num-bidi truncate mt-0.5" dir="ltr">${escapeHtml(h.address || '—')}:${Number(h.port || 443)}</div>
-              </div>
-            </label>
-            <div class="flex items-center gap-1 shrink-0">
-              <button type="button" onclick="window.panelCtrl.toggleSingleHost('${escapeHtml(uuid)}', ${disabled ? 'true' : 'false'})" class="p-1.5 rounded-xl border ${disabled ? 'border-emerald-500/35 t-success hover:bg-emerald-500/10' : 'border-rose-500/35 t-danger hover:bg-rose-500/10'} transition active:scale-95" title="${disabled ? 'فعال‌سازی هاست' : 'غیرفعال‌سازی هاست'}">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/></svg>
-              </button>
+            <div class="flex items-center gap-1.5 shrink-0 pt-0.5">
+              <input type="checkbox" aria-label="انتخاب هاست" class="rounded accent-cyan-500 cursor-pointer" ${checked ? 'checked' : ''} onchange="window.panelCtrl.toggleHostSelection('${escapeHtml(uuid)}', this.checked)" />
               <button type="button" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش هاست">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
+              <button type="button" onclick="window.panelCtrl.toggleSingleHost('${escapeHtml(uuid)}', ${disabled ? 'true' : 'false'})" class="p-1.5 rounded-xl border ${disabled ? 'border-emerald-500/35 t-success hover:bg-emerald-500/10' : 'border-rose-500/35 t-danger hover:bg-rose-500/10'} transition active:scale-95" title="${disabled ? 'فعال‌سازی هاست' : 'غیرفعال‌سازی هاست'}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/></svg>
+              </button>
+            </div>
+            <div class="min-w-0 flex-1 text-left cursor-pointer" dir="ltr" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}')">
+              <div class="flex items-center justify-start gap-1.5 flex-wrap">
+                <b class="text-xs t-main truncate font-en">${escapeHtml(h.remark || 'Host')}</b>
+                <span class="badge ${disabled ? 'badge-danger' : 'badge-success'} text-[10px]" dir="rtl">${disabled ? 'غیرفعال' : 'فعال'}</span>
+              </div>
+              <div class="text-[11px] t-accent font-sans num-bidi truncate mt-0.5">${escapeHtml(h.address || '—')}:${Number(h.port || 443)}</div>
             </div>
           </div>
           <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t border-card-border text-[10.5px] t-muted">
-            <span class="truncate" dir="ltr">SNI: <b class="t-main">${escapeHtml(h.sni || '—')}</b></span>
-            ${tags.length ? `<div class="flex flex-wrap gap-1">${tags.map(t => `<span class="badge badge-info text-[10px]">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+            <div class="flex flex-wrap items-center gap-1">
+              ${squadBadge}
+              ${tags.map(t => `<span class="badge badge-info text-[10px] font-en" dir="ltr">${escapeHtml(t)}</span>`).join('')}
+            </div>
+            <span class="inline-flex items-center gap-1 font-en truncate max-w-full" dir="ltr"><span>SNI:</span><b class="t-main">${escapeHtml(h.sni || '—')}</b></span>
           </div>
         </div>
       `;
@@ -276,6 +288,86 @@
     }
   }
 
+  function _applySelectedHostInbound(inbUuid = '', profUuid = '') {
+    const inbounds = allProfileInbounds();
+    const hit = inbUuid ? inbounds.find(x => String(x.uuid) === String(inbUuid)) : null;
+    if ($('panelHostInboundSelect')) $('panelHostInboundSelect').value = inbUuid || '';
+    if ($('panelHostInboundProfileUuid')) $('panelHostInboundProfileUuid').value = hit?.profileUuid || profUuid || '';
+    const disp = $('panelHostInboundDisplay');
+    if (disp) {
+      if (hit) {
+        disp.innerText = `${hit.profileName} — ${hit.tag} (${hit.type || ''}:${hit.port || ''})`;
+        disp.setAttribute('dir', 'ltr');
+      } else {
+        disp.innerText = 'انتخاب اینباند متصل (اختیاری در ویرایش)...';
+        disp.setAttribute('dir', 'rtl');
+      }
+    }
+  }
+
+  function _renderHostInboundPickerList() {
+    const listEl = $('panelHostInboundPickerList');
+    if (!listEl) return;
+    const inbounds = allProfileInbounds();
+    const currentVal = $('panelHostInboundSelect')?.value || '';
+    const row = (val, profUuid, title, sub = '', isEnglish = true) => renderModalPickerRow({
+      onClick: `window.panelCtrl.selectHostInbound('${escapeHtml(val)}', '${escapeHtml(profUuid)}')`,
+      title,
+      sub,
+      selected: String(currentVal) === String(val),
+      isEnglish,
+      rowDir: 'ltr',
+      subDir: 'ltr',
+    });
+
+    let html = row('', '', 'انتخاب اینباند متصل (اختیاری در ویرایش)', '', false);
+    for (const inb of inbounds) {
+      html += row(inb.uuid, inb.profileUuid, `${inb.profileName} — ${inb.tag}`, `${inb.type || 'inbound'}:${inb.port || ''}`, true);
+    }
+    listEl.innerHTML = html;
+  }
+
+  function openHostInboundModal() {
+    const modal = $('panelHostInboundPickerModal');
+    if (!modal) return;
+    _renderHostInboundPickerList();
+    modal.classList.remove('hidden');
+    haptic('selection');
+  }
+
+  function closeHostInboundModal() {
+    $('panelHostInboundPickerModal')?.classList.add('hidden');
+  }
+
+  function selectHostInbound(inbUuid = '', profUuid = '') {
+    _applySelectedHostInbound(inbUuid, profUuid);
+    closeHostInboundModal();
+    haptic('selection');
+  }
+
+  function _renderHostSquadCheckboxes(mode = 'EXCLUDE', selectedUuids = []) {
+    const modeEl = $('panelHostSquadModeSelect');
+    const listEl = $('panelHostSquadsList');
+    if (modeEl) modeEl.value = mode === 'ALLOW_ONLY' ? 'ALLOW_ONLY' : 'EXCLUDE';
+    if (!listEl) return;
+    const squads = Array.isArray(panelState.internal_squads) ? panelState.internal_squads : [];
+    if (!squads.length) {
+      listEl.innerHTML = '<span class="text-[10.5px] t-muted">اسکواد داخلی در پنل یافت نشد.</span>';
+      return;
+    }
+    const picked = new Set((selectedUuids || []).map(String));
+    listEl.innerHTML = squads.map(sq => {
+      const u = String(sq.uuid || '');
+      const checked = picked.has(u) ? 'checked' : '';
+      return `
+        <label class="card px-2 py-1 rounded-lg border border-card-border text-[10.5px] font-en flex items-center gap-1.5 cursor-pointer" dir="ltr">
+          <input type="checkbox" class="panel-host-squad-chk accent-cyan-500 rounded" value="${escapeHtml(u)}" ${checked} />
+          <span class="t-main">${escapeHtml(sq.name || u)}</span>
+        </label>
+      `;
+    }).join('');
+  }
+
   function openHostModal(hostUuid = '') {
     const modal = $('panelHostEditorModal');
     if (!modal) return;
@@ -290,15 +382,17 @@
     if ($('panelHostHeader')) $('panelHostHeader').value = h?.host || '';
     if ($('panelHostDisabled')) $('panelHostDisabled').checked = Boolean(h?.isDisabled);
 
-    const inbSel = $('panelHostInboundSelect');
-    if (inbSel) {
-      const inbounds = allProfileInbounds();
-      const curInb = h?.inbound?.configProfileInboundUuid || h?.inboundUuid || '';
-      inbSel.innerHTML = '<option value="">انتخاب اینباند متصل (اختیاری در ویرایش)...</option>' + inbounds.map(inb => (
-        `<option value="${escapeHtml(inb.uuid)}" data-profile="${escapeHtml(inb.profileUuid)}">${escapeHtml(inb.profileName)} — ${escapeHtml(inb.tag)} (${escapeHtml(inb.type || '')}:${inb.port || ''})</option>`
-      )).join('');
-      if (curInb) inbSel.value = curInb;
-    }
+    const curInb = h?.inbound?.configProfileInboundUuid || h?.inboundUuid || '';
+    const curProf = h?.inbound?.configProfileUuid || '';
+    _applySelectedHostInbound(curInb, curProf);
+
+    const sqObj = (h?.internalSquads && typeof h.internalSquads === 'object') ? h.internalSquads : null;
+    const sqMode = sqObj ? String(sqObj.mode || 'EXCLUDE').toUpperCase() : 'EXCLUDE';
+    const sqUuids = sqObj
+      ? (Array.isArray(sqObj.squads) ? sqObj.squads : [])
+      : (Array.isArray(h?.excludedInternalSquads) ? h.excludedInternalSquads : []);
+    _renderHostSquadCheckboxes(sqMode, sqUuids);
+
     modal.classList.remove('hidden');
     haptic('selection');
   }
@@ -315,16 +409,15 @@
     const sni = $('panelHostSni')?.value?.trim() ?? '';
     const host = $('panelHostHeader')?.value?.trim() ?? '';
     const is_disabled = Boolean($('panelHostDisabled')?.checked);
-    const inbSel = $('panelHostInboundSelect');
-    const inbound_uuid = inbSel?.value || '';
-    const config_profile_uuid = inbSel?.options?.[inbSel.selectedIndex]?.dataset?.profile || '';
+    const inbound_uuid = $('panelHostInboundSelect')?.value?.trim() || '';
+    const config_profile_uuid = $('panelHostInboundProfileUuid')?.value?.trim() || '';
 
     if (!remark || !address) {
       toast('نام و آدرس هاست الزامی است.');
       return;
     }
 
-    const res = await window.api?.savePanelHost?.({
+    const payload = {
       uuid,
       remark,
       address,
@@ -334,7 +427,14 @@
       is_disabled,
       inbound_uuid,
       config_profile_uuid,
-    });
+    };
+    const squadsAvailable = Array.isArray(panelState.internal_squads) && panelState.internal_squads.length > 0;
+    if (squadsAvailable || document.querySelectorAll('.panel-host-squad-chk').length > 0) {
+      payload.squad_mode = $('panelHostSquadModeSelect')?.value || 'EXCLUDE';
+      payload.squad_uuids = Array.from(document.querySelectorAll('.panel-host-squad-chk:checked')).map(c => c.value);
+    }
+
+    const res = await window.api?.savePanelHost?.(payload);
     if (res && res.ok) {
       toast(`✅ ${res.message}`);
       closeHostModal();
@@ -445,8 +545,8 @@
       return `
         <div class="card p-3 rounded-2xl border border-card-border space-y-2">
           <div class="flex items-center justify-between gap-2">
-            <b class="text-xs t-main truncate" dir="ltr">${escapeHtml(p.name || 'Profile')}</b>
-            <span class="badge badge-info text-[10px]">${inbounds.length} اینباند</span>
+            <span class="badge badge-info text-[10px] shrink-0">${inbounds.length} اینباند</span>
+            <b class="text-xs t-main truncate font-en text-left" dir="ltr">${escapeHtml(p.name || 'Profile')}</b>
           </div>
           ${inbounds.length ? `
             <div class="flex flex-wrap gap-1.5" dir="ltr">
@@ -571,10 +671,6 @@
       const linkedCount = billingNodes.filter(bn => String(bn.providerUuid || bn.provider?.uuid || '') === uuid).length;
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
-          <div class="min-w-0 text-left flex-1" dir="ltr">
-            <b class="text-xs t-main block truncate font-en">${escapeHtml(p.name || '')}</b>
-            <span class="text-[10.5px] t-muted block truncate">${linkedCount} سرور متصل${p.login ? ` • ${escapeHtml(p.login)}` : ''}</span>
-          </div>
           <div class="flex items-center gap-1 shrink-0">
             <button type="button" onclick="window.panelCtrl.openProviderModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش ارائه‌دهنده">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -582,6 +678,10 @@
             <button type="button" onclick="window.panelCtrl.deleteProvider('${escapeHtml(uuid)}', '${escapeHtml(p.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف ارائه‌دهنده">
               <img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
             </button>
+          </div>
+          <div class="min-w-0 text-left flex-1" dir="ltr">
+            <b class="text-xs t-main block truncate font-en">${escapeHtml(p.name || '')}</b>
+            <span class="text-[10.5px] t-muted block truncate">${linkedCount} سرور متصل${p.login ? ` • ${escapeHtml(p.login)}` : ''}</span>
           </div>
         </div>
       `;
@@ -739,6 +839,9 @@
     runBulkHosts,
     openHostModal,
     closeHostModal,
+    openHostInboundModal,
+    closeHostInboundModal,
+    selectHostInbound,
     saveHost,
     saveSubSettings,
     openExtSquadUsersModal,

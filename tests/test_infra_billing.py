@@ -3,9 +3,8 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db.models import Base, NodeCost, Order, User
+from bot.db.models import Order, User
 from bot.db.repositories.node_cost_repo import NodeCostRepository
 from bot.services.node_monitor import check_nodes_billing_due_dates
 
@@ -41,7 +40,7 @@ async def test_node_cost_repo_crud_and_due_dates(session_factory):
         assert node1.alert_notified is False
 
         # 2. Add second node due in 15 days (> 3 days)
-        node2 = await repo.upsert(
+        await repo.upsert(
             node_uuid="node-uuid-ovh-2",
             node_id=2,
             node_name="Server France 2",
@@ -150,7 +149,9 @@ async def test_infra_billing_route_registration():
 @pytest.mark.anyio
 async def test_admin_infra_billing_api_handlers(session_factory):
     import json
+
     from aiohttp.test_utils import make_mocked_request
+
     from bot.web.cache import FastCache
     from bot.web.routes_admin import get_admin_infra_billing, post_admin_node_cost
 
@@ -238,10 +239,12 @@ async def test_admin_infra_billing_api_handlers(session_factory):
 
 @pytest.mark.anyio
 async def test_ssl_checker_service_and_endpoints():
+    import json
+
+    from aiohttp.test_utils import make_mocked_request
+
     from bot.services.ssl_checker import check_domain_ssl, is_ip_address
     from bot.web.admin_infra_api import get_admin_ssl_health, post_admin_ssl_check
-    from aiohttp.test_utils import make_mocked_request
-    import json
 
     assert is_ip_address("1.1.1.1") is True
     assert is_ip_address("2001:db8::1") is True
@@ -294,9 +297,11 @@ async def test_ssl_checker_service_and_endpoints():
 
 @pytest.mark.anyio
 async def test_get_admin_github_releases():
-    from bot.web.admin_infra_api import get_admin_github_releases
-    from aiohttp.test_utils import make_mocked_request
     import json
+
+    from aiohttp.test_utils import make_mocked_request
+
+    from bot.web.admin_infra_api import get_admin_github_releases
 
     # 1. Forbidden when not admin
     req_unauth = make_mocked_request("GET", "/api/admin/infra/github-releases")
@@ -551,10 +556,15 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
     finance_js = Path("bot/web/static/js/admin_finance.js").read_text(encoding="utf-8")
 
-    assert "word-spacing: 0.065em" in base_css
+    assert "word-spacing: 0.105em" in base_css
+    assert "word-spacing: 0.055em" in base_css
     assert "word-spacing: 0.14em" not in base_css
     assert "پورسانت نقدی دعوت (%)" in admin_html
     assert "پورسانت نقدی دعوت (٪)" not in admin_html
+    assert "پایش لحظه‌ای مصرف منابع، سرعت و کنترل نودها" not in admin_html
+    assert admin_html.find('id="subtabBtnNodesPanel"') < admin_html.find('id="subtabBtnNodesServers"')
+    assert 'id="panelHostInboundPickerModal"' in admin_html
+    assert 'id="nodeConfigProfilePickerModal"' in admin_html
     assert "animate-ping" in nodes_js and "سررسید!" not in nodes_js
     assert "User / Node Multiplier:" not in nodes_js
     assert "ورژن هسته (Xray):" in nodes_js
@@ -562,8 +572,20 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     assert "ضریب مصرف کاربر:" in nodes_js
     assert "ضریب مصرف سرور:" in nodes_js
     assert "ردیابی ترافیک:" in nodes_js
+    assert "ریست ترافیک" in nodes_js and "غیرفعال" in nodes_js
+    assert "هزینه و تمدید:" not in admin_html
     assert "هزینه و تمدید:" not in nodes_js
     assert "titleEl.querySelector('span')" in finance_js
+
+    panel_js = Path("bot/web/static/js/admin_panel.js").read_text(encoding="utf-8")
+    admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
+    assert "window.panelCtrl?.fetchOverview" in admin_js
+    assert "internalSquads" in panel_js
+    assert panel_js.find("${inbounds.length} اینباند") < panel_js.find("${escapeHtml(p.name || 'Profile')}")
+    assert panel_js.find("openProviderModal(") < panel_js.find("renderInfraProviders") or (
+        panel_js[panel_js.find("function renderInfraProviders"):].find("openProviderModal")
+        < panel_js[panel_js.find("function renderInfraProviders"):].find("${escapeHtml(p.name || '')}")
+    )
 
 
 @pytest.mark.anyio
@@ -612,6 +634,8 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
             return FakeResp(200, {"response": [{"name": "Ads", "snippet": []}]})
         if path == "/api/external-squads":
             return FakeResp(200, {"response": {"externalSquads": [{"uuid": "es-1", "name": "VIP"}]}})
+        if path == "/api/internal-squads":
+            return FakeResp(200, {"response": {"internalSquads": [{"uuid": "sq-1", "name": "SquadOne"}]}})
         if path == "/api/subscription-settings":
             return FakeResp(200, {"response": {"uuid": "sub-1", "profileTitle": "Store"}})
         if path == "/api/infra-billing/providers":
@@ -621,6 +645,7 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         return FakeResp(200, {"response": {"ok": True}})
 
     client._client.request = fake_request
+    client._client.get = lambda path, **kwargs: fake_request("GET", path)
 
     tok = await client.get_api_tokens()
     assert tok["ok"] is False and tok["jwt_required"] is True
@@ -670,6 +695,7 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         ctrl_data = json.loads(ctrl_resp.text)["data"]
         assert len(ctrl_data["hosts"]) == 1
         assert len(ctrl_data["config_profiles"]) == 1
+        assert len(ctrl_data["internal_squads"]) == 1
         assert ctrl_data["api_tokens_info"]["jwt_required"] is True
 
         req_act = make_mocked_request("POST", "/api/admin/infra/node/action", app=app_state)
@@ -677,8 +703,40 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         assert (await post_admin_panel_node_action(req_act)).status == 200
 
         req_host = make_mocked_request("POST", "/api/admin/panel/hosts/save", app=app_state)
-        req_host.json = AsyncMock(return_value={"uuid": "h-1", "remark": "DE", "address": "de.ex", "port": 443})
+        req_host.json = AsyncMock(return_value={
+            "uuid": "h-1",
+            "remark": "DE",
+            "address": "de.ex",
+            "port": 443,
+            "squad_mode": "ALLOW_ONLY",
+            "squad_uuids": ["sq-1"],
+        })
         assert (await post_admin_panel_host_save(req_host)).status == 200
+        assert any(
+            m == "PATCH" and p == "/api/hosts" and j and j.get("internalSquads") == {"mode": "ALLOW_ONLY", "squads": ["sq-1"]}
+            for m, p, j in calls
+        )
+
+        # Verify legacy Remnawave (<v3.4) fallback converts internalSquads(EXCLUDE) -> excludedInternalSquads
+        legacy_calls = []
+
+        async def fake_legacy_request(method, path, json=None):
+            legacy_calls.append((method, path, json))
+            if json and "internalSquads" in json:
+                return FakeResp(400, {"message": "Unknown property internalSquads"})
+            return FakeResp(200, {"response": {"uuid": "h-2"}})
+
+        client._client.request = fake_legacy_request
+        ok_leg, _ = await client.create_host({
+            "remark": "Legacy",
+            "address": "leg.ex",
+            "port": 443,
+            "internalSquads": {"mode": "EXCLUDE", "squads": ["sq-1"]},
+        })
+        assert ok_leg is True
+        assert legacy_calls[-1][2].get("excludedInternalSquads") == ["sq-1"]
+        client._client.request = fake_request
+        client._client.get = lambda path, **kwargs: fake_request("GET", path)
 
         req_bulk = make_mocked_request("POST", "/api/admin/panel/hosts/bulk", app=app_state)
         req_bulk.json = AsyncMock(return_value={"action": "disable", "uuids": ["h-1"]})

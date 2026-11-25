@@ -97,6 +97,7 @@ async def get_admin_panel_control(request: web.Request) -> web.Response:
         profiles_res,
         snippets_res,
         ext_squads_res,
+        int_squads_res,
         sub_settings_res,
         providers_res,
         billing_nodes_res,
@@ -106,6 +107,7 @@ async def get_admin_panel_control(request: web.Request) -> web.Response:
         remnawave.get_config_profiles(),
         remnawave.get_snippets(),
         remnawave.get_external_squads(),
+        remnawave.get_internal_squads(),
         remnawave.get_subscription_settings(),
         remnawave.get_infra_providers(),
         remnawave.get_infra_billing_nodes(),
@@ -123,6 +125,7 @@ async def get_admin_panel_control(request: web.Request) -> web.Response:
             "config_profiles": _safe(profiles_res, []),
             "snippets": _safe(snippets_res, []),
             "external_squads": _safe(ext_squads_res, []),
+            "internal_squads": _safe(int_squads_res, []),
             "subscription_settings": _safe(sub_settings_res, {}),
             "infra_providers": _safe(providers_res, []),
             "infra_billing_nodes": _safe(billing_nodes_res, []),
@@ -169,6 +172,14 @@ async def post_admin_panel_host_save(request: web.Request) -> web.Response:
         payload["inboundUuid"] = inbound_uuid
     if cfg_profile_uuid and inbound_uuid:
         payload["inbound"] = {"configProfileUuid": cfg_profile_uuid, "configProfileInboundUuid": inbound_uuid}
+
+    if "squad_uuids" in body:
+        raw_squads = body.get("squad_uuids") or []
+        squad_uuids = [str(x).strip() for x in raw_squads if str(x).strip()] if isinstance(raw_squads, list) else []
+        squad_mode = str(body.get("squad_mode") or "EXCLUDE").strip().upper()
+        if squad_mode not in ("ALLOW_ONLY", "EXCLUDE"):
+            squad_mode = "EXCLUDE"
+        payload["internalSquads"] = {"mode": squad_mode, "squads": squad_uuids}
 
     if host_uuid:
         payload["uuid"] = host_uuid

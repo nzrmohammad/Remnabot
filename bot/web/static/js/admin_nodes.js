@@ -552,8 +552,8 @@
               </div>
 
               <!-- Buttons to configure node, restart, toggle & reset traffic -->
-              <div class="pt-1 flex flex-wrap items-center gap-1.5">
-                <button type="button" class="btn-node-billing flex-1 bg-transparent hover:bg-cyan-500/10 t-accent py-1.5 px-2 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-[140px]"
+              <div class="pt-1 grid grid-cols-2 gap-1.5">
+                <button type="button" class="btn-node-billing bg-transparent hover:bg-cyan-500/10 t-accent py-1.5 px-2 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
                   data-provider="${escapeHtml(n.provider || '')}"
@@ -576,25 +576,27 @@
                   <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   <span class="truncate">تنظیمات سرور</span>
                 </button>
-                <button type="button" class="btn-restart-node bg-transparent hover:bg-amber-500/10 t-warn py-1.5 px-2.5 rounded-xl border border-amber-500/35 transition flex items-center justify-center gap-1 font-bold active:scale-95 shadow-sm shrink-0"
+                <button type="button" class="btn-restart-node bg-transparent hover:bg-amber-500/10 t-warn py-1.5 px-2 rounded-xl border border-amber-500/35 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
                   title="ریستارت سرور">
                   <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span>ریستارت</span>
+                  <span class="truncate">ریستارت</span>
                 </button>
-                <button type="button" class="btn-toggle-node-state bg-transparent ${n.is_disabled ? 'hover:bg-emerald-500/10 t-success border-emerald-500/35' : 'hover:bg-rose-500/10 t-danger border-rose-500/35'} p-1.5 rounded-xl border transition flex items-center justify-center active:scale-95 shadow-sm shrink-0"
+                <button type="button" class="btn-toggle-node-state bg-transparent ${n.is_disabled ? 'hover:bg-emerald-500/10 t-success border-emerald-500/35' : 'hover:bg-rose-500/10 t-danger border-rose-500/35'} py-1.5 px-2 rounded-xl border transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
                   data-disabled="${n.is_disabled ? '1' : '0'}"
                   title="${n.is_disabled ? 'فعال‌سازی سرور' : 'غیرفعال کردن سرور'}">
                   <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/></svg>
+                  <span class="truncate">${n.is_disabled ? 'فعال‌سازی' : 'غیرفعال'}</span>
                 </button>
-                <button type="button" class="btn-reset-node-traffic bg-transparent hover:bg-indigo-500/10 t-info p-1.5 rounded-xl border border-indigo-500/35 transition flex items-center justify-center active:scale-95 shadow-sm shrink-0"
+                <button type="button" class="btn-reset-node-traffic bg-transparent hover:bg-indigo-500/10 t-info py-1.5 px-2 rounded-xl border border-indigo-500/35 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
                   title="ریست ترافیک مصرفی سرور">
                   <img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="" />
+                  <span class="truncate">ریست ترافیک</span>
                 </button>
               </div>
             </div>
@@ -790,30 +792,21 @@ openEditSslDomainModal(domain) {
       if (!listEl) return;
       const providers = Array.isArray(this._cachedInfraProviders) ? this._cachedInfraProviders : [];
       const currentVal = $('nodeBillingProviderUuid')?.value || '';
+      const row = (val, title, sub = '', isEnglish = false) => renderModalPickerRow({
+        onClick: `window.adminActions.selectNodeProvider('${escapeHtml(val)}', '${escapeHtml(title)}')`,
+        title,
+        sub,
+        selected: currentVal === val,
+        isEnglish,
+        rowDir: '',
+        extraRowCls: isEnglish ? 'flex-row-reverse text-left' : 'text-right',
+      });
 
-      const makeRow = (val, title, sub = '', isEnglishLeft = false) => {
-        const isSelected = currentVal === val;
-        const rowCls = isSelected
-          ? `w-full p-2.5 rounded-2xl border border-cyan-500/40 bg-cyan-500/10 flex items-center justify-between gap-2 transition ${isEnglishLeft ? 'flex-row-reverse text-left' : 'text-right'}`
-          : `w-full p-2.5 rounded-2xl border border-card-border card-inset hover:border-cyan-500/30 flex items-center justify-between gap-2 transition ${isEnglishLeft ? 'flex-row-reverse text-left' : 'text-right'}`;
-        return `
-          <button type="button" class="${rowCls}" onclick="window.adminActions.selectNodeProvider('${escapeHtml(val)}', '${escapeHtml(title)}')">
-            <div class="min-w-0 flex-1 ${isEnglishLeft ? 'text-left font-en' : 'text-right'}" dir="${isEnglishLeft ? 'ltr' : 'rtl'}">
-              <span class="font-bold t-main block truncate">${escapeHtml(title)}</span>
-              ${sub ? `<span class="text-[10px] t-muted block truncate" dir="ltr">${escapeHtml(sub)}</span>` : ''}
-            </div>
-            <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-cyan-500 text-white' : 'border border-card-border'}">
-              ${isSelected ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
-            </span>
-          </button>
-        `;
-      };
-
-      let html = makeRow('', 'بدون ارائه‌دهنده', '', false);
+      let html = row('', 'بدون ارائه‌دهنده', '', false);
       for (const p of providers) {
-        html += makeRow(p.uuid, p.name, p.login || '', true);
+        html += row(p.uuid, p.name, p.login || '', true);
       }
-      html += makeRow('__custom__', 'سایر / وارد کردن دستی...', '', false);
+      html += row('__custom__', 'سایر / وارد کردن دستی...', '', false);
       listEl.innerHTML = html;
     },
 
@@ -868,6 +861,70 @@ openEditSslDomainModal(domain) {
       }
     },
 
+    _applySelectedNodeConfigProfile(profileUuid = '') {
+      const hiddenEl = $('nodeBillingConfigProfileSelect');
+      const dispEl = $('nodeBillingConfigProfileDisplay');
+      if (hiddenEl) hiddenEl.value = profileUuid || '';
+      const profiles = this._nodeConfigProfilesCache || window.panelCtrl?.getConfigProfiles?.() || [];
+      const hit = profileUuid ? profiles.find(p => String(p.uuid) === String(profileUuid)) : null;
+      if (dispEl) {
+        if (hit) {
+          dispEl.innerText = hit.name || hit.uuid;
+          dispEl.setAttribute('dir', 'ltr');
+        } else {
+          dispEl.innerText = 'بدون تغییر پروفایل';
+          dispEl.setAttribute('dir', 'rtl');
+        }
+      }
+    },
+
+    _renderNodeConfigProfileList() {
+      const listEl = $('nodeConfigProfilePickerList');
+      if (!listEl) return;
+      const profiles = this._nodeConfigProfilesCache || window.panelCtrl?.getConfigProfiles?.() || [];
+      const currentVal = $('nodeBillingConfigProfileSelect')?.value || '';
+      const row = (val, title, sub = '', isEnglish = true) => renderModalPickerRow({
+        onClick: `window.adminActions.selectNodeConfigProfile('${escapeHtml(val)}')`,
+        title,
+        sub,
+        selected: String(currentVal) === String(val),
+        isEnglish,
+        rowDir: 'ltr',
+        subDir: 'rtl',
+      });
+
+      let html = row('', 'بدون تغییر پروفایل', 'حفظ تنظیمات فعلی نود در پنل', false);
+      for (const prof of profiles) {
+        const cnt = Array.isArray(prof.inbounds) ? prof.inbounds.length : 0;
+        html += row(prof.uuid, prof.name || prof.uuid, `${cnt} اینباند`, true);
+      }
+      listEl.innerHTML = html;
+    },
+
+    async openNodeConfigProfileModal() {
+      const modal = $('nodeConfigProfilePickerModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      this._renderNodeConfigProfileList();
+      if (!(this._nodeConfigProfilesCache || []).length) {
+        await this.loadNodeConfigProfiles($('nodeBillingConfigProfileSelect')?.value || '');
+        this._renderNodeConfigProfileList();
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeNodeConfigProfileModal() {
+      const modal = $('nodeConfigProfilePickerModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    selectNodeConfigProfile(profileUuid = '') {
+      this._applySelectedNodeConfigProfile(profileUuid);
+      this.onNodeConfigProfileChange([]);
+      this.closeNodeConfigProfileModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
     async loadNodeConfigProfiles(selectedProfileUuid = '', selectedInbounds = []) {
       const sel = $('nodeBillingConfigProfileSelect');
       if (!sel) return;
@@ -877,14 +934,8 @@ openEditSslDomainModal(domain) {
         profiles = data?.config_profiles || [];
       }
       this._nodeConfigProfilesCache = profiles;
-      let html = '<option value="">بدون تغییر پروفایل</option>';
-      for (const prof of profiles) {
-        html += `<option value="${escapeHtml(prof.uuid)}">${escapeHtml(prof.name || prof.uuid)}</option>`;
-      }
-      sel.innerHTML = html;
-      if (selectedProfileUuid) {
-        sel.value = selectedProfileUuid;
-      }
+      this._applySelectedNodeConfigProfile(selectedProfileUuid || '');
+      this._renderNodeConfigProfileList();
       this.onNodeConfigProfileChange(selectedInbounds);
     },
 

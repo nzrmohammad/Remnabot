@@ -98,15 +98,24 @@ class RemnawavePanelExtrasMixin:
         ok, data, _ = await self._panel_call("GET", "/api/hosts")
         return self._extract_list(data, "hosts") if ok else []
 
+    async def _save_host_request(self, method: str, payload: dict[str, Any]) -> tuple[bool, Any]:
+        """Send POST/PATCH /api/hosts with legacy excludedInternalSquads fallback (< v3.4)."""
+        ok, res, status = await self._panel_call(method, "/api/hosts", json=payload)
+        if not ok and status in (400, 422) and "internalSquads" in payload and "internalSquads" in str(res):
+            legacy = {k: v for k, v in payload.items() if k != "internalSquads"}
+            sq = payload["internalSquads"]
+            if isinstance(sq, dict) and sq.get("mode") == "EXCLUDE":
+                legacy["excludedInternalSquads"] = list(sq.get("squads") or [])
+            ok, res, _ = await self._panel_call(method, "/api/hosts", json=legacy)
+        return ok, res
+
     async def create_host(self, payload: dict[str, Any]) -> tuple[bool, Any]:
         """Create a new host in Remnawave."""
-        ok, res, _ = await self._panel_call("POST", "/api/hosts", json=payload)
-        return ok, res
+        return await self._save_host_request("POST", payload)
 
     async def update_host(self, payload: dict[str, Any]) -> tuple[bool, Any]:
         """Update an existing host via PATCH /api/hosts."""
-        ok, res, _ = await self._panel_call("PATCH", "/api/hosts", json=payload)
-        return ok, res
+        return await self._save_host_request("PATCH", payload)
 
     async def delete_host(self, host_uuid: str) -> tuple[bool, Any]:
         """Delete a host by UUID."""

@@ -203,6 +203,9 @@
 
       // Lazy load tab data
       if (targetId === 'tab-admin-nodes') {
+        if (window.panelCtrl?.fetchOverview) {
+          window.panelCtrl.fetchOverview(false);
+        }
         const nodesListEl = $('adminOverviewNodesList') || $('adminNodesFullList');
         if (nodesListEl?.children.length <= 1) {
           if (window.syncAdminOverview) window.syncAdminOverview(false);

@@ -1631,13 +1631,45 @@ function updateTopPadding(topBarId) {
   }
   topBar.style.paddingTop = padTop + 'px';
 }
+function renderModalPickerRow({
+  onClick,
+  title,
+  sub = '',
+  selected = false,
+  isEnglish = true,
+  rowDir = 'ltr',
+  subDir = 'ltr',
+  extraRowCls = '',
+}) {
+  const esc = typeof escapeHtml === 'function' ? escapeHtml : s => String(s ?? '');
+  const baseCls = selected
+    ? 'w-full p-2.5 rounded-2xl border border-cyan-500/40 bg-cyan-500/10 flex items-center justify-between gap-2 transition'
+    : 'w-full p-2.5 rounded-2xl border border-card-border card-inset hover:border-cyan-500/30 flex items-center justify-between gap-2 transition';
+  const dirAttr = rowDir ? ` dir="${esc(rowDir)}"` : '';
+  const alignCls = isEnglish ? 'text-left font-en' : 'text-right font-sans';
+  const txtDir = isEnglish ? 'ltr' : 'rtl';
+  return `
+    <button type="button"${dirAttr} class="${baseCls} ${extraRowCls}" onclick="${onClick}">
+      <div class="min-w-0 flex-1 ${alignCls}" dir="${txtDir}">
+        <span class="font-bold t-main block truncate">${esc(title)}</span>
+        ${sub ? `<span class="text-[10px] t-muted block truncate" dir="${esc(subDir)}">${esc(sub)}</span>` : ''}
+      </div>
+      <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${selected ? 'bg-cyan-500 text-white' : 'border border-card-border'}">
+        ${selected ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+      </span>
+    </button>
+  `;
+}
+
 if (typeof window !== 'undefined') {
   window.updateTopPadding = updateTopPadding;
+  window.renderModalPickerRow = renderModalPickerRow;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     updateTopPadding,
+    renderModalPickerRow,
     uiIcon,
     renderFlagHtml,
     getCountryCodeFromEmoji,
