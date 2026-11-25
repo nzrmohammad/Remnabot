@@ -1934,7 +1934,15 @@ async applyUserModification() {
         confirmMsg = `آیا از اعمال گروهی (${typeText}) برای ${targetDesc} اطمینان دارید؟`;
       }
 
-      if (!confirm(confirmMsg)) return;
+      const confirmed = window.showConfirmModal
+        ? await window.showConfirmModal({
+            title: type === 'delete_users' ? 'حذف گروهی کاربران' : 'تایید عملیات گروهی',
+            message: confirmMsg,
+            confirmText: type === 'delete_users' ? 'بله، حذف کن' : 'تایید و اجرا',
+            isDanger: type === 'delete_users',
+          })
+        : false;
+      if (!confirmed) return;
 
       const btn = $('bulkSubmitBtn');
       const txt = $('bulkSubmitText');

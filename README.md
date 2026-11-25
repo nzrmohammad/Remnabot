@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12+" />
-  <img src="https://img.shields.io/badge/Framework-aiogram%203.31%2B-2C8EBB.svg?style=for-the-badge&logo=telegram" alt="aiogram 3.31+" />
+  <img src="https://img.shields.io/badge/Framework-aiogram%203.33%2B-2C8EBB.svg?style=for-the-badge&logo=telegram" alt="aiogram 3.33+" />
   <img src="https://img.shields.io/badge/Panel-Remnawave%20v3%2B%20Only-8A2BE2.svg?style=for-the-badge" alt="Remnawave v3+ Only" />
   <img src="https://img.shields.io/badge/Database-PostgreSQL%2016%20%7C%20Redis-blueviolet.svg?style=for-the-badge&logo=postgresql" alt="PostgreSQL & Redis" />
   <img src="https://img.shields.io/badge/Architecture-AsyncIO%20%7C%20Zero--Conflict-success.svg?style=for-the-badge" alt="Zero-Conflict Architecture" />
@@ -58,17 +58,19 @@ Remnabot provides a production-grade Telegram client portal and administrative o
 - **📊 Deep Analytics & Interactive Visualizations**: Country/node donut charts, download vs. upload splits, 24-hour diurnal peak usage curves, and OS/device platform breakdowns.
 - **🎛️ Dynamic Custom Plan Builder**: Interactive two-way slider allowing customers to design custom volume (GB) and duration (Days) plans with real-time loyalty discounts.
 - **🎁 Gift System for Friends**: Send prepaid subscriptions or wallet credits to friends with personalized greetings.
-- **⚡ Live 1-Tap Single Configs**: Instant extraction of raw subscription payloads into distinct VLESS, Trojan, and Shadowsocks nodes with native 1-tap clipboard copy buttons (`CopyTextButton`).
+- **⚡ Live 1-Tap Single Configs & Smart OS Installer**: Instant extraction of raw subscription payloads (`VLESS`, `Trojan`, `Shadowsocks`) plus a smart OS-detecting `/open-client` launcher (iOS/macOS ➔ Streisand, Android ➔ v2rayNG, Desktop ➔ Hiddify).
+- **🤝 Tiered Affiliate Cashback & 1-Click Expiry Renewal**: Configurable wallet commission percentage for referrers (with optional renewal commissions) and 1-click renewal buttons directly inside expiry notifications.
+- **💬 Persistent Support Desk**: Bidirectional user-to-admin support chat backed by **PostgreSQL** (`support_chat_messages`) with Redis fast-cache warm-up and backup/restore inclusion.
 - **💳 Financial & Wallet Integrity**: Card-to-card deposit processing with automated unique micro-deposit verification, dual templates (Blubank & Minimalist), SHA-256 duplicate slip prevention, interactive review queues, and Telegram Supergroup Forum Topic routing.
 - **💎 Multi-Currency On-Chain Crypto & Stars**:
   - **TON**: Deep-links for Tonkeeper and Telegram Wallet with automated memo collision prevention.
-  - **TRX (Tron)**: Live on-chain verification via TronGrid RPC and TronScan explorer.
+  - **TRX (Tron) & POL (Polygon)**: Live on-chain verification via TronGrid / Polygon RPC explorers.
   - **Telegram Stars (XTR)**: Native Telegram Stars invoices directly in the Mini App and bot.
-  - **Multi-Source Rate Engine**: Real-time rates from 5 domestic exchanges (Nobitex, Bitpin, Wallex, Tetherland, Ramzinex) and Binance benchmarks.
-- **👑 Autonomous Executive Reports**: Automated daily reports at 23:59 with country-level node bandwidth breakdowns, active user summaries, 3-day expiry alerts, and weekly top-20 rankings.
+  - **Multi-Source Rate Engine**: Real-time rates from domestic exchanges (Nobitex, Bitpin, Wallex, Tetherland, Ramzinex) and Binance benchmarks.
+- **👑 Autonomous Executive Reports & Persistent Broadcast Queue**: Automated daily/weekly/monthly reports plus checkpointed Redis-backed bulk broadcast jobs (`task_queue.py`) with restart recovery.
 - **🤖 Intelligent Lifecycle & Retention Engine**: Autonomous asynchronous workers handling proactive expiration warnings (3-Day, 1-Day, Day-0), grace period policy enforcement, auto-disabling expired panel subscriptions, and automated 7-day win-back retention campaigns.
-- **📊 Real-Time Cluster Telemetry**: Proactive monitoring of all Remnawave v3 nodes with automated country flag resolution, core version detection (`Xray-core` / `Node`), hardware load metrics (CPU, RAM, Uptime), and real-time active user counts.
-- **🐳 Zero-Conflict Production Architecture**: Outbound-only long-polling requiring zero exposed HTTP/SSL ingress ports for the bot, fully isolated PostgreSQL 16 and Redis 7 containers, and an automated native self-healing schema engine with zero manual migrations.
+- **📊 Real-Time Cluster Telemetry & System Health**: Proactive monitoring of all Remnawave v3 nodes (`panel_snapshot.py`), country flags, core versions (`Xray-core` / `Node`), hardware load metrics, and live PostgreSQL/Redis/Panel health telemetry (`/api/admin/health`).
+- **🐳 Zero-Conflict Production Architecture**: Outbound-only long-polling, isolated PostgreSQL 16 and Redis 7 containers, multi-stage Node 20 ➔ Python 3.12-slim container builds, and automated Alembic startup migrations (`bot/db/migrate.py`).
 
 ---
 
@@ -169,26 +171,35 @@ Remnabot is engineered with a clean, decoupled layer architecture ensuring high 
 
 ```text
 remnawave-bot/
+├── alembic/                        # Incremental database migrations (0001_baseline, 0002_support_chat_history)
+├── alembic.ini                     # Alembic CLI configuration
+├── deploy/
+│   └── nginx.conf.example          # Production Nginx TLS reverse proxy template with gzip & font caching
+├── scripts/
+│   └── build_assets.mjs            # Zero-dependency JS minifier producing bot/web/static/js/dist/*.min.js
 ├── bot/
-│   ├── db/                         # Data Layer: Async SQLAlchemy engine & repositories
-│   │   ├── repositories/           # Isolated domain data access objects (12 specialized repos)
+│   ├── db/                         # Data Layer: Async SQLAlchemy engine, migrations & repositories
+│   │   ├── repositories/           # Isolated domain data access objects
 │   │   │   ├── admin_log_repo.py   # Administrative audit trails
 │   │   │   ├── alert_repo.py       # Expiration & quota warning deduplication
 │   │   │   ├── app_setting_repo.py # Dynamic in-bot runtime configurations
 │   │   │   ├── coupon_repo.py      # Discount & promotional code management
 │   │   │   ├── order_repo.py       # Purchase tracking & refund processing
 │   │   │   ├── referral_repo.py    # Affiliate tracking & reward distribution
+│   │   │   ├── support_repo.py     # Support tickets & PostgreSQL chat history persistence
 │   │   │   ├── user_repo.py        # User profile, balances, & blacklist state
-│   │   │   └── wallet_repo.py      # Card-to-card deposit transactions & receipts
-│   │   ├── base.py                 # Async sessionmaker & self-healing auto-migration engine
+│   │   │   └── wallet_repo.py      # Atomic wallet balances & card-to-card top-up requests
+│   │   ├── base.py                 # Async sessionmaker & non-destructive schema helpers
+│   │   ├── migrate.py              # Container-startup Alembic auto-stamp & upgrade runner
 │   │   └── models.py               # Relational database schema models
-│   ├── handlers/                   # Presentation Layer: Modular aiogram 3.31+ routers
+│   ├── handlers/                   # Presentation Layer: Modular aiogram 3.33+ routers
 │   │   ├── account.py              # Subscription manager & user dashboard
 │   │   ├── admin.py                # Admin control panel, store settings, & broadcaster
 │   │   ├── admin_ops.py            # Financial transaction approval & coupon operations
 │   │   ├── admin_users.py          # User management, balance adjustments, & search
 │   │   ├── configs.py              # 1-tap clipboard single-config extraction
-│   │   ├── service_request.py      # Plan purchase & renewal workflows
+│   │   ├── service_request.py      # Plan purchase workflows
+│   │   ├── shop_renew.py           # Account renewal & 1-click expiry quick-renew (renquick:)
 │   │   ├── start.py                # Deep-link referral capture & onboarding
 │   │   └── wallet.py               # Card-to-card top-up & receipt upload flows
 │   ├── keyboards/                  # UI Components: Inline keyboard builders (RTL-aware)
@@ -198,29 +209,32 @@ remnawave-bot/
 │   │   ├── db.py                   # Async database session lifecycle injection
 │   │   └── rate_limit.py           # Anti-flood leaky bucket rate limiter
 │   ├── services/                   # Domain Logic & Asynchronous Automation Workers
-│   │   ├── crypto/                 # Multi-exchange rate fetcher, TRX TronGrid & TON engines
+│   │   ├── crypto/                 # Multi-exchange rate fetcher, TRX/TON/POL engines
 │   │   ├── payment/                # Card-to-card auto verification & micro-deposit router
 │   │   ├── reports/                # Nightly, weekly, & monthly executive summary generators
 │   │   ├── remnawave.py            # Remnawave v3+ REST API client & cluster adapter
-│   │   ├── backup.py               # Database snapshot creation & Telegram document dispatcher
+│   │   ├── backup.py               # Encrypted snapshot creation, Telegram dispatch, & JSON restore
 │   │   ├── configs.py              # Subscription URI decoder & node parser
-│   │   ├── expiry.py               # Expiration warnings & account deactivation
+│   │   ├── expiry.py               # Expiration warnings, 1-click renew prompt, & deactivation
 │   │   ├── loyalty.py              # Customer tier discounts & spending progress
-│   │   ├── birthday.py             # Jalali birthday reward scheduler & coupon dispenser
+│   │   ├── panel_snapshot.py       # Bulk panel user snapshot caching (avoids N+1 panel scans)
+│   │   ├── support_chat.py         # Dual PostgreSQL + Redis support transcript store
+│   │   ├── system_health.py        # PostgreSQL, Redis, panel & queue telemetry aggregator
+│   │   ├── task_queue.py           # Checkpointed Redis broadcast queue with restart recovery
 │   │   └── topups.py               # Top-up decision workflows & smart routing
 │   ├── web/                        # Web Presentation Layer: Aiohttp TMA Server & REST APIs
-│   │   ├── static/                 # Modular CSS tokens, Tailwind minified & domain JS
+│   │   ├── static/                 # Design tokens, compiled Tailwind, & domain JS (+ js/dist/)
 │   │   ├── templates/              # Semantic RTL HTML templates (User TMA & Admin Web Suite)
-│   │   ├── server.py               # Aiohttp application entrypoint & middleware pipeline
-│   │   ├── routes_user.py          # User REST endpoints (Speedtest, Shop, Wheel, Subscriptions)
-│   │   ├── routes_admin.py         # Admin management endpoints (Infra, Finance, Users, Settings)
-│   │   └── cache.py                # FastCache with Stale-While-Revalidate (SWR) & Redis fallback
+│   │   ├── server.py               # Aiohttp entrypoint, asset versioning & /open-client router
+│   │   ├── routes_user.py          # User REST route bindings (user_shop, user_topup, user_profile, ...)
+│   │   ├── routes_admin.py         # Admin REST route bindings (admin_health_api, admin_infra_api, ...)
+│   │   └── cache.py                # FastCache with SWR, Redis locks & cache invalidation
 │   ├── states/                     # Finite State Machine (FSM) conversation groups
 │   ├── config.py                   # Strongly-typed Pydantic v2 application settings
 │   └── main.py                     # Bot entrypoint, router binding, & scheduler launcher
-├── tests/                          # Comprehensive test suite (545+ passing tests)
+├── tests/                          # Automated Python & Node.js test suites (655+ tests)
 ├── docker-compose.yml              # Production multi-container orchestration (Bot, DB, Redis)
-├── Dockerfile                      # Optimized Python 3.12-slim multi-stage image
+├── Dockerfile                      # Multi-stage Node 20 -> Python 3.12-slim image w/ auto-migrate
 ├── requirements.txt                # Pinned production dependencies
 └── .env.example                    # Environment variable template
 ```
@@ -385,8 +399,13 @@ ADMIN_CHAT_ID=-1001234567890
 REMNAWAVE_BASE_URL=http://host.docker.internal:3000
 REMNAWAVE_TOKEN=your_remnawave_api_token_here
 
-# --- 3. Database Credentials & Backup Security ---
-DATABASE_URL=postgresql+asyncpg://remnabot:remnabot@db:5432/remnabot
+# --- 3. Database, Redis & Backup Security ---
+POSTGRES_USER=remnabot
+POSTGRES_PASSWORD=change_me_strong_postgres_password
+POSTGRES_DB=remnabot
+DATABASE_URL=postgresql+asyncpg://remnabot:change_me_strong_postgres_password@db:5432/remnabot
+REDIS_PASSWORD=change_me_strong_redis_password
+REDIS_URL=redis://:change_me_strong_redis_password@redis:6379/0
 BACKUP_PASSWORD=generate_a_strong_backup_password_here
 
 # --- 4. Mini App & Web Configuration ---
@@ -532,7 +551,7 @@ docker compose logs -f bot
 ```
 
 > [!NOTE]
-> **Autonomous Self-Healing Schema**: On first boot, the bot automatically provisions all PostgreSQL tables, foreign keys, and indexes. Zero manual migration commands or SQL scripts are necessary.
+> **Automated Alembic Startup Migrations**: On every container boot, `python -m bot.db.migrate` runs automatically before `bot.main`, stamping legacy pre-Alembic databases cleanly at `0001_baseline` if needed and applying pending revisions (such as `0002_support_chat_history`) with zero downtime or manual SQL steps. A ready-to-use TLS reverse-proxy template is also provided in [`deploy/nginx.conf.example`](deploy/nginx.conf.example).
 
 #### Verify Healthcheck Endpoint:
 Run on your server:
@@ -579,7 +598,7 @@ docker compose logs -f bot
 ```
 
 > [!TIP]
-> **Zero Manual Migrations**: Thanks to Remnabot's autonomous **Self-Healing Schema Engine**, newly introduced database columns, indexes, and tables are provisioned on the fly upon container boot. No manual Alembic or SQL migration commands are required.
+> **Automatic Alembic Migrations**: Container startup runs `python -m bot.db.migrate && exec python -m bot.main`, automatically bringing your PostgreSQL schema up to the latest Alembic revision (`head`) on every upgrade. You can also trigger it manually anytime via `docker compose exec bot python -m bot.db.migrate`.
 
 ---
 
@@ -605,16 +624,16 @@ INFO | bot.main | Using RedisStorage for FSM.
 *(If Redis is not configured or connection fails, it falls back to `Using MemoryStorage for FSM`)*.
 
 #### Method 2: Ping Redis CLI inside Container
-Verify that the Redis service is healthy and responding to authentication:
+Verify that the Redis service is healthy and responding to authentication (uses `REDIS_PASSWORD` from `.env`):
 ```bash
-docker compose exec redis redis-cli -a remnabot_redis_secret ping
+docker compose exec -T redis sh -c 'redis-cli -a "$REDIS_PASSWORD" ping'
 # Expected output: PONG
 ```
 
 #### Method 3: Inspect Stored Keys
 Check keys currently active in Redis (FSM state, Mini App caches, instance lock):
 ```bash
-docker compose exec redis redis-cli -a remnabot_redis_secret keys "*"
+docker compose exec -T redis sh -c 'redis-cli -a "$REDIS_PASSWORD" keys "*"'
 ```
 Typical keys you will observe:
 * `fsm:*` — Active Telegram state machine contexts.
@@ -624,7 +643,7 @@ Typical keys you will observe:
 #### Method 4: Real-Time Command Monitor
 Watch live database commands processed by Redis in real-time as users interact with the bot and Mini App:
 ```bash
-docker compose exec redis redis-cli -a remnabot_redis_secret monitor
+docker compose exec -T redis sh -c 'redis-cli -a "$REDIS_PASSWORD" monitor'
 ```
 
 ---
@@ -771,8 +790,18 @@ All primary credentials are configuration-driven via `.env`. In-bot operational 
 | `ADMIN_CHAT_ID` | **Yes** | — | Target Admin Supergroup or Channel ID for receipts, logs, and backups (e.g. `-1001234567890`). |
 | `REMNAWAVE_BASE_URL` | **Yes** | — | Base URL of your Remnawave v3+ Panel (e.g. `https://panel.example.com` or `http://host.docker.internal:3000`). |
 | `REMNAWAVE_TOKEN` | **Yes** | — | API Token generated in Remnawave Panel (`Admin ➔ API Tokens`). |
+| `POSTGRES_USER` | **Yes** (Docker) | `remnabot` | PostgreSQL database role used by `docker-compose.yml`. |
+| `POSTGRES_PASSWORD` | **Yes** | — | Required strong password for the isolated PostgreSQL 16 container. |
+| `POSTGRES_DB` | **Yes** (Docker) | `remnabot` | PostgreSQL database name created on initial startup. |
 | `DATABASE_URL` | **Yes** | — | PostgreSQL async connection string (`postgresql+asyncpg://user:pass@host:5432/dbname`). |
+| `REDIS_PASSWORD` | **Yes** | — | Required strong authentication password for the Redis 7 container (`--requirepass`). |
+| `REDIS_URL` | No | *(empty)* | Redis connection URL (`redis://:pass@redis:6379/0`) for FSM persistence, FastCache & distributed locks. |
 | `BACKUP_PASSWORD` | **Yes** | — | Strong encryption key for daily automated database backups (AES-encrypted ZIP). The bot strictly refuses to generate backups without this key to protect user and financial data. |
+| `WEB_ENABLED` | No | `true` | Enables the built-in aiohttp Mini App & REST server. |
+| `WEB_PORT` | No | `8080` | Host/container HTTP listen port for the TMA server behind your reverse proxy. |
+| `WEB_BIND_IP` | No | `127.0.0.1` | Host interface binding (`127.0.0.1` for local reverse proxy or `0.0.0.0` via `host.docker.internal`). |
+| `WEB_APP_URL` | No | *(empty)* | Public HTTPS URL of your Mini App (enables WebApp buttons & `/open-client` smart links). |
+| `REMNAWAVE_DOCKER_NETWORK` | No | `remnawave-network` | Name of the external Docker bridge network shared with Remnawave / Nginx. |
 | `ADMIN_TOPIC_TOPUPS` | No | *(empty)* | Optional topic ID for card-to-card deposit review queues. |
 | `ADMIN_TOPIC_ORDERS` | No | *(empty)* | Optional topic ID for new service purchases and renewal logs. |
 | `ADMIN_TOPIC_SUPPORT` | No | *(empty)* | Optional topic ID for user support inquiries and forward messages. |
@@ -793,7 +822,7 @@ All primary credentials are configuration-driven via `.env`. In-bot operational 
 | `CARD_HOLDER` | No | *(empty)* | Cardholder full name displayed to users during card-to-card deposits. |
 | `TOPUP_MIN_AMOUNT` | No | `10000` | Minimum wallet deposit threshold in Toman. |
 | `TIMEZONE` | No | `Asia/Tehran` | Timezone identifier for Jalali conversions and scheduled fiscal reporting. |
-| `REDIS_URL` | No | *(empty)* | Optional Redis connection string for distributed FSM storage. Defaults to memory storage when empty. |
+| `REDIS_URL` | No | *(empty)* | Configured above (`redis://:pass@redis:6379/0`); falls back to in-memory storage when unset. |
 
 ---
 
@@ -819,14 +848,20 @@ Remnabot executes asynchronous automation routines using an internal non-blockin
 
 ## 🧪 Testing & Quality Assurance
 
-Remnabot maintains a strict test-driven development workflow with **545+ passing unit & integration tests** covering database models, repositories, business logic services, and FSM handlers:
+Remnabot maintains a strict test-driven development workflow with **655+ automated Python & JavaScript tests** covering database migrations, security guards, CSS/JS build contracts, REST APIs, and aiogram handlers:
 
 ```bash
-# Execute test suite
-pytest -v
+# Build production CSS & minified JS assets
+npm run build:css && npm run build:js
 
-# Perform code quality and linting verification
-ruff check bot/ tests/
+# Verify JavaScript helpers & syntax
+npm run test:js
+
+# Perform Python code quality, import & security linting
+ruff check bot/ alembic/
+
+# Execute full pytest suite
+pytest -v
 ```
 
 ---

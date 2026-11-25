@@ -144,6 +144,10 @@ async def test_post_user_topup_pol_flow():
          patch("bot.db.repositories.card_auto_repo.CardAutoRepository") as mock_card_cls:
 
         mock_session = AsyncMock()
+        mock_res = MagicMock()
+        mock_res.scalar_one_or_none.return_value = None
+        mock_res.scalars.return_value.all.return_value = []
+        mock_session.execute.return_value = mock_res
         mock_session_ctx.return_value.__aenter__.return_value = mock_session
 
         mock_card_repo = MagicMock()
@@ -208,6 +212,10 @@ async def test_get_user_topup_info_includes_pol():
          patch("bot.web.user_topup.get_store_settings", AsyncMock(return_value=mock_store)):
 
         mock_session = AsyncMock()
+        mock_res = MagicMock()
+        mock_res.scalar_one_or_none.return_value = None
+        mock_res.scalars.return_value.all.return_value = []
+        mock_session.execute.return_value = mock_res
         mock_session_ctx.return_value.__aenter__.return_value = mock_session
 
         resp = await get_user_topup_info(request)
@@ -225,7 +233,7 @@ async def test_post_user_topup_pol_verify_success():
     app = web.Application()
     app["session_factory"] = MagicMock()
     app["cache"] = None
-    app["bot"] = AsyncMock()
+    app["bot"] = MagicMock(send_message=AsyncMock(), cache=None)
 
     request = MagicMock()
     request.app = app
@@ -239,6 +247,10 @@ async def test_post_user_topup_pol_verify_success():
          patch("bot.services.crypto.pol.verify_and_credit_pol_invoice", AsyncMock(return_value=(True, 250000, "OK"))):
 
         mock_session = AsyncMock()
+        mock_res = MagicMock()
+        mock_res.scalar_one_or_none.return_value = None
+        mock_res.scalars.return_value.all.return_value = []
+        mock_session.execute.return_value = mock_res
         mock_session_ctx.return_value.__aenter__.return_value = mock_session
 
         mock_crypto_repo = MagicMock()
@@ -312,6 +324,10 @@ async def test_get_user_topup_crypto_active_returns_pol_details():
          patch("bot.web.user_topup.CryptoRepository") as mock_crypto_cls:
 
         mock_session = AsyncMock()
+        mock_res = MagicMock()
+        mock_res.scalar_one_or_none.return_value = None
+        mock_res.scalars.return_value.all.return_value = []
+        mock_session.execute.return_value = mock_res
         mock_session_ctx.return_value.__aenter__.return_value = mock_session
 
         mock_crypto_repo = MagicMock()

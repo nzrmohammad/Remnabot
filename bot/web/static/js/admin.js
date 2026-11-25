@@ -68,7 +68,7 @@
       // tg.requestFullscreen removed to prevent header falling under Telegram client menu
       const isLight = document.documentElement.classList.contains('theme-light');
       const hColor = isLight ? '#ffffff' : '#111a2e';
-      const bColor = isLight ? '#f8fafc' : '#0c1220';
+      const bColor = isLight ? '#f1f5f9' : '#0c1220';
       if (tg.setHeaderColor) tg.setHeaderColor(hColor);
       if (tg.setBackgroundColor) tg.setBackgroundColor(bColor);
       if (tg.onEvent) {
@@ -330,6 +330,42 @@
   window.adminActions.showConfirmModal = showConfirmModal;
   window.adminActions.showOperationReportModal = showOperationReportModal;
   window.dismissSplash = dismissSplash;
+
+  // --- Sync Telegram Native BackButton for Admin Modals & Tabs ---
+  function syncAdminBackButton() {
+    if (!tg?.BackButton) return;
+    const hasOpenModal = Array.from(document.querySelectorAll('.modal-backdrop[role="dialog"], [role="dialog"].modal-backdrop'))
+      .some(el => !el.classList.contains('hidden'));
+    const activeTabBtn = document.querySelector('.admin-nav-btn.is-active');
+    const isSecondaryTab = activeTabBtn && activeTabBtn.getAttribute('data-admin-tab') !== 'tab-admin-overview';
+    if (hasOpenModal || isSecondaryTab) tg.BackButton.show();
+    else tg.BackButton.hide();
+  }
+
+  if (tg?.BackButton) {
+    tg.BackButton.onClick(() => {
+      const openModals = Array.from(document.querySelectorAll('.modal-backdrop[role="dialog"], [role="dialog"].modal-backdrop'))
+        .filter(el => !el.classList.contains('hidden'));
+      if (openModals.length > 0) {
+        const topModal = openModals[openModals.length - 1];
+        if (topModal.id === 'confirmActionModal') {
+          $('confirmModalCancelBtn')?.click();
+        } else {
+          topModal.classList.add('hidden');
+        }
+        syncAdminBackButton();
+        return;
+      }
+      document.querySelector('.admin-nav-btn[data-admin-tab="tab-admin-overview"]')?.click();
+    });
+    document.querySelectorAll('.modal-backdrop[role="dialog"], [role="dialog"].modal-backdrop').forEach(el => {
+      new MutationObserver(syncAdminBackButton).observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+    document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => setTimeout(syncAdminBackButton, 0));
+    });
+    syncAdminBackButton();
+  }
 
 
   // --- 10. Header & Action Trigger Buttons ---

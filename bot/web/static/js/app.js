@@ -611,10 +611,10 @@ function setupRevokeAndKill() {
         showToast('🎉 لینک اشتراک قبلی ابطال و لینک جدید با موفقیت صادر شد.');
         syncUserDataWithApi();
       } else {
-        alert(res.error || 'خطا در تغییر لینک اشتراک.');
+        showToast(res.error || 'خطا در تغییر لینک اشتراک.', 'error');
       }
     } catch (err) {
-      alert('خطا در برقراری ارتباط با سرور.');
+      showToast('خطا در برقراری ارتباط با سرور.', 'error');
     } finally {
       confirmRevokeBtn.disabled = false;
       confirmRevokeBtn.innerText = '✅ بله، لینک جدید صادر کن';
@@ -3296,8 +3296,9 @@ function setupTelegramSDK() {
       tg.ready();
       tg.expand();
       if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
-      if (tg.setHeaderColor) tg.setHeaderColor('#131d31');
-      if (tg.setBackgroundColor) tg.setBackgroundColor('#080d1a');
+      const curLight = document.documentElement.classList.contains('theme-light');
+      if (tg.setHeaderColor) tg.setHeaderColor(curLight ? '#ffffff' : '#111a2e');
+      if (tg.setBackgroundColor) tg.setBackgroundColor(curLight ? '#f1f5f9' : '#0c1220');
     } catch (e) {}
 
     applyUserTopPadding();
@@ -3350,7 +3351,7 @@ function setupTelegramSDK() {
 
     $('closeBtn')?.addEventListener('click', () => {
       if (tg) tg.close();
-      else alert('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.');
+      else showToast('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.');
     });
   } else {
     applyUserTopPadding();

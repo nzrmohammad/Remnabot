@@ -231,6 +231,7 @@ async def test_stars_payment_mismatch_alerts_admin_with_charge_id():
     message.successful_payment = sp
 
     session = AsyncMock()
+    session.add = MagicMock()
     mock_res = MagicMock()
     mock_res.scalar_one_or_none.return_value = None
     session.execute.return_value = mock_res

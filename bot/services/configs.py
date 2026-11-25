@@ -330,7 +330,7 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                     err_str = str(cert_err).lower()
                     if ("ssl" in err_str or "cert" in err_str) and is_internal:
                         logger.debug("SSL verify=True failed for internal host (%s), retrying with verify=False", cert_err)
-                        async with httpx.AsyncClient(verify=False, follow_redirects=False, timeout=timeout, proxy=p) as client:
+                        async with httpx.AsyncClient(verify=False, follow_redirects=False, timeout=timeout, proxy=p) as client:  # nosec B501 - internal LAN host fallback only after verify=True failed
                             resp = await client.get(target_url, headers={"User-Agent": primary_ua, "Accept": "text/plain, */*"})
                     else:
                         raise
@@ -352,7 +352,7 @@ async def _fetch_subscription_configs_impl(url: str, timeout: float = 2.5) -> li
                             err_str = str(cert_err).lower()
                             if ("ssl" in err_str or "cert" in err_str) and is_internal:
                                 logger.debug("SSL verify=True failed for internal host (%s), retrying with verify=False", cert_err)
-                                async with httpx.AsyncClient(verify=False, follow_redirects=False, timeout=timeout, proxy=p) as client:
+                                async with httpx.AsyncClient(verify=False, follow_redirects=False, timeout=timeout, proxy=p) as client:  # nosec B501 - internal LAN host fallback only after verify=True failed
                                     alt_resp = await client.get(target_url, headers={"User-Agent": alt_ua, "Accept": "*/*"})
                             else:
                                 alt_resp = None

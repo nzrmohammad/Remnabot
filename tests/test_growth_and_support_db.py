@@ -339,3 +339,53 @@ async def test_smart_open_client_os_detection_receipt_button_and_dockerfile(sess
     assert "tailwind.config.js" in dockerfile_txt
     assert "npm run build:css && npm run build:js" in dockerfile_txt
     assert "COPY --from=assets" in dockerfile_txt
+    assert "python -m bot.db.migrate" in dockerfile_txt
+
+
+@pytest.mark.anyio
+async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
+    import sqlite3
+
+    from alembic.config import Config
+
+    from alembic import command
+    from bot.db.migrate import ensure_schema_migrated
+
+    # 1. Fresh empty DB upgrades directly to head
+    fresh_db = tmp_path / "fresh_mig.db"
+    fresh_url = f"sqlite+aiosqlite:///{str(fresh_db).replace(chr(92), '/')}"
+    res_fresh = await ensure_schema_migrated(fresh_url)
+    assert res_fresh == "upgraded"
+
+    con = sqlite3.connect(fresh_db)
+    try:
+        tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+    finally:
+        con.close()
+    assert {"users", "support_chat_messages", "alembic_version"} <= tables
+
+    # 2. Pre-Alembic legacy DB (created at 0001 tables, but missing alembic_version) auto-stamps baseline then upgrades
+    legacy_db = tmp_path / "legacy_mig.db"
+    legacy_url = f"sqlite+aiosqlite:///{str(legacy_db).replace(chr(92), '/')}"
+    cfg = Config("alembic.ini")
+    cfg.set_main_option("sqlalchemy.url", legacy_url)
+    await asyncio.to_thread(command.upgrade, cfg, "0001_baseline")
+
+    con = sqlite3.connect(legacy_db)
+    try:
+        con.execute("DROP TABLE alembic_version")
+        con.commit()
+    finally:
+        con.close()
+
+    res_legacy = await ensure_schema_migrated(legacy_url)
+    assert res_legacy == "stamped_and_upgraded"
+
+    con = sqlite3.connect(legacy_db)
+    try:
+        tables_legacy = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+        rev = con.execute("SELECT version_num FROM alembic_version").fetchone()
+    finally:
+        con.close()
+    assert "support_chat_messages" in tables_legacy
+    assert rev == ("0002_support_chat_history",)

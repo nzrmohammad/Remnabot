@@ -18,7 +18,7 @@ function setupStoryCard() {
     if (brandTitle) brandTitle.innerText = 'RemnaStore Pro';
     if (brandBadge) brandBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> VIP PASS';
     if (gamificationBanner) {
-      gamificationBanner.innerHTML = '<span class="font-black block text-amber-300 mb-0.5"><img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />پاداش استوری و اشتراک‌گذاری:</span>با انتشار این تصویر در استوری تلگرام، دوستانتان عضو شده و پس از اولین خریدشان، <b id="storyRewardBannerGb" class="text-amber-300 font-sans">5</b> گیگابایت پاداش معرف برای شما واریز می‌شود!';
+      gamificationBanner.innerHTML = '<span class="font-black block text-amber-700 dark:text-amber-300 mb-0.5"><img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />پاداش استوری و اشتراک‌گذاری:</span>با انتشار این تصویر در استوری تلگرام، دوستانتان عضو شده و پس از اولین خریدشان، <b id="storyRewardBannerGb" class="text-amber-700 dark:text-amber-300 font-sans">5</b> گیگابایت پاداش معرف برای شما واریز می‌شود!';
     }
     if (rewardText) {
       const rewardVal = window.lastUserData?.user?.referral_reward_gb ?? (document.getElementById('storyCardRewardGb')?.innerText || '5');

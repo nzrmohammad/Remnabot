@@ -42,10 +42,11 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
-      - name: Verify Tailwind CSS Build
+      - name: Verify Tailwind CSS & JS Assets Build
         run: |
           npm run build:css
-          git diff --exit-code -- bot/web/static/css/tailwind.min.css
+          npm run build:js
+          git diff --exit-code -- bot/web/static/css/tailwind.min.css bot/web/static/js/dist/
 
       - name: Install Python dependencies
         run: |

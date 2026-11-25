@@ -537,8 +537,16 @@
       renderAdminTvDnsList();
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
-    resetAdminTvDnsToDefaults() {
-      if (confirm('آیا از بازگردانی لیست سرورهای DNS به لیست کامل پیش‌فرض (شامل Quad9، DoH، DoT و تمام ارائه‌دهندگان) اطمینان دارید؟')) {
+    async resetAdminTvDnsToDefaults() {
+      const ok = window.showConfirmModal
+        ? await window.showConfirmModal({
+            title: 'بازگردانی سرورهای DNS',
+            message: 'آیا از بازگردانی لیست سرورهای DNS به لیست کامل پیش‌فرض (شامل Quad9، DoH، DoT و تمام ارائه‌دهندگان) اطمینان دارید؟',
+            confirmText: 'بله، بازگردانی کن',
+            isDanger: false,
+          })
+        : false;
+      if (ok) {
         currentAdminTvDnsList = DEFAULT_TV_DNS_LIST.map(x => ({ ...x }));
         renderAdminTvDnsList();
         if (typeof showToast === 'function') {
@@ -1129,8 +1137,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
       }
       const copyFn = typeof copyToClipboard === 'function' ? copyToClipboard : window.copyToClipboard;
       const ok = copyFn ? await copyFn(finalLink, '📋 لینک تبلیغاتی کپی شد: ' + finalLink) : false;
-      if (!ok) {
-        prompt('لینک تبلیغاتی:', finalLink);
+      if (!ok && typeof showToast === 'function') {
+        showToast('🔗 لینک تبلیغاتی: ' + finalLink, 'info', 5000);
       }
     },
 
@@ -1700,8 +1708,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
     const copyFn = typeof copyToClipboard === 'function' ? copyToClipboard : window.copyToClipboard;
     if (copyFn) {
       copyFn(val, '📋 کلید امنیتی در کلیپ‌بورد کپی شد.');
-    } else {
-      prompt('کلید امنیتی وب‌هوک:', val);
+    } else if (typeof showToast === 'function') {
+      showToast('🔑 کلید امنیتی وب‌هوک: ' + val, 'info', 5000);
     }
   };
 
@@ -1734,8 +1742,8 @@ openUserChat(telegram_id, name, tag, topup_id) {
     const copyFn = typeof copyToClipboard === 'function' ? copyToClipboard : window.copyToClipboard;
     if (copyFn) {
       copyFn(val, '📋 آدرس وب‌هوک در کلیپ‌بورد کپی شد.');
-    } else {
-      prompt('آدرس وب‌هوک SMS:', val);
+    } else if (typeof showToast === 'function') {
+      showToast('🔗 آدرس وب‌هوک SMS: ' + val, 'info', 5000);
     }
   };
 

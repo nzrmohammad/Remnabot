@@ -85,7 +85,7 @@
           <span id="headerLoyaltyBadge" role="button" tabindex="0" onclick="window.openLoyaltyModal && window.openLoyaltyModal()" class="hidden w-7 h-7 flex items-center justify-center bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none" title="سطح وفاداری شما" aria-label="سطح وفاداری شما">
             <img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" alt="" aria-hidden="true" loading="eager" width="20" height="20">
           </span>
-          <button id="switchAccountBtn" class="hidden inline-flex items-center justify-center w-4 h-4 t-muted hover:t-main active:scale-95 text-[11px] cursor-pointer transition flex-shrink-0" title="تعویض اکانت" aria-label="تعویض اکانت">
+          <button id="switchAccountBtn" class="hidden inline-flex items-center justify-center min-w-[32px] min-h-[32px] -mx-1 t-muted hover:t-main active:scale-95 text-[11px] cursor-pointer transition flex-shrink-0 rounded-lg" title="تعویض اکانت" aria-label="تعویض اکانت">
             <span class="text-[11px]">▼</span>
           </button>
         </div>
@@ -489,7 +489,7 @@
 
             <!-- Dynamic QR Popup (Collapsible fallback) -->
             <div id="qrContainer" class="hidden flex flex-col items-center justify-center p-3.5 card-inset rounded-2xl t-main animate-fadeIn text-center">
-              <img id="qrImage" src="" alt="کیوآرکد اشتراک" class="w-36 h-36 rounded-xl bg-white p-1.5 shadow mb-2" loading="lazy" / width="16" height="16">
+              <img id="qrImage" src="" alt="کیوآرکد اشتراک" class="w-36 h-36 rounded-xl bg-white p-1.5 shadow mb-2" loading="lazy" width="144" height="144">
               <span class="text-[11px] t-muted font-medium">اسکن مستقیم با دوربین گوشی یا نرم‌افزارهای VPN</span>
             </div>
 
@@ -1345,7 +1345,7 @@
         <div class="profile-hero-card card p-5 shadow-xl text-center relative overflow-hidden">
           <div class="relative w-20 h-20 mx-auto mb-3">
             <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 shadow-lg flex items-center justify-center overflow-hidden">
-              <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" referrerpolicy="no-referrer" / width="16" height="16">
+              <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" referrerpolicy="no-referrer" width="80" height="80">
               <div id="profileAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl font-extrabold text-white">
                 U
               </div>
@@ -1844,13 +1844,13 @@
                 <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />رنگ کارت کیف پول</span>
                 <span id="userWalletColorSubtext" class="text-[11px] t-muted">طرح فعال: آبی رویال</span>
               </div>
-              <div class="flex items-center gap-1.5" dir="ltr">
-                <button type="button" data-color="blue" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('blue')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #1e88e5, #0d47a1);" title="آبی رویال"></button>
-                <button type="button" data-color="black" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('black')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #3f3f46, #09090b);" title="مشکی کربن"></button>
-                <button type="button" data-color="green" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('green')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #00897b, #004d40);" title="سبز یشمی"></button>
-                <button type="button" data-color="red" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('red')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #e53935, #b71c1c);" title="قرمز یاقوتی"></button>
-                <button type="button" data-color="purple" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('purple')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #8e24aa, #4a148c);" title="بنفش نئونی"></button>
-                <button type="button" data-color="yellow" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('yellow')" class="wallet-card-color-swatch w-5 h-5 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #fb8c00, #bf360c);" title="طلایی متالیک"></button>
+              <div class="flex items-center gap-2" dir="ltr">
+                <button type="button" data-color="blue" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('blue')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #1e88e5, #0d47a1);" title="آبی رویال" aria-label="آبی رویال"></button>
+                <button type="button" data-color="black" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('black')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #3f3f46, #09090b);" title="مشکی کربن" aria-label="مشکی کربن"></button>
+                <button type="button" data-color="green" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('green')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #00897b, #004d40);" title="سبز یشمی" aria-label="سبز یشمی"></button>
+                <button type="button" data-color="red" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('red')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #e53935, #b71c1c);" title="قرمز یاقوتی" aria-label="قرمز یاقوتی"></button>
+                <button type="button" data-color="purple" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('purple')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #8e24aa, #4a148c);" title="بنفش نئونی" aria-label="بنفش نئونی"></button>
+                <button type="button" data-color="yellow" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('yellow')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #fb8c00, #bf360c);" title="طلایی متالیک" aria-label="طلایی متالیک"></button>
               </div>
             </div>
           </div>
@@ -1952,14 +1952,14 @@
       <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-center">
         <button id="closeQrModalBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره کیوآرکد"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         <div>
-          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40">
             <img src="/static/img/icons/qr.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />اسکن مستقیم
           </span>
           <h3 class="text-sm font-bold t-main mt-1">کیوآرکد اتصال به کانفیگ</h3>
           <p class="text-[11px] t-muted mt-0.5">اسکن با دوربین گوشی یا نرم‌افزارهای VPN</p>
         </div>
         <div class="flex justify-center p-3 bg-white rounded-2xl shadow-inner mx-auto w-fit">
-          <img id="modalQrImage" src="" alt="کیوآرکد اشتراک" class="w-44 h-44 object-contain" loading="lazy" / width="16" height="16">
+          <img id="modalQrImage" src="" alt="کیوآرکد اشتراک" class="w-44 h-44 object-contain" loading="lazy" width="176" height="176">
         </div>
         <div class="space-y-2 pt-1">
           <button id="copySubFromQrModalBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-2">
@@ -2121,7 +2121,7 @@
               <div id="cardAutoInitialBox" class="card-inset rounded-2xl p-3 text-center space-y-2 border border-emerald-500/30">
                 <div class="flex items-center justify-between text-xs font-bold t-success">
                   <span class="flex items-center gap-1.5"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" />کارت‌به‌کارت آنی و خودکار</span>
-                  <span class="text-[11px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">تایید هوشمند پیامکی</span>
+                  <span class="text-[11px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">تایید هوشمند پیامکی</span>
                 </div>
                 <p class="text-[11px] t-muted leading-relaxed">
                   با ایجاد فاکتور هوشمند، مبلغ دقیق و اختصاصی به شما اختصاص می‌یابد و پس از واریز از همراه بانک، کیف پول شما در کمتر از 10 ثانیه بدون نیاز به ارسال فیش شارژ می‌شود.
@@ -2738,7 +2738,7 @@
       <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-xs text-right">
         <button id="closeGuidanceModalBtn" class="modal-close-btn absolute top-3.5 left-3.5" onclick="closeModal('shopGuidanceModal')" title="انصراف" aria-label="بستن پنجره راهنما"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         <div class="border-b border-card-border pb-2">
-          <span id="shopGuidanceBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 inline-flex items-center gap-1 leading-none w-fit">
+          <span id="shopGuidanceBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40 inline-flex items-center gap-1 leading-none w-fit">
             <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
             <span>پیشنهاد هوشمند</span>
           </span>
@@ -2986,7 +2986,7 @@
           <!-- User Info & Metrics -->
           <div class="py-3 z-10 space-y-2.5 relative">
             <div id="storyAvatarBorder" class="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-indigo-500 to-purple-500 mx-auto shadow-lg shadow-indigo-500/25 flex items-center justify-center transition-all duration-300 overflow-hidden">
-              <img id="storyCardAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" crossorigin="anonymous" loading="lazy" / width="16" height="16">
+              <img id="storyCardAvatarImg" class="w-full h-full rounded-full object-cover hidden" alt="Avatar" crossorigin="anonymous" loading="lazy" width="64" height="64">
               <div id="storyCardAvatarInitial" class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-xl font-black text-white">U</div>
             </div>
             <div>
@@ -3016,7 +3016,7 @@
           <!-- Bottom Viral Referral QR Card -->
           <div id="storyCardQrBox" class="bg-slate-900/85 border border-slate-700/70 rounded-2xl p-2.5 z-10 flex items-center gap-2.5 text-right relative">
             <!-- Dynamic Mini QR for Referral Link -->
-            <img id="storyCardQr" src="" class="w-12 h-12 rounded-xl bg-white p-1 shrink-0 shadow-sm" alt="QR" crossorigin="anonymous" loading="lazy" / width="16" height="16">
+            <img id="storyCardQr" src="" class="w-12 h-12 rounded-xl bg-white p-1 shrink-0 shadow-sm" alt="QR" crossorigin="anonymous" loading="lazy" width="48" height="48">
             <div class="text-[11px] space-y-0.5 leading-snug">
               <span class="font-extrabold text-white block">اتصال امن و اینترنت آزاد</span>
               <span id="storyCardRewardText" class="t-success block text-[11px] font-bold">
@@ -3027,9 +3027,9 @@
         </div>
 
         <!-- Gamification Banner (پاداش دعوت در ازای استوری) -->
-        <div id="storyGamificationBanner" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-2.5 w-full text-right text-[11px] text-amber-200/95 leading-relaxed shadow-sm">
-          <span class="font-black block text-amber-300 mb-0.5"><img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />پاداش استوری و اشتراک‌گذاری:</span>
-          با انتشار این تصویر در استوری تلگرام، دوستانتان عضو شده و پس از اولین خریدشان، <b id="storyRewardBannerGb" class="text-amber-300 font-sans">5</b> گیگابایت پاداش معرف برای شما واریز می‌شود!
+        <div id="storyGamificationBanner" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-2.5 w-full text-right text-[11px] t-main leading-relaxed shadow-sm">
+          <span class="font-black block text-amber-700 dark:text-amber-300 mb-0.5"><img src="/static/img/icons/award.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />پاداش استوری و اشتراک‌گذاری:</span>
+          با انتشار این تصویر در استوری تلگرام، دوستانتان عضو شده و پس از اولین خریدشان، <b id="storyRewardBannerGb" class="text-amber-700 dark:text-amber-300 font-sans">5</b> گیگابایت پاداش معرف برای شما واریز می‌شود!
         </div>
 
         <!-- Action Buttons -->
@@ -3486,7 +3486,7 @@
         <!-- Selected Date Display Card -->
         <div class="bday-preview-box card-inset rounded-2xl p-2.5 border border-indigo-500/30 flex items-center justify-between px-3 text-xs">
           <span class="t-muted font-medium">تاریخ انتخابی شما:</span>
-          <div class="flex items-center gap-1 font-bold text-indigo-300 font-sans" dir="rtl">
+          <div class="flex items-center gap-1 font-bold text-indigo-700 dark:text-indigo-300 font-sans" dir="rtl">
             <span id="bdayDayDisplay">1</span>
             <span id="bdayMonthDisplay">فروردین</span>
             <span id="bdayYearDisplay">1375</span>

@@ -4,8 +4,14 @@ Provides pre-initialized in-memory SQLite database and connection pooling
 to eliminate redundant table creation overhead across the test suite.
 """
 import os
+import sqlite3
 import sys
+from datetime import date, datetime
 from pathlib import Path
+
+# Register explicit Python 3.12+ SQLite date/datetime adapters to avoid deprecated default adapter warnings.
+sqlite3.register_adapter(datetime, lambda val: val.isoformat(sep=" "))
+sqlite3.register_adapter(date, lambda val: val.isoformat())
 
 # Ensure project root is in sys.path
 root_dir = Path(__file__).resolve().parent.parent

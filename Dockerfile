@@ -29,4 +29,4 @@ USER botuser
 HEALTHCHECK --interval=60s --timeout=10s --start-period=90s --retries=3 \
   CMD python -c "import os,tempfile,time,sys; p=os.path.join(tempfile.gettempdir(), 'bot_heartbeat'); sys.exit(0 if (os.path.exists(p) and time.time()-os.path.getmtime(p)<180) else 1)"
 
-CMD ["python", "-m", "bot.main"]
+CMD ["sh", "-c", "python -m bot.db.migrate && exec python -m bot.main"]

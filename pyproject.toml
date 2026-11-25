@@ -14,4 +14,7 @@ ignore = ["E501", "UP017", "E402"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+filterwarnings = [
+    "ignore:It is recommended to use web\\.(AppKey|RequestKey) instances for keys\\.:UserWarning",
+]
 

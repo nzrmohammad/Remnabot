@@ -453,8 +453,8 @@ openCryptoRatesModal() {
                   <span class="text-[11px] text-slate-400">نقد کردن با کسر کارمزد تلگرام</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span id="modalStarsLosslessPrice" class="font-sans font-bold text-amber-300 text-[11px]"></span>
-                  <button id="modalStarsLosslessBtn" class="bg-transparent hover:bg-amber-500/10 t-warn hover:text-amber-300 border border-amber-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  <span id="modalStarsLosslessPrice" class="font-sans font-bold text-amber-700 dark:text-amber-300 text-[11px]"></span>
+                  <button id="modalStarsLosslessBtn" class="bg-transparent hover:bg-amber-500/10 t-warn hover:text-amber-600 dark:hover:text-amber-300 border border-amber-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                     اعمال
                   </button>
                 </div>
@@ -468,8 +468,8 @@ openCryptoRatesModal() {
                   <span class="text-[11px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span id="modalStarsFragmentPrice" class="font-sans font-bold text-blue-300 text-[11px]"></span>
-                  <button id="modalStarsFragmentBtn" class="bg-transparent hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                  <span id="modalStarsFragmentPrice" class="font-sans font-bold text-blue-700 dark:text-blue-300 text-[11px]"></span>
+                  <button id="modalStarsFragmentBtn" class="bg-transparent hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                     اعمال
                   </button>
                 </div>
@@ -503,14 +503,14 @@ openCryptoRatesModal() {
       if (losslessBtn) {
         losslessBtn.onclick = () => window.adminActions.applySpecificRate('stars', lossless, losslessBtn);
         losslessBtn.textContent = 'اعمال';
-        losslessBtn.classList.remove('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
+        losslessBtn.classList.remove('bg-emerald-500/20', 'text-emerald-700', 'dark:text-emerald-300', 'text-emerald-300', 'border-emerald-500');
       }
 
       const fragmentBtn = $('modalStarsFragmentBtn');
       if (fragmentBtn) {
         fragmentBtn.onclick = () => window.adminActions.applySpecificRate('stars', fragment, fragmentBtn);
         fragmentBtn.textContent = 'اعمال';
-        fragmentBtn.classList.remove('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
+        fragmentBtn.classList.remove('bg-emerald-500/20', 'text-emerald-700', 'dark:text-emerald-300', 'text-emerald-300', 'border-emerald-500');
       }
     },
 
@@ -558,11 +558,11 @@ openCryptoRatesModal() {
         if (parent) {
           parent.querySelectorAll('button').forEach(b => {
             b.textContent = 'اعمال';
-            b.classList.remove('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
+            b.classList.remove('bg-emerald-500/20', 'text-emerald-700', 'dark:text-emerald-300', 'text-emerald-300', 'border-emerald-500');
           });
         }
         btnEl.textContent = '✓ اعمال شد';
-        btnEl.classList.add('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500');
+        btnEl.classList.add('bg-emerald-500/20', 'text-emerald-700', 'dark:text-emerald-300', 'border-emerald-500');
       }
 
       try {

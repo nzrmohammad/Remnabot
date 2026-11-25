@@ -1585,6 +1585,13 @@ if (typeof window !== 'undefined') {
         const openModals = Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]:not(.hidden)'));
         const topModal = openModals[openModals.length - 1];
         if (!topModal) return;
+        if (topModal.id === 'confirmActionModal') {
+          const cancelConfirm = document.getElementById('confirmModalCancelBtn');
+          if (cancelConfirm && typeof cancelConfirm.click === 'function') {
+            cancelConfirm.click();
+            return;
+          }
+        }
         const closeBtn = topModal.querySelector('.modal-close-btn');
         if (closeBtn && typeof closeBtn.click === 'function') {
           closeBtn.click();
@@ -1600,7 +1607,7 @@ if (typeof window !== 'undefined') {
         const tag = target.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON' || tag === 'A') return;
         const roleBtn = target.closest('[role="button"][tabindex="0"]');
-        if (roleBtn && target === roleBtn) {
+        if (roleBtn) {
           e.preventDefault();
           roleBtn.click();
         }

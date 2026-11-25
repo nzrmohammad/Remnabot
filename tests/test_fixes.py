@@ -405,6 +405,10 @@ async def test_store_settings_db_overrides():
     from bot.services.app_settings import get_store_settings
 
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
     with patch("bot.services.app_settings.AppSettingRepository") as mock_repo_cls:
         repo_inst = mock_repo_cls.return_value
         repo_inst.all = AsyncMock(
@@ -469,6 +473,10 @@ async def test_resolve_broadcast_recipients():
     from bot.handlers.admin_ops import _resolve_broadcast_recipients
 
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
     remnawave = MagicMock()
 
     # Mock UserRepository.all_users
@@ -622,6 +630,10 @@ async def test_execute_purchase_create_new_flag():
     service.squad_uuid = None
 
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
     session.execute = AsyncMock(return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=100000)))
     session.commit = AsyncMock()
 
@@ -710,6 +722,10 @@ async def test_admin_user_wallet_management_unlinked_user():
     remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
 
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
     # Mock UserRepository.get_by_telegram_id -> None (first time), get_or_create -> User
     created_target = MagicMock(username="Sana", telegram_id=98765, last_active_at=None)
 
@@ -790,6 +806,10 @@ async def test_purchase_result_digital_receipt():
     user_repo = MagicMock()
     user_repo.set_verified = AsyncMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     result = PurchaseResult(
         ok=True,
@@ -848,6 +868,10 @@ async def test_admin_orders_list_filtered():
     user = MagicMock(language="fa", telegram_id=123)
     user_repo = MagicMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     mock_orders = [
         MagicMock(id=1, service_name="Plan A", amount=50000, status="paid"),
@@ -893,6 +917,10 @@ async def test_reports_hub_layout():
     user = MagicMock(language="fa", telegram_id=123)
     user_repo = MagicMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
     remnawave = MagicMock()
     remnawave.get_all_panel_users = AsyncMock(return_value=[{"id": 1, "status": "ACTIVE"}])
     remnawave.get_nodes = AsyncMock(return_value=[{"id": 1, "isConnected": True}])
@@ -1182,6 +1210,10 @@ async def test_profile_date_format():
     order_repo = MagicMock()
     order_repo.list_for_user = AsyncMock(return_value=[MagicMock()])
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
     remnawave = MagicMock()
     remnawave.get_users_by_telegram_id = AsyncMock(return_value=[
         {"id": 1, "username": "Mohammad", "expireAt": "2026-10-18T00:00:00Z"}
@@ -1256,6 +1288,10 @@ async def test_dashboard_remnawave_overview():
     user_repo = MagicMock()
     user_repo.get_or_create = AsyncMock(return_value=MagicMock(language="fa"))
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     remnawave = MagicMock()
     remnawave.get_all_panel_users = AsyncMock(return_value=[
@@ -1305,6 +1341,10 @@ async def test_store_settings_full_overview():
     user = MagicMock(language="fa", telegram_id=999)
     user_repo = MagicMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     # Case 1: with support contact
     store = StoreSettings(
@@ -1423,6 +1463,10 @@ async def test_trial_and_referral_submenus():
     user = MagicMock(language="fa", telegram_id=999)
     user_repo = MagicMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     store = StoreSettings(
         card_number="6219-8618-1954-7695",
@@ -1548,6 +1592,10 @@ async def test_support_contact_validation_and_toggle():
     user_repo = MagicMock()
     user_repo.get_or_create = AsyncMock(return_value=MagicMock(language="fa"))
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     # 1. Toggling direct support with empty contact must fail with alert
     call = MagicMock()
@@ -1607,6 +1655,10 @@ async def test_service_detail_and_edit_layout():
     user_repo = MagicMock()
     user_repo.get_or_create = AsyncMock(return_value=user)
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     service = Service(
         id=1,
@@ -1682,6 +1734,10 @@ async def test_receipt_and_admin_order_notification_fixes():
     user_repo = MagicMock()
     user_repo.set_verified = AsyncMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     service = Service(
         id=1,
@@ -1820,6 +1876,10 @@ async def test_settings_buttons_icons_and_topics_errors():
     user = MagicMock(language="fa", telegram_id=123)
     user_repo = MagicMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     # 1. Test _render_settings button icons
     with patch("bot.handlers.admin_settings_views.get_store_settings", AsyncMock(return_value=store)), \
@@ -1878,6 +1938,10 @@ async def test_report_trigger_resiliency_and_delivery():
     bot = MagicMock()
     bot.send_message = AsyncMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
     remnawave = MagicMock()
 
     with patch("bot.common.guards.is_admin", return_value=True), \
@@ -2018,6 +2082,10 @@ async def test_recent_ui_and_reports_fixes():
     user = MagicMock(language="fa", telegram_id=555)
     user_repo = MagicMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
 
     mock_svc = MagicMock(spec=Service)
     mock_svc.id = 1
@@ -2142,6 +2210,10 @@ async def test_referral_reward_idempotency_and_failure_resilience():
     bot = MagicMock()
     bot.send_message = AsyncMock()
     session = AsyncMock()
+    _res = MagicMock()
+    _res.scalars.return_value.all.return_value = []
+    _res.scalar_one_or_none.return_value = None
+    session.execute.return_value = _res
     remnawave = MagicMock()
 
     user = MagicMock(telegram_id=200, referred_by_id=100)
@@ -2910,6 +2982,10 @@ async def test_card_auto_amount_mismatch_returns_400():
     mock_repo.get_active_invoice_by_user = AsyncMock(return_value=active_inv)
 
     mock_session = AsyncMock()
+    _mres = MagicMock()
+    _mres.scalars.return_value.all.return_value = []
+    _mres.scalar_one_or_none.return_value = None
+    mock_session.execute.return_value = _mres
     mock_session_factory = MagicMock()
     mock_session_factory.return_value.__aenter__.return_value = mock_session
 
@@ -2960,6 +3036,10 @@ async def test_user_topup_info_returns_limits():
     store.stars_enabled = False
 
     mock_session = AsyncMock()
+    _mres = MagicMock()
+    _mres.scalars.return_value.all.return_value = []
+    _mres.scalar_one_or_none.return_value = None
+    mock_session.execute.return_value = _mres
     mock_session_factory = MagicMock()
     mock_session_factory.return_value.__aenter__.return_value = mock_session
 
