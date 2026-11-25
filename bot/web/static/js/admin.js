@@ -455,6 +455,9 @@
           trackingActive: d.trackingActive || '',
           userMultiplier: d.userMultiplier || '',
           nodeMultiplier: d.nodeMultiplier || '',
+          trafficLimitGb: d.trafficLimitGb || '',
+          trafficResetDay: d.trafficResetDay || '',
+          notifyPercent: d.notifyPercent || '',
         }
       );
       return;

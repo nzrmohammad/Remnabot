@@ -240,6 +240,17 @@ def extract_node_panel_fields(n: dict) -> dict[str, Any]:
         except (TypeError, ValueError):
             return None
 
+    def _parse_int(val: Any) -> int | None:
+        if val is None or val == "":
+            return None
+        try:
+            return int(val)
+        except (TypeError, ValueError):
+            return None
+
+    limit_bytes = _parse_int(n.get("trafficLimitBytes"))
+    traffic_limit_gb = round(limit_bytes / (1024 ** 3), 2) if (limit_bytes is not None and limit_bytes > 0) else (0 if limit_bytes == 0 else None)
+
     return {
         "provider_uuid": provider_uuid,
         "panel_provider_name": panel_provider_name,
@@ -247,6 +258,10 @@ def extract_node_panel_fields(n: dict) -> dict[str, Any]:
         "is_traffic_tracking_active": is_traffic_tracking_active,
         "consumption_multiplier": _parse_mult(n.get("consumptionMultiplier")),
         "node_consumption_multiplier": _parse_mult(n.get("nodeConsumptionMultiplier")),
+        "traffic_limit_bytes": limit_bytes,
+        "traffic_limit_gb": traffic_limit_gb,
+        "traffic_reset_day": _parse_int(n.get("trafficResetDay")),
+        "notify_percent": _parse_int(n.get("notifyPercent")),
     }
 
 

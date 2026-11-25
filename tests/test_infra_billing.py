@@ -489,7 +489,7 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
         assert bad_resp.status == 400
         remna.update_node.assert_not_awaited()
 
-        # Forward valid panel fields + persist local cost
+        # Forward valid panel fields + traffic tracking options + persist local cost
         ok_req = make_mocked_request("POST", "/api/admin/infra/node-cost", app=app_state)
         ok_req.json = AsyncMock(return_value={
             "node_uuid": "n-1",
@@ -500,6 +500,9 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
             "consumption_multiplier": 1.25,
             "node_consumption_multiplier": 1.5,
             "is_traffic_tracking_active": True,
+            "traffic_limit_gb": 500,
+            "traffic_reset_day": 15,
+            "notify_percent": 85,
             "description": "Main EU Edge",
         })
         ok_resp = await post_admin_node_cost(ok_req)
@@ -510,10 +513,19 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
                 "consumptionMultiplier": 1.25,
                 "nodeConsumptionMultiplier": 1.5,
                 "isTrafficTrackingActive": True,
+                "trafficLimitBytes": 500 * (1024 ** 3),
+                "trafficResetDay": 15,
+                "notifyPercent": 85,
                 "description": "Main EU Edge",
                 "providerUuid": "p-1",
             },
         )
+
+        # Reject invalid reset day (> 31)
+        bad_day_req = make_mocked_request("POST", "/api/admin/infra/node-cost", app=app_state)
+        bad_day_req.json = AsyncMock(return_value={"node_uuid": "n-1", "traffic_reset_day": 35})
+        bad_day_resp = await post_admin_node_cost(bad_day_req)
+        assert bad_day_resp.status == 400
 
         # Restart endpoint
         rst_req = make_mocked_request("POST", "/api/admin/infra/node/restart", app=app_state)
@@ -522,7 +534,7 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
         assert rst_resp.status == 200
         remna.restart_node.assert_awaited_once_with("n-1", force_restart=True)
 
-    # UI assertions for pulsing icon-only due badge, English %, word-spacing, and Stars title fix
+    # UI assertions for pulsing icon-only due badge, English %, word-spacing, 3 stacked emoji rows, and Stars title fix
     base_css = Path("bot/web/static/css/base.css").read_text(encoding="utf-8")
     admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
     nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
@@ -532,6 +544,11 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     assert "پورسانت نقدی دعوت (%)" in admin_html
     assert "پورسانت نقدی دعوت (٪)" not in admin_html
     assert "animate-ping" in nodes_js and "سررسید!" not in nodes_js
+    assert "User / Node Multiplier:" not in nodes_js
+    assert "ضریب مصرف کاربر:" in nodes_js
+    assert "ضریب مصرف سرور:" in nodes_js
+    assert "ردیابی ترافیک:" in nodes_js
+    assert "هزینه و تمدید:" not in nodes_js
     assert "titleEl.querySelector('span')" in finance_js
 
 

@@ -347,11 +347,20 @@ def test_admin_health_sub_and_redesigned_modals():
     assert 'w-[124px]' in billing_block
     assert 'grid-cols-1 sm:grid-cols-2 gap-2.5' in billing_block
     assert 'min-w-0' in billing_block
+    assert 'id="nodeBillingTabBtn_finance"' in billing_block
+    assert 'id="nodeBillingTabBtn_panel"' in billing_block
     assert 'id="nodeBillingUserMultiplier"' in billing_block
     assert 'id="nodeBillingNodeMultiplier"' in billing_block
     assert 'id="nodeBillingTrafficTracking"' in billing_block
-    assert 'id="nodeBillingProviderSelect"' in billing_block
+    assert 'id="nodeTrafficTrackingOptions"' in billing_block
+    assert 'id="nodeBillingTrafficLimitGb"' in billing_block
+    assert 'id="nodeBillingTrafficResetDay"' in billing_block
+    assert 'id="nodeBillingNotifyPercent"' in billing_block
+    assert 'id="nodeBillingProviderPickerBtn"' in billing_block
+    assert 'id="nodeProviderPickerModal"' in billing_block
     assert 'id="nodeBillingPanelDescription"' in billing_block
     assert 'id="restartNodeConfirmModal"' in billing_block
+    assert 'id="restartModeOptSoft"' in billing_block
+    assert 'id="restartModeOptForce"' in billing_block
     assert "t-muted hover:t-main" in nodes_js
 

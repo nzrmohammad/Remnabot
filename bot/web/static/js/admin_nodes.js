@@ -477,15 +477,30 @@
               <!-- Panel Config & Multipliers Summary -->
               ${(n.consumption_multiplier != null || n.node_consumption_multiplier != null || n.is_traffic_tracking_active != null || n.description) ? `
                 <div class="space-y-1.5 pt-1.5 border-t border-card-border text-[11px]">
-                  <div class="flex flex-wrap items-center justify-between gap-1.5">
-                    <span class="t-muted flex items-center gap-1" dir="ltr">User / Node Multiplier:</span>
-                    <div class="flex items-center gap-1.5 font-sans num-bidi font-bold" dir="ltr">
-                      <span class="badge badge-info text-[10px]">${n.consumption_multiplier ?? 1}x User</span>
-                      <span class="badge badge-purple text-[10px]">${n.node_consumption_multiplier ?? 1}x Node</span>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="t-muted flex items-center gap-1.5">
+                      <span>👤</span>
+                      <span>ضریب مصرف کاربر:</span>
+                    </span>
+                    <b class="t-info font-sans num-bidi font-bold" dir="ltr">${n.consumption_multiplier ?? 1}x</b>
+                  </div>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="t-muted flex items-center gap-1.5">
+                      <span>🖥️</span>
+                      <span>ضریب مصرف سرور:</span>
+                    </span>
+                    <b class="t-purple font-sans num-bidi font-bold" dir="ltr">${n.node_consumption_multiplier ?? 1}x</b>
+                  </div>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="t-muted flex items-center gap-1.5">
+                      <span>📊</span>
+                      <span>ردیابی ترافیک:</span>
+                    </span>
+                    <b class="font-sans font-bold ${n.is_traffic_tracking_active === true ? 't-success' : 't-muted'}">
                       ${n.is_traffic_tracking_active === true
-                        ? '<span class="badge badge-success text-[10px]">Track Traffic: ON</span>'
-                        : (n.is_traffic_tracking_active === false ? '<span class="badge badge-neutral text-[10px]">Track Traffic: OFF</span>' : '')}
-                    </div>
+                        ? (n.traffic_limit_gb > 0 ? `فعال (${fmtTraffic(n.traffic_limit_gb)})` : 'فعال')
+                        : 'غیرفعال'}
+                    </b>
                   </div>
                   ${n.description ? `
                     <div class="flex items-center justify-between gap-2 min-w-0">
@@ -532,6 +547,9 @@
                   data-tracking-active="${n.is_traffic_tracking_active === true ? '1' : (n.is_traffic_tracking_active === false ? '0' : '')}"
                   data-user-multiplier="${n.consumption_multiplier != null ? Number(n.consumption_multiplier) : ''}"
                   data-node-multiplier="${n.node_consumption_multiplier != null ? Number(n.node_consumption_multiplier) : ''}"
+                  data-traffic-limit-gb="${n.traffic_limit_gb != null ? Number(n.traffic_limit_gb) : ''}"
+                  data-traffic-reset-day="${n.traffic_reset_day != null ? Number(n.traffic_reset_day) : ''}"
+                  data-notify-percent="${n.notify_percent != null ? Number(n.notify_percent) : ''}"
                   data-cost-toman="${Number(n.monthly_cost_toman || 0)}"
                   data-cost-eur="${Number(n.monthly_cost_eur || 0)}"
                   data-due="${escapeHtml(n.due_date || '')}"
@@ -682,79 +700,166 @@ openEditSslDomainModal(domain) {
     },
 
 // --- Node Infra-Billing & Panel Config Actions ---
-    async loadInfraProviders(selectedUuid = '', fallbackName = '') {
-      const selectEl = $('nodeBillingProviderSelect');
+    switchNodeBillingTab(tabKey = 'finance') {
+      const tabs = ['finance', 'panel'];
+      const activeCls = 'h-8 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow flex items-center justify-center gap-1.5';
+      const inactiveCls = 'h-8 rounded-xl text-[11px] font-medium transition t-muted hover:t-main flex items-center justify-center gap-1.5';
+      tabs.forEach(k => {
+        const btn = $(`nodeBillingTabBtn_${k}`);
+        const pane = $(`nodeBillingTabPane_${k}`);
+        const isActive = k === tabKey;
+        if (btn) btn.className = isActive ? activeCls : inactiveCls;
+        if (pane) pane.classList.toggle('hidden', !isActive);
+      });
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    toggleNodeTrafficTrackingOptions() {
+      const enabled = Boolean($('nodeBillingTrafficTracking')?.checked);
+      const box = $('nodeTrafficTrackingOptions');
+      if (box) box.classList.toggle('hidden', !enabled);
+    },
+
+    _applySelectedNodeProvider(uuidVal = '', fallbackName = '') {
+      const providers = Array.isArray(this._cachedInfraProviders) ? this._cachedInfraProviders : [];
+      const uuidInput = $('nodeBillingProviderUuid');
+      const dispEl = $('nodeBillingProviderDisplay');
       const customWrap = $('nodeBillingProviderCustomWrap');
       const customInput = $('nodeBillingProvider');
-      if (!selectEl) return;
 
-      const applyOptions = (providers) => {
-        const list = Array.isArray(providers) ? providers : [];
-        let html = '<option value="">بدون ارائه‌دهنده</option>';
-        for (const p of list) {
-          html += `<option value="${escapeHtml(p.uuid)}">${escapeHtml(p.name)}</option>`;
-        }
-        html += '<option value="__custom__">سایر / وارد کردن دستی...</option>';
-        selectEl.innerHTML = html;
+      const cleanUuid = String(uuidVal || '').trim();
+      const cleanName = String(fallbackName || '').trim();
+      const matchByUuid = cleanUuid && cleanUuid !== '__custom__'
+        ? providers.find(p => String(p.uuid) === cleanUuid)
+        : null;
+      const matchByName = !matchByUuid && cleanUuid !== '__custom__' && cleanName
+        ? providers.find(p => String(p.name || '').trim().toLowerCase() === cleanName.toLowerCase())
+        : null;
 
-        const cleanUuid = String(selectedUuid || '').trim();
-        const cleanName = String(fallbackName || '').trim();
-        const matchByUuid = cleanUuid ? list.find(p => String(p.uuid) === cleanUuid) : null;
-        const matchByName = !matchByUuid && cleanName
-          ? list.find(p => String(p.name || '').trim().toLowerCase() === cleanName.toLowerCase())
-          : null;
+      if (matchByUuid || matchByName) {
+        const hit = matchByUuid || matchByName;
+        if (uuidInput) uuidInput.value = hit.uuid;
+        if (dispEl) dispEl.innerText = hit.name;
+        if (customWrap) customWrap.classList.add('hidden');
+        if (customInput) customInput.value = hit.name;
+      } else if (cleanUuid === '__custom__' || cleanName) {
+        if (uuidInput) uuidInput.value = '__custom__';
+        if (dispEl) dispEl.innerText = cleanName || 'سایر / وارد کردن دستی';
+        if (customWrap) customWrap.classList.remove('hidden');
+        if (customInput && cleanName) customInput.value = cleanName;
+      } else {
+        if (uuidInput) uuidInput.value = '';
+        if (dispEl) dispEl.innerText = 'بدون ارائه‌دهنده';
+        if (customWrap) customWrap.classList.add('hidden');
+        if (customInput) customInput.value = '';
+      }
+    },
 
-        if (matchByUuid) {
-          selectEl.value = matchByUuid.uuid;
-          if (customWrap) customWrap.classList.add('hidden');
-          if (customInput) customInput.value = matchByUuid.name;
-        } else if (matchByName) {
-          selectEl.value = matchByName.uuid;
-          if (customWrap) customWrap.classList.add('hidden');
-          if (customInput) customInput.value = matchByName.name;
-        } else if (cleanName) {
-          selectEl.value = '__custom__';
-          if (customWrap) customWrap.classList.remove('hidden');
-          if (customInput) customInput.value = cleanName;
-        } else {
-          selectEl.value = '';
-          if (customWrap) customWrap.classList.add('hidden');
-          if (customInput) customInput.value = '';
-        }
+    _renderNodeProviderList() {
+      const listEl = $('nodeProviderPickerList');
+      if (!listEl) return;
+      const providers = Array.isArray(this._cachedInfraProviders) ? this._cachedInfraProviders : [];
+      const currentVal = $('nodeBillingProviderUuid')?.value || '';
+
+      const makeRow = (val, title, sub = '') => {
+        const isSelected = currentVal === val;
+        const rowCls = isSelected
+          ? 'w-full text-right p-2.5 rounded-2xl border border-cyan-500/40 bg-cyan-500/10 flex items-center justify-between gap-2 transition'
+          : 'w-full text-right p-2.5 rounded-2xl border border-card-border card-inset hover:border-cyan-500/30 flex items-center justify-between gap-2 transition';
+        return `
+          <button type="button" class="${rowCls}" onclick="window.adminActions.selectNodeProvider('${escapeHtml(val)}', '${escapeHtml(title)}')">
+            <div class="min-w-0">
+              <span class="font-bold t-main block truncate">${escapeHtml(title)}</span>
+              ${sub ? `<span class="text-[10px] t-muted block truncate" dir="ltr">${escapeHtml(sub)}</span>` : ''}
+            </div>
+            <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-cyan-500 text-white' : 'border border-card-border'}">
+              ${isSelected ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+            </span>
+          </button>
+        `;
       };
 
-      if (Array.isArray(this._cachedInfraProviders)) {
-        applyOptions(this._cachedInfraProviders);
-        return;
+      let html = makeRow('', 'بدون ارائه‌دهنده');
+      for (const p of providers) {
+        html += makeRow(p.uuid, p.name, p.login || '');
       }
+      html += makeRow('__custom__', 'سایر / وارد کردن دستی...');
+      listEl.innerHTML = html;
+    },
 
-      applyOptions([]);
+    async openNodeProviderModal() {
+      const modal = $('nodeProviderPickerModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      this._renderNodeProviderList();
+      if (!Array.isArray(this._cachedInfraProviders)) {
+        await this.loadInfraProviders($('nodeBillingProviderUuid')?.value || '', $('nodeBillingProvider')?.value || '');
+        this._renderNodeProviderList();
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeNodeProviderModal() {
+      const modal = $('nodeProviderPickerModal');
+      if (modal) modal.classList.add('hidden');
+    },
+
+    selectNodeProvider(uuidVal = '', label = '') {
+      this._applySelectedNodeProvider(uuidVal, uuidVal === '__custom__' ? ($('nodeBillingProvider')?.value || '') : label);
+      this.closeNodeProviderModal();
+      if (uuidVal === '__custom__') {
+        setTimeout(() => $('nodeBillingProvider')?.focus(), 60);
+      }
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    async loadInfraProviders(selectedUuid = '', fallbackName = '') {
+      this._applySelectedNodeProvider(selectedUuid, fallbackName);
+      if (Array.isArray(this._cachedInfraProviders)) return;
+
       try {
         const res = await window.api?.getInfraProviders?.();
         if (res && res.ok && Array.isArray(res.providers)) {
           this._cachedInfraProviders = res.providers;
-          applyOptions(res.providers);
+          this._applySelectedNodeProvider(selectedUuid, fallbackName);
         }
       } catch (err) {
         console.warn('Could not load panel infra providers:', err);
       }
     },
 
-    onNodeProviderSelectChange() {
-      const selectEl = $('nodeBillingProviderSelect');
-      const customWrap = $('nodeBillingProviderCustomWrap');
-      const customInput = $('nodeBillingProvider');
-      if (!selectEl) return;
-      if (selectEl.value === '__custom__') {
-        if (customWrap) customWrap.classList.remove('hidden');
-        if (customInput) customInput.focus();
-      } else if (selectEl.value) {
-        if (customWrap) customWrap.classList.add('hidden');
-        const label = selectEl.options[selectEl.selectedIndex]?.text || '';
-        if (customInput) customInput.value = label;
-      } else {
-        if (customWrap) customWrap.classList.add('hidden');
-        if (customInput) customInput.value = '';
+    setRestartNodeMode(forceRestart = false) {
+      const isForce = Boolean(forceRestart);
+      if ($('restartNodeForceToggle')) $('restartNodeForceToggle').checked = isForce;
+
+      const optSoft = $('restartModeOptSoft');
+      const optForce = $('restartModeOptForce');
+      const dotSoft = $('restartModeDotSoft');
+      const dotForce = $('restartModeDotForce');
+      const btn = $('confirmRestartNodeBtn');
+
+      if (optSoft) {
+        optSoft.className = !isForce
+          ? 'w-full text-right p-3 rounded-2xl border border-cyan-500/40 bg-cyan-500/10 transition active:scale-[0.99] space-y-1'
+          : 'w-full text-right p-3 rounded-2xl border border-card-border card-inset hover:border-cyan-500/35 transition active:scale-[0.99] space-y-1';
+      }
+      if (optForce) {
+        optForce.className = isForce
+          ? 'w-full text-right p-3 rounded-2xl border border-rose-500/45 bg-rose-500/10 transition active:scale-[0.99] space-y-1'
+          : 'w-full text-right p-3 rounded-2xl border border-card-border card-inset hover:border-amber-500/40 transition active:scale-[0.99] space-y-1';
+      }
+      if (dotSoft) {
+        dotSoft.className = !isForce
+          ? 'w-3.5 h-3.5 rounded-full bg-cyan-500 border-2 border-white shadow shrink-0'
+          : 'w-3.5 h-3.5 rounded-full border border-card-border shrink-0';
+      }
+      if (dotForce) {
+        dotForce.className = isForce
+          ? 'w-3.5 h-3.5 rounded-full bg-rose-500 border-2 border-white shadow shrink-0'
+          : 'w-3.5 h-3.5 rounded-full border border-card-border shrink-0';
+      }
+      if (btn) {
+        btn.innerText = isForce ? 'ریستارت کامل و اجباری' : 'ریستارت نرم Xray';
       }
     },
 
@@ -763,7 +868,7 @@ openEditSslDomainModal(domain) {
       if (!modal || !nodeUuid) return;
       if ($('restartNodeTargetUuid')) $('restartNodeTargetUuid').value = nodeUuid;
       if ($('restartNodeTargetName')) $('restartNodeTargetName').innerText = nodeName || nodeUuid;
-      if ($('restartNodeForceToggle')) $('restartNodeForceToggle').checked = false;
+      this.setRestartNodeMode(false);
       modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('warning');
     },
@@ -805,7 +910,7 @@ openEditSslDomainModal(domain) {
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = 'ریستارت فوری';
+          btn.innerText = forceRestart ? 'ریستارت کامل و اجباری' : 'ریستارت نرم Xray';
         }
       }
     },
@@ -815,7 +920,8 @@ openEditSslDomainModal(domain) {
       if (!modal) return;
       $('nodeBillingUuid').value = nodeUuid || '';
       $('nodeBillingName').value = nodeName || '';
-      $('nodeBillingModalTitle').innerText = nodeName ? `هزینه و تمدید: ${nodeName}` : 'هزینه و تمدید سرور';
+      if ($('nodeBillingModalTitle')) $('nodeBillingModalTitle').innerText = 'تنظیمات و مدیریت سرور';
+      if ($('nodeBillingServerNameLabel')) $('nodeBillingServerNameLabel').innerText = nodeName || 'سرور';
       const flagEl = $('nodeBillingModalFlag');
       if (flagEl) {
         flagEl.innerHTML = flag && flag !== '🖥️'
@@ -835,11 +941,19 @@ openEditSslDomainModal(domain) {
       const trackingStr = String(meta.trackingActive ?? '');
       const trackingBool = trackingStr === '1' || trackingStr === 'true';
       const providerUuid = meta.providerUuid || '';
+      const limitGb = meta.trafficLimitGb !== undefined && meta.trafficLimitGb !== '' ? String(meta.trafficLimitGb) : '';
+      const resetDay = meta.trafficResetDay !== undefined && meta.trafficResetDay !== '' ? String(meta.trafficResetDay) : '';
+      const notifyPct = meta.notifyPercent !== undefined && meta.notifyPercent !== '' ? String(meta.notifyPercent) : '';
 
       if ($('nodeBillingUserMultiplier')) $('nodeBillingUserMultiplier').value = userMult;
       if ($('nodeBillingNodeMultiplier')) $('nodeBillingNodeMultiplier').value = nodeMult;
       if ($('nodeBillingPanelDescription')) $('nodeBillingPanelDescription').value = descVal;
       if ($('nodeBillingTrafficTracking')) $('nodeBillingTrafficTracking').checked = trackingBool;
+      if ($('nodeBillingTrafficLimitGb')) $('nodeBillingTrafficLimitGb').value = limitGb;
+      if ($('nodeBillingTrafficResetDay')) $('nodeBillingTrafficResetDay').value = resetDay;
+      if ($('nodeBillingNotifyPercent')) $('nodeBillingNotifyPercent').value = notifyPct;
+      this.toggleNodeTrafficTrackingOptions();
+      this.switchNodeBillingTab('finance');
 
       this._nodePanelSnapshot = {
         userMultiplier: userMult,
@@ -847,6 +961,9 @@ openEditSslDomainModal(domain) {
         description: descVal,
         trackingActive: trackingStr === '' ? null : trackingBool,
         providerUuid,
+        trafficLimitGb: limitGb,
+        trafficResetDay: resetDay,
+        notifyPercent: notifyPct,
       };
       this.loadInfraProviders(providerUuid, provider);
 
@@ -1004,11 +1121,10 @@ openEditSslDomainModal(domain) {
     async saveNodeBilling() {
       const node_uuid = $('nodeBillingUuid')?.value?.trim();
       const node_name = $('nodeBillingName')?.value?.trim();
-      const selectEl = $('nodeBillingProviderSelect');
-      const selectedProvVal = selectEl?.value ?? '';
+      const selectedProvVal = $('nodeBillingProviderUuid')?.value?.trim() ?? '';
       let provider = $('nodeBillingProvider')?.value?.trim() || '';
       if (selectedProvVal && selectedProvVal !== '__custom__') {
-        provider = selectEl.options[selectEl.selectedIndex]?.text?.trim() || provider;
+        provider = $('nodeBillingProviderDisplay')?.innerText?.trim() || provider;
       }
       const monthly_cost_toman = parseInt($('nodeBillingCostToman')?.value || '0', 10);
       const monthly_cost_eur = parseFloat($('nodeBillingCostEur')?.value || '0');
@@ -1044,6 +1160,9 @@ openEditSslDomainModal(domain) {
         const nodeMultStr = $('nodeBillingNodeMultiplier')?.value?.trim() ?? '';
         const descVal = $('nodeBillingPanelDescription')?.value?.trim() ?? '';
         const trackingChecked = Boolean($('nodeBillingTrafficTracking')?.checked);
+        const limitGbStr = $('nodeBillingTrafficLimitGb')?.value?.trim() ?? '';
+        const resetDayStr = $('nodeBillingTrafficResetDay')?.value?.trim() ?? '';
+        const notifyPctStr = $('nodeBillingNotifyPercent')?.value?.trim() ?? '';
         const providerUuidVal = selectedProvVal === '__custom__' ? null : (selectedProvVal || null);
 
         if (userMultStr !== String(snap.userMultiplier ?? '') && userMultStr !== '') {
@@ -1059,6 +1178,15 @@ openEditSslDomainModal(domain) {
           payload.is_traffic_tracking_active = trackingChecked;
         } else if (snap.trackingActive === null && trackingChecked) {
           payload.is_traffic_tracking_active = true;
+        }
+        if (limitGbStr !== String(snap.trafficLimitGb ?? '') && limitGbStr !== '') {
+          payload.traffic_limit_gb = parseFloat(limitGbStr);
+        }
+        if (resetDayStr !== String(snap.trafficResetDay ?? '') && resetDayStr !== '') {
+          payload.traffic_reset_day = parseInt(resetDayStr, 10);
+        }
+        if (notifyPctStr !== String(snap.notifyPercent ?? '') && notifyPctStr !== '') {
+          payload.notify_percent = parseInt(notifyPctStr, 10);
         }
         if (selectedProvVal !== '__custom__' && (providerUuidVal || '') !== String(snap.providerUuid || '')) {
           payload.provider_uuid = providerUuidVal;

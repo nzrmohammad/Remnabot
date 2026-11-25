@@ -182,6 +182,33 @@ def _build_node_panel_payload(body: dict[str, Any]) -> tuple[dict[str, Any], str
         else:
             panel_payload["isTrafficTrackingActive"] = bool(raw_track)
 
+    if "traffic_limit_gb" in body and body["traffic_limit_gb"] not in (None, ""):
+        try:
+            limit_gb = float(body["traffic_limit_gb"])
+        except (TypeError, ValueError):
+            return {}, "مقدار محدودیت حجم ترافیک نود معتبر نیست."
+        if math.isnan(limit_gb) or math.isinf(limit_gb) or limit_gb < 0:
+            return {}, "محدودیت حجم ترافیک نود باید صفر یا مثبت باشد."
+        panel_payload["trafficLimitBytes"] = int(round(limit_gb * (1024 ** 3)))
+
+    if "traffic_reset_day" in body and body["traffic_reset_day"] not in (None, ""):
+        try:
+            reset_day = int(body["traffic_reset_day"])
+        except (TypeError, ValueError):
+            return {}, "روز ریست ماهانه نود معتبر نیست."
+        if reset_day < 1 or reset_day > 31:
+            return {}, "روز ریست ماهانه باید بین 1 تا 31 باشد."
+        panel_payload["trafficResetDay"] = reset_day
+
+    if "notify_percent" in body and body["notify_percent"] not in (None, ""):
+        try:
+            notify_pct = int(body["notify_percent"])
+        except (TypeError, ValueError):
+            return {}, "درصد هشدار ترافیک نود معتبر نیست."
+        if notify_pct < 0 or notify_pct > 100:
+            return {}, "درصد هشدار ترافیک باید بین 0 تا 100 باشد."
+        panel_payload["notifyPercent"] = notify_pct
+
     if "description" in body:
         desc_val = str(body.get("description") or "").strip()
         panel_payload["description"] = desc_val or None
