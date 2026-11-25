@@ -7,7 +7,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import Settings
-from bot.db.base import _migrate_db_schema
 from bot.db.models import CardAutoInvoice, Coupon, CouponUsage, CryptoInvoice, GiftCard, Order, Service, User, Wallet
 from bot.db.repositories.campaign_repo import CampaignRepository
 from bot.db.repositories.coupon_repo import CouponRepository
@@ -20,33 +19,20 @@ from bot.services.wheel_service import execute_lucky_wheel_spin
 
 @pytest.mark.anyio
 async def test_item10_schema_index_migration(session_factory):
-    """Test Item 10: _migrate_db_schema introspects and dynamically creates missing indexes."""
+    """Test Item 10: fresh schema creates required composite indexes via SQLAlchemy/Alembic models."""
     async with session_factory() as session:
         conn = await session.connection()
 
-        def check_and_migrate(sync_conn):
-            from sqlalchemy import inspect, text
+        def check_indexes(sync_conn):
+            from sqlalchemy import inspect
             insp = inspect(sync_conn)
             tables = set(insp.get_table_names())
             assert "users" in tables
             assert "orders" in tables
+            indexes = {idx["name"] for idx in insp.get_indexes("orders") if idx.get("name")}
+            assert "ix_orders_status_created_at" in indexes
 
-            # 1. Simulate an existing table missing an index (e.g. upgraded legacy DB)
-            target_idx = "ix_orders_status_created_at"
-            sync_conn.execute(text(f'DROP INDEX IF EXISTS "{target_idx}";'))
-            insp = inspect(sync_conn)
-            indexes_after_drop = {idx["name"] for idx in insp.get_indexes("orders") if idx.get("name")}
-            assert target_idx not in indexes_after_drop
-
-            # 2. Run schema migration
-            _migrate_db_schema(sync_conn)
-
-            # 3. Assert the missing index was dynamically recreated by _migrate_db_schema
-            insp = inspect(sync_conn)
-            indexes_after_migration = {idx["name"] for idx in insp.get_indexes("orders") if idx.get("name")}
-            assert target_idx in indexes_after_migration
-
-        await conn.run_sync(check_and_migrate)
+        await conn.run_sync(check_indexes)
 
 
 @pytest.mark.anyio

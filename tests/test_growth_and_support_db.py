@@ -389,3 +389,23 @@ async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
         con.close()
     assert "support_chat_messages" in tables_legacy
     assert rev == ("0002_support_chat_history",)
+
+    # 3. Existing DB created via create_all (has BOTH users and support_chat_messages, no alembic_version) must NOT crash
+    pre_existing_db = tmp_path / "pre_existing_all.db"
+    pre_existing_url = f"sqlite+aiosqlite:///{str(pre_existing_db).replace(chr(92), '/')}"
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    from bot.db.base import init_db
+
+    eng = create_async_engine(pre_existing_url)
+    await init_db(eng)
+    await eng.dispose()
+
+    res_existing = await ensure_schema_migrated(pre_existing_url)
+    assert res_existing == "stamped_head"
+    con = sqlite3.connect(pre_existing_db)
+    try:
+        rev_existing = con.execute("SELECT version_num FROM alembic_version").fetchone()
+    finally:
+        con.close()
+    assert rev_existing == ("0002_support_chat_history",)

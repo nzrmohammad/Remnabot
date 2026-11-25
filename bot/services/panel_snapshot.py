@@ -48,18 +48,26 @@ async def refresh_panel_snapshot(
     *,
     warm_charts: bool = False,
 ) -> dict[str, Any]:
-    """Fetch nodes, panel users, and HWID stats once, caching snapshot + panel latency."""
+    """Fetch nodes, panel users, and HWID stats once, caching snapshot + lightweight API RTT."""
     async with _SNAPSHOT_LOCK:
+        async def _probe_nodes() -> tuple[Any, float]:
+            t_ping = time.monotonic()
+            nodes_res = await remnawave.get_nodes()
+            return nodes_res, round((time.monotonic() - t_ping) * 1000.0, 1)
+
         t0 = time.monotonic()
         results = await asyncio.gather(
-            remnawave.get_nodes(),
+            _probe_nodes(),
             remnawave.get_all_panel_users(size=1000),
             remnawave.get_hwid_stats(),
             return_exceptions=True,
         )
-        latency_ms = round((time.monotonic() - t0) * 1000.0, 1)
-
-        raw_nodes, raw_users, raw_hwid = results
+        nodes_probe, raw_users, raw_hwid = results
+        if isinstance(nodes_probe, Exception):
+            raw_nodes = nodes_probe
+            latency_ms = round((time.monotonic() - t0) * 1000.0, 1)
+        else:
+            raw_nodes, latency_ms = nodes_probe
         nodes_ok = isinstance(raw_nodes, list)
         users_ok = isinstance(raw_users, list)
         nodes = raw_nodes if nodes_ok else []

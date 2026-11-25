@@ -758,10 +758,10 @@ async applyUserModification() {
     openSubModal(telegram_id, name, subUrl) {
       currentSubTarget = { telegram_id, name, subUrl };
       const modal = $('subModal');
-      const title = $('subModalTitle');
+      const title = $('subModalTitleText') || $('subModalTitle');
       const input = $('subModalInput');
       if (modal) modal.classList.remove('hidden');
-      if (title) title.innerText = `🔄 لینک اشتراک: ${name}`;
+      if (title) title.innerText = `لینک اشتراک: ${name}`;
       if (input) {
         input.value = subUrl || '';
         if (!subUrl) input.placeholder = 'اکانت پنل برای این کاربر یافت نشد یا لینکی صادر نشده است';

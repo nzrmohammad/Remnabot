@@ -1056,7 +1056,7 @@ async function executePurchase() {
   const isUsernameVisible = Boolean(customUsernameWrap && !customUsernameWrap.classList.contains('hidden'));
   const customUsername = isUsernameVisible ? (customUsernameInput?.value || '').trim() : '';
   if (isUsernameVisible && customUsername && !/^[a-zA-Z0-9_]{3,32}$/.test(customUsername)) {
-    showToast('⚠️ نام کاربری باید بین ۳ تا ۳۲ کاراکتر (فقط حروف انگلیسی، اعداد و _) باشد.');
+    showToast('⚠️ نام کاربری باید بین 3 تا 32 کاراکتر (فقط حروف انگلیسی، اعداد و _) باشد.');
     hapticFeedback('error');
     customUsernameInput?.focus();
     return;

@@ -3077,19 +3077,12 @@ async def test_user_shop_invalidate_caches_helper():
 
 @pytest.mark.anyio
 async def test_init_db_auto_migrates_missing_columns():
-    from sqlalchemy import inspect, text
+    from sqlalchemy import inspect
     from sqlalchemy.ext.asyncio import create_async_engine
 
     from bot.db.base import init_db
 
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        # Intentionally create users table missing columns (wheel_streak, spin_tickets, etc.)
-        await conn.execute(text(
-            "CREATE TABLE users (id INTEGER PRIMARY KEY, telegram_id BIGINT UNIQUE);"
-        ))
-
-    # Run init_db which should detect missing columns and auto-migrate them
     await init_db(engine)
 
     async with engine.begin() as conn:

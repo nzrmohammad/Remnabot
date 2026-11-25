@@ -397,8 +397,8 @@
       const durInp = $('planModalDuration');
       const badgeSel = $('planModalBadge');
 
-      const activeClass = 'py-1.5 px-1 rounded-lg font-bold bg-blue-600 text-white transition flex items-center justify-center gap-1 shadow';
-      const inactiveClass = 'py-1.5 px-1 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center justify-center gap-1';
+      const activeClass = 'py-1.5 px-1 rounded-xl font-bold bg-blue-600 text-white transition flex items-center justify-center gap-1 shadow';
+      const inactiveClass = 'py-1.5 px-1 rounded-xl font-medium t-muted hover:t-main transition flex items-center justify-center gap-1';
 
       if (fullBtn) fullBtn.className = (type === 'full') ? activeClass : inactiveClass;
       if (trafBtn) trafBtn.className = (type === 'traffic') ? activeClass : inactiveClass;
@@ -658,7 +658,10 @@
       } catch (e) {
         if (window.showToast) window.showToast('خطای شبکه در ذخیره تعرفه');
       } finally {
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'ذخیره سرویس'; }
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" /><span>ذخیره تعرفه</span>';
+        }
       }
     },
 

@@ -19,36 +19,43 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "support_chat_messages",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("telegram_id", sa.BigInteger(), nullable=False),
-        sa.Column("external_msg_id", sa.String(length=64), nullable=False),
-        sa.Column("sender", sa.String(length=16), nullable=False),
-        sa.Column("text", sa.Text(), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
-            nullable=False,
-        ),
-        sa.PrimaryKeyConstraint("id"),
-    )
+    insp = sa.inspect(op.get_bind())
+    if not insp.has_table("support_chat_messages"):
+        op.create_table(
+            "support_chat_messages",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("telegram_id", sa.BigInteger(), nullable=False),
+            sa.Column("external_msg_id", sa.String(length=64), nullable=False),
+            sa.Column("sender", sa.String(length=16), nullable=False),
+            sa.Column("text", sa.Text(), nullable=False),
+            sa.Column(
+                "created_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.text("(CURRENT_TIMESTAMP)"),
+                nullable=False,
+            ),
+            sa.PrimaryKeyConstraint("id"),
+        )
+    existing_indexes = {idx.get("name") for idx in insp.get_indexes("support_chat_messages")}
+    idx_created = op.f("ix_support_chat_messages_created_at")
+    idx_tid = op.f("ix_support_chat_messages_telegram_id")
     with op.batch_alter_table("support_chat_messages", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_support_chat_messages_created_at"),
-            ["created_at"],
-            unique=False,
-        )
-        batch_op.create_index(
-            batch_op.f("ix_support_chat_messages_telegram_id"),
-            ["telegram_id"],
-            unique=False,
-        )
+        if idx_created not in existing_indexes:
+            batch_op.create_index(idx_created, ["created_at"], unique=False)
+        if idx_tid not in existing_indexes:
+            batch_op.create_index(idx_tid, ["telegram_id"], unique=False)
 
 
 def downgrade() -> None:
+    insp = sa.inspect(op.get_bind())
+    if not insp.has_table("support_chat_messages"):
+        return
+    existing_indexes = {idx.get("name") for idx in insp.get_indexes("support_chat_messages")}
+    idx_created = op.f("ix_support_chat_messages_created_at")
+    idx_tid = op.f("ix_support_chat_messages_telegram_id")
     with op.batch_alter_table("support_chat_messages", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_support_chat_messages_telegram_id"))
-        batch_op.drop_index(batch_op.f("ix_support_chat_messages_created_at"))
+        if idx_tid in existing_indexes:
+            batch_op.drop_index(idx_tid)
+        if idx_created in existing_indexes:
+            batch_op.drop_index(idx_created)
     op.drop_table("support_chat_messages")

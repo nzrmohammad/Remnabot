@@ -321,9 +321,9 @@ def test_ui_polish_round4():
     assert "iconEl.style.display = isMinimal ? 'none' : '';" in wallet_js
     assert "backTextEl.innerText = isMinimal ? '' : 'Blu, But Lovely';" in wallet_js
 
-    # 5. Plan modal removes squad auto-split description & offsets active checkbox
+    # 5. Plan modal removes squad auto-split description & uses modern switch toggle
     assert "تخصیص سرورهای این بسته به کاربر و تفکیک خودکار قیمت حجم/زمان" not in admin_html
-    assert 'id="planModalActive" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 ml-1.5"' in admin_html
+    assert 'class="sr-only switch-checkbox" id="planModalActive" checked' in admin_html
 
     # 6. Announced prefixes copy button is icon-only and in title group on the right; badge uses font-sans
     assert 'button type="button" onclick="window.copyAllAsnPrefixes()" class="btn btn-secondary w-7 h-7 p-0 rounded-xl flex items-center justify-center transition active:scale-95 shadow-xs"' in admin_html
@@ -404,11 +404,16 @@ def test_client_importers_icon_only_grid():
 
 
 def test_orders_service_id_nullable_migration():
-    """Verify orders.service_id NOT NULL is dropped cleanly in base.py and dangerous DDL is banned in user_shop.py."""
+    """Verify orders.service_id is nullable in ORM/Alembic schema and dangerous runtime DDL is banned."""
+    from bot.db.models import Order
+
     base_py = Path("bot/db/base.py").read_text(encoding="utf-8")
     user_shop_py = Path("bot/web/user_shop.py").read_text(encoding="utf-8")
+    baseline_py = Path("alembic/versions/0001_baseline_baseline_schema.py").read_text(encoding="utf-8")
 
-    assert "ALTER TABLE orders ALTER COLUMN service_id DROP NOT NULL;" in base_py
+    assert Order.__table__.columns["service_id"].nullable is True
+    assert "sa.Column('service_id', sa.Integer(), nullable=True)" in baseline_py
+    assert "ALTER TABLE" not in base_py
     assert "ALTER TABLE" not in user_shop_py
 
 

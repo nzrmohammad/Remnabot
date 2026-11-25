@@ -306,3 +306,43 @@ def test_frontend_ux_and_speedtest_fixes_present():
     assert "_schedulePhoneVerifySync" in app_js
     assert "setupLiveSyncListeners" in app_js
     assert "window.markAwaitingTopupSync" in app_js
+
+
+def test_admin_health_sub_and_redesigned_modals():
+    """Verify Admin health accordion/title, full-width sub copy box, and redesigned plan/node billing modals."""
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
+    plans_js = Path("bot/web/static/js/admin_plans.js").read_text(encoding="utf-8")
+    users_js = Path("bot/web/static/js/admin_users.js").read_text(encoding="utf-8")
+
+    # Health card title simplified + collapsible accordion
+    health_start = admin_html.find('id="adminSystemHealthCard"')
+    health_end = admin_html.find('id="subtabContentNodesSsl"', health_start)
+    health_block = admin_html[health_start:health_end]
+    assert "<span>سلامت سیستم</span>" in health_block
+    assert "آشتی حسابداری (Reconcile)" not in health_block
+    assert 'id="toggleSystemHealthBtn"' in health_block
+    assert 'id="systemHealthChevron"' in health_block
+    assert 'id="adminSystemHealthBody" class="hidden' in health_block
+    assert "window.toggleSystemHealthAccordion" in nodes_js
+
+    # Sub link modal full-width box with copy icon on right side
+    sub_start = admin_html.find('id="subModal"')
+    sub_end = admin_html.find('id="planModal"', sub_start)
+    sub_block = admin_html[sub_start:sub_end]
+    assert 'id="subModalInput"' in sub_block and "w-full" in sub_block and "pr-10" in sub_block
+    assert "absolute right-2 top-1/2 -translate-y-1/2" in sub_block
+    assert "$('subModalTitleText') || $('subModalTitle')" in users_js
+
+    # Plan modal & Node billing modal redesign + theme-safe toggles
+    plan_block = admin_html[admin_html.find('id="planModal"'):admin_html.find('id="couponModal"')]
+    assert 'max-w-[400px]' in plan_block
+    assert 'class="sr-only switch-checkbox" id="planModalActive" checked' in plan_block
+    assert "t-muted hover:t-main" in plans_js
+    assert "<span>ذخیره تعرفه</span>" in plans_js
+
+    billing_block = admin_html[admin_html.find('id="nodeBillingModal"'):admin_html.find('id="campaignDetailModal"')]
+    assert 'w-[124px]' in billing_block
+    assert 'grid-cols-2 gap-2.5' in billing_block
+    assert "t-muted hover:t-main" in nodes_js
+

@@ -688,13 +688,10 @@ openEditSslDomainModal(domain) {
       const symbolSpan = $('nodeBillingCurrencySymbol');
 
       if (eurBtn && usdBtn) {
-        if (isEur) {
-          eurBtn.className = 'flex-1 h-full rounded-lg text-xs font-bold transition flex items-center justify-center text-white bg-blue-600 shadow';
-          usdBtn.className = 'flex-1 h-full rounded-lg text-xs font-medium transition flex items-center justify-center text-slate-400 hover:text-white';
-        } else {
-          usdBtn.className = 'flex-1 h-full rounded-lg text-xs font-bold transition flex items-center justify-center text-white bg-blue-600 shadow';
-          eurBtn.className = 'flex-1 h-full rounded-lg text-xs font-medium transition flex items-center justify-center text-slate-400 hover:text-white';
-        }
+        const activeCls = 'flex-1 h-full rounded-lg text-[11px] font-bold transition flex items-center justify-center text-white bg-blue-600 shadow';
+        const inactiveCls = 'flex-1 h-full rounded-lg text-[11px] font-medium transition flex items-center justify-center t-muted hover:t-main';
+        eurBtn.className = isEur ? activeCls : inactiveCls;
+        usdBtn.className = isEur ? inactiveCls : activeCls;
       }
       if (symbolSpan) {
         symbolSpan.innerText = isEur ? '€' : '$';
@@ -1326,9 +1323,24 @@ openEditSslDomainModal(domain) {
     `;
   }
 
+  window.toggleSystemHealthAccordion = function(forceOpen = null) {
+    const body = $('adminSystemHealthBody');
+    const chev = $('systemHealthChevron');
+    if (!body) return;
+    const willOpen = forceOpen !== null ? Boolean(forceOpen) : body.classList.contains('hidden');
+    body.classList.toggle('hidden', !willOpen);
+    if (chev) {
+      chev.classList.toggle('rotate-180', willOpen);
+    }
+    if (forceOpen === null && window.hapticFeedback) window.hapticFeedback('selection');
+  };
+
   async function fetchAdminSystemHealth(forceRefresh = false) {
     const icon = $('refreshSystemHealthIcon');
-    if (icon && forceRefresh) icon.classList.add('animate-spin');
+    if (forceRefresh) {
+      window.toggleSystemHealthAccordion(true);
+      if (icon) icon.classList.add('animate-spin');
+    }
     try {
       const res = await window.api?.getSystemHealth?.(forceRefresh);
       if (res && res.ok && res.health) {
@@ -1346,6 +1358,7 @@ openEditSslDomainModal(domain) {
   window.runAdminReconcile = async function() {
     const btn = $('runAdminReconcileBtn');
     if (btn) btn.disabled = true;
+    window.toggleSystemHealthAccordion(true);
     try {
       const res = await window.api?.runAdminReconcile?.();
       if (res && res.ok) {

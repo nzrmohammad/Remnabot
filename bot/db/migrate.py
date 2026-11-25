@@ -17,10 +17,10 @@ _BASELINE_REV = "0001_baseline"
 _ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
 
 
-def _inspect_migration_state(sync_conn) -> tuple[bool, bool]:
-    """Return (has_alembic_version, has_legacy_tables) for stamp vs fresh upgrade."""
+def _inspect_migration_state(sync_conn) -> tuple[bool, bool, bool]:
+    """Return (has_alembic_version, has_legacy_users, has_support_chat_messages)."""
     tables = set(inspect(sync_conn).get_table_names())
-    return ("alembic_version" in tables, "users" in tables)
+    return ("alembic_version" in tables, "users" in tables, "support_chat_messages" in tables)
 
 
 async def ensure_schema_migrated(
@@ -30,7 +30,7 @@ async def ensure_schema_migrated(
 ) -> str:
     """Safely upgrade DB schema via Alembic, stamping pre-Alembic databases first.
 
-    Returns 'stamped_and_upgraded' or 'upgraded'.
+    Returns 'stamped_head', 'stamped_and_upgraded', or 'upgraded'.
     """
     db_url = database_url or get_settings().DATABASE_URL
     cfg = Config(str(alembic_ini))
@@ -39,11 +39,15 @@ async def ensure_schema_migrated(
     engine = create_async_engine(db_url, pool_pre_ping=True)
     try:
         async with engine.connect() as conn:
-            has_alembic, has_legacy_users = await conn.run_sync(_inspect_migration_state)
+            has_alembic, has_legacy_users, has_support_chat = await conn.run_sync(_inspect_migration_state)
     finally:
         await engine.dispose()
 
     if not has_alembic and has_legacy_users:
+        if has_support_chat:
+            logger.info("Existing database already contains support_chat_messages; stamping Alembic head directly.")
+            await asyncio.to_thread(command.stamp, cfg, "head")
+            return "stamped_head"
         logger.info("Existing database without alembic_version detected; stamping %s first.", _BASELINE_REV)
         await asyncio.to_thread(command.stamp, cfg, _BASELINE_REV)
         await asyncio.to_thread(command.upgrade, cfg, "head")
