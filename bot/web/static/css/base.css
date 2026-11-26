@@ -34,17 +34,6 @@ html, body, button, input, optgroup, select, textarea, div, span, p, h1, h2, h3,
   font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
 }
 
-/* Balanced word separation on small Persian captions (10px-12px) without stretching large headings */
-[dir="rtl"] .text-\[10px\],
-[dir="rtl"] .text-\[10\.5px\],
-[dir="rtl"] .text-\[11px\] {
-  word-spacing: 0.22em;
-}
-
-[dir="rtl"] .text-xs {
-  word-spacing: 0.12em;
-}
-
 [dir="ltr"], .num-bidi, .font-en {
   word-spacing: normal;
 }

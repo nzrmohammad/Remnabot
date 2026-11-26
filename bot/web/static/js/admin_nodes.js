@@ -17,9 +17,9 @@
   let currentEditSslDomainTarget = null;
   let currentDeleteSslDomainTarget = null;
 
-  // Collapsible Accordion Node Card Renderer
+  // Collapsible Accordion Node Card Renderer (only renders overview cards when dedicated overview container exists)
   function renderOverviewNodes(nodes) {
-    const container = $('adminOverviewNodesList') || $('adminNodesFullList');
+    const container = $('adminOverviewNodesList');
     if (!container) return;
     if (!nodes || nodes.length === 0) {
       container.innerHTML = `
@@ -299,7 +299,8 @@
       }
       const fmtFx = (v) => toEnglishDigits(Number(Number(v).toFixed(2)));
 
-      const boxId = `nodeBox_${n.id || idx}`;
+      const nodeKey = String(n.uuid || n.id || idx).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const boxId = `nodeBox_${nodeKey}`;
 
       return `
         <div class="node-card settings-box bg-slate-800/90 rounded-2xl border ${isOverloaded ? 'border-rose-500/80 shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-heartbeat' : 'border-slate-700/80'} shadow-md relative overflow-hidden transition-all">
@@ -456,7 +457,6 @@
                   <span>موعد سررسید تمدید:</span>
                 </span>
                 <div class="flex items-center gap-1.5">
-                  ${n.due_date_source === 'panel' ? '<span class="badge badge-info text-[9.5px] px-1.5 py-0" title="خوانده‌شده از Infra Billing پنل">پنل</span>' : ''}
                   ${dueBadgeHtml}
                 </div>
               </div>
@@ -751,7 +751,7 @@ openEditSslDomainModal(domain) {
 
 // --- Node Infra-Billing & Panel Config Actions ---
     switchNodeBillingTab(tabKey = 'finance') {
-      const tabs = ['finance', 'panel'];
+      const tabs = ['finance', 'due', 'panel'];
       const activeCls = 'h-8 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow flex items-center justify-center gap-1.5';
       const inactiveCls = 'h-8 rounded-xl text-[11px] font-medium transition t-muted hover:t-main flex items-center justify-center gap-1.5';
       tabs.forEach(k => {
@@ -1171,7 +1171,6 @@ openEditSslDomainModal(domain) {
       $('nodeBillingCostToman').value = costToman || '';
       $('nodeBillingCostEur').value = costEur || '';
       $('nodeBillingDueDate').value = dueDate ? dueDate.slice(0, 10) : '';
-      $('nodeBillingNotes').value = notes || '';
 
       const meta = panelMeta || {};
       const userMult = meta.userMultiplier !== undefined && meta.userMultiplier !== '' ? String(meta.userMultiplier) : '';
@@ -1387,7 +1386,6 @@ openEditSslDomainModal(domain) {
       const monthly_cost_eur = parseFloat($('nodeBillingCostEur')?.value || '0');
       const currency = ($('nodeBillingCurrency')?.value || 'EUR').toUpperCase();
       const due_date = $('nodeBillingDueDate')?.value?.trim() || null;
-      const notes = $('nodeBillingNotes')?.value?.trim();
 
       if (!node_uuid) {
         if (window.showToast) window.showToast('شناسه سرور یافت نشد.');
@@ -1409,7 +1407,6 @@ openEditSslDomainModal(domain) {
           monthly_cost_eur,
           currency,
           due_date,
-          notes,
         };
 
         const snap = this._nodePanelSnapshot || {};

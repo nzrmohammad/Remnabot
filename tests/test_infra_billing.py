@@ -556,8 +556,8 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     nodes_js = Path("bot/web/static/js/admin_nodes.js").read_text(encoding="utf-8")
     finance_js = Path("bot/web/static/js/admin_finance.js").read_text(encoding="utf-8")
 
-    assert "word-spacing: 0.22em" in base_css
-    assert "word-spacing: 0.12em" in base_css
+    assert "word-spacing: 0.22em" not in base_css
+    assert "word-spacing: 0.12em" not in base_css
     assert "word-spacing: 0.14em" not in base_css
     assert "پورسانت نقدی دعوت (%)" in admin_html
     assert "پورسانت نقدی دعوت (٪)" not in admin_html
@@ -568,6 +568,10 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     assert "(Infra Providers)" not in admin_html
     assert 'id="refreshNodesTabBtn"' not in admin_html
     assert 'id="panelHostSquadsModal"' in admin_html
+    assert 'id="panelHostsSelectAllBtn"' in admin_html
+    assert 'id="nodeBillingTabBtn_due"' in admin_html
+    assert 'id="nodeBillingTabPane_due"' in admin_html
+    assert 'id="nodeBillingNotes"' not in admin_html
     assert 'id="panelBillCreateModal"' in admin_html
     assert admin_html.find('id="panelHostPort"') < admin_html.find('id="panelHostAddress"')
     assert admin_html.find('id="subtabBtnNodesPanel"') < admin_html.find('id="subtabBtnNodesServers"')
@@ -575,6 +579,8 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     assert 'id="nodeConfigProfilePickerModal"' in admin_html
     assert "animate-ping" in nodes_js and "سررسید!" not in nodes_js
     assert nodes_js.count("openNodeBoxIds") == 2
+    assert "$('adminOverviewNodesList') || $('adminNodesFullList')" not in nodes_js
+    assert "خوانده‌شده از Infra Billing پنل\">پنل</span>" not in nodes_js
     assert "User / Node Multiplier:" not in nodes_js
     assert "ورژن هسته (Xray):" in nodes_js
     assert "ورژن نود:" in nodes_js
@@ -591,6 +597,9 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
     assert "window.panelCtrl?.fetchOverview" in admin_js
     assert "internalSquads" in panel_js
+    assert "لغو انتخاب همه" in panel_js
+    assert "sub: ''" in panel_js
+    assert panel_js.find("${escapeHtml(h.remark || 'Host')}") < panel_js.rfind("${statusIcon}")
     assert "panelCtrl.openHostSquadsModal()" in admin_html
     assert panel_js.find("${inbounds.length} اینباند") < panel_js.find("${escapeHtml(p.name || 'Profile')}")
     assert panel_js.find("openProviderModal(") < panel_js.find("renderInfraProviders") or (

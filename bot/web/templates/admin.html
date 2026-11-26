@@ -891,13 +891,15 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-2">
-              <div class="admin-search-box flex-1 min-w-0">
+            <div class="space-y-2">
+              <div class="admin-search-box w-full">
                 <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input type="text" oninput="window.panelCtrl.filterHosts(this.value)" placeholder="جستجوی هاست یا SNI..." class="bg-transparent text-xs placeholder:text-[11px] t-main outline-none flex-1 min-w-0" />
               </div>
-              <button type="button" onclick="window.panelCtrl.toggleSelectAllHosts()" class="btn btn-secondary px-2.5 py-2 text-[11px] rounded-xl font-bold shrink-0">انتخاب همه</button>
-              <button type="button" onclick="window.panelCtrl.openHostModal()" class="btn btn-primary px-3 py-2 text-[11px] rounded-xl font-bold shrink-0 whitespace-nowrap">+ هاست جدید</button>
+              <div class="grid grid-cols-2 gap-2">
+                <button id="panelHostsSelectAllBtn" type="button" onclick="window.panelCtrl.toggleSelectAllHosts()" class="btn btn-secondary w-full py-2 text-[11px] rounded-xl font-bold">انتخاب همه</button>
+                <button type="button" onclick="window.panelCtrl.openHostModal()" class="btn btn-primary w-full py-2 text-[11px] rounded-xl font-bold whitespace-nowrap">+ هاست جدید</button>
+              </div>
             </div>
 
             <div id="panelHostsBulkBar" class="hidden card-inset p-2.5 rounded-2xl border border-cyan-500/35 flex flex-wrap items-center justify-between gap-2 text-[11px]">
@@ -4351,10 +4353,14 @@
         </div>
 
         <!-- Top Filter Tabs -->
-        <div class="grid grid-cols-2 gap-1 card-inset border border-card-border rounded-2xl p-1 mt-2.5 shrink-0">
+        <div class="grid grid-cols-3 gap-1 card-inset border border-card-border rounded-2xl p-1 mt-2.5 shrink-0">
           <button type="button" id="nodeBillingTabBtn_finance" onclick="window.adminActions.switchNodeBillingTab('finance')" class="h-8 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow flex items-center justify-center gap-1.5">
             <img src="/static/img/icons/coins.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-            <span>مالی و سررسید</span>
+            <span>مالی</span>
+          </button>
+          <button type="button" id="nodeBillingTabBtn_due" onclick="window.adminActions.switchNodeBillingTab('due')" class="h-8 rounded-xl text-[11px] font-medium transition t-muted hover:t-main flex items-center justify-center gap-1.5">
+            <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+            <span>سررسید</span>
           </button>
           <button type="button" id="nodeBillingTabBtn_panel" onclick="window.adminActions.switchNodeBillingTab('panel')" class="h-8 rounded-xl text-[11px] font-medium transition t-muted hover:t-main flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -4368,7 +4374,7 @@
             <input type="hidden" id="nodeBillingId" value="" />
             <input type="hidden" id="nodeBillingName" value="" />
 
-            <!-- TAB 1: Finance & Renewal -->
+            <!-- TAB 1: Finance -->
             <div id="nodeBillingTabPane_finance" class="space-y-3">
               <!-- Card 1: Monthly Cost & Currency Switch -->
               <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
@@ -4412,8 +4418,31 @@
                 </div>
               </div>
 
-              <!-- Card 2: Renewal Schedule -->
-              <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2">
+              <!-- Card 2: Provider Picker & Payment Records -->
+              <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
+                <div class="min-w-0">
+                  <div class="flex items-center justify-between gap-2 mb-1">
+                    <label class="text-[11px] t-muted">ارائه‌دهنده سرور:</label>
+                    <div class="flex items-center gap-2.5 shrink-0">
+                      <button type="button" onclick="window.adminActions.openBillFromNodeModal()" class="text-[10.5px] t-success font-bold hover:underline" title="ثبت رکورد پرداخت (Bill Record) در پنل">+ ثبت پرداخت</button>
+                      <button type="button" id="syncNodePanelBillingBtn" onclick="window.adminActions.syncNodeBillingToPanel()" class="text-[10.5px] t-accent font-bold hover:underline" title="همگام‌سازی ارائه‌دهنده و سررسید در بخش Infra Billing پنل">سینک در پنل</button>
+                    </div>
+                  </div>
+                  <input type="hidden" id="nodeBillingProviderUuid" value="" />
+                  <button type="button" id="nodeBillingProviderPickerBtn" onclick="window.adminActions.openNodeProviderModal()" class="input-base h-10 px-3 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-2 hover:border-cyan-500/50 transition active:scale-[0.99]">
+                    <span id="nodeBillingProviderDisplay" class="t-main font-semibold truncate">بدون ارائه‌دهنده</span>
+                    <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                  <div id="nodeBillingProviderCustomWrap" class="hidden mt-1.5">
+                    <input type="text" id="nodeBillingProvider" placeholder="نام ارائه‌دهنده دستی..." class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full min-w-0" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: Renewal Schedule -->
+            <div id="nodeBillingTabPane_due" class="space-y-3 hidden">
+              <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-1.5">
                     <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
@@ -4435,35 +4464,6 @@
                   </button>
                 </div>
                 <span class="text-[10px] t-muted block">3 روز پیش از تاریخ سررسید، هشدار تمدید در تلگرام ارسال می‌شود.</span>
-              </div>
-
-              <!-- Card 3: Provider Picker Button & Notes -->
-              <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
-                <div class="min-w-0">
-                  <div class="flex items-center justify-between gap-2 mb-1">
-                    <label class="text-[11px] t-muted">ارائه‌دهنده سرور:</label>
-                    <div class="flex items-center gap-2.5 shrink-0">
-                      <button type="button" onclick="window.adminActions.openBillFromNodeModal()" class="text-[10.5px] t-success font-bold hover:underline" title="ثبت رکورد پرداخت (Bill Record) در پنل">+ ثبت پرداخت</button>
-                      <button type="button" id="syncNodePanelBillingBtn" onclick="window.adminActions.syncNodeBillingToPanel()" class="text-[10.5px] t-accent font-bold hover:underline" title="همگام‌سازی ارائه‌دهنده و سررسید در بخش Infra Billing پنل">سینک در پنل</button>
-                    </div>
-                  </div>
-                  <input type="hidden" id="nodeBillingProviderUuid" value="" />
-                  <button type="button" id="nodeBillingProviderPickerBtn" onclick="window.adminActions.openNodeProviderModal()" class="input-base h-10 px-3 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-2 hover:border-cyan-500/50 transition active:scale-[0.99]">
-                    <span id="nodeBillingProviderDisplay" class="t-main font-semibold truncate">بدون ارائه‌دهنده</span>
-                    <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                  </button>
-                  <div id="nodeBillingProviderCustomWrap" class="hidden mt-1.5">
-                    <input type="text" id="nodeBillingProvider" placeholder="نام ارائه‌دهنده دستی..." class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full min-w-0" />
-                  </div>
-                </div>
-
-                <div class="min-w-0">
-                  <div class="flex items-center justify-between mb-1">
-                    <label for="nodeBillingNotes" class="text-[11px] t-muted">یادداشت و مشخصات:</label>
-                    <span class="badge-optional">اختیاری</span>
-                  </div>
-                  <input type="text" id="nodeBillingNotes" placeholder="مثلاً: 32GB RAM / پلن اختصاصی" class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full min-w-0" />
-                </div>
               </div>
             </div>
 

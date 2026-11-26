@@ -625,13 +625,14 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     assert 'flex items-center justify-between gap-2' in admin_nodes_js[prof_idx - 300:prof_idx + 20]
     assert "قیمت تمام‌شده به ازای هر گیگ:" in admin_nodes_js
 
-    # 2. Node billing modal: split notes (اختیاری), polished Vazirmatn date input & no font-mono
+    # 2. Node billing modal: deduplicated panel description, separated due tab, polished Vazirmatn date input & no font-mono
     billing_modal = admin_html[admin_html.find('id="nodeBillingModal"'):admin_html.find('id="campaignDetailModal"')]
     assert "node-date-input" in billing_modal
     assert "[color-scheme:dark]" not in billing_modal
     assert "addDaysToNodeBillingDueDate(30)" in billing_modal
-    assert ">یادداشت و مشخصات:</label>" in billing_modal
-    assert ">اختیاری</span>" in billing_modal
+    assert ">توضیحات سرور در پنل:</label>" in billing_modal
+    assert "یادداشت و مشخصات:" not in billing_modal
+    assert 'id="nodeBillingTabBtn_due"' in billing_modal
     assert 'input[type="date"]' in components_css
     assert "::-webkit-datetime-edit" in components_css
     assert "font-mono" not in charts_js

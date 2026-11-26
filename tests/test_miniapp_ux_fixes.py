@@ -350,6 +350,7 @@ def test_admin_health_sub_and_redesigned_modals():
     assert 'min-w-0' in billing_block
     assert 'تنظیمات سرور' in billing_block
     assert 'id="nodeBillingTabBtn_finance"' in billing_block
+    assert 'id="nodeBillingTabBtn_due"' in billing_block
     assert 'id="nodeBillingTabBtn_panel"' in billing_block
     assert 'id="nodeBillingUserMultiplier"' in billing_block
     assert 'id="nodeBillingNodeMultiplier"' in billing_block

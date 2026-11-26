@@ -156,6 +156,15 @@
     }
   }
 
+  function _matchesHostQuery(h, q) {
+    if (!q) return true;
+    return (
+      String(h.remark || '').toLowerCase().includes(q)
+      || String(h.address || '').toLowerCase().includes(q)
+      || String(h.sni || '').toLowerCase().includes(q)
+    );
+  }
+
   // --- 1. Hosts Rendering & Actions ---
   function renderHosts() {
     const listEl = $('panelHostsList');
@@ -169,18 +178,18 @@
     if ($('panelHostsDisabledBadge')) $('panelHostsDisabledBadge').innerText = String(disabledCount);
 
     const q = hostSearchQuery.trim().toLowerCase();
-    const filtered = q
-      ? allHosts.filter(h =>
-          String(h.remark || '').toLowerCase().includes(q)
-          || String(h.address || '').toLowerCase().includes(q)
-          || String(h.sni || '').toLowerCase().includes(q)
-        )
-      : allHosts;
+    const filtered = q ? allHosts.filter(h => _matchesHostQuery(h, q)) : allHosts;
 
     const bulkBar = $('panelHostsBulkBar');
     if (bulkBar) {
       bulkBar.classList.toggle('hidden', selectedHostUuids.size === 0);
       if ($('panelHostsSelectedCount')) $('panelHostsSelectedCount').innerText = `${selectedHostUuids.size} مورد انتخاب شده`;
+    }
+    const selectAllBtn = $('panelHostsSelectAllBtn');
+    if (selectAllBtn) {
+      const targetHosts = q ? filtered : allHosts;
+      const allSelected = targetHosts.length > 0 && targetHosts.every(h => selectedHostUuids.has(String(h.uuid || '')));
+      selectAllBtn.innerText = allSelected ? 'لغو انتخاب همه' : 'انتخاب همه';
     }
 
     if (filtered.length === 0) {
@@ -218,9 +227,9 @@
               </button>
             </div>
             <div class="min-w-0 flex-1 text-left cursor-pointer" dir="ltr" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}')">
-              <div class="flex items-center justify-start gap-1.5 flex-wrap">
-                ${statusIcon}
+              <div class="flex items-center justify-start gap-1.5 min-w-0">
                 <b class="text-xs t-main truncate font-en">${escapeHtml(h.remark || 'Host')}</b>
+                ${statusIcon}
               </div>
               <div class="text-[11px] t-accent font-sans num-bidi truncate mt-0.5">${escapeHtml(h.address || '—')}:${Number(h.port || 443)}</div>
             </div>
@@ -250,11 +259,18 @@
   }
 
   function toggleSelectAllHosts() {
-    const hosts = panelState.hosts || [];
-    if (selectedHostUuids.size === hosts.length) {
-      selectedHostUuids.clear();
+    const allHosts = Array.isArray(panelState.hosts) ? panelState.hosts : [];
+    const q = hostSearchQuery.trim().toLowerCase();
+    const targetHosts = q ? allHosts.filter(h => _matchesHostQuery(h, q)) : allHosts;
+    const allSelected = targetHosts.length > 0 && targetHosts.every(h => selectedHostUuids.has(String(h.uuid || '')));
+    if (allSelected) {
+      if (q) {
+        targetHosts.forEach(h => { if (h.uuid) selectedHostUuids.delete(String(h.uuid)); });
+      } else {
+        selectedHostUuids.clear();
+      }
     } else {
-      hosts.forEach(h => { if (h.uuid) selectedHostUuids.add(String(h.uuid)); });
+      targetHosts.forEach(h => { if (h.uuid) selectedHostUuids.add(String(h.uuid)); });
     }
     renderHosts();
   }
@@ -394,7 +410,7 @@
       return renderModalPickerRow({
         onClick: `window.panelCtrl.toggleHostSquadSelection('${escapeHtml(u)}')`,
         title: sq.name || u,
-        sub: u.slice(0, 12),
+        sub: '',
         selected,
         isEnglish: true,
         rowDir: 'ltr',
