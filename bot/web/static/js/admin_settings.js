@@ -146,7 +146,9 @@
     // 2. Cloudflare
     { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1', doh: 'https://1.1.1.1/dns-query', dot: 'one.one.one.one' },
     { name: 'Cloudflare Security', primary: '1.1.1.2', secondary: '1.0.0.2', doh: 'https://security.cloudflare-dns.com/dns-query', dot: '' },
+    { name: 'Cloudflare (Family)', primary: '1.1.1.3', secondary: '1.0.0.3', doh: 'https://family.cloudflare-dns.com/dns-query', dot: 'family.cloudflare-dns.com' },
     { name: 'Cloudflare (IPv6)', primary: '2606:4700:4700::1111', secondary: '2606:4700:4700::1001', doh: '', dot: '' },
+    { name: 'Cloudflare (Family IPv6)', primary: '2606:4700:4700::1113', secondary: '2606:4700:4700::1003', doh: '', dot: '' },
 
     // 3. Google
     { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4', doh: 'https://dns.google/dns-query', dot: 'dns.google' },
@@ -161,12 +163,17 @@
     { name: 'AdGuard', primary: '94.140.14.14', secondary: '94.140.15.15', doh: 'https://dns.adguard-dns.com/dns-query', dot: 'dns.adguard-dns.com' },
     { name: 'AdGuard (Family)', primary: '94.140.14.15', secondary: '94.140.15.16', doh: 'https://family.adguard-dns.com/dns-query', dot: 'family.adguard-dns.com' },
     { name: 'AdGuard (IPv6)', primary: '2a10:50c0::ad1:ff', secondary: '2a10:50c0::ad2:ff', doh: '', dot: '' },
+    { name: 'AdGuard (Family IPv6)', primary: '2a10:50c0::bad1:ff', secondary: '2a10:50c0::bad2:ff', doh: '', dot: '' },
 
-    // 6. OpenDNS
+    // 6. CleanBrowsing
+    { name: 'CleanBrowsing (Family)', primary: '185.228.168.168', secondary: '185.228.169.168', doh: 'https://doh.cleanbrowsing.org/doh/family-filter/', dot: 'family-filter-dns.cleanbrowsing.org' },
+
+    // 7. OpenDNS
     { name: 'OpenDNS', primary: '208.67.222.222', secondary: '208.67.220.220', doh: 'https://doh.opendns.com/dns-query', dot: 'dns.opendns.com' },
+    { name: 'OpenDNS (Family)', primary: '208.67.222.123', secondary: '208.67.220.123', doh: 'https://doh.familyshield.opendns.com/dns-query', dot: 'dns.opendns.com' },
     { name: 'OpenDNS (IPv6)', primary: '2620:119:35::35', secondary: '2620:119:53::53', doh: '', dot: '' },
 
-    // 7. Yandex
+    // 8. Yandex
     { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1', doh: 'https://common.dot.dns.yandex.net/dns-query', dot: 'common.dot.dns.yandex.net' },
     { name: 'Yandex (IPv6)', primary: '2a02:6b8::feed:0ff', secondary: '2a02:6b8:0:1::feed:0ff', doh: '', dot: '' }
   ];

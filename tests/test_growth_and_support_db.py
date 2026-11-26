@@ -409,3 +409,83 @@ async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
     finally:
         con.close()
     assert rev_existing == ("0002_support_chat_history",)
+
+
+@pytest.mark.anyio
+async def test_affiliate_commission_records_marker_when_reward_gb_zero(session_factory):
+    """When referral_reward_gb == 0 and commission > 0, first purchase records a 0 GB marker so renewals don't double-pay."""
+    from bot.db.models import User, Wallet
+    from bot.db.repositories.referral_repo import ReferralRepository
+    from bot.services.purchases import maybe_reward_referrer
+    from bot.web.cache import FastCache
+
+    async with session_factory() as session:
+        inviter = User(telegram_id=92001, username="inviter_zero", language="fa", spin_tickets=0)
+        referee = User(telegram_id=92002, username="referee_zero", language="fa", referred_by_id=92001)
+        session.add_all([inviter, referee, Wallet(telegram_id=92001, balance=0)])
+        await session.commit()
+
+        bot = MagicMock()
+        bot.send_message = AsyncMock()
+        remnawave = MagicMock()
+        remnawave.get_users_by_telegram_id = AsyncMock(return_value=[])
+        cache = FastCache(redis_client=None)
+
+        store_zero_gb = SimpleNamespace(
+            referral_enabled=True,
+            referral_reward_gb=0,
+            referral_commission_percent=10,
+            referral_renew_commission_enabled=False,
+        )
+        with patch("bot.services.purchases.get_store_settings", AsyncMock(return_value=store_zero_gb)):
+            await maybe_reward_referrer(bot, session, remnawave, referee, paid_amount=100_000, cache=cache)
+
+        w = (await session.execute(select(Wallet).where(Wallet.telegram_id == 92001))).scalar_one()
+        await session.refresh(w)
+        assert w.balance == 10_000
+
+        ref_repo = ReferralRepository(session)
+        assert await ref_repo.has_rewarded(92002) is True
+
+        # Second purchase with renew commission disabled must NOT pay again
+        with patch("bot.services.purchases.get_store_settings", AsyncMock(return_value=store_zero_gb)):
+            await maybe_reward_referrer(bot, session, remnawave, referee, paid_amount=100_000, cache=cache)
+        await session.refresh(w)
+        assert w.balance == 10_000
+
+
+@pytest.mark.anyio
+async def test_referral_entry_shows_cash_commission_details(session_factory):
+    """Bot menu:referral handler includes percentage cash commission & scope when referral_commission_percent > 0."""
+    from bot.db.models import User
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.db.repositories.user_repo import UserRepository
+    from bot.handlers.referral import referral_entry
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=93001, username="bot_inviter", language="fa"))
+        srepo = AppSettingRepository(session)
+        await srepo.set("referral_enabled", "1")
+        await srepo.set("referral_reward_gb", "5")
+        await srepo.set("referral_commission_percent", "12")
+        await srepo.set("referral_renew_commission_enabled", "1")
+        await session.commit()
+
+        user_repo = UserRepository(session)
+        bot = MagicMock()
+        bot.get_me = AsyncMock(return_value=SimpleNamespace(username="TestVpnBot"))
+        bot.send_message = AsyncMock(return_value=SimpleNamespace(message_id=501))
+
+        call = MagicMock()
+        call.from_user = SimpleNamespace(id=93001, username="bot_inviter")
+        call.answer = AsyncMock()
+        call.message = MagicMock()
+
+        await referral_entry(call, bot, user_repo, session)
+
+        bot.send_message.assert_awaited_once()
+        rendered_text = bot.send_message.await_args.kwargs["text"]
+        assert "12%" in rendered_text
+        assert "5" in rendered_text
+        assert "تمدید" in rendered_text
+

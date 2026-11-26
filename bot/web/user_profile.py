@@ -872,6 +872,8 @@ async def get_user_me(request: web.Request) -> web.Response:
             "panel_error": panel_error,
             "bot_username": bot_username,
             "referral_reward_gb": referral_reward_gb,
+            "referral_commission_percent": int(getattr(store_settings, "referral_commission_percent", 0) or 0),
+            "referral_renew_commission_enabled": bool(getattr(store_settings, "referral_renew_commission_enabled", False)),
             "referral_enabled": store_settings.referral_enabled,
             "referral_link": ref_link,
             "referral_qr_url": referral_qr_url,

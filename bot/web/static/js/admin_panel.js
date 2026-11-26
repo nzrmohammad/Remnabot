@@ -25,8 +25,10 @@
   let hostSquadTempMode = 'EXCLUDE';
   let hostSquadTempSet = new Set();
   const TRASH_ICON_SVG = '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
+  const HOSTS_PAGE_SIZE = 15;
   let selectedHostUuids = new Set();
   let hostSearchQuery = '';
+  let hostsPage = 1;
   let activeSubSection = 'hosts';
   let pendingConfirmHandler = null;
   let onProviderSavedCallback = null;
@@ -190,12 +192,46 @@
       selectAllBtn.innerText = allSelected ? 'لغو انتخاب همه' : 'انتخاب همه';
     }
 
+    const paginationEl = $('panelHostsPagination');
     if (filtered.length === 0) {
       listEl.innerHTML = '<div class="p-5 text-center text-xs t-muted card-inset rounded-2xl border border-card-border">هیچ هاستی یافت نشد.</div>';
+      if (paginationEl) {
+        paginationEl.classList.add('hidden');
+        paginationEl.innerHTML = '';
+      }
       return;
     }
 
-    listEl.innerHTML = filtered.map(h => {
+    const totalPages = Math.max(1, Math.ceil(filtered.length / HOSTS_PAGE_SIZE));
+    if (hostsPage > totalPages) hostsPage = totalPages;
+    if (hostsPage < 1) hostsPage = 1;
+    const startIdx = (hostsPage - 1) * HOSTS_PAGE_SIZE;
+    const pageItems = filtered.slice(startIdx, startIdx + HOSTS_PAGE_SIZE);
+
+    if (paginationEl) {
+      if (totalPages <= 1) {
+        paginationEl.classList.add('hidden');
+        paginationEl.innerHTML = '';
+      } else {
+        const endIdx = Math.min(startIdx + pageItems.length, filtered.length);
+        const prevDisabled = hostsPage <= 1 ? 'opacity-40 pointer-events-none' : 'hover:border-cyan-500/40';
+        const nextDisabled = hostsPage >= totalPages ? 'opacity-40 pointer-events-none' : 'hover:border-cyan-500/40';
+        paginationEl.classList.remove('hidden');
+        paginationEl.innerHTML = `
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="window.panelCtrl.setHostsPage(${hostsPage - 1})" class="px-2.5 py-1.5 rounded-xl card-inset border border-card-border t-main font-bold transition active:scale-95 ${prevDisabled}" ${hostsPage <= 1 ? 'disabled' : ''}>قبلی</button>
+            <button type="button" onclick="window.panelCtrl.setHostsPage(${hostsPage + 1})" class="px-2.5 py-1.5 rounded-xl card-inset border border-card-border t-main font-bold transition active:scale-95 ${nextDisabled}" ${hostsPage >= totalPages ? 'disabled' : ''}>بعدی</button>
+          </div>
+          <div class="text-[11px] t-muted font-medium" dir="rtl">
+            صفحه <span class="font-bold t-main num-bidi">${hostsPage}</span> از <span class="num-bidi">${totalPages}</span>
+            <span class="mx-1 opacity-50">•</span>
+            <span class="num-bidi">${startIdx + 1}-${endIdx}</span> از <span class="num-bidi">${filtered.length}</span>
+          </div>
+        `;
+      }
+    }
+
+    listEl.innerHTML = pageItems.map(h => {
       const uuid = String(h.uuid || '');
       const disabled = Boolean(h.isDisabled);
       const checked = selectedHostUuids.has(uuid);
@@ -254,8 +290,15 @@
     }).join('');
   }
 
+  function setHostsPage(page = 1) {
+    const num = parseInt(page, 10);
+    hostsPage = Number.isFinite(num) && num >= 1 ? num : 1;
+    renderHosts();
+  }
+
   function filterHosts(q = '') {
     hostSearchQuery = q;
+    hostsPage = 1;
     renderHosts();
   }
 
@@ -1533,6 +1576,7 @@
     fetchOverview,
     switchSubSection,
     filterHosts,
+    setHostsPage,
     toggleHostSelection,
     toggleSelectAllHosts,
     toggleSingleHost,

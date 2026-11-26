@@ -1213,7 +1213,9 @@ const DEFAULT_TV_DNS_LIST = [
   // 2. Cloudflare
   { name: 'Cloudflare', primary: '1.1.1.1', secondary: '1.0.0.1', doh: 'https://1.1.1.1/dns-query', dot: 'one.one.one.one' },
   { name: 'Cloudflare Security', primary: '1.1.1.2', secondary: '1.0.0.2', doh: 'https://security.cloudflare-dns.com/dns-query', dot: '' },
+  { name: 'Cloudflare (Family)', primary: '1.1.1.3', secondary: '1.0.0.3', doh: 'https://family.cloudflare-dns.com/dns-query', dot: 'family.cloudflare-dns.com' },
   { name: 'Cloudflare (IPv6)', primary: '2606:4700:4700::1111', secondary: '2606:4700:4700::1001', doh: '', dot: '' },
+  { name: 'Cloudflare (Family IPv6)', primary: '2606:4700:4700::1113', secondary: '2606:4700:4700::1003', doh: '', dot: '' },
 
   // 3. Google
   { name: 'Google', primary: '8.8.8.8', secondary: '8.8.4.4', doh: 'https://dns.google/dns-query', dot: 'dns.google' },
@@ -1228,12 +1230,17 @@ const DEFAULT_TV_DNS_LIST = [
   { name: 'AdGuard', primary: '94.140.14.14', secondary: '94.140.15.15', doh: 'https://dns.adguard-dns.com/dns-query', dot: 'dns.adguard-dns.com' },
   { name: 'AdGuard (Family)', primary: '94.140.14.15', secondary: '94.140.15.16', doh: 'https://family.adguard-dns.com/dns-query', dot: 'family.adguard-dns.com' },
   { name: 'AdGuard (IPv6)', primary: '2a10:50c0::ad1:ff', secondary: '2a10:50c0::ad2:ff', doh: '', dot: '' },
+  { name: 'AdGuard (Family IPv6)', primary: '2a10:50c0::bad1:ff', secondary: '2a10:50c0::bad2:ff', doh: '', dot: '' },
 
-  // 6. OpenDNS
+  // 6. CleanBrowsing
+  { name: 'CleanBrowsing (Family)', primary: '185.228.168.168', secondary: '185.228.169.168', doh: 'https://doh.cleanbrowsing.org/doh/family-filter/', dot: 'family-filter-dns.cleanbrowsing.org' },
+
+  // 7. OpenDNS
   { name: 'OpenDNS', primary: '208.67.222.222', secondary: '208.67.220.220', doh: 'https://doh.opendns.com/dns-query', dot: 'dns.opendns.com' },
+  { name: 'OpenDNS (Family)', primary: '208.67.222.123', secondary: '208.67.220.123', doh: 'https://doh.familyshield.opendns.com/dns-query', dot: 'dns.opendns.com' },
   { name: 'OpenDNS (IPv6)', primary: '2620:119:35::35', secondary: '2620:119:53::53', doh: '', dot: '' },
 
-  // 7. Yandex
+  // 8. Yandex
   { name: 'Yandex', primary: '77.88.8.8', secondary: '77.88.8.1', doh: 'https://common.dot.dns.yandex.net/dns-query', dot: 'common.dot.dns.yandex.net' },
   { name: 'Yandex (IPv6)', primary: '2a02:6b8::feed:0ff', secondary: '2a02:6b8:0:1::feed:0ff', doh: '', dot: '' }
 ];
@@ -1500,7 +1507,7 @@ function renderTutorialApps(osKey) {
     });
 
     const IRAN_DNS_NAMES = ['electro', 'shecan', 'radar plus', 'begzar', 'shelter', 'xodns', 'tic dns'];
-    const GLOBAL_DNS_NAMES = ['cloudflare', 'google', 'quad9', 'adguard', 'opendns', 'yandex'];
+    const GLOBAL_DNS_NAMES = ['cloudflare', 'google', 'quad9', 'adguard', 'opendns', 'yandex', 'cleanbrowsing'];
 
     const categorizedList = tvDnsList.map((dns, idx) => {
       const lowerName = String(dns.name || '').toLowerCase();
@@ -1509,12 +1516,14 @@ function renderTutorialApps(osKey) {
       const isSecure = hasDoh || hasDot || lowerName.includes('doh') || lowerName.includes('dot') || String(dns.primary || '').startsWith('https://') || String(dns.secondary || '').startsWith('https://') || String(dns.primary || '').startsWith('tls://') || String(dns.secondary || '').startsWith('tls://') || String(dns.primary || '').includes('dns.');
       const isIran = IRAN_DNS_NAMES.some(k => lowerName.startsWith(k));
       const isGlobal = GLOBAL_DNS_NAMES.some(k => lowerName.startsWith(k));
+      const isFamily = lowerName.includes('family') || lowerName.includes('familyshield');
       return {
         ...dns,
         originalIdx: idx,
         isSecure,
         isIran,
-        isGlobal
+        isGlobal,
+        isFamily
       };
     });
 
@@ -1522,11 +1531,13 @@ function renderTutorialApps(osKey) {
     const iranCount = categorizedList.filter(d => d.isIran).length;
     const globalCount = categorizedList.filter(d => d.isGlobal).length;
     const secureCount = categorizedList.filter(d => d.isSecure).length;
+    const familyCount = categorizedList.filter(d => d.isFamily).length;
 
     const filteredDnsList = categorizedList.filter(d => {
       if (_currentDnsCategory === 'antisanction') return d.isIran;
       if (_currentDnsCategory === 'global') return d.isGlobal;
       if (_currentDnsCategory === 'secure') return d.isSecure;
+      if (_currentDnsCategory === 'family') return d.isFamily;
       return true;
     });
 
@@ -1545,6 +1556,9 @@ function renderTutorialApps(osKey) {
       } else if (cleanName.includes('(DoT)')) {
         displayName = cleanName.replace('(DoT)', '').trim();
         badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">DoT</span>';
+      } else if (cleanName.includes('(Family IPv6)')) {
+        displayName = cleanName.replace('(Family IPv6)', '').trim();
+        badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">Family IPv6</span>';
       } else if (cleanName.includes('(IPv6)')) {
         displayName = cleanName.replace('(IPv6)', '').trim();
         badgeHtml = '<span class="text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">IPv6</span>';
@@ -1627,6 +1641,7 @@ function renderTutorialApps(osKey) {
         <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('all')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'all' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">همه (${totalCount})</button>
         <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('antisanction')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'antisanction' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">ضدتحریم 🇮🇷 (${iranCount})</button>
         <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('global')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'global' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">بین‌المللی 🌐 (${globalCount})</button>
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('family')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'family' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">خانواده 👨‍👩‍👧 (${familyCount})</button>
         <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('secure')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'secure' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">DoH / DoT 🔒 (${secureCount})</button>
       </div>
     `;
@@ -4350,9 +4365,44 @@ function hydrateUserInterface(data) {
 
     const refCount = Number(user.referrals_count || 0);
     const refRewardGb = Number(data.referral_reward_gb ?? 5);
+    const refCommissionPct = Math.max(0, Math.min(50, Number(data.referral_commission_percent ?? 0)));
+    const refRenewCommission = Boolean(data.referral_renew_commission_enabled);
     if (refCountEl) refCountEl.innerHTML = `<span class="font-sans font-bold">${toEnglishDigits(refCount)}</span> <span class="font-sans">نفر</span>`;
     if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)}`;
-    if (refRewardBadge) refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
+
+    const refTitleEl = document.getElementById('profileReferralCardTitle');
+    const refNoteEl = document.getElementById('profileReferralNoteText');
+    const commissionScopeText = refRenewCommission ? 'اولین خرید و تمدیدهای او' : 'اولین خرید او';
+
+    if (refTitleEl) {
+      if (refCommissionPct > 0 && refRewardGb > 0) {
+        refTitleEl.innerText = 'دعوت دوستان و کسب درآمد و ترافیک';
+      } else if (refCommissionPct > 0) {
+        refTitleEl.innerText = 'دعوت دوستان و کسب پورسانت نقدی';
+      } else {
+        refTitleEl.innerText = 'دعوت دوستان و دریافت هدیه';
+      }
+    }
+
+    if (refRewardBadge) {
+      if (refCommissionPct > 0 && refRewardGb > 0) {
+        refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگ + ${toEnglishDigits(refCommissionPct)}% پورسانت به ازای دعوت`;
+      } else if (refCommissionPct > 0) {
+        refRewardBadge.innerText = `💰 ${toEnglishDigits(refCommissionPct)}% پورسانت نقدی به ازای هر دعوت`;
+      } else {
+        refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
+      }
+    }
+
+    if (refNoteEl) {
+      if (refCommissionPct > 0 && refRewardGb > 0) {
+        refNoteEl.innerText = `با دعوت هر دوست، پس از خرید موفق اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه و ${toEnglishDigits(refCommissionPct)}% پورسانت نقدی از ${commissionScopeText} به حساب شما واریز می‌شود.`;
+      } else if (refCommissionPct > 0) {
+        refNoteEl.innerText = `با دعوت هر دوست، ${toEnglishDigits(refCommissionPct)}% پورسانت نقدی از ${commissionScopeText} مستقیم به کیف پول شما واریز می‌شود.`;
+      } else {
+        refNoteEl.innerText = `با دعوت هر دوست، پس از اولین خرید اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه به اکانت شما اضافه می‌شود.`;
+      }
+    }
 
     // Notification Toggles
     const settings = data.settings || {};

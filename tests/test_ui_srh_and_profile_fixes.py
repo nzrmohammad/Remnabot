@@ -1165,3 +1165,85 @@ def test_plan_duplicate_and_reorder_frontend_contracts():
     assert "data-move-down" in admin_plans_js
     assert "window.api.reorderAdminPlans" in admin_plans_js
 
+
+@pytest.mark.anyio
+async def test_family_dns_hosts_pagination_and_referral_ui_contracts(session_factory):
+    """Verify Family DNS category/presets, hosts pagination UI, and referral commission Mini App + /api/me payload."""
+    from types import SimpleNamespace
+
+    from bot.db.models import User
+    from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.web.user_profile import get_user_me
+
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "bot" / "web" / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    admin_settings_js = (root / "bot" / "web" / "static" / "js" / "admin_settings.js").read_text(encoding="utf-8")
+    admin_panel_js = (root / "bot" / "web" / "static" / "js" / "admin_panel.js").read_text(encoding="utf-8")
+    app_html = (root / "bot" / "web" / "templates" / "app.html").read_text(encoding="utf-8")
+    admin_html = (root / "bot" / "web" / "templates" / "admin.html").read_text(encoding="utf-8")
+
+    # 1. Family DNS presets synced across Mini App and Admin + category filter tab
+    for preset in (
+        "Cloudflare (Family)",
+        "Cloudflare (Family IPv6)",
+        "AdGuard (Family IPv6)",
+        "CleanBrowsing (Family)",
+        "OpenDNS (Family)",
+    ):
+        assert preset in app_js
+        assert preset in admin_settings_js
+
+    assert "'cleanbrowsing'" in app_js
+    assert "lowerName.includes('family')" in app_js
+    assert "if (_currentDnsCategory === 'family') return d.isFamily;" in app_js
+    assert "setDnsCategory('family')" in app_js
+    assert "(Family IPv6)" in app_js
+
+    # 2. Hosts pagination controls & export
+    assert 'id="panelHostsPagination"' in admin_html
+    assert admin_html.find('id="panelHostsList"') < admin_html.find('id="panelHostsPagination"')
+    assert "const HOSTS_PAGE_SIZE = 15;" in admin_panel_js
+    assert "const pageItems = filtered.slice(startIdx, startIdx + HOSTS_PAGE_SIZE);" in admin_panel_js
+    assert "function setHostsPage(page = 1)" in admin_panel_js
+    assert "setHostsPage," in admin_panel_js
+
+    # 3. Referral commission Mini App card elements & /api/me exposure
+    assert 'id="profileReferralCardTitle"' in app_html
+    assert 'id="profileReferralNoteText"' in app_html
+    assert "data.referral_commission_percent" in app_js
+    assert "data.referral_renew_commission_enabled" in app_js
+
+    cache = FastCache(redis_client=None)
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": cache,
+        "settings": SimpleNamespace(TIMEZONE="Asia/Tehran", PANEL_URL="https://panel.example.com"),
+        "remnawave": SimpleNamespace(
+            get_users_by_telegram_id=AsyncMock(return_value=[]),
+            get_nodes=AsyncMock(return_value=[]),
+            get_all_users=AsyncMock(return_value=[]),
+            get_internal_squads=AsyncMock(return_value=[]),
+        ),
+    }
+
+    async with session_factory() as session:
+        session.add(User(telegram_id=8801, username="ref_tester", full_name="Ref Tester"))
+        srepo = AppSettingRepository(session)
+        await srepo.set("referral_enabled", "1")
+        await srepo.set("referral_reward_gb", "7")
+        await srepo.set("referral_commission_percent", "15")
+        await srepo.set("referral_renew_commission_enabled", "1")
+        await session.commit()
+
+    req_me = make_mocked_request("GET", "/api/me?user_id=8801", app=app)
+    resp_me = await get_user_me(req_me)
+    assert resp_me.status == 200
+    me_data = json.loads(resp_me.text)["data"]
+    assert me_data["referral_reward_gb"] == 7
+    assert me_data["referral_commission_percent"] == 15
+    assert me_data["referral_renew_commission_enabled"] is True
+
+

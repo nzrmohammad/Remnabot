@@ -30,7 +30,9 @@ async def referral_entry(
     lang = user.language or "fa"
 
     store_settings = await get_store_settings(session)
-    reward_gb = store_settings.referral_reward_gb
+    reward_gb = int(store_settings.referral_reward_gb or 0)
+    commission_pct = int(getattr(store_settings, "referral_commission_percent", 0) or 0)
+    renew_comm = bool(getattr(store_settings, "referral_renew_commission_enabled", False))
 
     referral_repo = ReferralRepository(session)
     invites_count = await referral_repo.get_invites_count(user.telegram_id)
@@ -42,10 +44,38 @@ async def referral_entry(
     share_text = "🚀 اینترنت آزاد، امن و پرسرعت با اکانت تست رایگان!\nجهت دریافت وارد ربات شوید:"
     share_url = f"https://t.me/share/url?url={invite_link}&text={quote_plus(share_text)}"
 
+    if commission_pct > 0:
+        scope_fa = "بابت اولین خرید و تمدیدهای بعدی" if renew_comm else "بابت اولین خرید"
+        scope_en = "on their first purchase and renewals" if renew_comm else "on their first purchase"
+        if lang == "fa":
+            reward_parts = []
+            if reward_gb > 0:
+                reward_parts.append(f"<b>{reward_gb} گیگابایت ترافیک هدیه</b>")
+            reward_parts.append(f"<b>{commission_pct}% پورسانت نقدی</b> (واریز مستقیم به کیف پول)")
+            body_text = (
+                f"با ارسال لینک اختصاصی خود به دوستانتان، به ازای هر دعوت موفق ({scope_fa} دوستتان)، "
+                f"{' و '.join(reward_parts)} دریافت کنید!\n\n"
+                f"🔗 <b>لینک دعوت اختصاصی شما (برای کپی لمس کنید):</b>\n"
+                f"<code>{invite_link}</code>"
+            )
+        else:
+            reward_parts = []
+            if reward_gb > 0:
+                reward_parts.append(f"<b>{reward_gb} GB free traffic</b>")
+            reward_parts.append(f"<b>{commission_pct}% cash commission</b> (credited directly to your wallet)")
+            body_text = (
+                f"Share your referral link with friends. Once a referred friend completes {scope_en}, "
+                f"earn {' and '.join(reward_parts)}!\n\n"
+                f"🔗 <b>Your Invite Link (tap to copy):</b>\n"
+                f"<code>{invite_link}</code>"
+            )
+    else:
+        body_text = t(lang, "referral_body", reward_gb=reward_gb, link=invite_link)
+
     lines = [
         t(lang, "referral_title"),
         SEPARATOR,
-        t(lang, "referral_body", reward_gb=reward_gb, link=invite_link),
+        body_text,
         SEPARATOR,
         t(lang, "referral_stats", count=invites_count, total_gb=total_gb),
     ]
