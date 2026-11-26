@@ -1933,13 +1933,21 @@ async def test_coupon_repo_expired_filter(session_factory):
 
 @pytest.mark.anyio
 async def test_serve_versioned_html_assets():
-    """Verify that user and admin HTML endpoints serve dynamic asset cache-busting tokens."""
+    """Verify that user and admin HTML endpoints serve dynamic asset cache-busting tokens and strict no-store headers."""
     from aiohttp import web
     from aiohttp.test_utils import make_mocked_request
-    from bot.web.server import serve_app_html, serve_admin_html, get_static_asset_version
+    from bot.web.server import (
+        serve_app_html,
+        serve_admin_html,
+        get_static_asset_version,
+        build_versioned_tma_url,
+    )
 
     v = get_static_asset_version()
     assert v and len(v) >= 4
+    assert build_versioned_tma_url("https://panel.test", "/admin") == f"https://panel.test/admin?v={v}"
+    assert build_versioned_tma_url("panel.test/", "admin") == f"https://panel.test/admin?v={v}"
+    assert build_versioned_tma_url("", "/admin") == ""
 
     app = web.Application()
     app["is_dev"] = True
@@ -1949,12 +1957,19 @@ async def test_serve_versioned_html_assets():
     assert res_app.status == 200
     assert f"?v={v}" in res_app.text
     assert res_app.content_type == "text/html"
+    assert "no-store" in res_app.headers.get("Cache-Control", "")
+    assert res_app.headers.get("Pragma") == "no-cache"
 
     req_admin = make_mocked_request("GET", "/admin", app=app)
     res_admin = await serve_admin_html(req_admin)
     assert res_admin.status == 200
     assert f"?v={v}" in res_admin.text
     assert res_admin.content_type == "text/html"
+    assert "no-store" in res_admin.headers.get("Cache-Control", "")
+    assert res_admin.headers.get("CDN-Cache-Control") == "no-store"
+    assert "refreshNodesTabBtn" not in res_admin.text
+    assert "(Infra Providers)" not in res_admin.text
+    assert 'id="panelHostSquadsModal"' in res_admin.text
 
 
 @pytest.mark.anyio

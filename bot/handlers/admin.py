@@ -52,6 +52,27 @@ _is_admin = is_admin
 _parse_int = parse_int
 
 
+def _resolve_admin_tma_url(clear_cache: bool = False) -> str:
+    """Resolve and cache-bust the Admin WebApp URL from WEB_APP_URL."""
+    from bot.web.server import build_versioned_tma_url
+
+    if clear_cache:
+        try:
+            get_settings.cache_clear()
+        except Exception:
+            pass
+    settings = get_settings()
+    web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip()
+    if not web_app_url and not clear_cache:
+        try:
+            get_settings.cache_clear()
+            settings = get_settings()
+            web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip()
+        except Exception:
+            pass
+    return build_versioned_tma_url(web_app_url, "/admin")
+
+
 @router.callback_query(F.data == "menu:admin")
 async def admin_panel(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository, state: FSMContext
@@ -93,23 +114,10 @@ async def admin_panel(
         kb.button(text=t(lang, "btn_nodes_monitor"), callback_data="adm:nodes")
 
     # Row 5: Admin Web Panel
-    settings = get_settings()
-    web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip().strip('"').strip("'")
-    if not web_app_url:
-        try:
-            get_settings.cache_clear()
-            settings = get_settings()
-            web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip().strip('"').strip("'")
-        except Exception:
-            pass
-
-    if web_app_url and not web_app_url.startswith(("http://", "https://")):
-        web_app_url = f"https://{web_app_url}"
-
+    admin_tma_url = _resolve_admin_tma_url()
     tma_btn_text = "👑 پنل مدیریت" if lang == "fa" else "👑 Admin Panel"
 
-    if web_app_url:
-        admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
+    if admin_tma_url:
         kb.button(text=tma_btn_text, web_app=WebAppInfo(url=admin_tma_url))
     else:
         kb.button(text=tma_btn_text, callback_data="adm:tma:nourl")
@@ -138,17 +146,9 @@ async def admin_tma_nourl(
         await call.answer()
         return
 
-    try:
-        get_settings.cache_clear()
-    except Exception:
-        pass
-    settings = get_settings()
-    web_app_url = str(getattr(settings, "WEB_APP_URL", "") or "").strip().strip('"').strip("'")
-    if web_app_url and not web_app_url.startswith(("http://", "https://")):
-        web_app_url = f"https://{web_app_url}"
+    admin_tma_url = _resolve_admin_tma_url(clear_cache=True)
 
-    if web_app_url:
-        admin_tma_url = f"{web_app_url.rstrip('/')}/admin"
+    if admin_tma_url:
         from aiogram.utils.keyboard import InlineKeyboardBuilder
         kb = InlineKeyboardBuilder()
         kb.button(text="🚀 ورود به پنل مدیریت", web_app=WebAppInfo(url=admin_tma_url))

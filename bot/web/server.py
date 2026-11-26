@@ -324,8 +324,17 @@ _STATIC_VERSION_CACHE: tuple[str, float] = ("", 0.0)
 _VERSIONED_HTML_CACHE: dict[str, tuple[str, float, str]] = {}
 
 
+_HTML_NO_CACHE_HEADERS = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+    "Pragma": "no-cache",
+    "Expires": "0",
+    "CDN-Cache-Control": "no-store",
+    "Cloudflare-CDN-Cache-Control": "no-store",
+}
+
+
 def get_static_asset_version() -> str:
-    """Calculate asset version token from hash of CSS/JS files (cached for 5s)."""
+    """Calculate asset version token from hash of CSS/JS/HTML files (cached for 5s)."""
     global _STATIC_VERSION_CACHE
     now = time.time()
     cached_ver, last_checked = _STATIC_VERSION_CACHE
@@ -333,14 +342,21 @@ def get_static_asset_version() -> str:
         return cached_ver
 
     try:
+        key_files: list[Path] = []
         if STATIC_DIR.exists():
-            import hashlib
-            hasher = hashlib.sha256()
-            key_files = sorted(
+            key_files.extend(
                 f for f in STATIC_DIR.rglob("*")
                 if f.is_file() and f.suffix in {".css", ".js"} and not f.name.startswith(".")
             )
-            for kf in key_files:
+        if TEMPLATES_DIR.exists():
+            key_files.extend(
+                f for f in TEMPLATES_DIR.glob("*.html")
+                if f.is_file() and not f.name.startswith(".")
+            )
+        if key_files:
+            import hashlib
+            hasher = hashlib.sha256()
+            for kf in sorted(key_files):
                 hasher.update(str(kf.stat().st_mtime).encode())
                 hasher.update(str(kf.stat().st_size).encode())
             version = hasher.hexdigest()[:10]
@@ -351,6 +367,17 @@ def get_static_asset_version() -> str:
 
     _STATIC_VERSION_CACHE = (version, now)
     return version
+
+
+def build_versioned_tma_url(base_url: str, path: str = "/admin") -> str:
+    """Normalize TMA base URL and append the current static/template version query token."""
+    clean = str(base_url or "").strip().strip('"').strip("'")
+    if not clean:
+        return ""
+    if not clean.startswith(("http://", "https://")):
+        clean = f"https://{clean}"
+    clean_path = path if path.startswith("/") else f"/{path}"
+    return f"{clean.rstrip('/')}{clean_path}?v={get_static_asset_version()}"
 
 
 def get_versioned_html(html_path: Path, is_dev: bool = False) -> str:
@@ -393,34 +420,29 @@ def get_versioned_html(html_path: Path, is_dev: bool = False) -> str:
     return versioned_content
 
 
-async def serve_app_html(request: web.Request) -> web.Response:
-    """Serve the user Mini App HTML with dynamic cache-busting asset versions."""
-    html_path = TEMPLATES_DIR / "app.html"
+def _serve_template_html(request: web.Request, filename: str, not_found_msg: str) -> web.Response:
+    """Serve an HTML Mini App template with asset cache-busting and strict no-store headers."""
+    html_path = TEMPLATES_DIR / filename
     if not html_path.exists():
-        return web.Response(text="User WebApp template not found", status=404)
+        return web.Response(text=not_found_msg, status=404)
     is_dev = bool(request.app.get("is_dev", False))
     content = get_versioned_html(html_path, is_dev=is_dev)
     return web.Response(
         text=content,
         content_type="text/html",
         charset="utf-8",
-        headers={"Cache-Control": "no-cache, must-revalidate"},
+        headers=_HTML_NO_CACHE_HEADERS,
     )
+
+
+async def serve_app_html(request: web.Request) -> web.Response:
+    """Serve the user Mini App HTML with dynamic cache-busting asset versions."""
+    return _serve_template_html(request, "app.html", "User WebApp template not found")
 
 
 async def serve_admin_html(request: web.Request) -> web.Response:
     """Serve the admin Mini App HTML with dynamic cache-busting asset versions."""
-    html_path = TEMPLATES_DIR / "admin.html"
-    if not html_path.exists():
-        return web.Response(text="Admin WebApp template not found", status=404)
-    is_dev = bool(request.app.get("is_dev", False))
-    content = get_versioned_html(html_path, is_dev=is_dev)
-    return web.Response(
-        text=content,
-        content_type="text/html",
-        charset="utf-8",
-        headers={"Cache-Control": "no-cache, must-revalidate"},
-    )
+    return _serve_template_html(request, "admin.html", "Admin WebApp template not found")
 
 
 async def health_check(request: web.Request) -> web.Response:
