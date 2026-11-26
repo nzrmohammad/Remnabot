@@ -878,25 +878,24 @@
 
         <!-- Subtab 4: Remnawave Panel Control Suite -->
         <div id="subtabContentNodesPanel" class="space-y-3.5">
-          <!-- Hero Header -->
-          <div class="card p-3.5 rounded-2xl border border-card-border shadow flex items-center justify-between gap-2">
-            <div class="min-w-0">
-              <h3 class="text-xs font-bold t-main flex items-center gap-1.5">
-                <svg class="w-4 h-4 t-purple shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                <span>مرکز کنترل پنل Remnawave</span>
-              </h3>
-            </div>
-            <button id="refreshPanelControlBtn" type="button" onclick="window.panelCtrl.fetchOverview(true)" class="p-2 bg-transparent hover:bg-cyan-500/10 t-accent rounded-xl border border-cyan-500/30 transition flex items-center justify-center active:scale-95 shrink-0" title="به‌روزرسانی اطلاعات پنل">
-              <svg id="refreshPanelControlIcon" class="w-4 h-4 t-accent transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            </button>
-          </div>
-
           <!-- Inner Section Pill Switcher -->
           <div class="flex items-center gap-1 card-inset border border-card-border rounded-2xl p-1 overflow-x-auto no-scrollbar">
-            <button id="panelCtrlTabBtn_hosts" type="button" onclick="window.panelCtrl.switchSubSection('hosts')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap">هاست‌ها</button>
-            <button id="panelCtrlTabBtn_squads" type="button" onclick="window.panelCtrl.switchSubSection('squads')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap">اسکواد و ساب</button>
-            <button id="panelCtrlTabBtn_configs" type="button" onclick="window.panelCtrl.switchSubSection('configs')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap">پروفایل و اسنیپت</button>
-            <button id="panelCtrlTabBtn_infra" type="button" onclick="window.panelCtrl.switchSubSection('infra')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap">ارائه‌دهنده و توکن</button>
+            <button id="panelCtrlTabBtn_hosts" type="button" onclick="window.panelCtrl.switchSubSection('hosts')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap inline-flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
+              <span>هاست‌ها</span>
+            </button>
+            <button id="panelCtrlTabBtn_squads" type="button" onclick="window.panelCtrl.switchSubSection('squads')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap inline-flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>اسکواد و ساب</span>
+            </button>
+            <button id="panelCtrlTabBtn_configs" type="button" onclick="window.panelCtrl.switchSubSection('configs')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap inline-flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              <span>پروفایل و اسنیپت</span>
+            </button>
+            <button id="panelCtrlTabBtn_infra" type="button" onclick="window.panelCtrl.switchSubSection('infra')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap inline-flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              <span>ارائه‌دهنده و توکن</span>
+            </button>
           </div>
 
           <!-- Pane 1: Hosts & Bulk Actions -->
@@ -4975,7 +4974,7 @@
           </div>
           <div class="flex items-center justify-between text-[10.5px] t-muted px-0.5 shrink-0">
             <span>انتخاب از کاربران پنل:</span>
-            <span id="panelSquadSelectedCount" class="badge badge-info text-[10px] font-sans num-bidi">0 انتخاب</span>
+            <span id="panelSquadSelectedCount" class="badge badge-info text-[10px] font-sans" dir="rtl"><span class="num-bidi font-bold">0</span> <span>انتخاب</span></span>
           </div>
           <div id="panelSquadUserPickerList" class="flex-1 min-h-[240px] overflow-y-auto custom-scroll scroll-right space-y-1.5 pr-0.5"></div>
           <details class="card-inset rounded-xl p-2 border border-card-border shrink-0">
@@ -5037,16 +5036,19 @@
               <span class="text-[11px] font-bold t-main">کلید Node و فایل داکر (Docker)</span>
               <button type="button" id="nodeCreateKeygenBtn" onclick="window.adminActions.fetchNewNodeKeygen()" class="btn btn-secondary px-2.5 py-1 text-[10.5px] rounded-xl font-bold shrink-0">دریافت کلید</button>
             </div>
-            <div id="panelCreateNodeKeygenWrap" class="hidden space-y-1.5">
-              <div class="flex items-center gap-1.5">
-                <code id="panelCreateNodeKeygenOut" dir="ltr" class="flex-1 text-[10.5px] font-sans font-en break-all t-main card p-2 rounded-xl border border-card-border"></code>
-                <button type="button" onclick="window.adminActions.copyNodeKeygen()" class="btn btn-secondary px-2.5 py-1.5 text-[10.5px] rounded-xl font-bold shrink-0">کپی کلید</button>
-              </div>
+            <input type="hidden" id="panelCreateNodeKeygenOut" value="" />
+            <div id="panelCreateNodeKeygenWrap" class="hidden flex items-center justify-between gap-2 card px-2.5 py-2 rounded-xl border border-card-border">
+              <span class="text-[11px] font-bold t-success">✓ کلید Node آماده کپی است</span>
+              <button type="button" onclick="window.adminActions.copyNodeKeygen()" class="btn btn-secondary w-7 h-7 p-0 rounded-xl flex items-center justify-center shrink-0" title="کپی کلید Node" aria-label="کپی کلید Node">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </button>
             </div>
             <div id="panelCreateNodeComposeWrap" class="hidden space-y-1.5 pt-1 border-t border-card-border">
               <div class="flex items-center justify-between gap-2">
                 <span class="text-[10.5px] font-bold t-success" id="panelCreateNodeComposeTitle">فایل آماده docker-compose.yml:</span>
-                <button type="button" id="copyNodeComposeBtn" onclick="window.adminActions.copyNodeDockerCompose()" class="btn btn-primary px-2.5 py-1 text-[10.5px] rounded-xl font-bold shrink-0">کپی Docker Compose</button>
+                <button type="button" id="copyNodeComposeBtn" onclick="window.adminActions.copyNodeDockerCompose()" class="btn btn-secondary w-7 h-7 p-0 rounded-xl flex items-center justify-center shrink-0" title="کپی Docker Compose" aria-label="کپی Docker Compose">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </button>
               </div>
               <pre id="panelCreateNodeComposeOut" dir="ltr" class="text-[10px] font-sans font-en card p-2.5 rounded-xl border border-card-border overflow-x-auto t-main leading-relaxed text-left"></pre>
             </div>
@@ -5065,10 +5067,6 @@
         <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
           <h4 class="text-xs font-bold t-main">انتخاب کشور سرور</h4>
           <button type="button" onclick="window.adminActions.closeNodeCountryModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
-        </div>
-        <div class="admin-search-box h-9 px-3 shrink-0">
-          <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" id="nodeCountrySearchInput" oninput="window.adminActions.filterNodeCountries(this.value)" placeholder="جستجوی نام کشور یا کد ISO (مثل DE)..." class="bg-transparent text-xs t-main outline-none flex-1 min-w-0" />
         </div>
         <div id="nodeCountryPickerList" class="flex-1 overflow-y-auto custom-scroll scroll-right space-y-1.5 pr-0.5"></div>
       </div>
@@ -5132,7 +5130,7 @@
         <div class="flex items-center gap-1.5 shrink-0">
           <button type="button" id="quickDiagModePing" onclick="window.setQuickDiagnosticMode('ping')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow">پینگ (ICMP)</button>
           <button type="button" id="quickDiagModeTcp" onclick="window.setQuickDiagnosticMode('tcp')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition card-inset border border-card-border t-muted hover:t-main">تست پورت TCP</button>
-          <input type="number" id="quickDiagPortInput" min="1" max="65535" dir="ltr" value="443" onchange="window.setQuickDiagnosticMode('tcp')" class="input-base h-8 w-16 px-2 rounded-xl text-[11px] font-sans num-bidi text-center hidden" title="پورت TCP" />
+          <input type="number" id="quickDiagPortInput" min="1" max="65535" dir="ltr" value="443" onchange="window.setQuickDiagnosticMode('tcp')" style="width: 72px; min-width: 72px; max-width: 72px;" class="input-base input-compact h-8 rounded-xl text-[11px] font-sans num-bidi text-center shrink-0 hidden" title="پورت TCP" />
         </div>
         <div id="quickDiagnosticList" class="space-y-1.5 overflow-y-auto custom-scroll scroll-right flex-1 pr-0.5"></div>
       </div>

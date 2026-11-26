@@ -1209,19 +1209,13 @@ openEditSslDomainModal(domain) {
       this._nodeCountryTarget = target === 'edit' ? 'edit' : 'create';
       const modal = $('nodeCountryPickerModal');
       if (!modal) return;
-      if ($('nodeCountrySearchInput')) $('nodeCountrySearchInput').value = '';
       this._renderNodeCountryPickerList('');
       modal.classList.remove('hidden');
-      setTimeout(() => $('nodeCountrySearchInput')?.focus(), 80);
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
 
     closeNodeCountryModal() {
       $('nodeCountryPickerModal')?.classList.add('hidden');
-    },
-
-    filterNodeCountries(q = '') {
-      this._renderNodeCountryPickerList(q);
     },
 
     selectNodeCountry(code = '') {
@@ -1274,7 +1268,7 @@ openEditSslDomainModal(domain) {
       if ($('panelCreateNodeAddress')) $('panelCreateNodeAddress').value = '';
       if ($('panelCreateNodePort')) $('panelCreateNodePort').value = '2222';
       if ($('panelCreateNodeKeygenWrap')) $('panelCreateNodeKeygenWrap').classList.add('hidden');
-      if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').innerText = '';
+      if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').value = '';
       if ($('panelCreateNodeComposeWrap')) $('panelCreateNodeComposeWrap').classList.add('hidden');
       if ($('panelCreateNodeComposeOut')) $('panelCreateNodeComposeOut').innerText = '';
       if ($('nodeCreateSubmitBtn')) $('nodeCreateSubmitBtn').classList.remove('hidden');
@@ -1338,7 +1332,7 @@ openEditSslDomainModal(domain) {
         const res = await window.api?.getNodeKeygen?.();
         if (res && res.ok && res.keygen) {
           const payload = res.keygen.pubKey || res.keygen.secretKey || JSON.stringify(res.keygen);
-          if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').innerText = payload;
+          if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').value = payload;
           $('panelCreateNodeKeygenWrap')?.classList.remove('hidden');
           const port = parseInt($('panelCreateNodePort')?.value || '2222', 10) || 2222;
           this._renderNodeComposeSnippet(port, payload);
@@ -1354,7 +1348,7 @@ openEditSslDomainModal(domain) {
     },
 
     copyNodeKeygen() {
-      const txt = $('panelCreateNodeKeygenOut')?.innerText?.trim();
+      const txt = $('panelCreateNodeKeygenOut')?.value?.trim();
       if (txt && window.copyToClipboard) window.copyToClipboard(txt, 'کلید Node کپی شد');
     },
 
@@ -1377,11 +1371,11 @@ openEditSslDomainModal(domain) {
           name, country_code, address, port, config_profile_uuid, active_inbounds,
         });
         if (res && res.ok) {
-          let keyVal = res.node?.secretKey || res.node?.pubKey || $('panelCreateNodeKeygenOut')?.innerText?.trim() || '';
+          let keyVal = res.node?.secretKey || res.node?.pubKey || $('panelCreateNodeKeygenOut')?.value?.trim() || '';
           if (!keyVal) {
             keyVal = await this.fetchNewNodeKeygen();
           } else {
-            if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').innerText = keyVal;
+            if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').value = keyVal;
             $('panelCreateNodeKeygenWrap')?.classList.remove('hidden');
             this._renderNodeComposeSnippet(port, keyVal);
           }
@@ -2343,19 +2337,13 @@ openEditSslDomainModal(domain) {
     const panelOk = Boolean(h.remnawave?.healthy);
     const bkp = h.backup || {};
     const rec = h.reconciliation || {};
-    const q = h.queue || {};
 
     const redisBadge = redisSt === 'connected'
       ? `<span class="t-success font-bold font-sans num-bidi">${h.redis?.latency_ms ?? 0} ms</span>`
       : (redisSt === 'error' ? '<span class="t-danger font-bold">خطا</span>' : '<span class="t-warn font-bold">Memory</span>');
 
-    const bkpSizeStr = bkp.exists
-      ? (typeof window.fmtTraffic === 'function'
-        ? window.fmtTraffic(Math.round(Number(bkp.size_mb || 0) * 1024 * 1024), { isBytes: true, html: true, persianDigits: false })
-        : `<span class="font-sans num-bidi">${bkp.size_mb}</span>`)
-      : '';
     const bkpText = bkp.exists
-      ? `${bkp.encrypted ? '🔐' : '📦'} ${bkpSizeStr} (${bkp.age_hours}h پیش)`
+      ? `${bkp.encrypted ? '🔐' : '📦'} <span dir="rtl"><span class="num-bidi font-bold">${bkp.age_hours}</span> ساعت پیش</span>`
       : '<span class="t-warn">بکاپ محلی یافت نشد</span>';
 
     const mismatchItems = Array.isArray(rec.panel_mismatches) ? rec.panel_mismatches : [];
@@ -2389,12 +2377,6 @@ openEditSslDomainModal(domain) {
           <span class="t-muted">آخرین بکاپ:</span>
           <span class="t-main font-semibold">${bkpText}</span>
         </div>
-      </div>
-      <div class="card-inset p-2.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-[11px]">
-        <span>سفارش معلق: <b class="font-sans ${rec.stale_pending_orders > 0 ? 't-warn' : 't-success'}">${rec.stale_pending_orders || 0}</b></span>
-        <span>فاکتور منقضی باز: <b class="font-sans">${(rec.stalled_crypto_invoices || 0) + (rec.stalled_card_invoices || 0)}</b></span>
-        <span>مغایرت پنل: <b class="font-sans ${rec.panel_mismatches_count > 0 ? 't-danger' : 't-success'}">${rec.panel_mismatches_count || 0}</b></span>
-        <span>صف برادکست: <b class="font-sans">${q.in_process_running || 0} فعال / ${q.pending_queue_len || 0} صف</b></span>
       </div>
       ${mismatchHtml}
     `;

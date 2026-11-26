@@ -42,8 +42,8 @@
   function switchSubSection(key = 'hosts') {
     activeSubSection = key;
     const keys = ['hosts', 'squads', 'configs', 'infra'];
-    const activeCls = 'flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap';
-    const inactiveCls = 'flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap';
+    const activeCls = 'flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap inline-flex items-center justify-center gap-1';
+    const inactiveCls = 'flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition t-muted hover:t-main whitespace-nowrap inline-flex items-center justify-center gap-1';
     keys.forEach(k => {
       const btn = $(`panelCtrlTabBtn_${k}`);
       const pane = $(`panelCtrlPane_${k}`);
@@ -61,8 +61,6 @@
       return;
     }
     panelState.loading = true;
-    const icon = $('refreshPanelControlIcon');
-    if (icon) icon.classList.add('animate-spin');
 
     try {
       const res = await window.api?.getPanelControlOverview?.();
@@ -77,7 +75,6 @@
       toast('خطای ارتباط با سرور هنگام بارگذاری کنترل‌پنل');
     } finally {
       panelState.loading = false;
-      if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 300);
     }
     return null;
   }
@@ -834,7 +831,7 @@
       selectedSquadUserMap.delete(uuid);
     }
     if ($('panelSquadSelectedCount')) {
-      $('panelSquadSelectedCount').innerText = `${selectedSquadUserMap.size} انتخاب`;
+      $('panelSquadSelectedCount').innerHTML = `<span class="num-bidi font-bold">${selectedSquadUserMap.size}</span> <span>انتخاب</span>`;
     }
   }
 
@@ -850,7 +847,9 @@
     }
     if ($('panelExtSquadUserUuids')) $('panelExtSquadUserUuids').value = '';
     if ($('panelSquadUserSearchInput')) $('panelSquadUserSearchInput').value = '';
-    if ($('panelSquadSelectedCount')) $('panelSquadSelectedCount').innerText = '0 انتخاب';
+    if ($('panelSquadSelectedCount')) {
+      $('panelSquadSelectedCount').innerHTML = '<span class="num-bidi font-bold">0</span> <span>انتخاب</span>';
+    }
 
     const planSel = $('panelSquadPlanFilterSelect');
     if (planSel && planSel.options.length <= 1) {

@@ -1204,6 +1204,46 @@ async def test_node_crud_keygen_config_profile_and_squad_endpoints(session_facto
         assert len(users_found) == 1 and users_found[0]["username"] == "ali_vpn"
 
 
+@pytest.mark.anyio
+async def test_pick_checkhost_nodes_prioritizes_real_iran_probes():
+    """_pick_checkhost_nodes selects genuine Iran (`ir*`) Check-Host probes before global probes."""
+    from bot.web.admin_infra_api import _CHECKHOST_NODES_CACHE, _pick_checkhost_nodes
+
+    _CHECKHOST_NODES_CACHE["ts"] = 0.0
+    _CHECKHOST_NODES_CACHE["nodes"] = {}
+
+    class _FakeNR:
+        status = 200
+
+        async def json(self):
+            return {
+                "nodes": {
+                    "us1.node.check-host.net": ["us", "USA", "LA"],
+                    "de1.node.check-host.net": ["de", "Germany", "Frankfurt"],
+                    "ir1.node.check-host.net": ["ir", "Iran", "Tehran"],
+                    "ir3.node.check-host.net": ["ir", "Iran", "Shiraz"],
+                    "nl1.node.check-host.net": ["nl", "Netherlands", "Amsterdam"],
+                }
+            }
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return None
+
+    fake_sess = MagicMock()
+    fake_sess.get = MagicMock(return_value=_FakeNR())
+    try:
+        picked = await _pick_checkhost_nodes(fake_sess, 4)
+        assert picked[:2] == ["ir1.node.check-host.net", "ir3.node.check-host.net"]
+        assert "de1.node.check-host.net" in picked
+        assert len(picked) == 4
+    finally:
+        _CHECKHOST_NODES_CACHE["ts"] = 0.0
+        _CHECKHOST_NODES_CACHE["nodes"] = {}
+
+
 
 
 

@@ -960,6 +960,62 @@ def _cc_to_flag(cc: str) -> str:
         return "🌐"
 
 
+_CHECKHOST_NODES_CACHE: dict[str, Any] = {"ts": 0.0, "nodes": {}}
+
+
+async def _pick_checkhost_nodes(session: Any, max_nodes: int) -> list[str]:
+    """Select Check-Host probes prioritizing real Iran (`ir*`) nodes + diverse global regions."""
+    now = time.monotonic()
+    nodes_map = _CHECKHOST_NODES_CACHE.get("nodes") or {}
+    if not nodes_map or (now - float(_CHECKHOST_NODES_CACHE.get("ts") or 0.0)) > 600.0:
+        try:
+            async with session.get("https://check-host.net/nodes/hosts", timeout=aiohttp.ClientTimeout(total=3)) as nr:
+                if nr.status == 200:
+                    payload = await nr.json()
+                    raw_nodes = payload.get("nodes") if isinstance(payload, dict) else None
+                    if isinstance(raw_nodes, dict) and len(raw_nodes) >= 2:
+                        nodes_map = raw_nodes
+                        _CHECKHOST_NODES_CACHE["nodes"] = raw_nodes
+                        _CHECKHOST_NODES_CACHE["ts"] = now
+        except Exception:
+            pass
+
+    if not isinstance(nodes_map, dict) or len(nodes_map) < 2:
+        return []
+
+    iran_probes: list[str] = []
+    other_by_cc: dict[str, str] = {}
+    extra_probes: list[str] = []
+    for host_key, meta in nodes_map.items():
+        if isinstance(meta, dict):
+            loc = meta.get("location") or []
+            cc = str(loc[0] if loc else "").lower()
+        elif isinstance(meta, list):
+            cc = str(meta[0] if meta else "").lower()
+        else:
+            cc = ""
+        if cc == "ir" or str(host_key).startswith("ir"):
+            iran_probes.append(str(host_key))
+        elif cc and cc not in other_by_cc:
+            other_by_cc[cc] = str(host_key)
+        else:
+            extra_probes.append(str(host_key))
+
+    picked: list[str] = iran_probes[:2]
+    preferred_ccs = ("de", "nl", "tr", "ae", "fi", "gb", "fr", "us", "pl", "ro", "ru", "sg")
+    for cc in preferred_ccs:
+        if len(picked) >= max_nodes:
+            break
+        if cc in other_by_cc:
+            picked.append(other_by_cc.pop(cc))
+    for p in (*other_by_cc.values(), *extra_probes):
+        if len(picked) >= max_nodes:
+            break
+        if p not in picked:
+            picked.append(p)
+    return picked
+
+
 async def get_admin_tools_check_host(request: web.Request) -> web.Response:
     """Perform network check (Ping, HTTP, TCP, DNS) using Check-Host API with local fallback."""
     admin = _check_admin(request)
@@ -1068,11 +1124,17 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
             max_nodes = 10
 
         from urllib.parse import quote
-        init_url = f"https://check-host.net/check-{endpoint}?host={quote(query_host)}&max_nodes={max_nodes}"
+        base_init = f"https://check-host.net/check-{endpoint}?host={quote(query_host)}"
         headers = {"Accept": "application/json", "User-Agent": "Remnabot-Monitor/1.0"}
 
         import aiohttp
         async with aiohttp.ClientSession(headers=headers) as session:
+            picked_nodes = await _pick_checkhost_nodes(session, max_nodes)
+            if picked_nodes:
+                nodes_qs = "&".join(f"node={quote(n)}" for n in picked_nodes)
+                init_url = f"{base_init}&{nodes_qs}"
+            else:
+                init_url = f"{base_init}&max_nodes={max_nodes}"
             async with session.get(init_url, timeout=aiohttp.ClientTimeout(total=6)) as init_resp:
                 if init_resp.status == 200:
                     init_data = await init_resp.json()

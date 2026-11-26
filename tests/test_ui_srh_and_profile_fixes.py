@@ -665,6 +665,9 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     assert admin_html.find('id="panelCreateNodePort"') < admin_html.find('id="panelCreateNodeAddress"')
     assert admin_html.find('id="nodeBillingPanelPort"') < admin_html.find('id="nodeBillingPanelAddress"')
     assert 'id="panelCreateNodeComposeOut"' in admin_html and 'id="quickDiagModeTcp"' in admin_html
+    assert 'id="nodeCountrySearchInput"' not in admin_html
+    assert "مرکز کنترل پنل Remnawave" not in admin_html and 'id="refreshPanelControlBtn"' not in admin_html
+    assert "سفارش معلق:" not in admin_nodes_js and "size_mb" not in admin_nodes_js
     assert "btn-delete-node" in admin_nodes_js
     assert "renderCurrencyIcon" in admin_nodes_js and "openQuickDiagnosticModal" in admin_nodes_js
     assert 'input[type="date"]' in components_css
