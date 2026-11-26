@@ -1067,23 +1067,26 @@ openEditSslDomainModal(domain) {
         .filter(b => String(b.providerUuid || b.provider?.uuid || '') === provUuid)
         .slice()
         .sort((a, b) => String(b.billedAt || '').localeCompare(String(a.billedAt || '')));
-      if (countEl) countEl.innerText = matched.length ? `${toEnglishDigits(matched.length)} رکورد` : '';
+      if (countEl) {
+        countEl.innerHTML = matched.length ? `<span class="num-bidi font-bold">${toEnglishDigits(matched.length)}</span> رکورد` : '';
+      }
       if (!matched.length) {
         listEl.innerHTML = '<div class="text-[11px] t-muted text-center py-2">برای این ارائه‌دهنده سابقه پرداختی ثبت نشده است.</div>';
         return;
       }
+      const fallbackCurr = ($('nodeBillingCurrency')?.value || window.panelCtrl?.getProviderCurrency?.(provUuid) || 'EUR').toUpperCase();
       listEl.innerHTML = matched.slice(0, 20).map(b => {
         const billUuid = String(b.uuid || '');
         const billedDate = b.billedAt ? String(b.billedAt).slice(0, 10) : '';
         const jalaliStr = billedDate ? formatDateToJalali(billedDate) : '—';
         const amountStr = Number(b.amount || 0).toLocaleString('en-US');
+        const billCurr = String(b.currency || fallbackCurr || 'EUR').toUpperCase();
+        const currUnit = billCurr === 'USD' ? 'دلار' : (billCurr === 'TOMAN' || billCurr === 'IRT' ? 'تومان' : 'یورو');
         return `
-          <div class="card px-2.5 py-1.5 rounded-xl border border-card-border flex items-center justify-between gap-2 text-[11px]">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="badge badge-success text-[10px] font-sans num-bidi shrink-0" dir="ltr">${escapeHtml(amountStr)}</span>
-              <span class="t-muted font-sans num-bidi truncate" dir="ltr">${escapeHtml(jalaliStr)}</span>
-            </div>
-            ${billUuid ? `<button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(billUuid)}')" class="p-1 rounded-lg border border-rose-500/30 t-danger hover:bg-rose-500/10 transition shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
+          <div class="card px-2.5 py-1.5 rounded-xl border border-card-border grid grid-cols-[auto_1fr_auto] items-center gap-2 text-[11px]" dir="rtl">
+            ${billUuid ? `<button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(billUuid)}')" class="p-1 rounded-lg border border-rose-500/30 t-danger hover:bg-rose-500/10 transition shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : '<span class="w-5"></span>'}
+            <span class="t-muted font-sans num-bidi text-center truncate" dir="ltr">${escapeHtml(jalaliStr)}</span>
+            <span class="badge badge-success text-[10px] font-sans inline-flex items-center gap-1 shrink-0" dir="rtl"><span class="num-bidi font-bold">${escapeHtml(amountStr)}</span><span>${currUnit}</span></span>
           </div>
         `;
       }).join('');
@@ -1354,6 +1357,7 @@ openEditSslDomainModal(domain) {
       if (recalculate) {
         this.updateNodeBillingConversion(true);
       }
+      this.renderNodeBillingBillsHistory?.();
     },
 
     addDaysToNodeBillingDueDate(days = 30) {

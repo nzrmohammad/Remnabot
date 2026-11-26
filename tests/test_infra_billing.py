@@ -727,6 +727,7 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         assert len(ctrl_data["config_profiles"]) == 1
         assert len(ctrl_data["internal_squads"]) == 1
         assert len(ctrl_data["infra_billing_history"]) == 1
+        assert isinstance(ctrl_data.get("provider_currencies"), dict)
         assert ctrl_data["api_tokens_info"]["jwt_required"] is True
 
         # Verify panel nextBillingAt automatically resolves due_date when local DB lacks an entry

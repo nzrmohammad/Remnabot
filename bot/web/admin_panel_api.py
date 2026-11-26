@@ -121,6 +121,40 @@ async def get_admin_panel_control(request: web.Request) -> web.Response:
     def _safe(val: Any, fallback: Any) -> Any:
         return fallback if isinstance(val, Exception) or val is None else val
 
+    billing_nodes = _safe(billing_nodes_res, [])
+    providers_list = _safe(providers_res, [])
+    provider_currencies: dict[str, str] = {}
+    if request.app.get("session_factory"):
+        try:
+            async with db_session(request) as session:
+                all_costs = await NodeCostRepository(session).list_all()
+            cost_curr_by_node = {
+                str(c.node_uuid): str(getattr(c, "currency", "EUR") or "EUR").upper()
+                for c in all_costs
+                if c.node_uuid and getattr(c, "currency", None)
+            }
+            cost_curr_by_prov_name = {
+                str(c.provider).strip().lower(): str(getattr(c, "currency", "EUR") or "EUR").upper()
+                for c in all_costs
+                if getattr(c, "provider", None) and getattr(c, "currency", None)
+            }
+            for bn in billing_nodes:
+                if not isinstance(bn, dict):
+                    continue
+                n_uuid = str(bn.get("nodeUuid") or (bn.get("node") or {}).get("uuid") or "").strip()
+                p_uuid = str(bn.get("providerUuid") or (bn.get("provider") or {}).get("uuid") or "").strip()
+                if p_uuid and n_uuid in cost_curr_by_node:
+                    provider_currencies[p_uuid] = cost_curr_by_node[n_uuid]
+            for prov in providers_list:
+                if not isinstance(prov, dict):
+                    continue
+                p_uuid = str(prov.get("uuid") or "").strip()
+                p_name = str(prov.get("name") or "").strip().lower()
+                if p_uuid and p_uuid not in provider_currencies and p_name in cost_curr_by_prov_name:
+                    provider_currencies[p_uuid] = cost_curr_by_prov_name[p_name]
+        except Exception as exc:
+            logger.debug("Optional provider currency lookup skipped: %s", exc)
+
     return web.json_response({
         "ok": True,
         "data": {
@@ -130,9 +164,10 @@ async def get_admin_panel_control(request: web.Request) -> web.Response:
             "external_squads": _safe(ext_squads_res, []),
             "internal_squads": _safe(int_squads_res, []),
             "subscription_settings": _safe(sub_settings_res, {}),
-            "infra_providers": _safe(providers_res, []),
-            "infra_billing_nodes": _safe(billing_nodes_res, []),
+            "infra_providers": providers_list,
+            "infra_billing_nodes": billing_nodes,
             "infra_billing_history": _safe(billing_history_res, []),
+            "provider_currencies": provider_currencies,
             "api_tokens_info": _safe(tokens_res, {"ok": False, "tokens": [], "jwt_required": False}),
         },
     })

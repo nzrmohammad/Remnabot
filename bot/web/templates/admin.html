@@ -937,6 +937,26 @@
 
           <!-- Pane 2: Internal Squads, External Squads & Global Subscription Settings -->
           <div id="panelCtrlPane_squads" class="space-y-3 hidden">
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">اسکوادهای داخلی (Internal Squads)</b>
+                <button type="button" onclick="window.panelCtrl.openIntSquadModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ اسکواد داخلی</button>
+              </div>
+              <div id="panelInternalSquadsList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادهای داخلی...</div>
+              </div>
+            </div>
+
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">اسکوادهای خارجی (External Squads)</b>
+                <span class="text-[10.5px] t-muted">گروه‌بندی و قالب ساب کاربران</span>
+              </div>
+              <div id="panelExternalSquadsList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادها...</div>
+              </div>
+            </div>
+
             <div class="card p-3.5 rounded-2xl border border-card-border space-y-3 text-xs">
               <div class="flex items-center justify-between gap-2 border-b border-card-border pb-2">
                 <b class="t-main text-xs">تنظیمات سابسکریپشن پنل (Subscription Settings)</b>
@@ -969,26 +989,6 @@
                 </div>
               </div>
               <button type="button" onclick="window.panelCtrl.saveSubSettings()" class="w-full btn btn-primary py-2.5 rounded-xl text-xs font-bold">ذخیره تنظیمات ساب در پنل</button>
-            </div>
-
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">اسکوادهای داخلی (Internal Squads)</b>
-                <button type="button" onclick="window.panelCtrl.openIntSquadModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ اسکواد داخلی</button>
-              </div>
-              <div id="panelInternalSquadsList" class="space-y-2">
-                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادهای داخلی...</div>
-              </div>
-            </div>
-
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">اسکوادهای خارجی (External Squads)</b>
-                <span class="text-[10.5px] t-muted">گروه‌بندی و قالب ساب کاربران</span>
-              </div>
-              <div id="panelExternalSquadsList" class="space-y-2">
-                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادها...</div>
-              </div>
             </div>
           </div>
 
@@ -4474,7 +4474,7 @@
               <div id="nodeBillingBillsCard" class="card-inset border border-card-border rounded-2xl p-3 space-y-2">
                 <div class="flex items-center justify-between gap-2">
                   <span class="text-[11px] font-bold t-main">سوابق پرداخت (Bill Records)</span>
-                  <span id="nodeBillingBillsCount" class="text-[10.5px] font-sans num-bidi t-muted"></span>
+                  <span id="nodeBillingBillsCount" class="text-[10.5px] font-sans t-muted" dir="rtl"></span>
                 </div>
                 <div id="nodeBillingBillsList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scroll scroll-right">
                   <div class="text-[11px] t-muted text-center py-2">با انتخاب ارائه‌دهنده پنل، سوابق پرداخت نمایش داده می‌شود.</div>

@@ -1037,20 +1037,24 @@
       listEl.innerHTML = '<div class="p-4 text-center text-xs t-muted card-inset rounded-2xl border border-card-border">سابقه پرداختی ثبت نشده است.</div>';
       return;
     }
+    const provCurrencies = panelState.provider_currencies || {};
     listEl.innerHTML = bills.map(b => {
       const uuid = String(b.uuid || '');
-      const provName = b.provider?.name || provMap.get(String(b.providerUuid || '')) || 'ارائه‌دهنده';
+      const provUuid = String(b.providerUuid || b.provider?.uuid || '');
+      const provName = b.provider?.name || provMap.get(provUuid) || 'ارائه‌دهنده';
       const billedDate = b.billedAt ? String(b.billedAt).slice(0, 10) : '';
       const jalaliStr = billedDate && window.formatDateToJalali ? window.formatDateToJalali(billedDate) : billedDate;
+      const billCurr = String(b.currency || b.provider?.currency || provCurrencies[provUuid] || 'USD').toUpperCase();
+      const currUnit = billCurr === 'EUR' ? 'یورو' : (billCurr === 'TOMAN' || billCurr === 'IRT' ? 'تومان' : 'دلار');
       return `
         <div class="card p-2.5 rounded-2xl border border-card-border flex items-center justify-between gap-2">
-          <button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="حذف رکورد پرداخت">
+          <button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت">
             ${TRASH_ICON_SVG}
           </button>
           <div class="min-w-0 flex-1 text-left" dir="ltr">
-            <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center justify-start gap-2 min-w-0">
               <b class="text-xs t-main truncate font-en">${escapeHtml(provName)}</b>
-              <span class="badge badge-success text-[10px] num-bidi">${Number(b.amount || 0).toLocaleString('en-US')}</span>
+              <span class="badge badge-success text-[10px] inline-flex items-center gap-1 shrink-0" dir="rtl"><span class="num-bidi font-bold">${Number(b.amount || 0).toLocaleString('en-US')}</span><span>${currUnit}</span></span>
             </div>
             <span class="text-[10.5px] t-muted block mt-0.5 num-bidi">${escapeHtml(jalaliStr || billedDate || '—')}</span>
           </div>
@@ -1268,5 +1272,6 @@
     getConfigProfiles: () => panelState.config_profiles || [],
     getBillingHistory: () => panelState.infra_billing_history || [],
     getInfraBillingNodes: () => panelState.infra_billing_nodes || [],
+    getProviderCurrency: (provUuid) => (panelState.provider_currencies || {})[String(provUuid || '')] || '',
   };
 })(window);
