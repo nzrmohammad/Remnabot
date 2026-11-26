@@ -641,10 +641,17 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     sub_row = admin_html[admin_html.find('id="panelSubUpdateInterval"'):admin_html.find('id="panelSubServeJson"') + 120]
     assert 'grid grid-cols-2 gap-2.5 items-center' in sub_row
     assert 'id="nodesStatusFilterBar"' in admin_html
+    assert 'no-scrollbar' in admin_html[admin_html.find('id="nodesStatusFilterBar"'):admin_html.find('id="adminNodesFullList"')]
     assert 'id="nodeBillingBillsCard"' in billing_modal and 'id="nodeBillingBillsList"' in billing_modal
-    assert 'id="nodeBillingDueSyncStatus"' in billing_modal and 'id="syncNodeDueTabBtn"' in billing_modal
-    bill_modal = admin_html[admin_html.find('id="panelBillCreateModal"'):admin_html.find('id="panelTokenCreateModal"')]
+    assert 'id="nodeBillingDueSyncStatus"' not in billing_modal
+    bill_modal = admin_html[admin_html.find('id="panelBillCreateModal"'):admin_html.find('id="panelBillProviderPickerModal"')]
     assert 'id="panelBillExtendWrap"' in bill_modal and 'id="panelBillExtendNextMonth"' in bill_modal
+    assert 'id="panelBillProviderPickerBtn"' in bill_modal
+    assert 'مطابق پنل' not in bill_modal
+    assert '<span dir="ltr" class="num-bidi inline-block font-bold">+30</span> روز' in bill_modal
+    assert 'id="panelInternalSquadsList"' in admin_html and 'id="panelIntSquadEditorModal"' in admin_html
+    hosts_toolbar = admin_html[admin_html.find('id="panelCtrlPane_hosts"'):admin_html.find('id="panelHostsBulkBar"')]
+    assert hosts_toolbar.find('openHostModal()') < hosts_toolbar.find('id="panelHostsSelectAllBtn"')
     assert 'id="nodeBillingTabBtn_due"' in billing_modal
     assert 'input[type="date"]' in components_css
     assert "::-webkit-datetime-edit" in components_css

@@ -624,6 +624,8 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         post_admin_panel_external_squad_users,
         post_admin_panel_host_save,
         post_admin_panel_hosts_bulk,
+        post_admin_panel_internal_squad_delete,
+        post_admin_panel_internal_squad_save,
         post_admin_panel_node_action,
         post_admin_panel_snippet_save,
         post_admin_panel_subscription_settings,
@@ -709,6 +711,8 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         "/api/admin/panel/snippets/delete",
         "/api/admin/panel/subscription-settings",
         "/api/admin/panel/external-squads/users",
+        "/api/admin/panel/internal-squads/save",
+        "/api/admin/panel/internal-squads/delete",
         "/api/admin/panel/tokens/create",
         "/api/admin/panel/tokens/delete",
     ):
@@ -746,6 +750,22 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         req_act = make_mocked_request("POST", "/api/admin/infra/node/action", app=app_state)
         req_act.json = AsyncMock(return_value={"action": "reset_traffic", "node_uuid": "n-1", "node_name": "DE"})
         assert (await post_admin_panel_node_action(req_act)).status == 200
+
+        # Internal Squads create, update & delete
+        req_sq_new = make_mocked_request("POST", "/api/admin/panel/internal-squads/save", app=app_state)
+        req_sq_new.json = AsyncMock(return_value={"name": "VIP-Internal", "inbounds": ["inb-1"]})
+        assert (await post_admin_panel_internal_squad_save(req_sq_new)).status == 200
+        assert ("POST", "/api/internal-squads", {"name": "VIP-Internal", "inbounds": ["inb-1"]}) in calls
+
+        req_sq_edit = make_mocked_request("POST", "/api/admin/panel/internal-squads/save", app=app_state)
+        req_sq_edit.json = AsyncMock(return_value={"uuid": "sq-1", "name": "VIP-Updated", "inbounds": ["inb-2"]})
+        assert (await post_admin_panel_internal_squad_save(req_sq_edit)).status == 200
+        assert ("PATCH", "/api/internal-squads", {"uuid": "sq-1", "name": "VIP-Updated", "inbounds": ["inb-2"]}) in calls
+
+        req_sq_del = make_mocked_request("POST", "/api/admin/panel/internal-squads/delete", app=app_state)
+        req_sq_del.json = AsyncMock(return_value={"uuid": "sq-1"})
+        assert (await post_admin_panel_internal_squad_delete(req_sq_del)).status == 200
+        assert ("DELETE", "/api/internal-squads/sq-1", None) in calls
 
         req_host = make_mocked_request("POST", "/api/admin/panel/hosts/save", app=app_state)
         req_host.json = AsyncMock(return_value={

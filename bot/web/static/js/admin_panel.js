@@ -85,6 +85,7 @@
   function renderAll() {
     renderHosts();
     renderSubscriptionSettings();
+    renderInternalSquads();
     renderExternalSquads();
     renderConfigProfiles();
     renderSnippets();
@@ -562,6 +563,115 @@
     }
   }
 
+  function renderInternalSquads() {
+    const listEl = $('panelInternalSquadsList');
+    if (!listEl) return;
+    const squads = Array.isArray(panelState.internal_squads) ? panelState.internal_squads : [];
+    if (!squads.length) {
+      listEl.innerHTML = '<div class="p-4 text-center text-xs t-muted card-inset rounded-2xl border border-card-border">هیچ اسکواد داخلی در پنل یافت نشد.</div>';
+      return;
+    }
+    listEl.innerHTML = squads.map(sq => {
+      const uuid = String(sq.uuid || '');
+      const members = sq.info?.membersCount ?? sq.membersCount ?? 0;
+      const inboundsCnt = Array.isArray(sq.inbounds) ? sq.inbounds.length : 0;
+      return `
+        <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="window.panelCtrl.openIntSquadModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسکواد داخلی">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </button>
+            <button type="button" onclick="window.panelCtrl.deleteIntSquad('${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسکواد داخلی">
+              ${TRASH_ICON_SVG}
+            </button>
+          </div>
+          <div class="min-w-0 flex-1 text-left" dir="ltr">
+            <b class="text-xs t-main block truncate font-en">${escapeHtml(sq.name || 'Squad')}</b>
+            <span class="text-[10.5px] t-muted block mt-0.5 text-right" dir="rtl"><span class="num-bidi font-bold">${Number(members)}</span> عضو • <span class="num-bidi font-bold">${Number(inboundsCnt)}</span> اینباند</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openIntSquadModal(squadUuid = '') {
+    const modal = $('panelIntSquadEditorModal');
+    if (!modal) return;
+    const hit = squadUuid ? (panelState.internal_squads || []).find(s => String(s.uuid) === String(squadUuid)) : null;
+    if ($('panelIntSquadModalTitle')) $('panelIntSquadModalTitle').innerText = hit ? 'ویرایش اسکواد داخلی' : 'ساخت اسکواد داخلی جدید';
+    if ($('panelIntSquadUuid')) $('panelIntSquadUuid').value = hit?.uuid || '';
+    if ($('panelIntSquadName')) $('panelIntSquadName').value = hit?.name || '';
+
+    const selectedSet = new Set(
+      (Array.isArray(hit?.inbounds) ? hit.inbounds : [])
+        .map(x => String(typeof x === 'string' ? x : (x?.uuid || '')))
+        .filter(Boolean)
+    );
+    const listEl = $('panelIntSquadInboundsList');
+    if (listEl) {
+      const inbounds = allProfileInbounds();
+      if (!inbounds.length) {
+        listEl.innerHTML = '<div class="col-span-2 p-3 text-center text-[11px] t-muted card-inset rounded-xl border border-card-border" dir="rtl">اینباندی در پروفایل‌های Xray یافت نشد.</div>';
+      } else {
+        listEl.innerHTML = inbounds.map(inb => {
+          const checked = selectedSet.has(String(inb.uuid)) ? 'checked' : '';
+          const titleText = `${inb.profileName} — ${inb.tag}`;
+          return `
+            <label class="card-inset px-2.5 py-1.5 rounded-xl border border-card-border text-[10.5px] font-en flex items-center gap-1.5 min-w-0 cursor-pointer hover:border-cyan-500/40 transition" title="${escapeHtml(titleText)}">
+              <input type="checkbox" class="panel-int-squad-inb-chk accent-cyan-500 rounded shrink-0" value="${escapeHtml(inb.uuid)}" ${checked} />
+              <span class="truncate min-w-0 flex-1">${escapeHtml(inb.tag || inb.uuid)}</span>
+            </label>
+          `;
+        }).join('');
+      }
+    }
+    modal.classList.remove('hidden');
+    haptic('selection');
+  }
+
+  function closeIntSquadModal() {
+    $('panelIntSquadEditorModal')?.classList.add('hidden');
+  }
+
+  async function saveIntSquad() {
+    const uuid = $('panelIntSquadUuid')?.value?.trim() || '';
+    const name = $('panelIntSquadName')?.value?.trim() || '';
+    const inbounds = Array.from(document.querySelectorAll('#panelIntSquadInboundsList .panel-int-squad-inb-chk:checked'))
+      .map(el => el.value)
+      .filter(Boolean);
+    if (!name) {
+      toast('نام اسکواد داخلی الزامی است.');
+      return;
+    }
+    const res = await window.api?.saveInternalSquad?.({ uuid, name, inbounds });
+    if (res && res.ok) {
+      toast(`✅ ${res.message}`);
+      closeIntSquadModal();
+      haptic('success');
+      await fetchOverview(true);
+    } else {
+      toast(`⚠️ ${res?.error || 'خطا در ذخیره اسکواد داخلی'}`);
+    }
+  }
+
+  function deleteIntSquad(uuid, name) {
+    confirmAction({
+      title: 'حذف اسکواد داخلی',
+      message: `آیا از حذف اسکواد داخلی «${name || uuid}» از پنل مطمئن هستید؟`,
+      btnText: 'حذف اسکواد',
+      onConfirm: async () => {
+        const res = await window.api?.deleteInternalSquad?.(uuid);
+        if (res && res.ok) {
+          toast(`✅ ${res.message}`);
+          haptic('success');
+          await fetchOverview(true);
+        } else {
+          toast(`⚠️ ${res?.error || 'خطا در حذف اسکواد داخلی'}`);
+        }
+      },
+    });
+  }
+
   function renderExternalSquads() {
     const listEl = $('panelExternalSquadsList');
     if (!listEl) return;
@@ -768,7 +878,7 @@
           </div>
           <div class="min-w-0 text-left flex-1" dir="ltr">
             <b class="text-xs t-main block truncate font-en">${escapeHtml(p.name || '')}</b>
-            <span class="text-[10.5px] t-muted block truncate">${linkedCount} سرور متصل${p.login ? ` • ${escapeHtml(p.login)}` : ''}</span>
+            <span class="text-[10.5px] t-muted block mt-0.5 truncate" dir="rtl"><span class="num-bidi font-bold">${linkedCount}</span> سرور متصل${p.login ? ` • <span class="font-en" dir="ltr">${escapeHtml(p.login)}</span>` : ''}</span>
           </div>
         </div>
       `;
@@ -952,16 +1062,67 @@
 
   let activeBillNodeCtx = null;
 
+  function _applySelectedBillProvider(uuidVal = '') {
+    const providers = Array.isArray(panelState.infra_providers) ? panelState.infra_providers : [];
+    const cleanUuid = String(uuidVal || '').trim();
+    const hit = cleanUuid ? providers.find(p => String(p.uuid) === cleanUuid) : null;
+    if ($('panelBillProviderSelect')) $('panelBillProviderSelect').value = hit ? String(hit.uuid) : '';
+    const dispEl = $('panelBillProviderDisplay');
+    if (dispEl) {
+      if (hit) {
+        dispEl.innerText = hit.name || hit.uuid;
+        dispEl.setAttribute('dir', 'ltr');
+      } else {
+        dispEl.innerText = providers.length ? 'انتخاب ارائه‌دهنده...' : 'ابتدا ارائه‌دهنده تعریف کنید';
+        dispEl.setAttribute('dir', 'rtl');
+      }
+    }
+  }
+
+  function _renderBillProviderPickerList() {
+    const listEl = $('panelBillProviderPickerList');
+    if (!listEl) return;
+    const providers = Array.isArray(panelState.infra_providers) ? panelState.infra_providers : [];
+    const curVal = $('panelBillProviderSelect')?.value || '';
+    if (!providers.length) {
+      listEl.innerHTML = '<div class="p-4 text-center text-xs t-muted card-inset rounded-2xl border border-card-border">ارائه‌دهنده‌ای در پنل ثبت نشده است.</div>';
+      return;
+    }
+    listEl.innerHTML = providers.map(p => renderModalPickerRow({
+      onClick: `window.panelCtrl.selectBillProvider('${escapeHtml(p.uuid)}')`,
+      title: p.name || p.uuid,
+      sub: p.login || '',
+      selected: String(curVal) === String(p.uuid),
+      isEnglish: true,
+      rowDir: 'ltr',
+      subDir: 'ltr',
+    })).join('');
+  }
+
+  function openBillProviderModal() {
+    const modal = $('panelBillProviderPickerModal');
+    if (!modal) return;
+    _renderBillProviderPickerList();
+    modal.classList.remove('hidden');
+    haptic('selection');
+  }
+
+  function closeBillProviderModal() {
+    $('panelBillProviderPickerModal')?.classList.add('hidden');
+  }
+
+  function selectBillProvider(uuidVal = '') {
+    _applySelectedBillProvider(uuidVal);
+    closeBillProviderModal();
+    haptic('selection');
+  }
+
   async function openBillModal(prefillProviderUuid = '', prefillAmount = '', nodeCtx = null) {
     const modal = $('panelBillCreateModal');
-    const provSel = $('panelBillProviderSelect');
-    if (!modal || !provSel) return;
+    if (!modal) return;
     if (!panelState.loaded) await fetchOverview(false);
     const providers = Array.isArray(panelState.infra_providers) ? panelState.infra_providers : [];
-    provSel.innerHTML = providers.length
-      ? providers.map(p => `<option value="${escapeHtml(p.uuid)}">${escapeHtml(p.name)}</option>`).join('')
-      : '<option value="">ابتدا ارائه‌دهنده تعریف کنید</option>';
-    if (prefillProviderUuid) provSel.value = prefillProviderUuid;
+    _applySelectedBillProvider(prefillProviderUuid || providers[0]?.uuid || '');
     if ($('panelBillAmount')) $('panelBillAmount').value = prefillAmount || '';
     const todayIso = new Date().toISOString().slice(0, 10);
     if ($('panelBillDate')) $('panelBillDate').value = todayIso;
@@ -989,6 +1150,7 @@
 
   function closeBillModal() {
     activeBillNodeCtx = null;
+    closeBillProviderModal();
     $('panelBillCreateModal')?.classList.add('hidden');
   }
 
@@ -1020,7 +1182,6 @@
         }
         if (!res.panel_sync_warning) {
           $('nodeBillingDueSourceBadge')?.classList.remove('hidden');
-          window.adminActions?.updateNodeBillingDueSyncStatus?.('panel');
         }
       }
       if (res.panel_sync_warning) {
@@ -1075,6 +1236,10 @@
     applyHostSquadsModal,
     saveHost,
     saveSubSettings,
+    openIntSquadModal,
+    closeIntSquadModal,
+    saveIntSquad,
+    deleteIntSquad,
     openExtSquadUsersModal,
     closeExtSquadUsersModal,
     submitExtSquadUsers,
@@ -1088,6 +1253,9 @@
     deleteProvider,
     openBillModal,
     closeBillModal,
+    openBillProviderModal,
+    closeBillProviderModal,
+    selectBillProvider,
     createBill,
     deleteBill,
     openTokenModal,

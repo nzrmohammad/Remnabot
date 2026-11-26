@@ -874,6 +874,8 @@ def create_web_app(
     app.router.add_post("/api/admin/panel/snippets/delete", routes_admin.post_admin_panel_snippet_delete)
     app.router.add_post("/api/admin/panel/subscription-settings", routes_admin.post_admin_panel_subscription_settings)
     app.router.add_post("/api/admin/panel/external-squads/users", routes_admin.post_admin_panel_external_squad_users)
+    app.router.add_post("/api/admin/panel/internal-squads/save", routes_admin.post_admin_panel_internal_squad_save)
+    app.router.add_post("/api/admin/panel/internal-squads/delete", routes_admin.post_admin_panel_internal_squad_delete)
     app.router.add_post("/api/admin/panel/tokens/create", routes_admin.post_admin_panel_token_create)
     app.router.add_post("/api/admin/panel/tokens/delete", routes_admin.post_admin_panel_token_delete)
     app.router.add_get("/api/admin/infra/ssl-health", routes_admin.get_admin_ssl_health)

@@ -345,7 +345,6 @@ def test_admin_health_sub_and_redesigned_modals():
 
     billing_block = admin_html[admin_html.find('id="nodeBillingModal"'):admin_html.find('id="campaignDetailModal"')]
     assert 'w-[124px]' in billing_block
-    assert 'grid-cols-1 sm:grid-cols-2 gap-2.5' in billing_block
     assert 'grid-cols-2 gap-2.5' in billing_block
     assert 'min-w-0' in billing_block
     assert 'تنظیمات سرور' in billing_block

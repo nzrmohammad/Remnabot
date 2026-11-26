@@ -319,6 +319,47 @@ async def post_admin_panel_external_squad_users(request: web.Request) -> web.Res
     return web.json_response({"ok": True, "message": msg})
 
 
+async def post_admin_panel_internal_squad_save(request: web.Request) -> web.Response:
+    """Create or update a Remnawave internal squad and its inbound bindings."""
+    admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+
+    body = await _parse_json(request)
+    squad_uuid = str(body.get("uuid") or "").strip() or None
+    name = str(body.get("name") or "").strip()
+    if not name:
+        return web.json_response({"ok": False, "error": "نام اسکواد داخلی الزامی است."}, status=400)
+    raw_inbounds = body.get("inbounds") or []
+    inbounds = [str(x).strip() for x in raw_inbounds if str(x).strip()] if isinstance(raw_inbounds, list) else []
+
+    ok, res = await remnawave.save_internal_squad(name, inbounds, squad_uuid=squad_uuid)
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+
+    await _audit_and_refresh(request, admin["id"], "save_internal_squad", f"اسکواد داخلی {name} ({len(inbounds)} اینباند)")
+    return web.json_response({"ok": True, "message": f"اسکواد داخلی «{name}» ذخیره شد.", "squad": res})
+
+
+async def post_admin_panel_internal_squad_delete(request: web.Request) -> web.Response:
+    """Delete a Remnawave internal squad."""
+    admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+
+    body = await _parse_json(request)
+    squad_uuid = str(body.get("uuid") or "").strip()
+    if not squad_uuid:
+        return web.json_response({"ok": False, "error": "شناسه اسکواد داخلی الزامی است."}, status=400)
+
+    ok, res = await remnawave.delete_internal_squad(squad_uuid)
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+
+    await _audit_and_refresh(request, admin["id"], "delete_internal_squad", f"حذف اسکواد داخلی {squad_uuid}")
+    return web.json_response({"ok": True, "message": "اسکواد داخلی حذف شد."})
+
+
 # --- 6. Full Infra Billing Providers & Node Linkage ---
 async def post_admin_infra_provider_save(request: web.Request) -> web.Response:
     """Create or update a Remnawave infra billing provider."""

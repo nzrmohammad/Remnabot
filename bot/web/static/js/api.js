@@ -644,6 +644,14 @@ const api = {
     return this.post('/api/admin/panel/external-squads/users', { squad_uuid, user_uuids, action });
   },
 
+  async saveInternalSquad(data) {
+    return this.post('/api/admin/panel/internal-squads/save', data);
+  },
+
+  async deleteInternalSquad(uuid) {
+    return this.post('/api/admin/panel/internal-squads/delete', { uuid });
+  },
+
   async createPanelApiToken(token_name) {
     return this.post('/api/admin/panel/tokens/create', { token_name });
   },

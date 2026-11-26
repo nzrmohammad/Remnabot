@@ -659,7 +659,7 @@
             </div>
           </div>
           <!-- Quick Node Status & Billing Filters -->
-          <div id="nodesStatusFilterBar" class="flex items-center gap-1.5 overflow-x-auto custom-scroll pb-0.5 text-[11px]" role="tablist">
+          <div id="nodesStatusFilterBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-[11px]" role="tablist">
             <button type="button" id="nodeFilterBtn_all" onclick="window.adminActions.setNodesFilter('all')" class="px-2.5 py-1.5 rounded-xl font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap flex items-center gap-1.5 shrink-0">
               <span>همه</span>
               <span id="nodeFilterCount_all" class="px-1.5 py-0.5 rounded-md bg-white/20 text-[10px] font-sans num-bidi">0</span>
@@ -916,8 +916,8 @@
                 <input type="text" oninput="window.panelCtrl.filterHosts(this.value)" placeholder="جستجوی هاست یا SNI..." class="bg-transparent text-xs placeholder:text-[11px] t-main outline-none flex-1 min-w-0" />
               </div>
               <div class="grid grid-cols-2 gap-2">
-                <button id="panelHostsSelectAllBtn" type="button" onclick="window.panelCtrl.toggleSelectAllHosts()" class="btn btn-secondary w-full py-2 text-[11px] rounded-xl font-bold">انتخاب همه</button>
                 <button type="button" onclick="window.panelCtrl.openHostModal()" class="btn btn-primary w-full py-2 text-[11px] rounded-xl font-bold whitespace-nowrap">+ هاست جدید</button>
+                <button id="panelHostsSelectAllBtn" type="button" onclick="window.panelCtrl.toggleSelectAllHosts()" class="btn btn-secondary w-full py-2 text-[11px] rounded-xl font-bold">انتخاب همه</button>
               </div>
             </div>
 
@@ -935,7 +935,7 @@
             </div>
           </div>
 
-          <!-- Pane 2: External Squads & Global Subscription Settings -->
+          <!-- Pane 2: Internal Squads, External Squads & Global Subscription Settings -->
           <div id="panelCtrlPane_squads" class="space-y-3 hidden">
             <div class="card p-3.5 rounded-2xl border border-card-border space-y-3 text-xs">
               <div class="flex items-center justify-between gap-2 border-b border-card-border pb-2">
@@ -969,6 +969,16 @@
                 </div>
               </div>
               <button type="button" onclick="window.panelCtrl.saveSubSettings()" class="w-full btn btn-primary py-2.5 rounded-xl text-xs font-bold">ذخیره تنظیمات ساب در پنل</button>
+            </div>
+
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <b class="text-xs t-main">اسکوادهای داخلی (Internal Squads)</b>
+                <button type="button" onclick="window.panelCtrl.openIntSquadModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ اسکواد داخلی</button>
+              </div>
+              <div id="panelInternalSquadsList" class="space-y-2">
+                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادهای داخلی...</div>
+              </div>
             </div>
 
             <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
@@ -4415,7 +4425,7 @@
                   <input type="hidden" id="nodeBillingCurrency" value="EUR" />
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="grid grid-cols-2 gap-2.5">
                   <div class="min-w-0">
                     <label for="nodeBillingCostToman" class="text-[11px] t-muted block mb-1 truncate">هزینه معادل (تومان):</label>
                     <div class="input-base flex items-center gap-2 h-10 px-3 min-w-0">
@@ -4496,10 +4506,6 @@
                   </button>
                 </div>
                 <span class="text-[10px] t-muted block">3 روز پیش از تاریخ سررسید، هشدار تمدید در تلگرام ارسال می‌شود.</span>
-                <div id="nodeBillingDueSyncStatus" class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl card border border-card-border text-[10.5px]">
-                  <span id="nodeBillingDueSyncText" class="t-muted truncate min-w-0">وضعیت همگام‌سازی پنل</span>
-                  <button type="button" id="syncNodeDueTabBtn" onclick="window.adminActions.syncNodeBillingToPanel(this)" class="px-2 py-1 rounded-lg border border-cyan-500/35 bg-cyan-500/10 t-accent text-[10.5px] font-bold hover:bg-cyan-500/15 transition active:scale-95 shrink-0">سینک الان</button>
-                </div>
               </div>
             </div>
 
@@ -4833,11 +4839,15 @@
         </div>
         <form onsubmit="event.preventDefault(); window.panelCtrl.createBill();" class="space-y-2.5 text-xs">
           <div>
-            <label for="panelBillProviderSelect" class="text-[11px] t-muted block mb-1">ارائه‌دهنده زیرساخت:</label>
-            <select id="panelBillProviderSelect" class="select-base h-9 rounded-xl text-xs w-full font-en" dir="ltr" required></select>
+            <label class="text-[11px] t-muted block mb-1">ارائه‌دهنده زیرساخت:</label>
+            <input type="hidden" id="panelBillProviderSelect" value="" />
+            <button type="button" id="panelBillProviderPickerBtn" onclick="window.panelCtrl.openBillProviderModal()" class="input-base h-9 px-3 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-2 hover:border-cyan-500/50 transition active:scale-[0.99]">
+              <span id="panelBillProviderDisplay" class="t-main font-semibold truncate">انتخاب ارائه‌دهنده...</span>
+              <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
           </div>
           <div>
-            <label for="panelBillAmount" class="text-[11px] t-muted block mb-1">مبلغ پرداختی (مطابق پنل):</label>
+            <label for="panelBillAmount" class="text-[11px] t-muted block mb-1">مبلغ پرداختی:</label>
             <input type="number" step="0.01" min="0.01" id="panelBillAmount" dir="ltr" placeholder="35.00" class="input-base h-9 px-3 rounded-xl text-xs num-bidi w-full text-left" required />
           </div>
           <div>
@@ -4846,12 +4856,45 @@
           </div>
           <label id="panelBillExtendWrap" class="hidden card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer">
             <div class="min-w-0">
-              <span class="text-[11px] font-bold t-main block">تمدید خودکار سررسید (+30 روز)</span>
+              <span class="text-[11px] font-bold t-main block">تمدید خودکار سررسید (<span dir="ltr" class="num-bidi inline-block font-bold">+30</span> روز)</span>
               <span id="panelBillExtendHint" class="text-[10px] t-muted block truncate"></span>
             </div>
             <input type="checkbox" id="panelBillExtendNextMonth" class="accent-emerald-500 rounded shrink-0" checked />
           </label>
           <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ثبت سابقه پرداخت در پنل</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Panel Bill Provider Picker -->
+    <div id="panelBillProviderPickerModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[80vh] flex flex-col space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
+          <h4 class="text-xs font-bold t-main">انتخاب ارائه‌دهنده زیرساخت</h4>
+          <button type="button" onclick="window.panelCtrl.closeBillProviderModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <div id="panelBillProviderPickerList" dir="ltr" class="space-y-1.5 overflow-y-auto custom-scroll flex-1 py-0.5 pr-1 text-xs"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: Panel Internal Squad Editor -->
+    <div id="panelIntSquadEditorModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-4 sm:p-5 w-full max-w-[390px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
+          <h4 id="panelIntSquadModalTitle" class="text-xs font-bold t-main">اسکواد داخلی</h4>
+          <button type="button" onclick="window.panelCtrl.closeIntSquadModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <form onsubmit="event.preventDefault(); window.panelCtrl.saveIntSquad();" class="flex-1 flex flex-col overflow-hidden space-y-2.5 text-xs">
+          <input type="hidden" id="panelIntSquadUuid" value="" />
+          <div class="shrink-0">
+            <label for="panelIntSquadName" class="text-[11px] t-muted block mb-1">نام اسکواد داخلی:</label>
+            <input type="text" id="panelIntSquadName" dir="ltr" placeholder="Default-Squad" class="input-base h-9 px-3 rounded-xl text-xs w-full text-left" required />
+          </div>
+          <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+            <label class="text-[11px] t-muted block mb-1.5 shrink-0">اینباندهای مجاز برای این اسکواد:</label>
+            <div id="panelIntSquadInboundsList" dir="ltr" class="grid grid-cols-2 gap-1.5 overflow-y-auto custom-scroll flex-1 py-0.5 pr-1 text-xs"></div>
+          </div>
+          <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold shrink-0">ذخیره اسکواد داخلی</button>
         </form>
       </div>
     </div>

@@ -182,6 +182,30 @@ class RemnawavePanelExtrasMixin:
             return True, "تغییرات اسکواد خارجی روی کاربران اعمال شد."
         return False, str(res)
 
+    async def save_internal_squad(
+        self, name: str, inbounds: list[str], *, squad_uuid: str | None = None
+    ) -> tuple[bool, Any]:
+        """Create or update an internal squad and its allowed inbound UUIDs."""
+        clean_name = str(name or "").strip()
+        clean_inbounds = [str(x).strip() for x in (inbounds or []) if str(x).strip()]
+        if not clean_name:
+            return False, "نام اسکواد داخلی الزامی است."
+        if squad_uuid:
+            payload = {"uuid": str(squad_uuid).strip(), "name": clean_name, "inbounds": clean_inbounds}
+            ok, res, _ = await self._panel_call("PATCH", "/api/internal-squads", json=payload)
+        else:
+            payload = {"name": clean_name, "inbounds": clean_inbounds}
+            ok, res, _ = await self._panel_call("POST", "/api/internal-squads", json=payload)
+        return ok, res
+
+    async def delete_internal_squad(self, squad_uuid: str) -> tuple[bool, Any]:
+        """Delete an internal squad by UUID."""
+        clean_uuid = str(squad_uuid or "").strip()
+        if not clean_uuid:
+            return False, "شناسه اسکواد داخلی الزامی است."
+        ok, res, _ = await self._panel_call("DELETE", f"/api/internal-squads/{clean_uuid}")
+        return ok, res
+
     async def get_subscription_settings(self) -> dict[str, Any]:
         """Fetch global panel subscription settings."""
         ok, data, _ = await self._panel_call("GET", "/api/subscription-settings")

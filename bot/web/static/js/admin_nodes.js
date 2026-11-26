@@ -854,7 +854,6 @@ openEditSslDomainModal(domain) {
         if (customInput) customInput.value = '';
       }
       this.renderNodeBillingBillsHistory?.();
-      this.updateNodeBillingDueSyncStatus?.();
     },
 
     _renderNodeProviderList() {
@@ -1090,33 +1089,7 @@ openEditSslDomainModal(domain) {
       }).join('');
     },
 
-    updateNodeBillingDueSyncStatus(forceSource = null) {
-      const textEl = $('nodeBillingDueSyncText');
-      const syncBtn = $('syncNodeDueTabBtn');
-      if (!textEl) return;
-      const nodeUuid = $('nodeBillingUuid')?.value?.trim() || '';
-      const provUuid = $('nodeBillingProviderUuid')?.value?.trim() || '';
-      const provName = $('nodeBillingProviderDisplay')?.innerText?.trim() || '';
-      const billingNodes = window.panelCtrl?.getInfraBillingNodes?.() || [];
-      const linkedOnPanel = Boolean(nodeUuid && billingNodes.some(x => String(x.nodeUuid || x.node?.uuid || '') === nodeUuid));
-      const dueSource = forceSource || this._nodePanelSnapshot?.dueSource || '';
-
-      if (dueSource === 'panel' || linkedOnPanel) {
-        textEl.innerText = `🟢 همگام با پنل${provName && provUuid && provUuid !== '__custom__' ? ` (${provName})` : ''}`;
-        textEl.className = 't-success font-medium truncate min-w-0';
-        syncBtn?.classList.remove('hidden');
-      } else if (provUuid && provUuid !== '__custom__') {
-        textEl.innerText = `🟡 آماده همگام‌سازی با «${provName || 'پنل'}»`;
-        textEl.className = 't-warn font-medium truncate min-w-0';
-        syncBtn?.classList.remove('hidden');
-      } else {
-        textEl.innerText = '⚪ ذخیره محلی (برای سینک، ارائه‌دهنده پنل انتخاب کنید)';
-        textEl.className = 't-muted truncate min-w-0';
-        syncBtn?.classList.add('hidden');
-      }
-    },
-
-    async syncNodeBillingToPanel(triggerBtn = null) {
+    async syncNodeBillingToPanel() {
       const nodeUuid = $('nodeBillingUuid')?.value?.trim() || '';
       const providerUuid = $('nodeBillingProviderUuid')?.value?.trim() || '';
       const dueDate = $('nodeBillingDueDate')?.value?.trim() || '';
@@ -1124,7 +1097,7 @@ openEditSslDomainModal(domain) {
         if (window.showToast) window.showToast('ابتدا یک ارائه‌دهنده ثبت‌شده در پنل انتخاب کنید.');
         return;
       }
-      const btn = triggerBtn || $('syncNodePanelBillingBtn');
+      const btn = $('syncNodePanelBillingBtn');
       const prevText = btn ? btn.innerText : '';
       if (btn) {
         btn.disabled = true;
@@ -1134,8 +1107,6 @@ openEditSslDomainModal(domain) {
         const res = await window.api?.syncInfraNodeBilling?.(nodeUuid, providerUuid, dueDate);
         if (res && res.ok) {
           $('nodeBillingDueSourceBadge')?.classList.remove('hidden');
-          if (this._nodePanelSnapshot) this._nodePanelSnapshot.dueSource = 'panel';
-          this.updateNodeBillingDueSyncStatus('panel');
           if (window.showToast) window.showToast(`✅ ${res.message}`);
           if (window.hapticFeedback) window.hapticFeedback('success');
           if (window.syncAdminOverview) window.syncAdminOverview(true);
@@ -1331,7 +1302,6 @@ openEditSslDomainModal(domain) {
         description: descVal,
         trackingActive: trackingStr === '' ? null : trackingBool,
         providerUuid,
-        dueSource: meta.dueSource || '',
         trafficLimitGb: limitGb,
         trafficResetDay: resetDay,
         notifyPercent: notifyPct,
@@ -1343,7 +1313,6 @@ openEditSslDomainModal(domain) {
       if (window.panelCtrl?.fetchOverview) {
         window.panelCtrl.fetchOverview(false).then(() => {
           this.renderNodeBillingBillsHistory?.();
-          this.updateNodeBillingDueSyncStatus?.();
         }).catch(() => {});
       }
 
