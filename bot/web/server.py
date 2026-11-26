@@ -900,7 +900,7 @@ def create_web_app(
 
 
 async def start_web_server(
-    app: web.Application, host: str = "0.0.0.0", port: int = 8080
+    app: web.Application, host: str = "127.0.0.1", port: int = 8080
 ) -> web.AppRunner:
     """Start the aiohttp web server runner asynchronously."""
     access_logger = logging.getLogger("aiohttp.access")

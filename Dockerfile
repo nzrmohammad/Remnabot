@@ -25,6 +25,9 @@ COPY --from=assets --chown=botuser:botuser /build/bot/web/static/css/tailwind.mi
 COPY --from=assets --chown=botuser:botuser /build/bot/web/static/js/dist ./bot/web/static/js/dist
 USER botuser
 
+# Bind all container interfaces inside Docker while host exposure stays restricted via docker-compose.yml.
+ENV WEB_HOST=0.0.0.0
+
 # Liveness: bot/services heartbeat touches /tmp/bot_heartbeat every 60s.
 HEALTHCHECK --interval=60s --timeout=10s --start-period=90s --retries=3 \
   CMD python -c "import os,tempfile,time,sys; p=os.path.join(tempfile.gettempdir(), 'bot_heartbeat'); sys.exit(0 if (os.path.exists(p) and time.time()-os.path.getmtime(p)<180) else 1)"

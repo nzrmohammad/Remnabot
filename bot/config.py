@@ -78,7 +78,7 @@ class Settings(BaseSettings):
 
     # --- Web & Telegram Mini App (TMA) ---
     WEB_ENABLED: bool = True
-    WEB_HOST: str = "0.0.0.0"
+    WEB_HOST: str = "127.0.0.1"
     WEB_PORT: int = 8080
     WEB_APP_URL: str = ""              # e.g. https://tma.yourdomain.com
 

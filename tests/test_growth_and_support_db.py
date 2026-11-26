@@ -340,6 +340,31 @@ async def test_smart_open_client_os_detection_receipt_button_and_dockerfile(sess
     assert "npm run build:css && npm run build:js" in dockerfile_txt
     assert "COPY --from=assets" in dockerfile_txt
     assert "python -m bot.db.migrate" in dockerfile_txt
+    assert "ENV WEB_HOST=0.0.0.0" in dockerfile_txt
+
+
+def test_web_bind_default_is_loopback_and_nosec_hygiene():
+    """Satisfy Bandit B104 by defaulting native bind host to 127.0.0.1 and keeping # nosec comments clean."""
+    import inspect
+    import re
+
+    from bot.config import Settings
+    from bot.web.server import start_web_server
+
+    assert Settings.model_fields["WEB_HOST"].default == "127.0.0.1"
+    assert inspect.signature(start_web_server).parameters["host"].default == "127.0.0.1"
+
+    nosec_re = re.compile(r"#\s*nosec\b(.*)")
+    valid_id_re = re.compile(r"^[B]\d{3}$")
+    for py_file in Path("bot").rglob("*.py"):
+        for line_no, line in enumerate(py_file.read_text(encoding="utf-8").splitlines(), 1):
+            m = nosec_re.search(line)
+            if not m:
+                continue
+            tokens = [tok.strip() for tok in m.group(1).replace(",", " ").split() if tok.strip()]
+            assert tokens and all(valid_id_re.match(tok) for tok in tokens), (
+                f"Invalid # nosec comment in {py_file}:{line_no} ({m.group(0)!r}); put prose comments on separate lines."
+            )
 
 
 @pytest.mark.anyio
