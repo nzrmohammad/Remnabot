@@ -1079,12 +1079,17 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                     req_id = init_data.get("request_id")
                     nodes = init_data.get("nodes", {})
                     if req_id and nodes:
-                        await asyncio.sleep(3.0)
                         res_url = f"https://check-host.net/check-result/{req_id}"
-                        async with session.get(res_url, timeout=aiohttp.ClientTimeout(total=7)) as res_resp:
-                            if res_resp.status == 200:
-                                res_data = await res_resp.json()
-                                for node_key, node_val in (res_data or {}).items():
+                        res_data: dict[str, Any] = {}
+                        for wait_s in (2.5, 1.5):
+                            await asyncio.sleep(wait_s)
+                            async with session.get(res_url, timeout=aiohttp.ClientTimeout(total=7)) as res_resp:
+                                if res_resp.status != 200:
+                                    break
+                                res_data = await res_resp.json() or {}
+                            if res_data and not any(v is None for v in res_data.values()):
+                                break
+                        for node_key, node_val in res_data.items():
                                     node_info = nodes.get(node_key, ["", "جهانی", ""])
                                     cc = node_info[0] if len(node_info) > 0 else "UN"
                                     country = node_info[1] if len(node_info) > 1 else "جهانی"

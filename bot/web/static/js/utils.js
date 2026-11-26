@@ -1678,36 +1678,96 @@ function renderCurrencyIcon(curr = 'USD') {
   return '<svg class="w-3.5 h-3.5 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-label="دلار"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
 }
 
+const COUNTRY_CATALOG = [
+  { code: 'DE', nameFa: 'آلمان', nameEn: 'Germany' },
+  { code: 'NL', nameFa: 'هلند', nameEn: 'Netherlands' },
+  { code: 'FI', nameFa: 'فنلاند', nameEn: 'Finland' },
+  { code: 'FR', nameFa: 'فرانسه', nameEn: 'France' },
+  { code: 'GB', nameFa: 'انگلیس', nameEn: 'United Kingdom' },
+  { code: 'US', nameFa: 'آمریکا', nameEn: 'United States' },
+  { code: 'TR', nameFa: 'ترکیه', nameEn: 'Turkey' },
+  { code: 'AE', nameFa: 'امارات', nameEn: 'UAE' },
+  { code: 'SE', nameFa: 'سوئد', nameEn: 'Sweden' },
+  { code: 'CH', nameFa: 'سوئیس', nameEn: 'Switzerland' },
+  { code: 'AT', nameFa: 'اتریش', nameEn: 'Austria' },
+  { code: 'PL', nameFa: 'لهستان', nameEn: 'Poland' },
+  { code: 'RO', nameFa: 'رومانی', nameEn: 'Romania' },
+  { code: 'RU', nameFa: 'روسیه', nameEn: 'Russia' },
+  { code: 'UA', nameFa: 'اوکراین', nameEn: 'Ukraine' },
+  { code: 'AZ', nameFa: 'آذربایجان', nameEn: 'Azerbaijan' },
+  { code: 'CA', nameFa: 'کانادا', nameEn: 'Canada' },
+  { code: 'IT', nameFa: 'ایتالیا', nameEn: 'Italy' },
+  { code: 'ES', nameFa: 'اسپانیا', nameEn: 'Spain' },
+  { code: 'JP', nameFa: 'ژاپن', nameEn: 'Japan' },
+  { code: 'SG', nameFa: 'سنگاپور', nameEn: 'Singapore' },
+  { code: 'IR', nameFa: 'ایران', nameEn: 'Iran' },
+  { code: 'HK', nameFa: 'هنگ‌کنگ', nameEn: 'Hong Kong' },
+  { code: 'LU', nameFa: 'لوکزامبورگ', nameEn: 'Luxembourg' },
+  { code: 'NO', nameFa: 'نروژ', nameEn: 'Norway' },
+  { code: 'DK', nameFa: 'دانمارک', nameEn: 'Denmark' },
+  { code: 'BE', nameFa: 'بلژیک', nameEn: 'Belgium' },
+  { code: 'BG', nameFa: 'بلغارستان', nameEn: 'Bulgaria' },
+  { code: 'CZ', nameFa: 'جمهوری چک', nameEn: 'Czechia' },
+  { code: 'LV', nameFa: 'لتونی', nameEn: 'Latvia' },
+  { code: 'MD', nameFa: 'مولداوی', nameEn: 'Moldova' },
+  { code: 'KR', nameFa: 'کره جنوبی', nameEn: 'South Korea' },
+  { code: 'IN', nameFa: 'هند', nameEn: 'India' },
+  { code: 'BR', nameFa: 'برزیل', nameEn: 'Brazil' },
+];
+
+function getCountryInfo(code) {
+  const cc = String(code || '').trim().toUpperCase();
+  if (!cc || cc === 'XX') return null;
+  const hit = COUNTRY_CATALOG.find(c => c.code === cc);
+  return hit || { code: cc, nameFa: cc, nameEn: cc };
+}
+
+let _quickDiagState = { host: '', port: 443, label: '', mode: 'ping' };
+
 function closeQuickDiagnosticModal() {
   document.getElementById('quickDiagnosticModal')?.classList.add('hidden');
 }
 
-async function openQuickDiagnosticModal(rawHost, rawPort = null, label = '') {
-  const modal = document.getElementById('quickDiagnosticModal');
-  if (!modal) return;
-  const cleanHost = String(rawHost || '').trim().replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].trim();
-  const parsedPort = rawPort && Number(rawPort) > 0 ? Number(rawPort) : null;
-  if (!cleanHost || cleanHost === '—') {
-    if (window.showToast) window.showToast('آدرس معتبری برای تست یافت نشد.', 'warning');
-    return;
+function _syncQuickDiagModeUi() {
+  const isTcp = _quickDiagState.mode === 'tcp';
+  const pingBtn = document.getElementById('quickDiagModePing');
+  const tcpBtn = document.getElementById('quickDiagModeTcp');
+  const portInput = document.getElementById('quickDiagPortInput');
+  const activeCls = 'flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow';
+  const inactiveCls = 'flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition card-inset border border-card-border t-muted hover:t-main';
+  if (pingBtn) pingBtn.className = isTcp ? inactiveCls : activeCls;
+  if (tcpBtn) tcpBtn.className = isTcp ? activeCls : inactiveCls;
+  if (portInput) {
+    portInput.classList.toggle('hidden', !isTcp);
+    if (!portInput.value) portInput.value = String(_quickDiagState.port || 443);
   }
+}
+
+async function _runQuickDiagnostic() {
   const targetEl = document.getElementById('quickDiagnosticTarget');
   const badgeEl = document.getElementById('quickDiagnosticBadge');
   const listEl = document.getElementById('quickDiagnosticList');
-  if (targetEl) targetEl.innerText = `${label ? label + ' • ' : ''}${cleanHost}${parsedPort ? ':' + parsedPort : ''}`;
+  const cleanHost = _quickDiagState.host;
+  const isTcp = _quickDiagState.mode === 'tcp';
+  const portInputVal = parseInt(document.getElementById('quickDiagPortInput')?.value || '', 10);
+  const effectivePort = portInputVal > 0 && portInputVal <= 65535 ? portInputVal : (_quickDiagState.port || 443);
+  _quickDiagState.port = effectivePort;
+
+  if (targetEl) {
+    targetEl.innerText = `${_quickDiagState.label ? _quickDiagState.label + ' • ' : ''}${cleanHost}${isTcp ? ':' + effectivePort : ''}`;
+  }
+  _syncQuickDiagModeUi();
   if (badgeEl) {
     badgeEl.className = 'badge badge-info';
     badgeEl.innerText = 'در حال بررسی...';
   }
   if (listEl) {
-    listEl.innerHTML = '<div class="p-5 text-center t-muted text-xs">در حال تست دسترسی و تأخیر (Check-Host)...</div>';
+    listEl.innerHTML = `<div class="p-5 text-center t-muted text-xs">در حال تست ${isTcp ? `پورت TCP (${effectivePort})` : 'پینگ (ICMP)'} از نودهای Check-Host...</div>`;
   }
-  modal.classList.remove('hidden');
-  if (window.hapticFeedback) window.hapticFeedback('selection');
 
   try {
-    const payload = { host: cleanHost, check_type: parsedPort ? 'tcp' : 'ping', max_nodes: 8 };
-    if (parsedPort) payload.port = parsedPort;
+    const payload = { host: cleanHost, check_type: isTcp ? 'tcp' : 'ping', max_nodes: 8 };
+    if (isTcp) payload.port = effectivePort;
     const res = await window.api?.runCheckHost?.(payload);
     if (!res || !res.ok || !Array.isArray(res.results) || !res.results.length) {
       if (badgeEl) {
@@ -1723,7 +1783,16 @@ async function openQuickDiagnosticModal(rawHost, rawPort = null, label = '') {
       badgeEl.innerText = `${okCount}/${res.results.length} موفق`;
     }
     if (listEl) {
-      listEl.innerHTML = res.results.map(r => {
+      const icmpHint = (!isTcp && okCount === 0) ? `
+        <div class="card p-2.5 rounded-xl border border-amber-500/35 bg-amber-500/10 text-[10.5px] t-warn space-y-1.5" dir="rtl">
+          <div class="font-bold">احتمالاً پینگ ICMP روی فایروال این سرور بسته است.</div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="t-muted">پورت 443 یا پورت Xray سرور را با TCP تست کنید:</span>
+            <button type="button" onclick="window.setQuickDiagnosticMode('tcp')" class="px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold shrink-0">تست TCP :443</button>
+          </div>
+        </div>
+      ` : '';
+      listEl.innerHTML = icmpHint + res.results.map(r => {
         const cls = r.ok ? 'border-emerald-500/30 t-success' : 'border-rose-500/30 t-danger';
         const val = r.ping_ms !== undefined && r.ping_ms !== null ? `${escapeHtml(r.ping_ms)} ms` : escapeHtml(r.status || (r.ok ? 'OK' : 'Timeout'));
         return `
@@ -1743,23 +1812,56 @@ async function openQuickDiagnosticModal(rawHost, rawPort = null, label = '') {
   }
 }
 
+function setQuickDiagnosticMode(mode = 'ping') {
+  _quickDiagState.mode = mode === 'tcp' ? 'tcp' : 'ping';
+  _runQuickDiagnostic();
+}
+
+async function openQuickDiagnosticModal(rawHost, rawPort = null, label = '') {
+  const modal = document.getElementById('quickDiagnosticModal');
+  if (!modal) return;
+  const cleanHost = String(rawHost || '').trim().replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].trim();
+  const parsedPort = rawPort && Number(rawPort) > 0 ? Number(rawPort) : null;
+  if (!cleanHost || cleanHost === '—') {
+    if (window.showToast) window.showToast('آدرس معتبری برای تست یافت نشد.', 'warning');
+    return;
+  }
+  _quickDiagState = {
+    host: cleanHost,
+    port: parsedPort || 443,
+    label: String(label || ''),
+    mode: parsedPort ? 'tcp' : 'ping',
+  };
+  const portInput = document.getElementById('quickDiagPortInput');
+  if (portInput) portInput.value = String(_quickDiagState.port);
+  modal.classList.remove('hidden');
+  if (window.hapticFeedback) window.hapticFeedback('selection');
+  await _runQuickDiagnostic();
+}
+
 if (typeof window !== 'undefined') {
+  window.COUNTRY_CATALOG = COUNTRY_CATALOG;
+  window.getCountryInfo = getCountryInfo;
   window.updateTopPadding = updateTopPadding;
   window.renderModalPickerRow = renderModalPickerRow;
   window.safeHttpUrl = safeHttpUrl;
   window.renderCurrencyIcon = renderCurrencyIcon;
   window.openQuickDiagnosticModal = openQuickDiagnosticModal;
   window.closeQuickDiagnosticModal = closeQuickDiagnosticModal;
+  window.setQuickDiagnosticMode = setQuickDiagnosticMode;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    COUNTRY_CATALOG,
+    getCountryInfo,
     updateTopPadding,
     renderModalPickerRow,
     safeHttpUrl,
     renderCurrencyIcon,
     openQuickDiagnosticModal,
     closeQuickDiagnosticModal,
+    setQuickDiagnosticMode,
     uiIcon,
     renderFlagHtml,
     getCountryCodeFromEmoji,

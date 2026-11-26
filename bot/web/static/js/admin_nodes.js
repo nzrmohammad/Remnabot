@@ -690,6 +690,13 @@
                   <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                   <span class="truncate">ریستارت</span>
                 </button>
+                <button type="button" class="btn-delete-node col-span-2 bg-transparent hover:bg-rose-500/10 t-danger py-1.5 px-2 rounded-xl border border-rose-500/35 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
+                  data-uuid="${escapeHtml(n.uuid || n.id || '')}"
+                  data-name="${escapeHtml(n.name || '')}"
+                  title="حذف سرور از پنل Remnawave">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <span class="truncate">حذف سرور از پنل</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1145,15 +1152,133 @@ openEditSslDomainModal(domain) {
       return { host: s, port: '' };
     },
 
+    _nodeCountryTarget: 'create',
+
+    _applySelectedNodeCountry(target = 'create', code = '') {
+      const clean = String(code || '').trim().toUpperCase().slice(0, 2);
+      const valid = clean && clean !== 'XX' ? clean : '';
+      const hiddenId = target === 'edit' ? 'nodeBillingPanelCountry' : 'panelCreateNodeCountry';
+      const dispId = target === 'edit' ? 'nodeBillingPanelCountryDisplay' : 'panelCreateNodeCountryDisplay';
+      if ($(hiddenId)) $(hiddenId).value = valid;
+      const dispEl = $(dispId);
+      if (!dispEl) return;
+      if (!valid) {
+        dispEl.innerHTML = '<span class="t-muted">انتخاب...</span>';
+        return;
+      }
+      const info = window.getCountryInfo?.(valid) || { code: valid, nameFa: valid, nameEn: valid };
+      const flagHtml = typeof renderFlagHtml === 'function' ? renderFlagHtml(valid, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover shrink-0') : '';
+      dispEl.innerHTML = `${flagHtml}<span class="font-bold font-en">${escapeHtml(valid)}</span><span class="t-muted text-[10.5px] truncate">${escapeHtml(info.nameFa)}</span>`;
+    },
+
+    _renderNodeCountryPickerList(filterStr = '') {
+      const listEl = $('nodeCountryPickerList');
+      if (!listEl) return;
+      const q = String(filterStr || '').trim().toLowerCase();
+      const hiddenId = this._nodeCountryTarget === 'edit' ? 'nodeBillingPanelCountry' : 'panelCreateNodeCountry';
+      const currentVal = $(hiddenId)?.value?.trim().toUpperCase() || '';
+      const catalog = Array.isArray(window.COUNTRY_CATALOG) ? window.COUNTRY_CATALOG : [];
+      let rows = catalog.filter(c => !q || c.code.toLowerCase().includes(q) || c.nameFa.includes(q) || c.nameEn.toLowerCase().includes(q));
+      if (!rows.length && /^[a-z]{2}$/.test(q)) {
+        const iso = q.toUpperCase();
+        rows = [{ code: iso, nameFa: `کد دلخواه (${iso})`, nameEn: iso }];
+      }
+      const clearRow = !q ? `
+        <button type="button" onclick="window.adminActions.selectNodeCountry('')" class="w-full p-2.5 rounded-xl border ${!currentVal ? 'border-cyan-500/45 bg-cyan-500/10' : 'border-card-border card-inset'} flex items-center justify-between text-xs hover:border-cyan-500/40 transition">
+          <span class="t-muted font-bold">🌐 بدون مشخص‌سازی (پیش‌فرض XX)</span>
+          ${!currentVal ? '<span class="t-accent font-bold">✓</span>' : ''}
+        </button>
+      ` : '';
+      listEl.innerHTML = clearRow + rows.map(c => {
+        const isSel = currentVal === c.code;
+        const flagHtml = typeof renderFlagHtml === 'function' ? renderFlagHtml(c.code, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover shrink-0') : '';
+        return `
+          <button type="button" onclick="window.adminActions.selectNodeCountry('${escapeHtml(c.code)}')" class="w-full p-2.5 rounded-xl border ${isSel ? 'border-cyan-500/45 bg-cyan-500/10' : 'border-card-border card-inset'} flex items-center justify-between gap-2 text-xs hover:border-cyan-500/40 transition">
+            <span class="flex items-center gap-2 min-w-0">
+              ${flagHtml}
+              <span class="font-bold t-main truncate">${escapeHtml(c.nameFa)}</span>
+              <span class="text-[10.5px] t-muted font-en truncate" dir="ltr">${escapeHtml(c.nameEn)}</span>
+            </span>
+            <span class="badge badge-neutral text-[10px] font-en shrink-0" dir="ltr">${escapeHtml(c.code)}</span>
+          </button>
+        `;
+      }).join('');
+    },
+
+    openNodeCountryModal(target = 'create') {
+      this._nodeCountryTarget = target === 'edit' ? 'edit' : 'create';
+      const modal = $('nodeCountryPickerModal');
+      if (!modal) return;
+      if ($('nodeCountrySearchInput')) $('nodeCountrySearchInput').value = '';
+      this._renderNodeCountryPickerList('');
+      modal.classList.remove('hidden');
+      setTimeout(() => $('nodeCountrySearchInput')?.focus(), 80);
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeNodeCountryModal() {
+      $('nodeCountryPickerModal')?.classList.add('hidden');
+    },
+
+    filterNodeCountries(q = '') {
+      this._renderNodeCountryPickerList(q);
+    },
+
+    selectNodeCountry(code = '') {
+      this._applySelectedNodeCountry(this._nodeCountryTarget, code);
+      this.closeNodeCountryModal();
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    _buildRemnanodeComposeYaml(port = 2222, secretKey = '') {
+      const cleanPort = parseInt(port || 2222, 10) || 2222;
+      const cleanKey = String(secretKey || '').trim() || '<SECRET_KEY>';
+      return [
+        'services:',
+        '  remnanode:',
+        '    container_name: remnanode',
+        '    hostname: remnanode',
+        '    image: remnawave/node:latest',
+        '    network_mode: host',
+        '    restart: always',
+        '    cap_add:',
+        '      - NET_ADMIN',
+        '    ulimits:',
+        '      nofile:',
+        '        soft: 1048576',
+        '        hard: 1048576',
+        '    environment:',
+        `      - NODE_PORT=${cleanPort}`,
+        `      - SECRET_KEY="${cleanKey}"`,
+      ].join('\n');
+    },
+
+    _renderNodeComposeSnippet(port, secretKey) {
+      const outEl = $('panelCreateNodeComposeOut');
+      const wrapEl = $('panelCreateNodeComposeWrap');
+      if (!outEl || !wrapEl) return;
+      outEl.innerText = this._buildRemnanodeComposeYaml(port, secretKey);
+      wrapEl.classList.remove('hidden');
+    },
+
+    copyNodeDockerCompose() {
+      const txt = $('panelCreateNodeComposeOut')?.innerText?.trim();
+      if (txt && window.copyToClipboard) window.copyToClipboard(txt, 'فایل docker-compose.yml کپی شد');
+    },
+
     async openNodeCreateModal() {
       const modal = $('nodeCreateModal');
       if (!modal) return;
       if ($('panelCreateNodeName')) $('panelCreateNodeName').value = '';
-      if ($('panelCreateNodeCountry')) $('panelCreateNodeCountry').value = '';
+      this._applySelectedNodeCountry('create', '');
       if ($('panelCreateNodeAddress')) $('panelCreateNodeAddress').value = '';
       if ($('panelCreateNodePort')) $('panelCreateNodePort').value = '2222';
       if ($('panelCreateNodeKeygenWrap')) $('panelCreateNodeKeygenWrap').classList.add('hidden');
       if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').innerText = '';
+      if ($('panelCreateNodeComposeWrap')) $('panelCreateNodeComposeWrap').classList.add('hidden');
+      if ($('panelCreateNodeComposeOut')) $('panelCreateNodeComposeOut').innerText = '';
+      if ($('nodeCreateSubmitBtn')) $('nodeCreateSubmitBtn').classList.remove('hidden');
+      if ($('nodeCreateDoneBtn')) $('nodeCreateDoneBtn').classList.add('hidden');
 
       let profiles = this._nodeConfigProfilesCache || window.panelCtrl?.getConfigProfiles?.() || [];
       if (!profiles.length && window.panelCtrl?.fetchOverview) {
@@ -1215,13 +1340,17 @@ openEditSslDomainModal(domain) {
           const payload = res.keygen.pubKey || res.keygen.secretKey || JSON.stringify(res.keygen);
           if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').innerText = payload;
           $('panelCreateNodeKeygenWrap')?.classList.remove('hidden');
+          const port = parseInt($('panelCreateNodePort')?.value || '2222', 10) || 2222;
+          this._renderNodeComposeSnippet(port, payload);
           if (window.hapticFeedback) window.hapticFeedback('success');
+          return payload;
         } else if (window.showToast) {
           window.showToast(`⚠️ ${res?.error || 'خطا در دریافت کلید Node'}`);
         }
       } finally {
         if (btn) btn.disabled = false;
       }
+      return '';
     },
 
     copyNodeKeygen() {
@@ -1248,9 +1377,21 @@ openEditSslDomainModal(domain) {
           name, country_code, address, port, config_profile_uuid, active_inbounds,
         });
         if (res && res.ok) {
-          if (window.showToast) window.showToast('✅ سرور جدید در پنل ایجاد شد');
+          let keyVal = res.node?.secretKey || res.node?.pubKey || $('panelCreateNodeKeygenOut')?.innerText?.trim() || '';
+          if (!keyVal) {
+            keyVal = await this.fetchNewNodeKeygen();
+          } else {
+            if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').innerText = keyVal;
+            $('panelCreateNodeKeygenWrap')?.classList.remove('hidden');
+            this._renderNodeComposeSnippet(port, keyVal);
+          }
+          if ($('panelCreateNodeComposeTitle')) {
+            $('panelCreateNodeComposeTitle').innerText = '✅ سرور ساخته شد — تنظیمات Docker Compose:';
+          }
+          if ($('nodeCreateSubmitBtn')) $('nodeCreateSubmitBtn').classList.add('hidden');
+          if ($('nodeCreateDoneBtn')) $('nodeCreateDoneBtn').classList.remove('hidden');
+          if (window.showToast) window.showToast('✅ سرور ایجاد شد؛ فایل docker-compose.yml را کپی کنید');
           if (window.hapticFeedback) window.hapticFeedback('success');
-          this.closeNodeCreateModal();
           if (window.syncAdminOverview) window.syncAdminOverview(true);
         } else if (window.showToast) {
           window.showToast(`⚠️ ${res?.error || 'خطا در ایجاد سرور در پنل'}`);
@@ -1260,26 +1401,31 @@ openEditSslDomainModal(domain) {
       }
     },
 
-    deleteCurrentPanelNode() {
-      const uuid = $('nodeBillingUuid')?.value?.trim() || '';
-      const name = $('nodeBillingName')?.value?.trim() || uuid;
-      if (!uuid || !window.panelCtrl?.confirmAction) return;
+    deleteNodeByUuid(uuid, name = '', onDeleted = null) {
+      const cleanUuid = String(uuid || '').trim();
+      if (!cleanUuid || !window.panelCtrl?.confirmAction) return;
       window.panelCtrl.confirmAction({
         title: 'حذف سرور از پنل Remnawave',
-        message: `آیا سرور «${name}» برای همیشه از پنل Remnawave حذف شود؟ این عمل قابل بازگشت نیست.`,
+        message: `آیا سرور «${name || cleanUuid}» برای همیشه از پنل Remnawave حذف شود؟ این عمل قابل بازگشت نیست.`,
         btnText: 'حذف دائم سرور',
         onConfirm: async () => {
-          const res = await window.api?.deletePanelNode?.(uuid, name);
+          const res = await window.api?.deletePanelNode?.(cleanUuid, name || cleanUuid);
           if (res && res.ok) {
             if (window.showToast) window.showToast(`✅ ${res.message || 'سرور از پنل حذف شد'}`);
             if (window.hapticFeedback) window.hapticFeedback('success');
-            this.closeNodeBillingModal();
+            if (typeof onDeleted === 'function') onDeleted();
             if (window.syncAdminOverview) window.syncAdminOverview(true);
           } else if (window.showToast) {
             window.showToast(`⚠️ ${res?.error || 'خطا در حذف سرور'}`);
           }
         },
       });
+    },
+
+    deleteCurrentPanelNode() {
+      const uuid = $('nodeBillingUuid')?.value?.trim() || '';
+      const name = $('nodeBillingName')?.value?.trim() || uuid;
+      this.deleteNodeByUuid(uuid, name, () => this.closeNodeBillingModal());
     },
 
     toggleNodeEnabledState(nodeUuid, nodeName, isCurrentlyDisabled) {
@@ -1455,7 +1601,7 @@ openEditSslDomainModal(domain) {
       if ($('nodeBillingPanelName')) $('nodeBillingPanelName').value = panelName;
       if ($('nodeBillingPanelAddress')) $('nodeBillingPanelAddress').value = panelAddress;
       if ($('nodeBillingPanelPort')) $('nodeBillingPanelPort').value = panelPort;
-      if ($('nodeBillingPanelCountry')) $('nodeBillingPanelCountry').value = panelCountry;
+      this._applySelectedNodeCountry('edit', panelCountry);
       if ($('nodeBillingUserMultiplier')) $('nodeBillingUserMultiplier').value = userMult;
       if ($('nodeBillingNodeMultiplier')) $('nodeBillingNodeMultiplier').value = nodeMult;
       if ($('nodeBillingPanelDescription')) $('nodeBillingPanelDescription').value = descVal;

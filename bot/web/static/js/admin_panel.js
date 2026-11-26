@@ -242,12 +242,15 @@
             </div>
             <input type="checkbox" aria-label="انتخاب هاست" class="w-4 h-4 mt-1 rounded accent-cyan-500 cursor-pointer shrink-0" ${checked ? 'checked' : ''} onchange="window.panelCtrl.toggleHostSelection('${escapeHtml(uuid)}', this.checked)" />
           </div>
-          <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t border-card-border text-[10.5px] t-muted">
+          <div class="pt-1.5 border-t border-card-border space-y-1.5 text-[10.5px] t-muted">
             <div class="flex flex-wrap items-center gap-1">
               ${squadBadge}
               ${tags.map(t => `<span class="badge badge-info text-[10px] font-en" dir="ltr">${escapeHtml(t)}</span>`).join('')}
             </div>
-            <span class="inline-flex items-center gap-1 font-en truncate max-w-full" dir="ltr"><span>SNI:</span><b class="t-main">${escapeHtml(h.sni || '—')}</b></span>
+            <div class="flex items-start justify-start gap-1 font-en text-left w-full" dir="ltr">
+              <span class="shrink-0">SNI:</span>
+              <b class="t-main break-all text-left min-w-0">${escapeHtml(h.sni || '—')}</b>
+            </div>
           </div>
         </div>
       `;
@@ -802,14 +805,19 @@
         const inSquad = activeSquadType === 'internal'
           ? (u.internal_squads || []).includes(targetSquadUuid)
           : String(u.external_squad_uuid || '') === targetSquadUuid;
+        const memberStatusIcon = inSquad
+          ? '<span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500/15 border border-emerald-500/40 t-success shrink-0" title="عضو این اسکواد"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>'
+          : '<span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-500/15 border border-card-border t-subtle shrink-0" title="عضو نیست"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg></span>';
         return `
-          <label class="card-inset px-2.5 py-1.5 rounded-xl border border-card-border flex items-center justify-between gap-2 text-[11px] cursor-pointer hover:border-cyan-500/40 transition">
+          <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 text-[11px] cursor-pointer hover:border-cyan-500/40 transition">
             <input type="checkbox" class="squad-user-chk accent-cyan-500 rounded shrink-0" value="${escapeHtml(key)}" data-id="${escapeHtml(String(u.id || ''))}" ${checked} onchange="window.panelCtrl.toggleSquadUserPick('${escapeHtml(key)}', '${escapeHtml(String(u.id || ''))}', this.checked)" />
             <div class="min-w-0 flex-1 text-left" dir="ltr">
-              <span class="font-bold t-main truncate block font-en">${escapeHtml(u.username || key)}</span>
+              <div class="flex items-center justify-start gap-1.5 min-w-0">
+                <span class="font-bold t-main truncate font-en">${escapeHtml(u.username || key)}</span>
+                ${memberStatusIcon}
+              </div>
               <span class="text-[10px] t-muted block">${u.telegram_id ? `TG:${escapeHtml(u.telegram_id)} • ` : ''}${escapeHtml(u.status || '')}</span>
             </div>
-            ${inSquad ? '<span class="badge badge-success text-[9.5px] shrink-0">عضو</span>' : ''}
           </label>
         `;
       }).join('');
@@ -849,7 +857,7 @@
       try {
         const res = await window.api?.getPlans?.();
         const plans = (res && res.ok && Array.isArray(res.plans)) ? res.plans : [];
-        planSel.innerHTML = '<option value="">همه تعرفه‌ها</option>' + plans.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.title || '')}</option>`).join('');
+        planSel.innerHTML = '<option value="">همه تعرفه‌های ربات</option>' + plans.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.title || '')}</option>`).join('');
       } catch (_e) {}
     } else if (planSel) {
       planSel.value = '';
@@ -1114,20 +1122,20 @@
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
           <div class="flex items-center gap-1 shrink-0">
-            ${loginHref ? `<button type="button" onclick="window.panelCtrl.openExternalUrl('${escapeHtml(loginHref)}')" class="px-2 py-1 rounded-xl border border-emerald-500/35 t-success hover:bg-emerald-500/10 text-[10.5px] font-bold transition active:scale-95" title="ورود به پنل ارائه‌دهنده">ورود</button>` : ''}
             <button type="button" onclick="window.panelCtrl.openProviderModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش ارائه‌دهنده">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
             <button type="button" onclick="window.panelCtrl.deleteProvider('${escapeHtml(uuid)}', '${escapeHtml(p.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف ارائه‌دهنده">
               ${TRASH_ICON_SVG}
             </button>
+            ${loginHref ? `<button type="button" onclick="window.panelCtrl.openExternalUrl('${escapeHtml(loginHref)}')" class="px-2 py-1 rounded-xl border border-emerald-500/35 t-success hover:bg-emerald-500/10 text-[10.5px] font-bold transition active:scale-95" title="ورود به پنل ارائه‌دهنده">ورود</button>` : ''}
           </div>
           <div class="min-w-0 text-left flex-1" dir="ltr">
             <div class="flex items-center gap-1.5 min-w-0">
               ${iconHref ? `<img src="${escapeHtml(iconHref)}" alt="" class="w-4 h-4 rounded shrink-0 object-contain" onerror="this.style.display='none'" />` : ''}
               <b class="text-xs t-main block truncate font-en">${escapeHtml(p.name || '')}</b>
             </div>
-            <span class="text-[10.5px] t-muted block mt-0.5 truncate" dir="rtl"><span class="num-bidi font-bold">${linkedCount}</span> سرور متصل${p.login ? ` • <span class="font-en" dir="ltr">${escapeHtml(p.login)}</span>` : ''}</span>
+            <span class="text-[10.5px] t-muted block mt-0.5 truncate" dir="rtl"><span class="num-bidi font-bold">${linkedCount}</span> سرور متصل</span>
           </div>
         </div>
       `;

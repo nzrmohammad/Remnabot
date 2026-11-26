@@ -4525,18 +4525,22 @@
                     <input type="text" id="nodeBillingPanelName" placeholder="Netherlands-01" class="input-base h-9 px-3 rounded-xl text-xs font-sans font-semibold w-full min-w-0" />
                   </div>
                   <div class="min-w-0">
-                    <label for="nodeBillingPanelCountry" class="text-[11px] t-muted block mb-1 truncate">کشور (ISO):</label>
-                    <input type="text" id="nodeBillingPanelCountry" maxlength="2" dir="ltr" placeholder="NL" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans font-bold uppercase w-full min-w-0 text-center" />
+                    <label class="text-[11px] t-muted block mb-1 truncate">کشور:</label>
+                    <input type="hidden" id="nodeBillingPanelCountry" value="" />
+                    <button type="button" id="nodeBillingPanelCountryBtn" onclick="window.adminActions.openNodeCountryModal('edit')" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-1 hover:border-cyan-500/50 transition">
+                      <span id="nodeBillingPanelCountryDisplay" class="t-main font-semibold truncate flex items-center gap-1.5">انتخاب...</span>
+                      <svg class="w-3.5 h-3.5 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
                   </div>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
-                  <div class="col-span-2 min-w-0">
-                    <label for="nodeBillingPanelAddress" class="text-[11px] t-muted block mb-1 truncate">آدرس دامنه / IP:</label>
-                    <input type="text" id="nodeBillingPanelAddress" dir="ltr" placeholder="1.2.3.4" class="input-base h-9 px-3 rounded-xl text-xs font-sans num-bidi w-full min-w-0 text-left" />
-                  </div>
                   <div class="min-w-0">
                     <label for="nodeBillingPanelPort" class="text-[11px] t-muted block mb-1 truncate">پورت نود:</label>
                     <input type="number" min="1" max="65535" id="nodeBillingPanelPort" dir="ltr" placeholder="2222" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans num-bidi w-full min-w-0 text-left" />
+                  </div>
+                  <div class="col-span-2 min-w-0">
+                    <label for="nodeBillingPanelAddress" class="text-[11px] t-muted block mb-1 truncate">آدرس دامنه / IP:</label>
+                    <input type="text" id="nodeBillingPanelAddress" dir="ltr" placeholder="1.2.3.4" class="input-base h-9 px-3 rounded-xl text-xs font-sans num-bidi w-full min-w-0 text-left" />
                   </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2.5">
@@ -4954,31 +4958,34 @@
 
     <!-- MODAL: Squad Users Assign / Remove (Internal + External) -->
     <div id="panelExtSquadUsersModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[420px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[440px] h-[88vh] max-h-[720px] flex flex-col space-y-3 shadow-2xl relative overflow-hidden">
         <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
           <h4 id="panelExtSquadTitle" class="text-xs font-bold t-main truncate">مدیریت اعضای اسکواد</h4>
           <button type="button" onclick="window.panelCtrl.closeExtSquadUsersModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
         <input type="hidden" id="panelExtSquadUuid" value="" />
-        <div class="space-y-2.5 text-xs overflow-y-auto custom-scroll pr-0.5 flex-1">
-          <div class="grid grid-cols-3 gap-2">
+        <div class="space-y-2.5 text-xs flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div class="grid grid-cols-3 gap-2 shrink-0">
             <div class="col-span-2 admin-search-box h-9 px-2.5">
               <input type="text" id="panelSquadUserSearchInput" oninput="window.panelCtrl.searchSquadUsers()" placeholder="جستجوی نام کاربری، نام یا آیدی..." class="bg-transparent text-[11px] t-main outline-none flex-1 min-w-0" />
             </div>
             <select id="panelSquadPlanFilterSelect" onchange="window.panelCtrl.searchSquadUsers()" class="input-base h-9 px-2 rounded-xl text-[11px] font-sans w-full">
-              <option value="">همه پلن‌ها</option>
+              <option value="">همه تعرفه‌های ربات</option>
             </select>
           </div>
-          <div class="flex items-center justify-between text-[10.5px] t-muted px-0.5">
+          <div class="flex items-center justify-between text-[10.5px] t-muted px-0.5 shrink-0">
             <span>انتخاب از کاربران پنل:</span>
             <span id="panelSquadSelectedCount" class="badge badge-info text-[10px] font-sans num-bidi">0 انتخاب</span>
           </div>
-          <div id="panelSquadUserPickerList" class="max-h-44 overflow-y-auto custom-scroll space-y-1.5 pr-0.5"></div>
-          <details class="card-inset rounded-xl p-2 border border-card-border">
-            <summary class="text-[10.5px] t-muted cursor-pointer select-none">افزودن / حذف دستی با UUID یا ID (اختیاری)</summary>
+          <div id="panelSquadUserPickerList" class="flex-1 min-h-[240px] overflow-y-auto custom-scroll scroll-right space-y-1.5 pr-0.5"></div>
+          <details class="card-inset rounded-xl p-2 border border-card-border shrink-0">
+            <summary class="flex items-center justify-between gap-2 text-[10.5px] t-muted cursor-pointer select-none list-none">
+              <span>افزودن / حذف دستی با UUID یا ID</span>
+              <span class="badge-optional">اختیاری</span>
+            </summary>
             <textarea id="panelExtSquadUserUuids" rows="3" dir="ltr" placeholder="uuid-1, uuid-2" class="textarea-base text-[11px] font-sans font-en rounded-xl w-full text-left mt-2"></textarea>
           </details>
-          <div class="grid grid-cols-2 gap-2 pt-1">
+          <div class="grid grid-cols-2 gap-2 pt-1 shrink-0">
             <button type="button" onclick="window.panelCtrl.submitExtSquadUsers('add')" class="btn btn-primary text-xs py-2 rounded-xl font-bold">افزودن به اسکواد</button>
             <button type="button" onclick="window.panelCtrl.submitExtSquadUsers('remove')" class="btn btn-secondary text-xs py-2 rounded-xl font-bold t-danger border-rose-500/35">حذف از اسکواد</button>
           </div>
@@ -4986,32 +4993,36 @@
       </div>
     </div>
 
-    <!-- MODAL: Create New Remnawave Node + Keygen -->
+    <!-- MODAL: Create New Remnawave Node + Keygen & Docker Compose -->
     <div id="nodeCreateModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[420px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[440px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative overflow-hidden">
         <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
           <h4 class="text-xs font-bold t-main">افزودن سرور جدید در پنل Remnawave</h4>
           <button type="button" onclick="window.adminActions.closeNodeCreateModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
-        <div class="space-y-2.5 text-xs overflow-y-auto custom-scroll pr-0.5 flex-1">
+        <div class="space-y-2.5 text-xs overflow-y-auto custom-scroll scroll-right pr-0.5 flex-1">
           <div class="grid grid-cols-3 gap-2">
             <div class="col-span-2 min-w-0">
               <label for="panelCreateNodeName" class="text-[11px] t-muted block mb-1">نام سرور:</label>
               <input type="text" id="panelCreateNodeName" placeholder="DE-Hetzner-01" class="input-base h-9 px-3 rounded-xl text-xs font-sans font-semibold w-full" />
             </div>
             <div class="min-w-0">
-              <label for="panelCreateNodeCountry" class="text-[11px] t-muted block mb-1">کشور (ISO):</label>
-              <input type="text" id="panelCreateNodeCountry" maxlength="2" dir="ltr" placeholder="DE" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans font-bold uppercase w-full text-center" />
+              <label class="text-[11px] t-muted block mb-1">کشور:</label>
+              <input type="hidden" id="panelCreateNodeCountry" value="" />
+              <button type="button" id="panelCreateNodeCountryBtn" onclick="window.adminActions.openNodeCountryModal('create')" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans w-full flex items-center justify-between gap-1 hover:border-cyan-500/50 transition">
+                <span id="panelCreateNodeCountryDisplay" class="t-main font-semibold truncate flex items-center gap-1.5">انتخاب...</span>
+                <svg class="w-3.5 h-3.5 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
             </div>
           </div>
           <div class="grid grid-cols-3 gap-2">
-            <div class="col-span-2 min-w-0">
-              <label for="panelCreateNodeAddress" class="text-[11px] t-muted block mb-1">آدرس IP / دامنه:</label>
-              <input type="text" id="panelCreateNodeAddress" dir="ltr" placeholder="1.2.3.4" class="input-base h-9 px-3 rounded-xl text-xs font-sans num-bidi w-full text-left" />
-            </div>
             <div class="min-w-0">
               <label for="panelCreateNodePort" class="text-[11px] t-muted block mb-1">پورت نود:</label>
               <input type="number" id="panelCreateNodePort" min="1" max="65535" dir="ltr" value="2222" class="input-base h-9 px-2.5 rounded-xl text-xs font-sans num-bidi w-full text-left" />
+            </div>
+            <div class="col-span-2 min-w-0">
+              <label for="panelCreateNodeAddress" class="text-[11px] t-muted block mb-1">آدرس IP / دامنه:</label>
+              <input type="text" id="panelCreateNodeAddress" dir="ltr" placeholder="1.2.3.4" class="input-base h-9 px-3 rounded-xl text-xs font-sans num-bidi w-full text-left" />
             </div>
           </div>
           <div>
@@ -5023,39 +5034,64 @@
           </div>
           <div class="card-inset rounded-2xl p-3 border border-card-border space-y-2">
             <div class="flex items-center justify-between gap-2">
-              <span class="text-[11px] font-bold t-main">کلید Node (SECRET_KEY / SSL_CERT)</span>
+              <span class="text-[11px] font-bold t-main">کلید Node و فایل داکر (Docker)</span>
               <button type="button" id="nodeCreateKeygenBtn" onclick="window.adminActions.fetchNewNodeKeygen()" class="btn btn-secondary px-2.5 py-1 text-[10.5px] rounded-xl font-bold shrink-0">دریافت کلید</button>
             </div>
             <div id="panelCreateNodeKeygenWrap" class="hidden space-y-1.5">
               <div class="flex items-center gap-1.5">
                 <code id="panelCreateNodeKeygenOut" dir="ltr" class="flex-1 text-[10.5px] font-sans font-en break-all t-main card p-2 rounded-xl border border-card-border"></code>
-                <button type="button" onclick="window.adminActions.copyNodeKeygen()" class="btn btn-secondary px-2.5 py-1.5 text-[10.5px] rounded-xl font-bold shrink-0">کپی</button>
+                <button type="button" onclick="window.adminActions.copyNodeKeygen()" class="btn btn-secondary px-2.5 py-1.5 text-[10.5px] rounded-xl font-bold shrink-0">کپی کلید</button>
               </div>
             </div>
+            <div id="panelCreateNodeComposeWrap" class="hidden space-y-1.5 pt-1 border-t border-card-border">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[10.5px] font-bold t-success" id="panelCreateNodeComposeTitle">فایل آماده docker-compose.yml:</span>
+                <button type="button" id="copyNodeComposeBtn" onclick="window.adminActions.copyNodeDockerCompose()" class="btn btn-primary px-2.5 py-1 text-[10.5px] rounded-xl font-bold shrink-0">کپی Docker Compose</button>
+              </div>
+              <pre id="panelCreateNodeComposeOut" dir="ltr" class="text-[10px] font-sans font-en card p-2.5 rounded-xl border border-card-border overflow-x-auto t-main leading-relaxed text-left"></pre>
+            </div>
           </div>
-          <button type="button" id="nodeCreateSubmitBtn" onclick="window.adminActions.submitCreatePanelNode()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ایجاد سرور در پنل</button>
+          <div class="pt-0.5 space-y-2">
+            <button type="button" id="nodeCreateSubmitBtn" onclick="window.adminActions.submitCreatePanelNode()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ایجاد سرور در پنل</button>
+            <button type="button" id="nodeCreateDoneBtn" onclick="window.adminActions.closeNodeCreateModal()" class="hidden w-full btn btn-secondary text-xs py-2.5 rounded-xl font-bold">تکمیل و بستن</button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Country Picker for Panel Nodes (Create / Edit) -->
+    <div id="nodeCountryPickerModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4 hidden">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[380px] h-[75vh] max-h-[560px] flex flex-col space-y-3 shadow-2xl relative overflow-hidden">
+        <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
+          <h4 class="text-xs font-bold t-main">انتخاب کشور سرور</h4>
+          <button type="button" onclick="window.adminActions.closeNodeCountryModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        </div>
+        <div class="admin-search-box h-9 px-3 shrink-0">
+          <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="nodeCountrySearchInput" oninput="window.adminActions.filterNodeCountries(this.value)" placeholder="جستجوی نام کشور یا کد ISO (مثل DE)..." class="bg-transparent text-xs t-main outline-none flex-1 min-w-0" />
+        </div>
+        <div id="nodeCountryPickerList" class="flex-1 overflow-y-auto custom-scroll scroll-right space-y-1.5 pr-0.5"></div>
       </div>
     </div>
 
     <!-- MODAL: Config Profile Create / Edit -->
     <div id="panelConfigProfileEditorModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[420px] max-h-[90vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[460px] h-[88vh] max-h-[740px] flex flex-col space-y-3 shadow-2xl relative overflow-hidden">
         <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
           <h4 id="panelConfigProfileModalTitle" class="text-xs font-bold t-main">ساخت پروفایل کانفیگ Xray</h4>
           <button type="button" onclick="window.panelCtrl.closeConfigProfileModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         </div>
         <input type="hidden" id="panelConfigProfileUuid" value="" />
-        <div class="space-y-2.5 text-xs overflow-y-auto custom-scroll pr-0.5 flex-1">
-          <div>
+        <div class="space-y-2.5 text-xs flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div class="shrink-0">
             <label for="panelConfigProfileName" class="text-[11px] t-muted block mb-1">نام پروفایل:</label>
             <input type="text" id="panelConfigProfileName" dir="ltr" placeholder="Reality-Profile" class="input-base h-9 px-3 rounded-xl text-xs font-sans w-full text-left" />
           </div>
-          <div>
-            <label for="panelConfigProfileJson" class="text-[11px] t-muted block mb-1">پیکربندی Xray JSON:</label>
-            <textarea id="panelConfigProfileJson" rows="10" dir="ltr" placeholder="{ &quot;inbounds&quot;: [], &quot;outbounds&quot;: [] }" class="textarea-base text-[11px] font-sans font-en rounded-xl w-full text-left"></textarea>
+          <div class="flex flex-col flex-1 min-h-0">
+            <label for="panelConfigProfileJson" class="text-[11px] t-muted block mb-1 shrink-0">پیکربندی Xray JSON:</label>
+            <textarea id="panelConfigProfileJson" rows="16" dir="ltr" placeholder="{ &quot;inbounds&quot;: [], &quot;outbounds&quot;: [] }" class="textarea-base text-[11px] font-sans font-en rounded-xl w-full text-left flex-1 min-h-[320px] custom-scroll scroll-right"></textarea>
           </div>
-          <button type="button" onclick="window.panelCtrl.saveConfigProfile()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ذخیره پروفایل</button>
+          <button type="button" onclick="window.panelCtrl.saveConfigProfile()" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold shrink-0">ذخیره پروفایل</button>
         </div>
       </div>
     </div>
@@ -5084,7 +5120,7 @@
 
     <!-- MODAL: Quick Host / Node Port & Ping Diagnostic -->
     <div id="quickDiagnosticModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[390px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
+      <div class="modal-card border border-card-border rounded-3xl p-5 w-full max-w-[400px] max-h-[85vh] flex flex-col space-y-3 shadow-2xl relative">
         <div class="flex justify-between items-center border-b border-card-border pb-2.5 shrink-0">
           <h4 class="text-xs font-bold t-main truncate">تست سریع پورت و پینگ (Check-Host)</h4>
           <button type="button" onclick="window.closeQuickDiagnosticModal()" class="modal-close-btn" aria-label="بستن"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
@@ -5093,7 +5129,12 @@
           <span id="quickDiagnosticTarget" class="t-main font-sans font-bold truncate" dir="ltr">—</span>
           <span id="quickDiagnosticBadge" class="badge badge-info shrink-0">در حال بررسی...</span>
         </div>
-        <div id="quickDiagnosticList" class="space-y-1.5 overflow-y-auto custom-scroll flex-1 pr-0.5"></div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" id="quickDiagModePing" onclick="window.setQuickDiagnosticMode('ping')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition bg-cyan-600 text-white shadow">پینگ (ICMP)</button>
+          <button type="button" id="quickDiagModeTcp" onclick="window.setQuickDiagnosticMode('tcp')" class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-medium transition card-inset border border-card-border t-muted hover:t-main">تست پورت TCP</button>
+          <input type="number" id="quickDiagPortInput" min="1" max="65535" dir="ltr" value="443" onchange="window.setQuickDiagnosticMode('tcp')" class="input-base h-8 w-16 px-2 rounded-xl text-[11px] font-sans num-bidi text-center hidden" title="پورت TCP" />
+        </div>
+        <div id="quickDiagnosticList" class="space-y-1.5 overflow-y-auto custom-scroll scroll-right flex-1 pr-0.5"></div>
       </div>
     </div>
 

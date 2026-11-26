@@ -490,6 +490,13 @@
       window.adminActions.resetNodeTrafficWithConfirm(d.uuid, d.name);
       return;
     }
+    const deleteNodeBtn = e.target.closest('.btn-delete-node');
+    if (deleteNodeBtn) {
+      e.stopPropagation();
+      const d = deleteNodeBtn.dataset;
+      window.adminActions.deleteNodeByUuid(d.uuid, d.name);
+      return;
+    }
     const copyIpBtn = e.target.closest('.btn-copy-ip-direct');
     if (copyIpBtn) {
       window.copyToClipboard(copyIpBtn.dataset.ip, 'آدرس IP کپی شد');

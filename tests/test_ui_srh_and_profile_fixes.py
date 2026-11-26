@@ -660,8 +660,12 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     assert "syncNodeBillingToPanel" not in admin_nodes_js
     assert 'id="nodesSearchInput"' in admin_html and 'id="createNodeBtn"' in admin_html
     assert 'id="panelBillsFilterBar"' in admin_html and 'id="panelBillsSummaryBar"' in admin_html
-    for mid in ("nodeCreateModal", "panelConfigProfileEditorModal", "panelExtSquadEditorModal", "quickDiagnosticModal"):
+    for mid in ("nodeCreateModal", "nodeCountryPickerModal", "panelConfigProfileEditorModal", "panelExtSquadEditorModal", "quickDiagnosticModal"):
         assert f'id="{mid}"' in admin_html
+    assert admin_html.find('id="panelCreateNodePort"') < admin_html.find('id="panelCreateNodeAddress"')
+    assert admin_html.find('id="nodeBillingPanelPort"') < admin_html.find('id="nodeBillingPanelAddress"')
+    assert 'id="panelCreateNodeComposeOut"' in admin_html and 'id="quickDiagModeTcp"' in admin_html
+    assert "btn-delete-node" in admin_nodes_js
     assert "renderCurrencyIcon" in admin_nodes_js and "openQuickDiagnosticModal" in admin_nodes_js
     assert 'input[type="date"]' in components_css
     assert "::-webkit-datetime-edit" in components_css
