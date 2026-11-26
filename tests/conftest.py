@@ -26,6 +26,7 @@ os.environ.setdefault("REMNAWAVE_BASE_URL", "https://mock-panel.local")
 os.environ.setdefault("REMNAWAVE_TOKEN", "mock_token")
 
 import pytest
+from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from bot.db.models import Base
@@ -37,52 +38,76 @@ def anyio_backend():
     return "asyncio"
 
 
-_shared_engine = None
+_shared_sqlite_engine = None
+_pg_schema_ready = False
 
 
-async def _get_shared_engine():
-    """Return session-cached engine with pre-created tables (PostgreSQL if DATABASE_URL configured, otherwise fast SQLite)."""
-    global _shared_engine
-    if _shared_engine is None:
-        db_url = os.environ.get("DATABASE_URL", "")
-        if db_url.startswith("postgresql"):
-            _shared_engine = create_async_engine(
-                db_url,
-                pool_pre_ping=True,
-            )
-            async with _shared_engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-        else:
-            from sqlalchemy.pool import StaticPool
+async def _get_shared_sqlite_engine():
+    """Return process-cached SQLite in-memory engine with FK enforcement enabled."""
+    global _shared_sqlite_engine
+    if _shared_sqlite_engine is None:
+        from sqlalchemy.pool import StaticPool
 
-            worker = os.environ.get("PYTEST_XDIST_WORKER") or f"p{os.getpid()}"
-            _shared_engine = create_async_engine(
-                f"sqlite+aiosqlite:///file:test_shared_mem_{worker}?mode=memory&cache=shared&uri=true",
-                poolclass=StaticPool,
-                connect_args={"check_same_thread": False},
-            )
-            async with _shared_engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-    return _shared_engine
+        worker = os.environ.get("PYTEST_XDIST_WORKER") or f"p{os.getpid()}"
+        _shared_sqlite_engine = create_async_engine(
+            f"sqlite+aiosqlite:///file:test_shared_mem_{worker}?mode=memory&cache=shared&uri=true",
+            poolclass=StaticPool,
+            connect_args={"check_same_thread": False},
+        )
+
+        @event.listens_for(_shared_sqlite_engine.sync_engine, "connect")
+        def _set_sqlite_pragma(dbapi_conn, _connection_record):
+            cursor = dbapi_conn.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+
+        async with _shared_sqlite_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    return _shared_sqlite_engine
 
 
 @pytest.fixture
 async def shared_db_engine():
-    """Function-scoped async SQLite engine reusing shared in-memory DB."""
-    engine = await _get_shared_engine()
-    yield engine
+    """Function-scoped async DB engine: NullPool on PostgreSQL avoids cross-loop Future errors."""
+    global _pg_schema_ready
+    db_url = os.environ.get("DATABASE_URL", "")
+    if db_url.startswith("postgresql"):
+        from sqlalchemy.pool import NullPool
+
+        engine = create_async_engine(db_url, poolclass=NullPool)
+        if not _pg_schema_ready:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            _pg_schema_ready = True
+        try:
+            yield engine
+        finally:
+            await engine.dispose()
+    else:
+        yield await _get_shared_sqlite_engine()
 
 
 @pytest.fixture
 async def session_factory(shared_db_engine):
-    """Function-scoped session factory reusing the session-scoped engine with clean isolation."""
-    async with shared_db_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """Function-scoped session factory reusing the schema with clean per-test isolation."""
+    db_url = os.environ.get("DATABASE_URL", "")
+    is_pg = db_url.startswith("postgresql")
+    if not is_pg:
+        async with shared_db_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
     factory = async_sessionmaker(shared_db_engine, expire_on_commit=False)
-    yield factory
-    async with shared_db_engine.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
-            try:
-                await conn.execute(table.delete())
-            except Exception:
-                pass
+    try:
+        yield factory
+    finally:
+        async with shared_db_engine.begin() as conn:
+            if is_pg:
+                table_names = ", ".join(f'"{t.name}"' for t in Base.metadata.sorted_tables)
+                if table_names:
+                    await conn.execute(text(f"TRUNCATE TABLE {table_names} RESTART IDENTITY CASCADE"))
+            else:
+                await conn.execute(text("PRAGMA foreign_keys=OFF"))
+                try:
+                    for table in reversed(Base.metadata.sorted_tables):
+                        await conn.execute(table.delete())
+                finally:
+                    await conn.execute(text("PRAGMA foreign_keys=ON"))

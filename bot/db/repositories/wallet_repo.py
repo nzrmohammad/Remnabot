@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Topup, Wallet
+from bot.db.repositories.user_repo import UserRepository
 
 
 class WalletRepository:
@@ -21,6 +22,7 @@ class WalletRepository:
         )
         wallet = result.scalar_one_or_none()
         if wallet is None:
+            await UserRepository(self.session).ensure_exists(telegram_id)
             wallet = Wallet(telegram_id=telegram_id, balance=0)
             self.session.add(wallet)
             try:
@@ -42,6 +44,7 @@ class WalletRepository:
 
         Returns the new balance.
         """
+        await UserRepository(self.session).ensure_exists(telegram_id)
         row = await self.session.execute(
             text(
                 "INSERT INTO wallets (telegram_id, balance) VALUES (:t, :a) "
@@ -55,6 +58,7 @@ class WalletRepository:
 
     async def adjust_balance_atomic(self, telegram_id: int, amount: int) -> int:
         """Atomic +/- (floor at 0). Returns the new balance."""
+        await UserRepository(self.session).ensure_exists(telegram_id)
         row = await self.session.execute(
             text(
                 "INSERT INTO wallets (telegram_id, balance) VALUES (:t, :b) "

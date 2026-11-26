@@ -168,6 +168,7 @@ async def test_reconcile_looks_up_username_when_panel_user_id_is_none(session_fa
     async with session_factory() as session:
         user = User(telegram_id=tid, username="crash_user", full_name="Crash")
         session.add(user)
+        await session.flush()
         stale_order = Order(
             telegram_id=tid,
             service_name="Crash Plan",
@@ -497,6 +498,7 @@ async def test_reconcile_reverts_renewal_to_snapshot(session_factory):
 
     async with session_factory() as session:
         session.add(User(telegram_id=tid))
+        await session.flush()
         old_time = datetime.now(timezone.utc) - timedelta(minutes=25)
         # Create stuck pending renewal order
         order = Order(
@@ -720,6 +722,7 @@ async def test_backup_restore_full_roundtrip_user_and_order_enums(session_factor
             auto_renew=True,
             wheel_streak=5,
         ))
+        await session.flush()
         session.add(Order(
             id=5050,
             telegram_id=tid,
@@ -836,6 +839,8 @@ async def test_reconcile_retries_when_panel_revert_fails(session_factory):
     panel_uid = 778898
 
     async with session_factory() as session:
+        session.add(User(telegram_id=tid, username="u665546"))
+        await session.flush()
         snap = json.dumps({"expireAt": "2026-05-01T00:00:00Z", "trafficLimitBytes": 10000000000, "status": "ACTIVE"})
         order = Order(
             id=7200,

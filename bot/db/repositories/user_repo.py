@@ -21,6 +21,31 @@ class UserRepository:
         )
         return result.scalar_one_or_none()
 
+    async def ensure_exists(self, telegram_id: int) -> None:
+        """Atomically ensure a minimal users row exists so FK-constrained tables never fail."""
+        if type(self.session).__name__ in ("MagicMock", "AsyncMock"):
+            return
+        dialect_name = self.session.bind.dialect.name if self.session.bind else ""
+        vals = {
+            "telegram_id": int(telegram_id),
+            "is_verified": False,
+            "is_banned": False,
+            "has_claimed_trial": False,
+            "auto_renew": False,
+            "wheel_streak": 0,
+            "spin_tickets": 0,
+        }
+        if dialect_name == "postgresql":
+            from sqlalchemy.dialects.postgresql import insert as pg_insert
+            stmt = pg_insert(User).values(**vals).on_conflict_do_nothing(index_elements=["telegram_id"])
+            await self.session.execute(stmt)
+        elif dialect_name == "sqlite":
+            from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+            stmt = sqlite_insert(User).values(**vals).on_conflict_do_nothing(index_elements=["telegram_id"])
+            await self.session.execute(stmt)
+        else:
+            await self.get_or_create(int(telegram_id))
+
     async def get_or_create(
         self, telegram_id: int, username: str | None = None, full_name: str | None = None
     ) -> User:

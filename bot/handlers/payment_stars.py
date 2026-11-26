@@ -174,6 +174,7 @@ async def stars_successful_payment_handler(
                 logger.exception("Failed to refund expired Stars payment %s: %s", sp.telegram_payment_charge_id, exc)
 
         try:
+            await UserRepository(session).ensure_exists(user_tid)
             exp_topup = Topup(
                 telegram_id=user_tid,
                 amount=amount_toman,
@@ -248,6 +249,7 @@ async def stars_successful_payment_handler(
             sp.telegram_payment_charge_id,
         )
         try:
+            await UserRepository(session).ensure_exists(message.from_user.id)
             mismatch_topup = Topup(
                 telegram_id=message.from_user.id,
                 amount=amount_toman,
@@ -257,6 +259,7 @@ async def stars_successful_payment_handler(
             session.add(mismatch_topup)
             await session.commit()
         except Exception as rec_err:
+            await session.rollback()
             logger.warning("Failed to record stars mismatch topup: %s", rec_err)
 
         try:

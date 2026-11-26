@@ -316,6 +316,7 @@ async def test_auto_renew_supports_custom_plans_and_uses_24h_low_balance_cooldow
         await AppSettingRepository(s).set("custom_plan_price_per_day", "500")
         await AppSettingRepository(s).set("custom_plan_base_price", "0")
         s.add(User(telegram_id=tid, username="custom_renewer", auto_renew=True, is_banned=False))
+        await s.flush()
         # Low balance initially -> tests 24h cooldown
         s.add(Wallet(telegram_id=tid, balance=100))
         s.add(

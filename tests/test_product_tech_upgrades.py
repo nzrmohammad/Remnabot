@@ -197,7 +197,7 @@ async def test_mobile_perf_lazy_chart_minifier_and_401_close_ux():
 async def test_system_health_reconciliation_and_5xx_spike_alert(session_factory, tmp_path):
     from aiohttp.test_utils import make_mocked_request
 
-    from bot.db.models import Order
+    from bot.db.models import Order, User
     from bot.services.system_health import record_api_error_spike
     from bot.web.admin_health_api import get_admin_system_health, post_admin_reconcile_run
     from bot.web.cache import FastCache
@@ -206,6 +206,8 @@ async def test_system_health_reconciliation_and_5xx_spike_alert(session_factory,
     stale_time = datetime.now(timezone.utc) - timedelta(minutes=30)
 
     async with session_factory() as session:
+        session.add_all([User(telegram_id=6060, username="u6060"), User(telegram_id=6061, username="u6061")])
+        await session.flush()
         # 1. Stale pending order
         session.add(Order(telegram_id=6060, service_id=None, service_name="Plan A", amount=50000, status="pending", created_at=stale_time))
         # 2. Paid order whose panel_user_id is missing on Remnawave panel -> flagged in reconciliation audit

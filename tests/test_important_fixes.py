@@ -198,6 +198,9 @@ async def test_item16_squads_reversion_on_purchase_failure(session_factory):
             is_active=True,
         )
         session.add(service)
+        from bot.db.models import User
+        session.add(User(telegram_id=3001, username="u3001"))
+        await session.flush()
         # Wallet with sufficient funds
         wallet = Wallet(telegram_id=3001, balance=200000)
         session.add(wallet)

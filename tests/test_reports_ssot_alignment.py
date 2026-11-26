@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from bot.common.helpers import get_node_daily_bytes
-from bot.db.models import Order, Topup
+from bot.db.models import Order, Topup, User
 from bot.db.repositories.order_repo import OrderRepository
 from bot.services.reports.common import get_financial_metrics_today
 from bot.web.admin_overview_charts import _fetch_user_bandwidth_series
@@ -43,6 +43,8 @@ async def test_order_repo_count_with_status_filter(session_factory):
     """Verify OrderRepository.count supports status filtering."""
     async with session_factory() as session:
         repo = OrderRepository(session)
+        session.add_all([User(telegram_id=1), User(telegram_id=2), User(telegram_id=3)])
+        await session.flush()
 
         # 1 paid, 1 pending, 1 failed
         session.add(Order(telegram_id=1, service_name="P1", amount=10000, status="paid"))
@@ -64,6 +66,8 @@ async def test_get_financial_metrics_today_no_double_counting(session_factory):
     """Verify get_financial_metrics_today separates orders revenue and topups cleanly."""
     async with session_factory() as session:
         now = datetime.now(timezone.utc)
+        session.add(User(telegram_id=10))
+        await session.flush()
 
         # User tops up 50,000
         t = Topup(telegram_id=10, amount=50000, status="approved", decided_at=now)

@@ -136,14 +136,14 @@ class CryptoRepository:
         self,
         telegram_id: int,
         amount_toman: int,
-        amount_ton: str,
+        amount_ton: str | float | int,
         nanotons: int,
         pay_address: str,
         expires_minutes: int = 60,
         currency: str = "TON",
     ) -> CryptoInvoice:
         curr_units = nanotons
-        curr_amt_str = amount_ton
+        curr_amt_str = str(amount_ton)
         scale_map = {
             "TON": (100_000, 1_000_000_000),
             "TRX": (100, 1_000_000),

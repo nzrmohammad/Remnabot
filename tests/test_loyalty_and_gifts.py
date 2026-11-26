@@ -225,8 +225,12 @@ async def test_custom_plan_calculation(session_factory):
 @pytest.mark.anyio
 async def test_voucher_redeem_with_gift_card(session_factory):
     async with session_factory() as session:
+        from bot.db.models import User
+
         sender_id = 771122
         claimer_id = 883344
+        session.add_all([User(telegram_id=sender_id, username="sender"), User(telegram_id=claimer_id, username="claimer")])
+        await session.flush()
 
         sender_w = Wallet(telegram_id=sender_id, balance=50_000)
         claimer_w = Wallet(telegram_id=claimer_id, balance=0)

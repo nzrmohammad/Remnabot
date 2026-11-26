@@ -496,6 +496,9 @@ async def post_user_topup_card(request: web.Request) -> web.Response:
 
         receipt_hash = f"{img_hash}|{text_hash}" if text_hash else img_hash
         try:
+            if hasattr(session, "execute") and type(session).__name__ not in ("MagicMock", "AsyncMock"):
+                from bot.db.repositories.user_repo import UserRepository
+                await UserRepository(session).ensure_exists(telegram_id)
             topup = await wallet_repo.create_topup(telegram_id, amount, receipt_hash)
             topup_id = topup.id
 

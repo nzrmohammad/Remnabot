@@ -36,6 +36,7 @@ async def test_wallet_history_ssot_bot_and_tma_parity(session_factory):
     now = datetime.now(timezone.utc)
     async with session_factory() as session:
         session.add(User(telegram_id=tid, username="parity_user", language="fa"))
+        await session.flush()
         session.add(Wallet(telegram_id=tid, balance=500_000))
         session.add_all([
             Topup(telegram_id=tid, amount=120_000, status="approved", receipt_hash="stars:chg_1"),

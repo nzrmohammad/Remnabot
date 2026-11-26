@@ -361,10 +361,12 @@ def test_auto_backup_schedule():
 
 @pytest.mark.anyio
 async def test_renewal_traffic_rollover_vs_reset(async_session: AsyncSession):
-    from bot.db.models import Service, Wallet
+    from bot.db.models import Service, User, Wallet
     from bot.services.purchases import execute_purchase
 
     # User with 500,000 balance
+    async_session.add(User(telegram_id=99001, username="rollover_user"))
+    await async_session.flush()
     w = Wallet(telegram_id=99001, balance=500_000)
     async_session.add(w)
 
@@ -488,7 +490,7 @@ async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_se
 
 
 @pytest.mark.anyio
-async def test_trial_referral_boolean_toggle(async_session: AsyncSession):
+async def test_trial_referral_boolean_toggle(async_session: AsyncSession, monkeypatch):
     from bot.handlers.admin_ops import setting_toggle_boolean
     from bot.services.app_settings import get_store_settings
 
@@ -513,8 +515,7 @@ async def test_trial_referral_boolean_toggle(async_session: AsyncSession):
     call.data = "adm:settings:toggle:trial_enabled"
     call.answer = AsyncMock()
 
-    from bot.config import get_settings
-    get_settings().ADMIN_IDS.append(999999999)
+    monkeypatch.setattr("bot.handlers.admin_settings_views.is_admin", lambda uid: uid == 999999999)
 
     await setting_toggle_boolean(call, bot, u_repo, async_session)
 
@@ -530,9 +531,11 @@ async def test_trial_referral_boolean_toggle(async_session: AsyncSession):
 
 
 @pytest.mark.anyio
-async def test_admin_services_detail_and_toggle(async_session: AsyncSession):
+async def test_admin_services_detail_and_toggle(async_session: AsyncSession, monkeypatch):
     from bot.db.models import Service
     from bot.handlers.admin import service_view_detail, toggle_service
+
+    monkeypatch.setattr("bot.handlers.admin_services_mgmt._is_admin", lambda uid: uid == 999999999)
 
     svc = Service(name="Test 100GB", price=150_000, duration_days=30, traffic_gb=100, is_active=True)
     async_session.add(svc)

@@ -228,6 +228,7 @@ async def test_phone_verify_and_topup_approval_invalidate_caches_and_support_ref
 
     async with session_factory() as session:
         session.add(User(telegram_id=tid, username="phone_u"))
+        await session.flush()
         session.add(Wallet(telegram_id=tid, balance=10_000))
         topup = Topup(telegram_id=tid, amount=50_000, status="pending", receipt_hash="text:123")
         session.add(topup)

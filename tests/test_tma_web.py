@@ -660,11 +660,13 @@ async def test_lucky_wheel_streak_and_referral_tickets(session_factory):
 async def test_user_purchase_multi_account_fallback_and_payload(session_factory):
     from aiohttp.test_utils import make_mocked_request
 
-    from bot.db.models import Service, Wallet
+    from bot.db.models import Service, User, Wallet
     from bot.web.user_shop import post_user_purchase
 
     async with session_factory() as session:
-        # Create service and user wallet
+        # Create service, user, and user wallet
+        session.add(User(telegram_id=22222, username="buyer22222"))
+        await session.flush()
         svc = Service(
             name="Gold 50GB",
             traffic_gb=50,
@@ -1426,10 +1428,12 @@ async def test_admin_coupon_usages(session_factory):
 async def test_admin_topup_action_syncs_with_supergroup(session_factory):
     from aiohttp.test_utils import make_mocked_request
 
-    from bot.db.models import Topup, Wallet
+    from bot.db.models import Topup, User, Wallet
     from bot.web.routes_admin import post_admin_topup_action
 
     async with session_factory() as session:
+        session.add(User(telegram_id=12345, username="user12345"))
+        await session.flush()
         t = Topup(telegram_id=12345, amount=50000, status="pending", admin_message_id=888)
         w = Wallet(telegram_id=12345, balance=10000)
         session.add_all([t, w])
