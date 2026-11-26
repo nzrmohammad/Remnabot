@@ -19,17 +19,17 @@ from zoneinfo import ZoneInfo
 
 import jdatetime
 from aiohttp import web
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 
 from bot.common.links import ref_link as build_ref_link
 from bot.db.models import (
     Coupon,
     CouponUsage,
     Service,
-    User,
     Wallet,
 )
 from bot.db.repositories.alert_repo import AlertRepository
+from bot.db.repositories.referral_repo import ReferralRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.service_repo import SERVICE_ORDER_BY
 from bot.db.repositories.user_repo import UserRepository
@@ -365,9 +365,11 @@ async def get_user_me(request: web.Request) -> web.Response:
         wallet_balance = wallet.balance if wallet else 0
 
         maint_on = await is_maintenance(session)
-        ref_count_res = await session.execute(select(func.count(User.id)).where(User.referred_by_id == telegram_id))
-        referrals_count = int(ref_count_res.scalar_one() or 0)
-        referral_reward_gb = store_settings.referral_reward_gb if store_settings.referral_enabled else 5
+        ref_repo = ReferralRepository(session)
+        referrals_count = await ref_repo.get_invites_count(telegram_id)
+        referral_earned_gb = await ref_repo.get_total_gb_earned(telegram_id)
+        referral_earned_commission = await ref_repo.get_total_commission_earned(telegram_id)
+        referral_reward_gb = store_settings.referral_reward_gb if store_settings.referral_enabled else 0
 
         try:
             services_res = await session.execute(
@@ -875,6 +877,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "referral_commission_percent": int(getattr(store_settings, "referral_commission_percent", 0) or 0),
             "referral_renew_commission_enabled": bool(getattr(store_settings, "referral_renew_commission_enabled", False)),
             "referral_enabled": store_settings.referral_enabled,
+            "trial_enabled": bool(store_settings.trial_enabled),
             "referral_link": ref_link,
             "referral_qr_url": referral_qr_url,
             "support_contact": raw_support_contact,
@@ -889,6 +892,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "username": user_auth.get("username"),
                 "wallet_balance": wallet_balance,
                 "referrals_count": referrals_count,
+                "referral_earned_gb": referral_earned_gb,
+                "referral_earned_commission": referral_earned_commission,
                 "phone_number": db_user.phone_number if isinstance(getattr(db_user, "phone_number", None), str) else "",
                 "is_phone_verified": bool(db_user.phone_number and db_user.phone_number.strip()),
                 "birth_date": db_user.birth_date if isinstance(getattr(db_user, "birth_date", None), str) else "",

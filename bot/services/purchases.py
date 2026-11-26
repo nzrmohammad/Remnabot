@@ -902,8 +902,7 @@ async def maybe_reward_referrer(
         )
 
     if commission_toman > 0:
-        if not should_give_gb and not already_rewarded:
-            await referral_repo.record_reward(inviter_tid, user.telegram_id, 0)
+        await referral_repo.add_commission(inviter_tid, user.telegram_id, commission_toman)
         await WalletRepository(session).add_balance_atomic(inviter_tid, commission_toman)
 
     inviter_user = await UserRepository(session).get_by_telegram_id(inviter_tid)

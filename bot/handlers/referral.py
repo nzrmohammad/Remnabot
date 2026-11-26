@@ -37,11 +37,24 @@ async def referral_entry(
     referral_repo = ReferralRepository(session)
     invites_count = await referral_repo.get_invites_count(user.telegram_id)
     total_gb = await referral_repo.get_total_gb_earned(user.telegram_id)
+    total_commission = await referral_repo.get_total_commission_earned(user.telegram_id)
 
     bot_info = await bot.get_me()
     bot_username = bot_info.username or "bot"
     invite_link = ref_link(bot_username, user.telegram_id)
-    share_text = "🚀 اینترنت آزاد، امن و پرسرعت با اکانت تست رایگان!\nجهت دریافت وارد ربات شوید:"
+    trial_enabled = bool(getattr(store_settings, "trial_enabled", True))
+    if lang == "fa":
+        share_text = (
+            "🚀 اینترنت آزاد، امن و پرسرعت با اکانت تست رایگان!\nجهت دریافت وارد ربات شوید:"
+            if trial_enabled
+            else "🚀 اینترنت آزاد، امن و پرسرعت بدون قطعی!\nبرای مشاهده تعرفه‌ها و خرید اشتراک وارد ربات شوید:"
+        )
+    else:
+        share_text = (
+            "🚀 Fast, secure VPN with a free trial account!\nOpen the bot to claim yours:"
+            if trial_enabled
+            else "🚀 Fast, reliable and secure VPN!\nOpen the bot to view plans and subscribe:"
+        )
     share_url = f"https://t.me/share/url?url={invite_link}&text={quote_plus(share_text)}"
 
     if commission_pct > 0:
@@ -72,12 +85,21 @@ async def referral_entry(
     else:
         body_text = t(lang, "referral_body", reward_gb=reward_gb, link=invite_link)
 
+    stats_line = t(lang, "referral_stats", count=invites_count, total_gb=total_gb)
+    if commission_pct > 0 or total_commission > 0:
+        comm_line = (
+            f"💰 پورسانت نقدی دریافت‌شده: <b>{total_commission:,}</b> تومان"
+            if lang == "fa"
+            else f"💰 Earned cash commission: <b>{total_commission:,}</b> Toman"
+        )
+        stats_line = f"{stats_line}\n{comm_line}"
+
     lines = [
         t(lang, "referral_title"),
         SEPARATOR,
         body_text,
         SEPARATOR,
-        t(lang, "referral_stats", count=invites_count, total_gb=total_gb),
+        stats_line,
     ]
 
     kb = InlineKeyboardBuilder()

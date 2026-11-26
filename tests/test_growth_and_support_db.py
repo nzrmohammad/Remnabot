@@ -388,7 +388,13 @@ async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
     finally:
         con.close()
     assert "support_chat_messages" in tables_legacy
-    assert rev == ("0002_support_chat_history",)
+    assert rev == ("0003_referral_commission_total",)
+    con_cols = sqlite3.connect(legacy_db)
+    try:
+        ref_cols_legacy = {r[1] for r in con_cols.execute("PRAGMA table_info(referral_rewards)").fetchall()}
+    finally:
+        con_cols.close()
+    assert "commission_toman" in ref_cols_legacy
 
     # 3. Existing DB created via create_all (has BOTH users and support_chat_messages, no alembic_version) must NOT crash
     pre_existing_db = tmp_path / "pre_existing_all.db"
@@ -408,7 +414,7 @@ async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
         rev_existing = con.execute("SELECT version_num FROM alembic_version").fetchone()
     finally:
         con.close()
-    assert rev_existing == ("0002_support_chat_history",)
+    assert rev_existing == ("0003_referral_commission_total",)
 
 
 @pytest.mark.anyio
@@ -446,19 +452,37 @@ async def test_affiliate_commission_records_marker_when_reward_gb_zero(session_f
 
         ref_repo = ReferralRepository(session)
         assert await ref_repo.has_rewarded(92002) is True
+        assert await ref_repo.get_total_commission_earned(92001) == 10_000
 
         # Second purchase with renew commission disabled must NOT pay again
         with patch("bot.services.purchases.get_store_settings", AsyncMock(return_value=store_zero_gb)):
             await maybe_reward_referrer(bot, session, remnawave, referee, paid_amount=100_000, cache=cache)
         await session.refresh(w)
         assert w.balance == 10_000
+        assert await ref_repo.get_total_commission_earned(92001) == 10_000
+
+        # With renewal commission enabled, second purchase credits another commission onto ReferralReward
+        store_zero_gb_renew = SimpleNamespace(
+            referral_enabled=True,
+            referral_reward_gb=0,
+            referral_commission_percent=10,
+            referral_renew_commission_enabled=True,
+        )
+        with patch("bot.services.purchases.get_store_settings", AsyncMock(return_value=store_zero_gb_renew)):
+            await maybe_reward_referrer(bot, session, remnawave, referee, paid_amount=200_000, cache=cache)
+        await session.refresh(w)
+        assert w.balance == 30_000
+        assert await ref_repo.get_total_commission_earned(92001) == 30_000
 
 
 @pytest.mark.anyio
 async def test_referral_entry_shows_cash_commission_details(session_factory):
-    """Bot menu:referral handler includes percentage cash commission & scope when referral_commission_percent > 0."""
+    """Bot menu:referral handler includes percentage cash commission, earned total & respects trial_enabled."""
+    from urllib.parse import unquote_plus
+
     from bot.db.models import User
     from bot.db.repositories.app_setting_repo import AppSettingRepository
+    from bot.db.repositories.referral_repo import ReferralRepository
     from bot.db.repositories.user_repo import UserRepository
     from bot.handlers.referral import referral_entry
 
@@ -469,6 +493,8 @@ async def test_referral_entry_shows_cash_commission_details(session_factory):
         await srepo.set("referral_reward_gb", "5")
         await srepo.set("referral_commission_percent", "12")
         await srepo.set("referral_renew_commission_enabled", "1")
+        await srepo.set("trial_enabled", "0")
+        await ReferralRepository(session).record_reward(93001, 93002, reward_gb=5, commission_toman=24000)
         await session.commit()
 
         user_repo = UserRepository(session)
@@ -488,4 +514,8 @@ async def test_referral_entry_shows_cash_commission_details(session_factory):
         assert "12%" in rendered_text
         assert "5" in rendered_text
         assert "تمدید" in rendered_text
+        assert "24,000" in rendered_text
+        markup = bot.send_message.await_args.kwargs["reply_markup"]
+        share_url = unquote_plus(markup.inline_keyboard[0][0].url)
+        assert "اکانت تست رایگان" not in share_url
 

@@ -169,12 +169,16 @@ async def inline_query_handler(
         )
 
     # 2. Referral Invite Card
-    reward_gb = getattr(store_settings, "referral_reward_gb", 0)
-    reward_text = f" و دریافت {reward_gb} گیگابایت هدیه" if reward_gb > 0 else ""
+    trial_enabled = bool(getattr(store_settings, "trial_enabled", True))
+    invite_headline = (
+        "🎁 با عضویت از طریق لینک زیر اکانت تست رایگان و اشتراک باکیفیت دریافت کنید:"
+        if trial_enabled
+        else "🚀 از طریق لینک اختصاصی زیر وارد ربات شوید و اشتراک پرسرعت خود را تهیه کنید:"
+    )
     ref_msg = (
         f"🚀 <b>تجربه اینترنت آزاد، امن و پرسرعت بدون قطعی!</b>\n"
         f"──────────────────\n"
-        f"🎁 با عضویت از طریق لینک زیر{reward_text}، اشتراک با کیفیت دریافت کنید:\n"
+        f"{invite_headline}\n"
         f"🔗 <code>{invite_link}</code>\n"
         f"──────────────────\n"
         f"🛡 تونل اختصاصی، پینگ پایین و بدون افت سرعت"
@@ -182,7 +186,7 @@ async def inline_query_handler(
     results.append(
         InlineQueryResultArticle(
             id=f"ref_{user_id}",
-            title="🎁 دعوت از دوستان (دریافت هدیه و حجم)",
+            title="🤝 دعوت از دوستان و اشتراک لینک اختصاصی",
             description="اشتراک‌گذاری لینک دعوت اختصاصی خود با دوستان در گروه‌ها و چت‌ها",
             input_message_content=InputTextMessageContent(
                 message_text=ref_msg,
@@ -190,7 +194,12 @@ async def inline_query_handler(
             ),
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(text="🎁 دریافت هدیه و شروع", url=invite_link)]
+                    [
+                        InlineKeyboardButton(
+                            text="🎁 دریافت تست رایگان و شروع" if trial_enabled else "🚀 شروع و مشاهده تعرفه‌ها",
+                            url=invite_link,
+                        )
+                    ]
                 ]
             ),
         )

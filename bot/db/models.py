@@ -444,6 +444,7 @@ class ReferralReward(Base):
     inviter_id: Mapped[int] = mapped_column(BigInteger, index=True)
     referee_id: Mapped[int] = mapped_column(BigInteger, index=True)
     reward_gb: Mapped[int] = mapped_column(Integer, default=5)
+    commission_toman: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")
     applied: Mapped[bool] = mapped_column(Boolean, default=False)
 
     created_at: Mapped[datetime] = mapped_column(

@@ -17,10 +17,20 @@ _BASELINE_REV = "0001_baseline"
 _ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
 
 
-def _inspect_migration_state(sync_conn) -> tuple[bool, bool, bool]:
-    """Return (has_alembic_version, has_legacy_users, has_support_chat_messages)."""
-    tables = set(inspect(sync_conn).get_table_names())
-    return ("alembic_version" in tables, "users" in tables, "support_chat_messages" in tables)
+def _inspect_migration_state(sync_conn) -> tuple[bool, bool, bool, bool]:
+    """Return (has_alembic_version, has_legacy_users, has_support_chat_messages, has_ref_commission)."""
+    inspector = inspect(sync_conn)
+    tables = set(inspector.get_table_names())
+    has_ref_commission = False
+    if "referral_rewards" in tables:
+        ref_cols = {c.get("name") for c in inspector.get_columns("referral_rewards")}
+        has_ref_commission = "commission_toman" in ref_cols
+    return (
+        "alembic_version" in tables,
+        "users" in tables,
+        "support_chat_messages" in tables,
+        has_ref_commission,
+    )
 
 
 async def ensure_schema_migrated(
@@ -39,17 +49,20 @@ async def ensure_schema_migrated(
     engine = create_async_engine(db_url, pool_pre_ping=True)
     try:
         async with engine.connect() as conn:
-            has_alembic, has_legacy_users, has_support_chat = await conn.run_sync(_inspect_migration_state)
+            has_alembic, has_legacy_users, has_support_chat, has_ref_commission = await conn.run_sync(
+                _inspect_migration_state
+            )
     finally:
         await engine.dispose()
 
     if not has_alembic and has_legacy_users:
-        if has_support_chat:
-            logger.info("Existing database already contains support_chat_messages; stamping Alembic head directly.")
+        if has_support_chat and has_ref_commission:
+            logger.info("Existing database already matches current schema; stamping Alembic head directly.")
             await asyncio.to_thread(command.stamp, cfg, "head")
             return "stamped_head"
-        logger.info("Existing database without alembic_version detected; stamping %s first.", _BASELINE_REV)
-        await asyncio.to_thread(command.stamp, cfg, _BASELINE_REV)
+        stamp_rev = "0002_support_chat_history" if has_support_chat else _BASELINE_REV
+        logger.info("Existing database without alembic_version detected; stamping %s first.", stamp_rev)
+        await asyncio.to_thread(command.stamp, cfg, stamp_rev)
         await asyncio.to_thread(command.upgrade, cfg, "head")
         return "stamped_and_upgraded"
 

@@ -1551,7 +1551,7 @@
             </div>
           </div>
           <div id="userBoxReferral" class="settings-box-body p-3.5 border-t border-card-border space-y-3 hidden">
-            <div class="grid grid-cols-2 gap-2 text-center py-1">
+            <div id="profileReferralStatsGrid" class="grid grid-cols-2 gap-2 text-center py-1">
               <div class="ref-stat-box card-inset rounded-xl p-2.5">
                 <span class="text-[11px] t-muted block mb-0.5">تعداد دعوت‌های موفق</span>
                 <span id="profileReferralsCount" class="text-sm font-black t-accent font-sans"><span class="font-sans">0</span> نفر</span>
@@ -1561,6 +1561,13 @@
                 <div class="flex items-center justify-center gap-1 text-sm font-black font-sans t-success num-bidi" dir="ltr">
                   <span id="profileReferralRewardTotal">0</span>
                   <span class="text-xs font-bold font-sans leading-none">GB</span>
+                </div>
+              </div>
+              <div id="profileReferralCommissionStatBox" class="hidden ref-stat-box card-inset rounded-xl p-2.5">
+                <span class="text-[11px] t-muted block mb-0.5">پورسانت دریافتی</span>
+                <div class="flex items-center justify-center gap-1 text-sm font-black font-sans t-warn num-bidi" dir="rtl">
+                  <span id="profileReferralCommissionTotal">0</span>
+                  <span class="text-[10px] font-bold font-sans leading-none">تومان</span>
                 </div>
               </div>
             </div>

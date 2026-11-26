@@ -3488,8 +3488,14 @@ function setupProfileHandlers() {
 
   $('shareReferralLinkBtn')?.addEventListener('click', () => {
     const link = $('profileReferralLinkInput')?.value || '';
-    const botName = window.lastUserData?.bot_username ? `@${window.lastUserData.bot_username}` : '';
-    const shareText = `🚀 اتصال پرسرعت و پایدار ${botName}\nثبت‌نام کنید و هدیه بگیرید!`.trim();
+    const lastData = window.lastUserData || {};
+    const botName = lastData.bot_username ? `@${lastData.bot_username}` : '';
+    const hasTrial = Boolean(lastData.trial_enabled);
+    const hasRewardOrComm = Number(lastData.referral_reward_gb ?? 0) > 0 || Number(lastData.referral_commission_percent ?? 0) > 0;
+    const secondLine = hasTrial
+      ? 'ثبت‌نام کنید و اکانت تست رایگان دریافت کنید!'
+      : (hasRewardOrComm ? 'با این لینک اختصاصی عضو شوید و اشتراک پرسرعت تهیه کنید!' : 'برای مشاهده تعرفه‌ها و خرید اشتراک وارد ربات شوید!');
+    const shareText = `🚀 اتصال پرسرعت و پایدار ${botName}\n${secondLine}`.trim();
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
     try {
       if (window.Telegram?.WebApp?.openTelegramLink) {
@@ -4364,11 +4370,28 @@ function hydrateUserInterface(data) {
     if (refLinkInp) refLinkInp.value = referralLink;
 
     const refCount = Number(user.referrals_count || 0);
-    const refRewardGb = Number(data.referral_reward_gb ?? 5);
+    const refEarnedGb = Number(user.referral_earned_gb ?? 0);
+    const refEarnedComm = Number(user.referral_earned_commission ?? 0);
+    const refRewardGb = Math.max(0, Number(data.referral_reward_gb ?? 0));
     const refCommissionPct = Math.max(0, Math.min(50, Number(data.referral_commission_percent ?? 0)));
     const refRenewCommission = Boolean(data.referral_renew_commission_enabled);
     if (refCountEl) refCountEl.innerHTML = `<span class="font-sans font-bold">${toEnglishDigits(refCount)}</span> <span class="font-sans">نفر</span>`;
-    if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refCount * refRewardGb)}`;
+    if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refEarnedGb)}`;
+
+    const refStatsGrid = document.getElementById('profileReferralStatsGrid');
+    const refCommBox = document.getElementById('profileReferralCommissionStatBox');
+    const refCommTotalEl = document.getElementById('profileReferralCommissionTotal');
+    const showCommStat = refCommissionPct > 0 || refEarnedComm > 0;
+    if (refStatsGrid) {
+      refStatsGrid.classList.toggle('grid-cols-3', showCommStat);
+      refStatsGrid.classList.toggle('grid-cols-2', !showCommStat);
+    }
+    if (refCommBox) {
+      refCommBox.classList.toggle('hidden', !showCommStat);
+    }
+    if (refCommTotalEl) {
+      refCommTotalEl.innerText = toEnglishDigits(refEarnedComm.toLocaleString('en-US'));
+    }
 
     const refTitleEl = document.getElementById('profileReferralCardTitle');
     const refNoteEl = document.getElementById('profileReferralNoteText');

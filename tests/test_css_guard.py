@@ -283,3 +283,11 @@ def test_no_universal_element_dimension_override():
         matches = pattern.findall(content)
         assert not matches, f"Found dangerous universal dimension override in {css_path.name}: {matches}"
 
+
+def test_tailwind_config_excludes_dist_js():
+    """Prevent Tailwind content scanner from scanning gitignored dist/*.min.js artifacts (causes CI diff mismatches)."""
+    cfg = Path("tailwind.config.js").read_text(encoding="utf-8")
+    assert "./bot/web/static/js/**/*.js" not in cfg
+    assert "!./bot/web/static/js/dist/**" in cfg
+
+

@@ -3,7 +3,9 @@ module.exports = {
   darkMode: 'class',
   content: [
     "./bot/web/templates/**/*.html",
-    "./bot/web/static/js/**/*.js"
+    "./bot/web/static/js/*.js",
+    "!./bot/web/static/js/*.min.js",
+    "!./bot/web/static/js/dist/**"
   ],
   theme: {
     extend: {

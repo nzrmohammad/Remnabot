@@ -267,6 +267,7 @@ async def create_database_backup(
             "inviter_id": rr.inviter_id,
             "referee_id": rr.referee_id,
             "reward_gb": rr.reward_gb,
+            "commission_toman": int(getattr(rr, "commission_toman", 0) or 0),
             "applied": rr.applied,
             "created_at": _serialize_val(rr.created_at),
         }
@@ -911,6 +912,7 @@ async def restore_database_backup(
                     inviter_id=rr_data.get("inviter_id"),
                     referee_id=rr_data.get("referee_id"),
                     reward_gb=rr_data.get("reward_gb", 0),
+                    commission_toman=int(rr_data.get("commission_toman", 0) or 0),
                     applied=rr_data.get("applied", False),
                     created_at=_parse_dt(rr_data.get("created_at")),
                 )

@@ -1210,8 +1210,14 @@ async def test_family_dns_hosts_pagination_and_referral_ui_contracts(session_fac
     # 3. Referral commission Mini App card elements & /api/me exposure
     assert 'id="profileReferralCardTitle"' in app_html
     assert 'id="profileReferralNoteText"' in app_html
+    assert 'id="profileReferralCommissionStatBox"' in app_html
+    assert 'id="profileReferralCommissionTotal"' in app_html
     assert "data.referral_commission_percent" in app_js
     assert "data.referral_renew_commission_enabled" in app_js
+    assert "user.referral_earned_gb" in app_js
+    assert "user.referral_earned_commission" in app_js
+    assert "فعالسازی پاداش ترافیک و پورسانت نقدی برای دعوت از دوستان" in admin_html
+    assert "حداکثر 50% مجاز است" in admin_html
 
     cache = FastCache(redis_client=None)
     app = {
@@ -1230,12 +1236,16 @@ async def test_family_dns_hosts_pagination_and_referral_ui_contracts(session_fac
     }
 
     async with session_factory() as session:
+        from bot.db.repositories.referral_repo import ReferralRepository
+
         session.add(User(telegram_id=8801, username="ref_tester", full_name="Ref Tester"))
         srepo = AppSettingRepository(session)
         await srepo.set("referral_enabled", "1")
         await srepo.set("referral_reward_gb", "7")
         await srepo.set("referral_commission_percent", "15")
         await srepo.set("referral_renew_commission_enabled", "1")
+        await srepo.set("trial_enabled", "0")
+        await ReferralRepository(session).record_reward(8801, 8802, reward_gb=7, commission_toman=35000)
         await session.commit()
 
     req_me = make_mocked_request("GET", "/api/me?user_id=8801", app=app)
@@ -1245,5 +1255,8 @@ async def test_family_dns_hosts_pagination_and_referral_ui_contracts(session_fac
     assert me_data["referral_reward_gb"] == 7
     assert me_data["referral_commission_percent"] == 15
     assert me_data["referral_renew_commission_enabled"] is True
+    assert me_data["trial_enabled"] is False
+    assert me_data["user"]["referral_earned_gb"] == 7
+    assert me_data["user"]["referral_earned_commission"] == 35000
 
 
