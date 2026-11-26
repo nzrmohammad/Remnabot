@@ -15,7 +15,7 @@ from typing import Any
 from aiogram import Bot
 
 from bot.config import get_settings
-from bot.services.formatting import country_flag, format_datetime, now_tz
+from bot.services.formatting import country_flag, format_datetime, ltr_frag, now_tz
 from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
@@ -121,6 +121,33 @@ async def check_nodes_health_once(
                     f"توصیه: ترافیک یا سرویس‌های سرور را بررسی فرمایید."
                 )
                 await _notify_admins(bot, msg, session_factory=session_factory)
+
+            # --- 3. Panel Track-Traffic Quota Alert ---
+            is_track = bool(n.get("isTrafficTrackingActive"))
+            try:
+                limit_bytes = int(n.get("trafficLimitBytes") or 0)
+                used_bytes = int(n.get("trafficUsedBytes") or n.get("usedTrafficBytes") or 0)
+                notify_pct = int(n.get("notifyPercent") or 0)
+            except (TypeError, ValueError):
+                limit_bytes, used_bytes, notify_pct = 0, 0, 0
+
+            if is_track and limit_bytes > 0 and notify_pct > 0:
+                used_pct = (used_bytes / limit_bytes) * 100.0
+                last_traffic_ts = float(state.get("last_traffic_alert_ts") or 0.0)
+                if used_pct >= notify_pct and (now_ts - last_traffic_ts > COOLDOWN_SECONDS * 6):
+                    state["last_traffic_alert_ts"] = now_ts
+                    used_gb = used_bytes / (1024 ** 3)
+                    limit_gb = limit_bytes / (1024 ** 3)
+                    usage_str = ltr_frag(f"{used_gb:.1f} / {limit_gb:.1f} GB ({used_pct:.1f}%)")
+                    msg = (
+                        f"📊 <b>هشدار مصرف ترافیک سرور (Node Traffic Alert)</b>\n\n"
+                        f"سرور: <b>{flag} {raw_name}</b>\n"
+                        f"مصرف فعلی: <b>{usage_str}</b>\n"
+                        f"آستانه هشدار تنظیم‌شده: <b>{notify_pct}%</b>\n"
+                        f"زمان بررسی: <code>{shamsi_time}</code>\n\n"
+                        f"توصیه: برای جلوگیری از محدودیت ترافیک سرور، وضعیت مصرف یا پلن هاست را بررسی کنید."
+                    )
+                    await _notify_admins(bot, msg, session_factory=session_factory)
 
 
 # Track panel-only infra-billing alerts to avoid duplicate notifications per due day

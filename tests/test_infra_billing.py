@@ -699,6 +699,9 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
     paths = {r.resource.canonical for r in app.router.routes() if r.resource}
     for required_path in (
         "/api/admin/infra/node/action",
+        "/api/admin/infra/node/keygen",
+        "/api/admin/infra/node/create",
+        "/api/admin/infra/node/delete",
         "/api/admin/infra/providers/save",
         "/api/admin/infra/providers/delete",
         "/api/admin/infra/node/sync",
@@ -711,8 +714,14 @@ async def test_remnawave_panel_extras_and_admin_panel_endpoints(session_factory)
         "/api/admin/panel/snippets/delete",
         "/api/admin/panel/subscription-settings",
         "/api/admin/panel/external-squads/users",
+        "/api/admin/panel/external-squads/save",
+        "/api/admin/panel/external-squads/delete",
+        "/api/admin/panel/internal-squads/users",
         "/api/admin/panel/internal-squads/save",
         "/api/admin/panel/internal-squads/delete",
+        "/api/admin/panel/config-profiles/save",
+        "/api/admin/panel/config-profiles/delete",
+        "/api/admin/panel/users",
         "/api/admin/panel/tokens/create",
         "/api/admin/panel/tokens/delete",
     ):
@@ -1030,6 +1039,170 @@ async def test_post_admin_infra_bill_create_with_auto_extend_preserves_costs(ses
         assert saved.monthly_cost_toman == 2500000
         assert saved.currency == "USD"
         assert saved.due_date.strftime("%Y-%m-%d") == "2027-03-31"
+
+
+@pytest.mark.anyio
+async def test_node_traffic_quota_alert_respects_threshold_and_cooldown():
+    """check_nodes_health_once sends Node Traffic Alert when used/limit >= notifyPercent once per cooldown."""
+    from bot.services.node_monitor import _NODE_STATES, check_nodes_health_once
+
+    node_id = "n-quota-test-1"
+    _NODE_STATES.pop(node_id, None)
+    mock_remna = MagicMock()
+    mock_remna.get_nodes = AsyncMock(return_value=[{
+        "id": node_id,
+        "uuid": node_id,
+        "name": "NL-Quota",
+        "countryCode": "NL",
+        "address": "1.2.3.4",
+        "isConnected": True,
+        "usersOnline": 12,
+        "isTrafficTrackingActive": True,
+        "trafficLimitBytes": 100 * (1024 ** 3),
+        "trafficUsedBytes": 85 * (1024 ** 3),
+        "notifyPercent": 80,
+    }])
+
+    notify_mock = AsyncMock(return_value=True)
+    with patch("bot.services.node_monitor._notify_admins", notify_mock):
+        await check_nodes_health_once(MagicMock(), mock_remna)
+        await check_nodes_health_once(MagicMock(), mock_remna)
+
+    try:
+        assert notify_mock.await_count == 1
+        sent_text = notify_mock.await_args.args[1]
+        assert "Node Traffic Alert" in sent_text
+        assert "85.0%" in sent_text
+    finally:
+        _NODE_STATES.pop(node_id, None)
+
+
+@pytest.mark.anyio
+async def test_node_crud_keygen_config_profile_and_squad_endpoints(session_factory):
+    """Test node create/delete/keygen, config profiles CRUD, external/internal squad CRUD, user search, and provider URLs."""
+    import json
+    from aiohttp.test_utils import make_mocked_request
+    from bot.services.remnawave import RemnawaveClient
+    from bot.web.admin_infra_api import (
+        get_admin_node_keygen,
+        post_admin_node_create,
+        post_admin_node_delete,
+    )
+    from bot.web.admin_panel_api import (
+        get_admin_panel_users_search,
+        post_admin_panel_config_profile_delete,
+        post_admin_panel_config_profile_save,
+        post_admin_panel_external_squad_delete,
+        post_admin_panel_external_squad_save,
+        post_admin_panel_internal_squad_users,
+    )
+    from bot.web.cache import FastCache
+
+    client = RemnawaveClient("https://panel.example.com", "secret")
+    calls = []
+
+    class FakeResp:
+        def __init__(self, status_code, body=None):
+            self.status_code = status_code
+            self._body = body
+            self.content = b"1" if body is not None else b""
+
+        def json(self):
+            return self._body
+
+    async def fake_request(method, path, json=None):
+        calls.append((method, path, json))
+        if path == "/api/keygen":
+            return FakeResp(200, {"response": {"pubKey": "PUB-KEY-123"}})
+        if path == "/api/infra-billing/providers":
+            return FakeResp(200, {"response": {"providers": [{
+                "uuid": "p-1",
+                "name": "Hetzner",
+                "loginUrl": "https://hetzner.cloud/login",
+                "faviconLink": "https://hetzner.cloud/fav.ico",
+            }]}})
+        if path == "/api/internal-squads/sq-1/bulk-actions/add-many-users" and isinstance(json, dict) and "userUuids" in json:
+            return FakeResp(422, {"message": "userIds array required"})
+        return FakeResp(200, {"response": {"uuid": "ok-1"}})
+
+    client._client.request = fake_request
+    client._client.get = lambda path, **kwargs: fake_request("GET", path)
+    client.get_all_panel_users = AsyncMock(return_value=[
+        {"uuid": "u-1", "id": 101, "username": "ali_vpn", "status": "ACTIVE", "telegramId": 555001, "activeInternalSquads": [{"uuid": "sq-1"}]},
+        {"uuid": "u-2", "id": 102, "username": "reza_test", "status": "ACTIVE", "telegramId": 555002, "activeInternalSquads": []},
+    ])
+
+    providers = await client.get_infra_providers()
+    assert providers[0]["login"] == "https://hetzner.cloud/login"
+    assert providers[0]["icon_url"] == "https://hetzner.cloud/fav.ico"
+
+    app_state = {"session_factory": session_factory, "cache": FastCache(), "remnawave": client}
+    with patch("bot.web.admin_infra_api._check_admin", return_value={"id": 1, "is_admin": True}), \
+         patch("bot.web.admin_panel_api._check_admin", return_value={"id": 1, "is_admin": True}):
+        r_key = await get_admin_node_keygen(make_mocked_request("GET", "/api/admin/infra/node/keygen", app=app_state))
+        assert r_key.status == 200 and json.loads(r_key.text)["keygen"]["pubKey"] == "PUB-KEY-123"
+
+        r_bad_node = make_mocked_request("POST", "/api/admin/infra/node/create", app=app_state)
+        r_bad_node.json = AsyncMock(return_value={"name": "NoIP"})
+        assert (await post_admin_node_create(r_bad_node)).status == 400
+
+        r_new_node = make_mocked_request("POST", "/api/admin/infra/node/create", app=app_state)
+        r_new_node.json = AsyncMock(return_value={
+            "name": "DE-New",
+            "address": "9.9.9.9",
+            "port": 2222,
+            "country_code": "de",
+            "config_profile_uuid": "cp-1",
+            "active_inbounds": ["inb-1"],
+        })
+        assert (await post_admin_node_create(r_new_node)).status == 200
+        assert any(m == "POST" and p == "/api/nodes" and j["countryCode"] == "DE" for m, p, j in calls)
+
+        r_del_node = make_mocked_request("POST", "/api/admin/infra/node/delete", app=app_state)
+        r_del_node.json = AsyncMock(return_value={"node_uuid": "n-new", "node_name": "DE-New"})
+        assert (await post_admin_node_delete(r_del_node)).status == 200
+        assert ("DELETE", "/api/nodes/n-new", None) in calls
+
+        r_cp_bad = make_mocked_request("POST", "/api/admin/panel/config-profiles/save", app=app_state)
+        r_cp_bad.json = AsyncMock(return_value={"name": "Bad", "config": "{not-json"})
+        assert (await post_admin_panel_config_profile_save(r_cp_bad)).status == 400
+
+        r_cp_save = make_mocked_request("POST", "/api/admin/panel/config-profiles/save", app=app_state)
+        r_cp_save.json = AsyncMock(return_value={"name": "Reality", "config": '{"inbounds": []}'})
+        assert (await post_admin_panel_config_profile_save(r_cp_save)).status == 200
+        assert any(m == "POST" and p == "/api/config-profiles" for m, p, _j in calls)
+
+        r_cp_del = make_mocked_request("POST", "/api/admin/panel/config-profiles/delete", app=app_state)
+        r_cp_del.json = AsyncMock(return_value={"uuid": "cp-1"})
+        assert (await post_admin_panel_config_profile_delete(r_cp_del)).status == 200
+        assert ("DELETE", "/api/config-profiles/cp-1", None) in calls
+
+        r_ext_save = make_mocked_request("POST", "/api/admin/panel/external-squads/save", app=app_state)
+        r_ext_save.json = AsyncMock(return_value={"name": "ExtVIP"})
+        assert (await post_admin_panel_external_squad_save(r_ext_save)).status == 200
+        assert any(m == "POST" and p == "/api/external-squads" for m, p, _j in calls)
+
+        r_ext_del = make_mocked_request("POST", "/api/admin/panel/external-squads/delete", app=app_state)
+        r_ext_del.json = AsyncMock(return_value={"uuid": "es-1"})
+        assert (await post_admin_panel_external_squad_delete(r_ext_del)).status == 200
+        assert ("DELETE", "/api/external-squads/es-1", None) in calls
+
+        r_int_u = make_mocked_request("POST", "/api/admin/panel/internal-squads/users", app=app_state)
+        r_int_u.json = AsyncMock(return_value={
+            "squad_uuid": "sq-1",
+            "action": "add",
+            "user_refs": [{"uuid": "u-1", "id": 101}],
+        })
+        assert (await post_admin_panel_internal_squad_users(r_int_u)).status == 200
+        assert ("POST", "/api/internal-squads/sq-1/bulk-actions/add-many-users", {"userIds": [101]}) in calls
+
+        r_search = await get_admin_panel_users_search(
+            make_mocked_request("GET", "/api/admin/panel/users?q=ali", app=app_state)
+        )
+        assert r_search.status == 200
+        users_found = json.loads(r_search.text)["users"]
+        assert len(users_found) == 1 and users_found[0]["username"] == "ali_vpn"
+
 
 
 

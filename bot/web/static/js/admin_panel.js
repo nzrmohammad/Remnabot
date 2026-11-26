@@ -220,6 +220,12 @@
         <div class="card p-3 rounded-2xl border border-card-border space-y-2">
           <div class="flex items-start justify-between gap-2">
             <div class="flex items-center gap-1 shrink-0 pt-0.5">
+              <button type="button" onclick="window.openQuickDiagnosticModal('${escapeHtml(h.address || '')}', ${Number(h.port || 443)}, '${escapeHtml(h.remark || 'Host')}')" class="p-1.5 rounded-xl border border-emerald-500/35 t-success hover:bg-emerald-500/10 transition active:scale-95" title="تست پورت / دسترسی">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg>
+              </button>
+              <button type="button" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}', true)" class="p-1.5 rounded-xl border border-indigo-500/35 t-info hover:bg-indigo-500/10 transition active:scale-95" title="کپی / ساخت مشابه">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </button>
               <button type="button" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش هاست">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
@@ -455,14 +461,16 @@
     haptic('success');
   }
 
-  function openHostModal(hostUuid = '') {
+  function openHostModal(hostUuid = '', isClone = false) {
     const modal = $('panelHostEditorModal');
     if (!modal) return;
     const h = hostUuid ? (panelState.hosts || []).find(x => String(x.uuid) === String(hostUuid)) : null;
 
-    if ($('panelHostModalTitle')) $('panelHostModalTitle').innerText = h ? 'ویرایش هاست پنل' : 'افزودن هاست جدید';
-    if ($('panelHostUuid')) $('panelHostUuid').value = h?.uuid || '';
-    if ($('panelHostRemark')) $('panelHostRemark').value = h?.remark || '';
+    if ($('panelHostModalTitle')) {
+      $('panelHostModalTitle').innerText = isClone ? 'ساخت هاست مشابه' : (h ? 'ویرایش هاست پنل' : 'افزودن هاست جدید');
+    }
+    if ($('panelHostUuid')) $('panelHostUuid').value = isClone ? '' : (h?.uuid || '');
+    if ($('panelHostRemark')) $('panelHostRemark').value = h ? (isClone ? `${h.remark || 'Host'} Copy` : (h.remark || '')) : '';
     if ($('panelHostAddress')) $('panelHostAddress').value = h?.address || '';
     if ($('panelHostPort')) $('panelHostPort').value = h?.port || 443;
     if ($('panelHostSni')) $('panelHostSni').value = h?.sni || '';
@@ -563,6 +571,9 @@
     }
   }
 
+  let activeSquadType = 'external';
+  let selectedSquadUserMap = new Map();
+
   function renderInternalSquads() {
     const listEl = $('panelInternalSquadsList');
     if (!listEl) return;
@@ -578,6 +589,7 @@
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
           <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="window.panelCtrl.openSquadUsersModal('internal', '${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="px-2 py-1 rounded-xl border border-card-border t-main hover:border-cyan-500/40 text-[10.5px] font-bold transition active:scale-95">اعضا</button>
             <button type="button" onclick="window.panelCtrl.openIntSquadModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسکواد داخلی">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
@@ -685,7 +697,15 @@
       const count = sq.info?.membersCount ?? sq.membersCount ?? 0;
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
-          <button type="button" onclick="window.panelCtrl.openExtSquadUsersModal('${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="btn btn-secondary px-2.5 py-1.5 text-[11px] rounded-xl font-bold shrink-0">مدیریت اعضا</button>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="window.panelCtrl.openSquadUsersModal('external', '${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="px-2 py-1 rounded-xl border border-card-border t-main hover:border-cyan-500/40 text-[10.5px] font-bold transition active:scale-95">اعضا</button>
+            <button type="button" onclick="window.panelCtrl.openExtSquadModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسکواد خارجی">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </button>
+            <button type="button" onclick="window.panelCtrl.deleteExtSquad('${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسکواد خارجی">
+              ${TRASH_ICON_SVG}
+            </button>
+          </div>
           <div class="min-w-0 flex-1 text-left" dir="ltr">
             <b class="text-xs t-main block truncate font-en">${escapeHtml(sq.name || 'Squad')}</b>
             <span class="text-[10.5px] t-muted block mt-0.5" dir="rtl"><span class="num-bidi">${Number(count)}</span> عضو در اسکواد</span>
@@ -695,29 +715,177 @@
     }).join('');
   }
 
-  function openExtSquadUsersModal(squadUuid, squadName) {
-    const modal = $('panelExtSquadUsersModal');
+  function openExtSquadModal(squadUuid = '') {
+    const modal = $('panelExtSquadEditorModal');
     if (!modal) return;
-    if ($('panelExtSquadUuid')) $('panelExtSquadUuid').value = squadUuid;
-    if ($('panelExtSquadTitle')) $('panelExtSquadTitle').innerText = `اعضای اسکواد: ${squadName || squadUuid}`;
-    if ($('panelExtSquadUserUuids')) $('panelExtSquadUserUuids').value = '';
+    const hit = squadUuid ? (panelState.external_squads || []).find(s => String(s.uuid) === String(squadUuid)) : null;
+    if ($('panelExtSquadEditTitle')) $('panelExtSquadEditTitle').innerText = hit ? 'ویرایش اسکواد خارجی' : 'ساخت اسکواد خارجی جدید';
+    if ($('panelExtSquadEditUuid')) $('panelExtSquadEditUuid').value = hit?.uuid || '';
+    if ($('panelExtSquadEditName')) $('panelExtSquadEditName').value = hit?.name || '';
+    const hdrObj = hit?.responseHeadersAdd || hit?.responseHeaders || null;
+    if ($('panelExtSquadHeadersJson')) {
+      $('panelExtSquadHeadersJson').value = hdrObj && typeof hdrObj === 'object' ? JSON.stringify(hdrObj, null, 2) : '';
+    }
     modal.classList.remove('hidden');
     haptic('selection');
   }
 
+  function closeExtSquadModal() {
+    $('panelExtSquadEditorModal')?.classList.add('hidden');
+  }
+
+  async function saveExtSquad() {
+    const uuid = $('panelExtSquadEditUuid')?.value?.trim() || '';
+    const name = $('panelExtSquadEditName')?.value?.trim() || '';
+    const rawHdrs = $('panelExtSquadHeadersJson')?.value?.trim() || '';
+    if (!name) {
+      toast('نام اسکواد خارجی الزامی است.');
+      return;
+    }
+    let headers_add = null;
+    if (rawHdrs) {
+      try {
+        const parsed = JSON.parse(rawHdrs);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('JSON آبجکت نیست');
+        headers_add = parsed;
+      } catch (_err) {
+        toast('فرمت JSON هدرها معتبر نیست (مثلاً {"X-Custom": "1"}).');
+        return;
+      }
+    }
+    const res = await window.api?.saveExternalSquad?.({ uuid, name, headers_add });
+    if (res && res.ok) {
+      toast(`✅ ${res.message}`);
+      closeExtSquadModal();
+      haptic('success');
+      await fetchOverview(true);
+    } else {
+      toast(`⚠️ ${res?.error || 'خطا در ذخیره اسکواد خارجی'}`);
+    }
+  }
+
+  function deleteExtSquad(uuid, name) {
+    confirmAction({
+      title: 'حذف اسکواد خارجی',
+      message: `آیا از حذف اسکواد خارجی «${name || uuid}» از پنل مطمئن هستید؟`,
+      btnText: 'حذف اسکواد',
+      onConfirm: async () => {
+        const res = await window.api?.deleteExternalSquad?.(uuid);
+        if (res && res.ok) {
+          toast(`✅ ${res.message}`);
+          haptic('success');
+          await fetchOverview(true);
+        } else {
+          toast(`⚠️ ${res?.error || 'خطا در حذف اسکواد خارجی'}`);
+        }
+      },
+    });
+  }
+
+  async function _loadSquadUserSearchResults() {
+    const listEl = $('panelSquadUserPickerList');
+    if (!listEl) return;
+    const q = $('panelSquadUserSearchInput')?.value?.trim() || '';
+    const plan_id = $('panelSquadPlanFilterSelect')?.value?.trim() || '';
+    listEl.innerHTML = '<div class="p-3 text-center text-[11px] t-muted">در حال جستجو...</div>';
+    try {
+      const res = await window.api?.searchPanelUsers?.({ q, plan_id });
+      const users = (res && res.ok && Array.isArray(res.users)) ? res.users : [];
+      if (!users.length) {
+        listEl.innerHTML = '<div class="p-3 text-center text-[11px] t-muted">کاربری با این مشخصات یافت نشد.</div>';
+        return;
+      }
+      const targetSquadUuid = $('panelExtSquadUuid')?.value?.trim() || '';
+      listEl.innerHTML = users.map(u => {
+        const key = String(u.uuid || u.id || '');
+        const checked = selectedSquadUserMap.has(key) ? 'checked' : '';
+        const inSquad = activeSquadType === 'internal'
+          ? (u.internal_squads || []).includes(targetSquadUuid)
+          : String(u.external_squad_uuid || '') === targetSquadUuid;
+        return `
+          <label class="card-inset px-2.5 py-1.5 rounded-xl border border-card-border flex items-center justify-between gap-2 text-[11px] cursor-pointer hover:border-cyan-500/40 transition">
+            <input type="checkbox" class="squad-user-chk accent-cyan-500 rounded shrink-0" value="${escapeHtml(key)}" data-id="${escapeHtml(String(u.id || ''))}" ${checked} onchange="window.panelCtrl.toggleSquadUserPick('${escapeHtml(key)}', '${escapeHtml(String(u.id || ''))}', this.checked)" />
+            <div class="min-w-0 flex-1 text-left" dir="ltr">
+              <span class="font-bold t-main truncate block font-en">${escapeHtml(u.username || key)}</span>
+              <span class="text-[10px] t-muted block">${u.telegram_id ? `TG:${escapeHtml(u.telegram_id)} • ` : ''}${escapeHtml(u.status || '')}</span>
+            </div>
+            ${inSquad ? '<span class="badge badge-success text-[9.5px] shrink-0">عضو</span>' : ''}
+          </label>
+        `;
+      }).join('');
+    } catch (_err) {
+      listEl.innerHTML = '<div class="p-3 text-center text-[11px] t-danger">خطا در دریافت کاربران</div>';
+    }
+  }
+
+  function toggleSquadUserPick(uuid, idStr, isChecked) {
+    if (!uuid) return;
+    if (isChecked) {
+      selectedSquadUserMap.set(uuid, { uuid, id: idStr && /^\d+$/.test(idStr) ? Number(idStr) : undefined });
+    } else {
+      selectedSquadUserMap.delete(uuid);
+    }
+    if ($('panelSquadSelectedCount')) {
+      $('panelSquadSelectedCount').innerText = `${selectedSquadUserMap.size} انتخاب`;
+    }
+  }
+
+  async function openSquadUsersModal(squadType, squadUuid, squadName) {
+    const modal = $('panelExtSquadUsersModal');
+    if (!modal) return;
+    activeSquadType = squadType === 'internal' ? 'internal' : 'external';
+    selectedSquadUserMap.clear();
+    if ($('panelExtSquadUuid')) $('panelExtSquadUuid').value = squadUuid;
+    if ($('panelExtSquadTitle')) {
+      const kindLabel = activeSquadType === 'internal' ? 'اسکواد داخلی' : 'اسکواد خارجی';
+      $('panelExtSquadTitle').innerText = `اعضای ${kindLabel}: ${squadName || squadUuid}`;
+    }
+    if ($('panelExtSquadUserUuids')) $('panelExtSquadUserUuids').value = '';
+    if ($('panelSquadUserSearchInput')) $('panelSquadUserSearchInput').value = '';
+    if ($('panelSquadSelectedCount')) $('panelSquadSelectedCount').innerText = '0 انتخاب';
+
+    const planSel = $('panelSquadPlanFilterSelect');
+    if (planSel && planSel.options.length <= 1) {
+      try {
+        const res = await window.api?.getPlans?.();
+        const plans = (res && res.ok && Array.isArray(res.plans)) ? res.plans : [];
+        planSel.innerHTML = '<option value="">همه تعرفه‌ها</option>' + plans.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.title || '')}</option>`).join('');
+      } catch (_e) {}
+    } else if (planSel) {
+      planSel.value = '';
+    }
+
+    modal.classList.remove('hidden');
+    haptic('selection');
+    _loadSquadUserSearchResults();
+  }
+
+  function openExtSquadUsersModal(squadUuid, squadName) {
+    return openSquadUsersModal('external', squadUuid, squadName);
+  }
+
   function closeExtSquadUsersModal() {
+    selectedSquadUserMap.clear();
     $('panelExtSquadUsersModal')?.classList.add('hidden');
   }
 
   async function submitExtSquadUsers(action = 'add') {
     const squadUuid = $('panelExtSquadUuid')?.value?.trim();
     const raw = $('panelExtSquadUserUuids')?.value || '';
-    const userUuids = raw.split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
-    if (!squadUuid || !userUuids.length) {
-      toast('لطفاً حداقل یک UUID کاربر وارد کنید.');
+    const manualRefs = raw.split(/[\s,]+/).map(s => s.trim()).filter(Boolean).map(u => ({ uuid: u }));
+    const merged = [...Array.from(selectedSquadUserMap.values()), ...manualRefs];
+    const dedup = new Map();
+    merged.forEach(item => { if (item?.uuid) dedup.set(item.uuid, item); });
+    const userRefs = Array.from(dedup.values());
+    const userUuids = userRefs.map(x => x.uuid);
+    if (!squadUuid || !userRefs.length) {
+      toast('حداقل یک کاربر انتخاب یا UUID وارد کنید.');
       return;
     }
-    const res = await window.api?.updateExternalSquadUsers?.(squadUuid, userUuids, action);
+    const apiCall = activeSquadType === 'internal'
+      ? window.api?.updateInternalSquadUsers
+      : window.api?.updateExternalSquadUsers;
+    const res = await apiCall?.(squadUuid, userUuids, action, userRefs);
     if (res && res.ok) {
       toast(`✅ ${res.message}`);
       closeExtSquadUsersModal();
@@ -738,12 +906,23 @@
       return;
     }
     listEl.innerHTML = profiles.map(p => {
+      const uuid = String(p.uuid || '');
       const inbounds = Array.isArray(p.inbounds) ? p.inbounds : [];
       return `
         <div class="card p-3 rounded-2xl border border-card-border space-y-2">
           <div class="flex items-center justify-between gap-2">
-            <span class="badge badge-info text-[10px] shrink-0">${inbounds.length} اینباند</span>
-            <b class="text-xs t-main truncate font-en text-left" dir="ltr">${escapeHtml(p.name || 'Profile')}</b>
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" onclick="window.panelCtrl.openConfigProfileModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش پروفایل">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+              <button type="button" onclick="window.panelCtrl.deleteConfigProfile('${escapeHtml(uuid)}', '${escapeHtml(p.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف پروفایل">
+                ${TRASH_ICON_SVG}
+              </button>
+            </div>
+            <div class="flex items-center gap-2 min-w-0 flex-1 justify-end">
+              <span class="badge badge-info text-[10px] shrink-0">${inbounds.length} اینباند</span>
+              <b class="text-xs t-main truncate font-en text-left" dir="ltr">${escapeHtml(p.name || 'Profile')}</b>
+            </div>
           </div>
           ${inbounds.length ? `
             <div class="flex flex-wrap gap-1.5" dir="ltr">
@@ -753,6 +932,70 @@
         </div>
       `;
     }).join('');
+  }
+
+  function openConfigProfileModal(profileUuid = '') {
+    const modal = $('panelConfigProfileEditorModal');
+    if (!modal) return;
+    const hit = profileUuid ? (panelState.config_profiles || []).find(p => String(p.uuid) === String(profileUuid)) : null;
+    if ($('panelConfigProfileModalTitle')) $('panelConfigProfileModalTitle').innerText = hit ? 'ویرایش پروفایل Xray' : 'ساخت پروفایل کانفیگ Xray';
+    if ($('panelConfigProfileUuid')) $('panelConfigProfileUuid').value = hit?.uuid || '';
+    if ($('panelConfigProfileName')) $('panelConfigProfileName').value = hit?.name || '';
+    const starter = hit?.config || { log: { loglevel: 'warning' }, inbounds: hit?.inbounds || [], outbounds: [{ protocol: 'freedom', tag: 'direct' }] };
+    if ($('panelConfigProfileJson')) {
+      $('panelConfigProfileJson').value = typeof starter === 'string' ? starter : JSON.stringify(starter, null, 2);
+    }
+    modal.classList.remove('hidden');
+    haptic('selection');
+  }
+
+  function closeConfigProfileModal() {
+    $('panelConfigProfileEditorModal')?.classList.add('hidden');
+  }
+
+  async function saveConfigProfile() {
+    const uuid = $('panelConfigProfileUuid')?.value?.trim() || '';
+    const name = $('panelConfigProfileName')?.value?.trim() || '';
+    const rawCfg = $('panelConfigProfileJson')?.value?.trim() || '';
+    if (!name || !rawCfg) {
+      toast('نام و محتوای JSON پروفایل الزامی است.');
+      return;
+    }
+    let config;
+    try {
+      config = JSON.parse(rawCfg);
+      if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error('Object required');
+    } catch (_err) {
+      toast('فرمت JSON پروفایل نامعتبر است.');
+      return;
+    }
+    const res = await window.api?.saveConfigProfile?.({ uuid, name, config });
+    if (res && res.ok) {
+      toast(`✅ ${res.message}`);
+      closeConfigProfileModal();
+      haptic('success');
+      await fetchOverview(true);
+    } else {
+      toast(`⚠️ ${res?.error || 'خطا در ذخیره پروفایل'}`);
+    }
+  }
+
+  function deleteConfigProfile(uuid, name) {
+    confirmAction({
+      title: 'حذف پروفایل Xray',
+      message: `پروفایل «${name || uuid}» از پنل حذف شود؟`,
+      btnText: 'حذف پروفایل',
+      onConfirm: async () => {
+        const res = await window.api?.deleteConfigProfile?.(uuid);
+        if (res && res.ok) {
+          toast(`✅ ${res.message}`);
+          haptic('success');
+          await fetchOverview(true);
+        } else {
+          toast(`⚠️ ${res?.error || 'خطا در حذف پروفایل'}`);
+        }
+      },
+    });
   }
 
   function renderSnippets() {
@@ -866,9 +1109,12 @@
     listEl.innerHTML = providers.map(p => {
       const uuid = String(p.uuid || '');
       const linkedCount = billingNodes.filter(bn => String(bn.providerUuid || bn.provider?.uuid || '') === uuid).length;
+      const loginHref = window.safeHttpUrl ? window.safeHttpUrl(p.login) : '';
+      const iconHref = window.safeHttpUrl ? window.safeHttpUrl(p.icon_url) : '';
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
           <div class="flex items-center gap-1 shrink-0">
+            ${loginHref ? `<button type="button" onclick="window.panelCtrl.openExternalUrl('${escapeHtml(loginHref)}')" class="px-2 py-1 rounded-xl border border-emerald-500/35 t-success hover:bg-emerald-500/10 text-[10.5px] font-bold transition active:scale-95" title="ورود به پنل ارائه‌دهنده">ورود</button>` : ''}
             <button type="button" onclick="window.panelCtrl.openProviderModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش ارائه‌دهنده">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
@@ -877,7 +1123,10 @@
             </button>
           </div>
           <div class="min-w-0 text-left flex-1" dir="ltr">
-            <b class="text-xs t-main block truncate font-en">${escapeHtml(p.name || '')}</b>
+            <div class="flex items-center gap-1.5 min-w-0">
+              ${iconHref ? `<img src="${escapeHtml(iconHref)}" alt="" class="w-4 h-4 rounded shrink-0 object-contain" onerror="this.style.display='none'" />` : ''}
+              <b class="text-xs t-main block truncate font-en">${escapeHtml(p.name || '')}</b>
+            </div>
             <span class="text-[10.5px] t-muted block mt-0.5 truncate" dir="rtl"><span class="num-bidi font-bold">${linkedCount}</span> سرور متصل${p.login ? ` • <span class="font-en" dir="ltr">${escapeHtml(p.login)}</span>` : ''}</span>
           </div>
         </div>
@@ -1026,26 +1275,82 @@
     });
   }
 
+  let billsProviderFilter = '';
+
+  function openExternalUrl(rawUrl) {
+    const safe = window.safeHttpUrl ? window.safeHttpUrl(rawUrl) : '';
+    if (!safe) return;
+    if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(safe);
+    else window.open(safe, '_blank', 'noopener,noreferrer');
+  }
+
+  function setBillsProviderFilter(provUuid = '') {
+    billsProviderFilter = provUuid || '';
+    renderBillingHistory();
+    haptic('selection');
+  }
+
   function renderBillingHistory() {
     const listEl = $('panelBillsList');
+    const filterEl = $('panelBillsFilterBar');
+    const summaryEl = $('panelBillsSummaryBar');
     if (!listEl) return;
     const bills = Array.isArray(panelState.infra_billing_history) ? panelState.infra_billing_history : [];
     const providers = Array.isArray(panelState.infra_providers) ? panelState.infra_providers : [];
     const provMap = new Map(providers.map(p => [String(p.uuid), p.name]));
+    const provCurrencies = panelState.provider_currencies || {};
 
-    if (!bills.length) {
+    if (filterEl) {
+      if (!providers.length || !bills.length) {
+        filterEl.innerHTML = '';
+      } else {
+        const chipCls = (active) => active
+          ? 'px-2.5 py-1 rounded-xl font-bold bg-cyan-600 text-white shadow shrink-0 whitespace-nowrap transition'
+          : 'px-2.5 py-1 rounded-xl font-medium card-inset border border-card-border t-muted hover:t-main shrink-0 whitespace-nowrap transition';
+        filterEl.innerHTML = `<button type="button" onclick="window.panelCtrl.setBillsProviderFilter('')" class="${chipCls(!billsProviderFilter)}">همه (${bills.length})</button>` +
+          providers.map(p => {
+            const pUid = String(p.uuid || '');
+            return `<button type="button" onclick="window.panelCtrl.setBillsProviderFilter('${escapeHtml(pUid)}')" class="${chipCls(billsProviderFilter === pUid)} font-en" dir="ltr">${escapeHtml(p.name || pUid)}</button>`;
+          }).join('');
+      }
+    }
+
+    const filteredBills = billsProviderFilter
+      ? bills.filter(b => String(b.providerUuid || b.provider?.uuid || '') === billsProviderFilter)
+      : bills;
+
+    if (summaryEl) {
+      if (!filteredBills.length) {
+        summaryEl.classList.add('hidden');
+      } else {
+        const totals = {};
+        filteredBills.forEach(b => {
+          const pUid = String(b.providerUuid || b.provider?.uuid || '');
+          const curr = String(b.currency || b.provider?.currency || provCurrencies[pUid] || 'USD').toUpperCase();
+          totals[curr] = (totals[curr] || 0) + Number(b.amount || 0);
+        });
+        const parts = Object.entries(totals).map(([curr, val]) => {
+          const iconHtml = window.renderCurrencyIcon ? window.renderCurrencyIcon(curr) : curr;
+          return `<span class="inline-flex items-center gap-1 font-sans num-bidi t-success font-bold" dir="ltr">${Number(val.toFixed(2)).toLocaleString('en-US')} ${iconHtml}</span>`;
+        });
+        summaryEl.innerHTML = `<span class="t-muted font-bold">مجموع (${filteredBills.length} مورد):</span><div class="flex items-center gap-2.5">${parts.join('<span class="t-subtle">|</span>')}</div>`;
+        summaryEl.classList.remove('hidden');
+      }
+    }
+
+    if (!filteredBills.length) {
       listEl.innerHTML = '<div class="p-4 text-center text-xs t-muted card-inset rounded-2xl border border-card-border">سابقه پرداختی ثبت نشده است.</div>';
+      window.adminActions?.renderNodeBillingBillsHistory?.();
       return;
     }
-    const provCurrencies = panelState.provider_currencies || {};
-    listEl.innerHTML = bills.map(b => {
+    listEl.innerHTML = filteredBills.map(b => {
       const uuid = String(b.uuid || '');
       const provUuid = String(b.providerUuid || b.provider?.uuid || '');
       const provName = b.provider?.name || provMap.get(provUuid) || 'ارائه‌دهنده';
       const billedDate = b.billedAt ? String(b.billedAt).slice(0, 10) : '';
       const jalaliStr = billedDate && window.formatDateToJalali ? window.formatDateToJalali(billedDate) : billedDate;
       const billCurr = String(b.currency || b.provider?.currency || provCurrencies[provUuid] || 'USD').toUpperCase();
-      const currUnit = billCurr === 'EUR' ? 'یورو' : (billCurr === 'TOMAN' || billCurr === 'IRT' ? 'تومان' : 'دلار');
+      const currIcon = window.renderCurrencyIcon ? window.renderCurrencyIcon(billCurr) : billCurr;
       return `
         <div class="card p-2.5 rounded-2xl border border-card-border flex items-center justify-between gap-2">
           <button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت">
@@ -1054,7 +1359,7 @@
           <div class="min-w-0 flex-1 text-left" dir="ltr">
             <div class="flex items-center justify-start gap-2 min-w-0">
               <b class="text-xs t-main truncate font-en">${escapeHtml(provName)}</b>
-              <span class="badge badge-success text-[10px] inline-flex items-center gap-1 shrink-0" dir="rtl"><span class="num-bidi font-bold">${Number(b.amount || 0).toLocaleString('en-US')}</span><span>${currUnit}</span></span>
+              <span class="badge badge-success text-[10px] inline-flex items-center gap-1 shrink-0" dir="ltr"><span class="num-bidi font-bold">${Number(b.amount || 0).toLocaleString('en-US')}</span>${currIcon}</span>
             </div>
             <span class="text-[10.5px] t-muted block mt-0.5 num-bidi">${escapeHtml(jalaliStr || billedDate || '—')}</span>
           </div>
@@ -1244,9 +1549,20 @@
     closeIntSquadModal,
     saveIntSquad,
     deleteIntSquad,
+    openExtSquadModal,
+    closeExtSquadModal,
+    saveExtSquad,
+    deleteExtSquad,
+    openSquadUsersModal,
+    toggleSquadUserPick,
+    searchSquadUsers: _loadSquadUserSearchResults,
     openExtSquadUsersModal,
     closeExtSquadUsersModal,
     submitExtSquadUsers,
+    openConfigProfileModal,
+    closeConfigProfileModal,
+    saveConfigProfile,
+    deleteConfigProfile,
     openSnippetModal,
     closeSnippetModal,
     saveSnippet,
@@ -1262,6 +1578,8 @@
     selectBillProvider,
     createBill,
     deleteBill,
+    setBillsProviderFilter,
+    openExternalUrl,
     openTokenModal,
     closeTokenModal,
     createToken,

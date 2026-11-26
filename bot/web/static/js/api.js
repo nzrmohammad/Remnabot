@@ -640,8 +640,44 @@ const api = {
     return this.post('/api/admin/panel/subscription-settings', data);
   },
 
-  async updateExternalSquadUsers(squad_uuid, user_uuids, action = 'add') {
-    return this.post('/api/admin/panel/external-squads/users', { squad_uuid, user_uuids, action });
+  async updateExternalSquadUsers(squad_uuid, user_uuids, action = 'add', user_refs = null) {
+    return this.post('/api/admin/panel/external-squads/users', { squad_uuid, user_uuids, user_refs, action });
+  },
+
+  async updateInternalSquadUsers(squad_uuid, user_uuids, action = 'add', user_refs = null) {
+    return this.post('/api/admin/panel/internal-squads/users', { squad_uuid, user_uuids, user_refs, action });
+  },
+
+  async searchPanelUsers(params = {}) {
+    return this.get('/api/admin/panel/users', params);
+  },
+
+  async saveConfigProfile(data) {
+    return this.post('/api/admin/panel/config-profiles/save', data);
+  },
+
+  async deleteConfigProfile(uuid) {
+    return this.post('/api/admin/panel/config-profiles/delete', { uuid });
+  },
+
+  async saveExternalSquad(data) {
+    return this.post('/api/admin/panel/external-squads/save', data);
+  },
+
+  async deleteExternalSquad(uuid) {
+    return this.post('/api/admin/panel/external-squads/delete', { uuid });
+  },
+
+  async getNodeKeygen() {
+    return this.get('/api/admin/infra/node/keygen');
+  },
+
+  async createPanelNode(data) {
+    return this.post('/api/admin/infra/node/create', data);
+  },
+
+  async deletePanelNode(node_uuid, node_name = '') {
+    return this.post('/api/admin/infra/node/delete', { node_uuid, node_name });
   },
 
   async saveInternalSquad(data) {

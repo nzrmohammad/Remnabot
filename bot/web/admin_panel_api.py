@@ -334,8 +334,8 @@ async def post_admin_panel_subscription_settings(request: web.Request) -> web.Re
     return web.json_response({"ok": True, "message": "تنظیمات ساب در پنل ذخیره شد.", "settings": res})
 
 
-async def post_admin_panel_external_squad_users(request: web.Request) -> web.Response:
-    """Bulk assign or remove panel users on an external squad."""
+async def _handle_squad_users_action(request: web.Request, squad_type: str) -> web.Response:
+    """Shared handler to add/remove panel users on an internal or external squad."""
     admin, remnawave, err = _require_admin_remnawave(request)
     if err:
         return err
@@ -343,15 +343,167 @@ async def post_admin_panel_external_squad_users(request: web.Request) -> web.Res
     body = await _parse_json(request)
     squad_uuid = str(body.get("squad_uuid") or "").strip()
     action = str(body.get("action") or "add").strip().lower()
-    raw_users = body.get("user_uuids") or []
-    user_uuids = [str(u).strip() for u in raw_users if str(u).strip()] if isinstance(raw_users, list) else []
+    raw_refs = body.get("user_refs") or body.get("user_uuids") or []
+    user_refs = [x for x in raw_refs if x] if isinstance(raw_refs, list) else []
 
-    ok, msg = await remnawave.external_squad_users_action(squad_uuid, user_uuids, action=action)
+    if squad_type == "external" and not hasattr(remnawave, "squad_users_action"):
+        ok, msg = await remnawave.external_squad_users_action(squad_uuid, [str(x) for x in user_refs], action=action)
+    else:
+        ok, msg = await remnawave.squad_users_action(squad_type, squad_uuid, user_refs, action=action)
     if not ok:
         return web.json_response({"ok": False, "error": msg}, status=400 if "نامعتبر" in msg else 502)
 
-    await _audit_and_refresh(request, admin["id"], f"external_squad_{action}", f"{action} برای {len(user_uuids)} کاربر")
+    await _audit_and_refresh(
+        request, admin["id"], f"{squad_type}_squad_{action}", f"{action} برای {len(user_refs)} کاربر"
+    )
     return web.json_response({"ok": True, "message": msg})
+
+
+async def post_admin_panel_external_squad_users(request: web.Request) -> web.Response:
+    """Bulk assign or remove panel users on an external squad."""
+    return await _handle_squad_users_action(request, "external")
+
+
+async def post_admin_panel_internal_squad_users(request: web.Request) -> web.Response:
+    """Bulk assign or remove panel users on an internal squad."""
+    return await _handle_squad_users_action(request, "internal")
+
+
+async def get_admin_panel_users_search(request: web.Request) -> web.Response:
+    """Search Remnawave panel users by username/ID/plan for squad assignment pickers."""
+    _admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+
+    q = (request.query.get("q") or "").strip().lower()
+    plan_id_raw = (request.query.get("plan_id") or "").strip()
+    plan_usernames: set[str] | None = None
+    if plan_id_raw.isdigit() and request.app.get("session_factory"):
+        from sqlalchemy import select
+
+        from bot.db.models import Service
+
+        async with db_session(request) as session:
+            rows = await session.execute(
+                select(Service.panel_username).where(Service.plan_id == int(plan_id_raw), Service.status == "active")
+            )
+            plan_usernames = {str(r[0]).lower() for r in rows.all() if r[0]}
+
+    all_panel = await remnawave.get_all_panel_users(size=1000) or []
+    matched = []
+    for u in all_panel:
+        if not isinstance(u, dict):
+            continue
+        uname = str(u.get("username") or "").strip()
+        if plan_usernames is not None and uname.lower() not in plan_usernames:
+            continue
+        tg_id = str(u.get("telegramId") or u.get("telegram_id") or "")
+        uid_str = str(u.get("uuid") or "")
+        id_str = str(u.get("id") or "")
+        if q and not (
+            q in uname.lower() or q in tg_id.lower() or q in uid_str.lower() or q == id_str
+        ):
+            continue
+        int_squads = [
+            str(s.get("uuid") if isinstance(s, dict) else s)
+            for s in (u.get("activeInternalSquads") or [])
+            if s
+        ]
+        matched.append({
+            "uuid": uid_str,
+            "id": u.get("id"),
+            "username": uname or uid_str,
+            "status": str(u.get("status") or ""),
+            "telegram_id": tg_id,
+            "internal_squads": int_squads,
+            "external_squad_uuid": str(u.get("externalSquadUuid") or ""),
+        })
+        if len(matched) >= 60:
+            break
+
+    return web.json_response({"ok": True, "users": matched})
+
+
+async def post_admin_panel_external_squad_save(request: web.Request) -> web.Response:
+    """Create or update a Remnawave external squad."""
+    admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+    body = await _parse_json(request)
+    squad_uuid = str(body.get("uuid") or "").strip() or None
+    name = str(body.get("name") or "").strip()
+    if not name:
+        return web.json_response({"ok": False, "error": "نام اسکواد خارجی الزامی است."}, status=400)
+    headers_add = body.get("headers_add") if isinstance(body.get("headers_add"), dict) else None
+    headers_remove = body.get("headers_remove") if isinstance(body.get("headers_remove"), list) else None
+
+    ok, res = await remnawave.save_external_squad(
+        name, headers_add=headers_add, headers_remove=headers_remove, squad_uuid=squad_uuid
+    )
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+    await _audit_and_refresh(request, admin["id"], "save_external_squad", f"اسکواد خارجی {name}")
+    return web.json_response({"ok": True, "message": f"اسکواد خارجی «{name}» ذخیره شد.", "squad": res})
+
+
+async def post_admin_panel_external_squad_delete(request: web.Request) -> web.Response:
+    """Delete a Remnawave external squad."""
+    admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+    body = await _parse_json(request)
+    squad_uuid = str(body.get("uuid") or "").strip()
+    if not squad_uuid:
+        return web.json_response({"ok": False, "error": "شناسه اسکواد خارجی الزامی است."}, status=400)
+    ok, res = await remnawave.delete_external_squad(squad_uuid)
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+    await _audit_and_refresh(request, admin["id"], "delete_external_squad", f"حذف اسکواد خارجی {squad_uuid}")
+    return web.json_response({"ok": True, "message": "اسکواد خارجی حذف شد."})
+
+
+async def post_admin_panel_config_profile_save(request: web.Request) -> web.Response:
+    """Create or update an Xray config profile in Remnawave."""
+    admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+    body = await _parse_json(request)
+    profile_uuid = str(body.get("uuid") or "").strip() or None
+    name = str(body.get("name") or "").strip()
+    raw_cfg = body.get("config")
+    if not name or raw_cfg is None:
+        return web.json_response({"ok": False, "error": "نام و محتوای JSON پروفایل الزامی است."}, status=400)
+    if isinstance(raw_cfg, str):
+        try:
+            parsed_cfg = _json.loads(raw_cfg)
+        except Exception as exc:
+            return web.json_response({"ok": False, "error": f"فرمت JSON نامعتبر است: {exc}"}, status=400)
+    else:
+        parsed_cfg = raw_cfg
+    if not isinstance(parsed_cfg, dict):
+        return web.json_response({"ok": False, "error": "ساختار JSON پروفایل باید یک آبجکت معتبر باشد."}, status=400)
+
+    ok, res = await remnawave.save_config_profile(name, parsed_cfg, profile_uuid=profile_uuid)
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+    await _audit_and_refresh(request, admin["id"], "save_config_profile", f"پروفایل Xray {name}")
+    return web.json_response({"ok": True, "message": f"پروفایل «{name}» ذخیره شد.", "profile": res})
+
+
+async def post_admin_panel_config_profile_delete(request: web.Request) -> web.Response:
+    """Delete an Xray config profile in Remnawave."""
+    admin, remnawave, err = _require_admin_remnawave(request)
+    if err:
+        return err
+    body = await _parse_json(request)
+    profile_uuid = str(body.get("uuid") or "").strip()
+    if not profile_uuid:
+        return web.json_response({"ok": False, "error": "شناسه پروفایل الزامی است."}, status=400)
+    ok, res = await remnawave.delete_config_profile(profile_uuid)
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+    await _audit_and_refresh(request, admin["id"], "delete_config_profile", f"حذف پروفایل {profile_uuid}")
+    return web.json_response({"ok": True, "message": "پروفایل کانفیگ حذف شد."})
 
 
 async def post_admin_panel_internal_squad_save(request: web.Request) -> web.Response:

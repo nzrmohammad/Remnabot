@@ -235,9 +235,18 @@
   }
 
   let currentNodesFilter = 'all';
+  let currentNodesSearch = '';
   let cachedFullNodes = [];
 
   function _matchesNodeFilter(n, filterKey) {
+    const q = currentNodesSearch.trim().toLowerCase();
+    if (q) {
+      const hay = [n.name, n.address, n.provider, n.country_name, n.country_code]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
     const isOffOrDisabled = !isOnline || Boolean(n.is_disabled);
     const isDueSoon = n.days_until_due !== null && n.days_until_due !== undefined && Number(n.days_until_due) <= 7;
@@ -391,12 +400,15 @@
           <!-- Collapsible Body Details (Hidden by default, expands on click) -->
           <div id="${boxId}" class="node-body p-3.5 pt-2 border-t border-slate-700/60 space-y-3 hidden">
             <!-- Server Host Address Strip -->
-            <div class="bg-transparent px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs">
-              <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <div class="bg-transparent px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between gap-2 text-xs">
+              <span class="text-[11px] text-slate-400 flex items-center gap-1.5 shrink-0">
                 <svg class="w-3.5 h-3.5 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                 <span>آدرس سرور:</span>
               </span>
-              <span class="font-sans text-blue-600 dark:text-cyan-300 text-xs font-semibold truncate max-w-[210px] select-all" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="font-sans text-blue-600 dark:text-cyan-300 text-xs font-semibold truncate max-w-[175px] select-all" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
+                ${n.address && n.address !== '—' ? `<button type="button" onclick="event.stopPropagation(); window.openQuickDiagnosticModal('${escapeHtml(n.address)}', null, '${escapeHtml(n.name || 'Node')}')" class="p-1 rounded-lg border border-emerald-500/35 t-success hover:bg-emerald-500/10 transition shrink-0" title="تست پینگ / اتصال سرور"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg></button>` : ''}
+              </div>
             </div>
 
             <!-- Real-time Speeds: Download & Upload -->
@@ -423,7 +435,7 @@
               </div>
             </div>
 
-            <!-- System Resource Gauges (CPU & RAM Progress Bars) -->
+            <!-- System Resource Gauges (CPU, RAM & Traffic Quota Progress Bars) -->
             <div class="space-y-2 bg-transparent p-2.5 rounded-xl border border-slate-700/50">
               <!-- CPU Progress -->
               <div class="space-y-1">
@@ -446,6 +458,25 @@
                   <div class="h-full ${ramBarColor} ${ram > 80 ? 'shimmer-bar' : ''} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (ram > 0 ? ram : 1) : 0))}%"></div>
                 </div>
               </div>
+
+              ${(n.is_traffic_tracking_active && Number(n.traffic_limit_gb || 0) > 0) ? (() => {
+                const limitGb = Number(n.traffic_limit_gb);
+                const usedGb = Number(n.traffic_used_gb || 0);
+                const tPct = Math.min(100, Math.max(0, Math.round((usedGb / limitGb) * 100)));
+                const notifyAt = Number(n.notify_percent || 80);
+                const barCls = tPct >= 90 ? 'bg-rose-500' : (tPct >= notifyAt ? 'bg-amber-500' : 'bg-emerald-500');
+                return `
+                  <div class="space-y-1 pt-0.5">
+                    <div class="flex justify-between items-center text-[11px]">
+                      <span class="text-slate-400">سقف ترافیک نود:</span>
+                      <span class="font-sans font-bold ${tPct >= notifyAt ? 't-warn' : 't-success'} num-bidi" dir="ltr">${fmtTraffic(usedGb, { html: false })} / ${fmtTraffic(limitGb, { html: false })} (${toEnglishDigits(tPct)}%)</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
+                      <div class="h-full ${barCls} transition-all duration-500" style="width: ${tPct}%"></div>
+                    </div>
+                  </div>
+                `;
+              })() : ''}
             </div>
 
             <!-- Bottom Metrics: Connected users & Traffic -->
@@ -614,6 +645,8 @@
                 <button type="button" class="btn-node-billing bg-transparent hover:bg-cyan-500/10 t-accent py-1.5 px-2 rounded-xl border border-cyan-500/30 transition flex items-center justify-center gap-1.5 font-bold active:scale-95 shadow-sm min-w-0"
                   data-uuid="${escapeHtml(n.uuid || n.id || '')}"
                   data-name="${escapeHtml(n.name || '')}"
+                  data-address="${escapeHtml(n.address || '')}"
+                  data-country-code="${escapeHtml(n.country_code || '')}"
                   data-provider="${escapeHtml(n.provider || '')}"
                   data-provider-uuid="${escapeHtml(n.provider_uuid || '')}"
                   data-description="${escapeHtml(n.description || '')}"
@@ -1040,6 +1073,11 @@ openEditSslDomainModal(domain) {
       wrap.classList.remove('hidden');
     },
 
+    setNodesSearch(val = '') {
+      currentNodesSearch = val || '';
+      renderFullNodes(cachedFullNodes, true);
+    },
+
     setNodesFilter(filterKey = 'all') {
       currentNodesFilter = filterKey || 'all';
       const activeCls = 'px-2.5 py-1.5 rounded-xl font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap flex items-center gap-1.5 shrink-0';
@@ -1081,48 +1119,167 @@ openEditSslDomainModal(domain) {
         const jalaliStr = billedDate ? formatDateToJalali(billedDate) : '—';
         const amountStr = Number(b.amount || 0).toLocaleString('en-US');
         const billCurr = String(b.currency || fallbackCurr || 'EUR').toUpperCase();
-        const currUnit = billCurr === 'USD' ? 'دلار' : (billCurr === 'TOMAN' || billCurr === 'IRT' ? 'تومان' : 'یورو');
+        const currIcon = typeof window.renderCurrencyIcon === 'function' ? window.renderCurrencyIcon(billCurr) : escapeHtml(billCurr);
         return `
           <div class="card px-2.5 py-1.5 rounded-xl border border-card-border grid grid-cols-[auto_1fr_auto] items-center gap-2 text-[11px]" dir="rtl">
             ${billUuid ? `<button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(billUuid)}')" class="p-1 rounded-lg border border-rose-500/30 t-danger hover:bg-rose-500/10 transition shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : '<span class="w-5"></span>'}
             <span class="t-muted font-sans num-bidi text-center truncate" dir="ltr">${escapeHtml(jalaliStr)}</span>
-            <span class="badge badge-success text-[10px] font-sans inline-flex items-center gap-1 shrink-0" dir="rtl"><span class="num-bidi font-bold">${escapeHtml(amountStr)}</span><span>${currUnit}</span></span>
+            <span class="badge badge-success text-[10px] font-sans inline-flex items-center gap-1 shrink-0" dir="ltr"><span class="num-bidi font-bold">${escapeHtml(amountStr)}</span>${currIcon}</span>
           </div>
         `;
       }).join('');
     },
 
-    async syncNodeBillingToPanel() {
-      const nodeUuid = $('nodeBillingUuid')?.value?.trim() || '';
-      const providerUuid = $('nodeBillingProviderUuid')?.value?.trim() || '';
-      const dueDate = $('nodeBillingDueDate')?.value?.trim() || '';
-      if (!nodeUuid || !providerUuid || providerUuid === '__custom__') {
-        if (window.showToast) window.showToast('ابتدا یک ارائه‌دهنده ثبت‌شده در پنل انتخاب کنید.');
+    _splitHostPort(raw) {
+      const s = String(raw || '').trim();
+      if (!s || s === '—') return { host: '', port: '' };
+      if (s.startsWith('[')) {
+        const m = s.match(/^\[([^\]]+)\](?::(\d+))?$/);
+        return m ? { host: m[1], port: m[2] || '' } : { host: s, port: '' };
+      }
+      const idx = s.lastIndexOf(':');
+      if (idx > 0 && s.indexOf(':') === idx) {
+        const p = s.slice(idx + 1);
+        if (/^\d{1,5}$/.test(p)) return { host: s.slice(0, idx), port: p };
+      }
+      return { host: s, port: '' };
+    },
+
+    async openNodeCreateModal() {
+      const modal = $('nodeCreateModal');
+      if (!modal) return;
+      if ($('panelCreateNodeName')) $('panelCreateNodeName').value = '';
+      if ($('panelCreateNodeCountry')) $('panelCreateNodeCountry').value = '';
+      if ($('panelCreateNodeAddress')) $('panelCreateNodeAddress').value = '';
+      if ($('panelCreateNodePort')) $('panelCreateNodePort').value = '2222';
+      if ($('panelCreateNodeKeygenWrap')) $('panelCreateNodeKeygenWrap').classList.add('hidden');
+      if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').innerText = '';
+
+      let profiles = this._nodeConfigProfilesCache || window.panelCtrl?.getConfigProfiles?.() || [];
+      if (!profiles.length && window.panelCtrl?.fetchOverview) {
+        try {
+          const ov = await window.panelCtrl.fetchOverview(false);
+          profiles = ov?.config_profiles || [];
+          this._nodeConfigProfilesCache = profiles;
+        } catch (_e) {
+          profiles = [];
+        }
+      }
+      const sel = $('panelCreateNodeProfileSelect');
+      if (sel) {
+        sel.innerHTML = '<option value="">انتخاب پروفایل...</option>' +
+          profiles.map(p => `<option value="${escapeHtml(p.uuid || '')}">${escapeHtml(p.name || p.uuid)}</option>`).join('');
+        if (profiles[0]?.uuid) sel.value = String(profiles[0].uuid);
+      }
+      this.onNodeCreateProfileChange();
+      modal.classList.remove('hidden');
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    closeNodeCreateModal() {
+      $('nodeCreateModal')?.classList.add('hidden');
+    },
+
+    onNodeCreateProfileChange() {
+      const sel = $('panelCreateNodeProfileSelect');
+      const wrap = $('panelCreateNodeInboundsWrap');
+      if (!sel || !wrap) return;
+      const profileUuid = sel.value;
+      const profiles = this._nodeConfigProfilesCache || window.panelCtrl?.getConfigProfiles?.() || [];
+      const prof = profiles.find(p => String(p.uuid) === String(profileUuid));
+      const inbounds = Array.isArray(prof?.inbounds) ? prof.inbounds : [];
+      if (!profileUuid || !inbounds.length) {
+        wrap.innerHTML = '';
+        wrap.classList.add('hidden');
         return;
       }
-      const btn = $('syncNodePanelBillingBtn');
-      const prevText = btn ? btn.innerText : '';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'در حال سینک...';
-      }
+      wrap.innerHTML = inbounds.map(i => {
+        const u = String(i.uuid || '');
+        const label = i.tag || i.type || 'Inbound';
+        return `
+          <label class="card-inset px-2.5 py-1.5 rounded-xl border border-card-border text-[10.5px] font-en flex items-center gap-1.5 min-w-0 cursor-pointer hover:border-cyan-500/40 transition" title="${escapeHtml(label)}">
+            <input type="checkbox" class="node-create-inbound-chk accent-cyan-500 rounded shrink-0" value="${escapeHtml(u)}" checked />
+            <span class="truncate min-w-0 flex-1">${escapeHtml(label)}</span>
+          </label>
+        `;
+      }).join('');
+      wrap.classList.remove('hidden');
+    },
+
+    async fetchNewNodeKeygen() {
+      const btn = $('nodeCreateKeygenBtn');
+      if (btn) btn.disabled = true;
       try {
-        const res = await window.api?.syncInfraNodeBilling?.(nodeUuid, providerUuid, dueDate);
-        if (res && res.ok) {
-          $('nodeBillingDueSourceBadge')?.classList.remove('hidden');
-          if (window.showToast) window.showToast(`✅ ${res.message}`);
+        const res = await window.api?.getNodeKeygen?.();
+        if (res && res.ok && res.keygen) {
+          const payload = res.keygen.pubKey || res.keygen.secretKey || JSON.stringify(res.keygen);
+          if ($('panelCreateNodeKeygenOut')) $('panelCreateNodeKeygenOut').innerText = payload;
+          $('panelCreateNodeKeygenWrap')?.classList.remove('hidden');
           if (window.hapticFeedback) window.hapticFeedback('success');
-          if (window.syncAdminOverview) window.syncAdminOverview(true);
-          if (window.panelCtrl?.fetchOverview) window.panelCtrl.fetchOverview(true);
-        } else {
-          if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در همگام‌سازی بیلینگ با پنل'}`);
+        } else if (window.showToast) {
+          window.showToast(`⚠️ ${res?.error || 'خطا در دریافت کلید Node'}`);
         }
       } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = prevText || 'سینک در پنل';
-        }
+        if (btn) btn.disabled = false;
       }
+    },
+
+    copyNodeKeygen() {
+      const txt = $('panelCreateNodeKeygenOut')?.innerText?.trim();
+      if (txt && window.copyToClipboard) window.copyToClipboard(txt, 'کلید Node کپی شد');
+    },
+
+    async submitCreatePanelNode() {
+      const name = $('panelCreateNodeName')?.value?.trim() || '';
+      const country_code = ($('panelCreateNodeCountry')?.value?.trim() || 'XX').toUpperCase().slice(0, 2);
+      const address = $('panelCreateNodeAddress')?.value?.trim() || '';
+      const port = parseInt($('panelCreateNodePort')?.value || '2222', 10) || 2222;
+      const config_profile_uuid = $('panelCreateNodeProfileSelect')?.value?.trim() || '';
+      const active_inbounds = Array.from(document.querySelectorAll('#panelCreateNodeInboundsWrap .node-create-inbound-chk:checked'))
+        .map(el => el.value).filter(Boolean);
+      if (!name || !address) {
+        if (window.showToast) window.showToast('نام و آدرس سرور الزامی است.');
+        return;
+      }
+      const btn = $('nodeCreateSubmitBtn');
+      if (btn) btn.disabled = true;
+      try {
+        const res = await window.api?.createPanelNode?.({
+          name, country_code, address, port, config_profile_uuid, active_inbounds,
+        });
+        if (res && res.ok) {
+          if (window.showToast) window.showToast('✅ سرور جدید در پنل ایجاد شد');
+          if (window.hapticFeedback) window.hapticFeedback('success');
+          this.closeNodeCreateModal();
+          if (window.syncAdminOverview) window.syncAdminOverview(true);
+        } else if (window.showToast) {
+          window.showToast(`⚠️ ${res?.error || 'خطا در ایجاد سرور در پنل'}`);
+        }
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    },
+
+    deleteCurrentPanelNode() {
+      const uuid = $('nodeBillingUuid')?.value?.trim() || '';
+      const name = $('nodeBillingName')?.value?.trim() || uuid;
+      if (!uuid || !window.panelCtrl?.confirmAction) return;
+      window.panelCtrl.confirmAction({
+        title: 'حذف سرور از پنل Remnawave',
+        message: `آیا سرور «${name}» برای همیشه از پنل Remnawave حذف شود؟ این عمل قابل بازگشت نیست.`,
+        btnText: 'حذف دائم سرور',
+        onConfirm: async () => {
+          const res = await window.api?.deletePanelNode?.(uuid, name);
+          if (res && res.ok) {
+            if (window.showToast) window.showToast(`✅ ${res.message || 'سرور از پنل حذف شد'}`);
+            if (window.hapticFeedback) window.hapticFeedback('success');
+            this.closeNodeBillingModal();
+            if (window.syncAdminOverview) window.syncAdminOverview(true);
+          } else if (window.showToast) {
+            window.showToast(`⚠️ ${res?.error || 'خطا در حذف سرور'}`);
+          }
+        },
+      });
     },
 
     toggleNodeEnabledState(nodeUuid, nodeName, isCurrentlyDisabled) {
@@ -1277,6 +1434,12 @@ openEditSslDomainModal(domain) {
       $('nodeBillingDueDate').value = dueDate ? dueDate.slice(0, 10) : '';
 
       const meta = panelMeta || {};
+      const parsedHostPort = this._splitHostPort(meta.address || '');
+      const panelName = String(nodeName || '');
+      const panelAddress = parsedHostPort.host;
+      const panelPort = parsedHostPort.port;
+      const rawCc = String(meta.countryCode || '').trim().toUpperCase();
+      const panelCountry = rawCc && rawCc !== 'XX' ? rawCc : '';
       const userMult = meta.userMultiplier !== undefined && meta.userMultiplier !== '' ? String(meta.userMultiplier) : '';
       const nodeMult = meta.nodeMultiplier !== undefined && meta.nodeMultiplier !== '' ? String(meta.nodeMultiplier) : '';
       const descVal = meta.description || '';
@@ -1289,6 +1452,10 @@ openEditSslDomainModal(domain) {
       const configProfileUuid = meta.configProfileUuid || '';
       const activeInbounds = String(meta.activeInbounds || '').split(',').map(x => x.trim()).filter(Boolean);
 
+      if ($('nodeBillingPanelName')) $('nodeBillingPanelName').value = panelName;
+      if ($('nodeBillingPanelAddress')) $('nodeBillingPanelAddress').value = panelAddress;
+      if ($('nodeBillingPanelPort')) $('nodeBillingPanelPort').value = panelPort;
+      if ($('nodeBillingPanelCountry')) $('nodeBillingPanelCountry').value = panelCountry;
       if ($('nodeBillingUserMultiplier')) $('nodeBillingUserMultiplier').value = userMult;
       if ($('nodeBillingNodeMultiplier')) $('nodeBillingNodeMultiplier').value = nodeMult;
       if ($('nodeBillingPanelDescription')) $('nodeBillingPanelDescription').value = descVal;
@@ -1300,6 +1467,10 @@ openEditSslDomainModal(domain) {
       this.switchNodeBillingTab('finance');
 
       this._nodePanelSnapshot = {
+        panelName,
+        panelAddress,
+        panelPort,
+        panelCountry,
         userMultiplier: userMult,
         nodeMultiplier: nodeMult,
         description: descVal,
@@ -1524,6 +1695,10 @@ openEditSslDomainModal(domain) {
         };
 
         const snap = this._nodePanelSnapshot || {};
+        const panelNameVal = $('nodeBillingPanelName')?.value?.trim() ?? '';
+        const panelAddrVal = $('nodeBillingPanelAddress')?.value?.trim() ?? '';
+        const panelPortVal = $('nodeBillingPanelPort')?.value?.trim() ?? '';
+        const panelCountryVal = ($('nodeBillingPanelCountry')?.value?.trim() ?? '').toUpperCase().slice(0, 2);
         const userMultStr = $('nodeBillingUserMultiplier')?.value?.trim() ?? '';
         const nodeMultStr = $('nodeBillingNodeMultiplier')?.value?.trim() ?? '';
         const descVal = $('nodeBillingPanelDescription')?.value?.trim() ?? '';
@@ -1533,6 +1708,18 @@ openEditSslDomainModal(domain) {
         const notifyPctStr = $('nodeBillingNotifyPercent')?.value?.trim() ?? '';
         const providerUuidVal = selectedProvVal === '__custom__' ? null : (selectedProvVal || null);
 
+        if (panelNameVal && panelNameVal !== String(snap.panelName ?? '')) {
+          payload.panel_node_name = panelNameVal;
+        }
+        if (panelAddrVal && panelAddrVal !== String(snap.panelAddress ?? '')) {
+          payload.address = panelAddrVal;
+        }
+        if (panelPortVal && panelPortVal !== String(snap.panelPort ?? '')) {
+          payload.port = parseInt(panelPortVal, 10);
+        }
+        if (panelCountryVal && panelCountryVal !== String(snap.panelCountry ?? '')) {
+          payload.country_code = panelCountryVal;
+        }
         if (userMultStr !== String(snap.userMultiplier ?? '') && userMultStr !== '') {
           payload.consumption_multiplier = parseFloat(userMultStr);
         }

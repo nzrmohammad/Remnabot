@@ -237,6 +237,21 @@ def _build_node_panel_payload(body: dict[str, Any]) -> tuple[dict[str, Any], str
             "activeInbounds": inbounds,
         }
 
+    if "panel_node_name" in body and str(body.get("panel_node_name") or "").strip():
+        panel_payload["name"] = str(body["panel_node_name"]).strip()
+    if "address" in body and str(body.get("address") or "").strip():
+        panel_payload["address"] = str(body["address"]).strip()
+    if "port" in body and body["port"] not in (None, ""):
+        try:
+            port_val = int(body["port"])
+        except (TypeError, ValueError):
+            return {}, "پورت سرور معتبر نیست."
+        if port_val < 1 or port_val > 65535:
+            return {}, "پورت سرور باید بین 1 تا 65535 باشد."
+        panel_payload["port"] = port_val
+    if "country_code" in body and str(body.get("country_code") or "").strip():
+        panel_payload["countryCode"] = str(body["country_code"]).strip().upper()[:2]
+
     return panel_payload, None
 
 
@@ -445,6 +460,107 @@ async def post_admin_node_restart(request: web.Request) -> web.Response:
 
     await _invalidate_node_caches(request)
     return web.json_response({"ok": True, "message": message})
+
+
+async def get_admin_node_keygen(request: web.Request) -> web.Response:
+    """Generate node pairing secretKey / pubKey via Remnawave /api/keygen."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+    remnawave = request.app.get("remnawave")
+    if not remnawave or not hasattr(remnawave, "get_node_keygen"):
+        return web.json_response({"ok": False, "error": "سرویس پنل در دسترس نیست."}, status=503)
+    ok, res = await remnawave.get_node_keygen()
+    if not ok:
+        return web.json_response({"ok": False, "error": str(res)}, status=502)
+    return web.json_response({"ok": True, "keygen": res})
+
+
+async def post_admin_node_create(request: web.Request) -> web.Response:
+    """Create/register a new Remnawave node directly from Admin Mini App."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    name = str(body.get("name") or "").strip()
+    address = str(body.get("address") or "").strip()
+    if not name or not address:
+        return web.json_response({"ok": False, "error": "نام و آدرس IP/دامنه سرور الزامی است."}, status=400)
+    try:
+        port = int(body.get("port") or 2222)
+    except (TypeError, ValueError):
+        return web.json_response({"ok": False, "error": "پورت سرور معتبر نیست."}, status=400)
+    if port < 1 or port > 65535:
+        return web.json_response({"ok": False, "error": "پورت سرور باید بین 1 تا 65535 باشد."}, status=400)
+
+    country_code = str(body.get("country_code") or "XX").strip().upper()[:2] or "XX"
+    cfg_profile_uuid = str(body.get("config_profile_uuid") or "").strip()
+    raw_inbounds = body.get("active_inbounds") or []
+    inbounds = [str(x).strip() for x in raw_inbounds if str(x).strip()] if isinstance(raw_inbounds, list) else []
+
+    payload: dict[str, Any] = {
+        "name": name,
+        "address": address,
+        "port": port,
+        "countryCode": country_code,
+    }
+    if cfg_profile_uuid:
+        payload["configProfile"] = {
+            "activeConfigProfileUuid": cfg_profile_uuid,
+            "activeInbounds": inbounds,
+        }
+
+    remnawave = request.app.get("remnawave")
+    if not remnawave or not hasattr(remnawave, "create_node"):
+        return web.json_response({"ok": False, "error": "سرویس پنل در دسترس نیست."}, status=503)
+
+    ok, res = await remnawave.create_node(payload)
+    if not ok:
+        return web.json_response({"ok": False, "error": f"خطا در ثبت سرور در پنل: {res}"}, status=502)
+
+    async with db_session(request) as session:
+        session.add(AdminLog(admin_id=admin["id"], action="create_node", detail=f"ثبت سرور {name} ({address}:{port})"))
+        await session.commit()
+    await _invalidate_node_caches(request)
+    return web.json_response({"ok": True, "message": f"سرور «{name}» در پنل ایجاد شد.", "node": res})
+
+
+async def post_admin_node_delete(request: web.Request) -> web.Response:
+    """Delete a node from Remnawave panel and clean local caches."""
+    admin = _check_admin(request)
+    if not admin:
+        return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    node_uuid = str(body.get("node_uuid") or body.get("uuid") or "").strip()
+    node_name = str(body.get("node_name") or "").strip()
+    if not node_uuid:
+        return web.json_response({"ok": False, "error": "شناسه نود الزامی است."}, status=400)
+
+    remnawave = request.app.get("remnawave")
+    if not remnawave or not hasattr(remnawave, "delete_node"):
+        return web.json_response({"ok": False, "error": "سرویس پنل در دسترس نیست."}, status=503)
+
+    ok, res = await remnawave.delete_node(node_uuid)
+    if not ok:
+        return web.json_response({"ok": False, "error": f"خطا در حذف سرور: {res}"}, status=502)
+
+    async with db_session(request) as session:
+        session.add(AdminLog(admin_id=admin["id"], action="delete_node", detail=f"حذف سرور {node_name or node_uuid}"))
+        await session.commit()
+    await _invalidate_node_caches(request)
+    return web.json_response({"ok": True, "message": "سرور با موفقیت از پنل حذف شد."})
 
 
 async def get_admin_ssl_health(request: web.Request) -> web.Response:

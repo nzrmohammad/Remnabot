@@ -656,6 +656,13 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     hosts_toolbar = admin_html[admin_html.find('id="panelCtrlPane_hosts"'):admin_html.find('id="panelHostsBulkBar"')]
     assert hosts_toolbar.find('openHostModal()') < hosts_toolbar.find('id="panelHostsSelectAllBtn"')
     assert 'id="nodeBillingTabBtn_due"' in billing_modal
+    assert 'id="syncNodePanelBillingBtn"' not in billing_modal
+    assert "syncNodeBillingToPanel" not in admin_nodes_js
+    assert 'id="nodesSearchInput"' in admin_html and 'id="createNodeBtn"' in admin_html
+    assert 'id="panelBillsFilterBar"' in admin_html and 'id="panelBillsSummaryBar"' in admin_html
+    for mid in ("nodeCreateModal", "panelConfigProfileEditorModal", "panelExtSquadEditorModal", "quickDiagnosticModal"):
+        assert f'id="{mid}"' in admin_html
+    assert "renderCurrencyIcon" in admin_nodes_js and "openQuickDiagnosticModal" in admin_nodes_js
     assert 'input[type="date"]' in components_css
     assert "::-webkit-datetime-edit" in components_css
     assert "font-mono" not in charts_js

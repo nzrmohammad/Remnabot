@@ -1661,15 +1661,105 @@ function renderModalPickerRow({
   `;
 }
 
+function safeHttpUrl(rawUrl) {
+  const s = String(rawUrl || '').trim();
+  if (!/^https?:\/\//i.test(s)) return '';
+  return s;
+}
+
+function renderCurrencyIcon(curr = 'USD') {
+  const code = String(curr || 'USD').toUpperCase();
+  if (code === 'EUR') {
+    return '<svg class="w-3.5 h-3.5 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-label="یورو"><path stroke-linecap="round" stroke-linejoin="round" d="M14.121 15.536c-1.171 1.952-3.07 1.952-4.242 0-1.172-1.953-1.172-5.119 0-7.072 1.171-1.952 3.07-1.952 4.242 0M8 10.5h4m-4 3h4m9-1.5a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+  }
+  if (code === 'TOMAN' || code === 'IRT') {
+    return '<span class="text-[9.5px] font-bold">تومان</span>';
+  }
+  return '<svg class="w-3.5 h-3.5 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-label="دلار"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+}
+
+function closeQuickDiagnosticModal() {
+  document.getElementById('quickDiagnosticModal')?.classList.add('hidden');
+}
+
+async function openQuickDiagnosticModal(rawHost, rawPort = null, label = '') {
+  const modal = document.getElementById('quickDiagnosticModal');
+  if (!modal) return;
+  const cleanHost = String(rawHost || '').trim().replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].trim();
+  const parsedPort = rawPort && Number(rawPort) > 0 ? Number(rawPort) : null;
+  if (!cleanHost || cleanHost === '—') {
+    if (window.showToast) window.showToast('آدرس معتبری برای تست یافت نشد.', 'warning');
+    return;
+  }
+  const targetEl = document.getElementById('quickDiagnosticTarget');
+  const badgeEl = document.getElementById('quickDiagnosticBadge');
+  const listEl = document.getElementById('quickDiagnosticList');
+  if (targetEl) targetEl.innerText = `${label ? label + ' • ' : ''}${cleanHost}${parsedPort ? ':' + parsedPort : ''}`;
+  if (badgeEl) {
+    badgeEl.className = 'badge badge-info';
+    badgeEl.innerText = 'در حال بررسی...';
+  }
+  if (listEl) {
+    listEl.innerHTML = '<div class="p-5 text-center t-muted text-xs">در حال تست دسترسی و تأخیر (Check-Host)...</div>';
+  }
+  modal.classList.remove('hidden');
+  if (window.hapticFeedback) window.hapticFeedback('selection');
+
+  try {
+    const payload = { host: cleanHost, check_type: parsedPort ? 'tcp' : 'ping', max_nodes: 8 };
+    if (parsedPort) payload.port = parsedPort;
+    const res = await window.api?.runCheckHost?.(payload);
+    if (!res || !res.ok || !Array.isArray(res.results) || !res.results.length) {
+      if (badgeEl) {
+        badgeEl.className = 'badge badge-danger';
+        badgeEl.innerText = 'ناموفق';
+      }
+      if (listEl) listEl.innerHTML = `<div class="p-4 text-center t-danger text-xs font-bold">${escapeHtml(res?.error || res?.message || 'نتیجه‌ای دریافت نشد')}</div>`;
+      return;
+    }
+    const okCount = res.results.filter(r => r.ok).length;
+    if (badgeEl) {
+      badgeEl.className = okCount > 0 ? 'badge badge-success' : 'badge badge-danger';
+      badgeEl.innerText = `${okCount}/${res.results.length} موفق`;
+    }
+    if (listEl) {
+      listEl.innerHTML = res.results.map(r => {
+        const cls = r.ok ? 'border-emerald-500/30 t-success' : 'border-rose-500/30 t-danger';
+        const val = r.ping_ms !== undefined && r.ping_ms !== null ? `${escapeHtml(r.ping_ms)} ms` : escapeHtml(r.status || (r.ok ? 'OK' : 'Timeout'));
+        return `
+          <div class="card-inset px-2.5 py-2 rounded-xl border ${cls} flex items-center justify-between gap-2 text-[11px]" dir="ltr">
+            <span class="t-main font-bold truncate">${escapeHtml(r.flag || '🌐')} ${escapeHtml(r.node_name || r.location || '')}</span>
+            <span class="font-sans font-bold shrink-0">${val}</span>
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (err) {
+    if (badgeEl) {
+      badgeEl.className = 'badge badge-danger';
+      badgeEl.innerText = 'خطا';
+    }
+    if (listEl) listEl.innerHTML = `<div class="p-4 text-center t-danger text-xs">${escapeHtml(err?.message || 'خطای شبکه')}</div>`;
+  }
+}
+
 if (typeof window !== 'undefined') {
   window.updateTopPadding = updateTopPadding;
   window.renderModalPickerRow = renderModalPickerRow;
+  window.safeHttpUrl = safeHttpUrl;
+  window.renderCurrencyIcon = renderCurrencyIcon;
+  window.openQuickDiagnosticModal = openQuickDiagnosticModal;
+  window.closeQuickDiagnosticModal = closeQuickDiagnosticModal;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     updateTopPadding,
     renderModalPickerRow,
+    safeHttpUrl,
+    renderCurrencyIcon,
+    openQuickDiagnosticModal,
+    closeQuickDiagnosticModal,
     uiIcon,
     renderFlagHtml,
     getCountryCodeFromEmoji,

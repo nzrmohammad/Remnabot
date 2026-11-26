@@ -308,8 +308,8 @@ class RemnawaveSystemMixin:
                         providers.append({
                             "uuid": p_uuid,
                             "name": p_name,
-                            "login": p.get("login") or "",
-                            "icon_url": p.get("iconUrl") or "",
+                            "login": p.get("loginUrl") or p.get("login") or "",
+                            "icon_url": p.get("faviconLink") or p.get("iconUrl") or "",
                         })
                 return providers
             except Exception as exc:

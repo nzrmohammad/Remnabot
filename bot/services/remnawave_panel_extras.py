@@ -159,28 +159,148 @@ class RemnawavePanelExtrasMixin:
         )
         return ok, res
 
-    # --- External Squads & Subscription Settings ---
+    # --- Squads (Internal & External), Config Profiles, Node CRUD & Keygen ---
     async def get_external_squads(self) -> list[dict[str, Any]]:
         """Fetch external squads configured on the panel."""
         ok, data, _ = await self._panel_call("GET", "/api/external-squads")
         return self._extract_list(data, "externalSquads", "squads") if ok else []
 
+    async def squad_users_action(
+        self, squad_type: str, squad_uuid: str, user_refs: list[Any], *, action: str = "add"
+    ) -> tuple[bool, str]:
+        """Bulk add or remove users on an internal or external squad (v2 userUuids + v3 userIds)."""
+        if action not in ("add", "remove") or not squad_uuid or not user_refs:
+            return False, "اطلاعات اسکواد یا کاربران نامعتبر است."
+
+        uuids: list[str] = []
+        numeric_ids: list[int] = []
+        for item in user_refs:
+            if isinstance(item, dict):
+                u_str = str(item.get("uuid") or "").strip()
+                if u_str:
+                    uuids.append(u_str)
+                raw_id = item.get("id")
+                if raw_id is not None and str(raw_id).isdigit():
+                    numeric_ids.append(int(raw_id))
+            else:
+                val = str(item or "").strip()
+                if val.isdigit():
+                    numeric_ids.append(int(val))
+                elif val:
+                    uuids.append(val)
+
+        method = "POST" if action == "add" else "DELETE"
+        is_ext = squad_type == "external"
+        base = "external-squads" if is_ext else "internal-squads"
+        suffix = ("add-users" if action == "add" else "remove-users") if is_ext else (
+            "add-many-users" if action == "add" else "remove-many-users"
+        )
+        alt_suffix = "add-users" if action == "add" else "remove-users"
+        fallbacks = () if is_ext else (f"/api/{base}/{squad_uuid}/bulk-actions/{alt_suffix}",)
+        path = f"/api/{base}/{squad_uuid}/bulk-actions/{suffix}"
+
+        primary_body: dict[str, Any] = (
+            {"userIds": numeric_ids} if (not uuids and numeric_ids) else {"userUuids": uuids}
+        )
+        ok, res, status = await self._panel_call(method, path, json=primary_body, fallback_paths=fallbacks)
+        if not ok and status in (400, 422) and numeric_ids and "userIds" in str(res) and "userIds" not in primary_body:
+            ok, res, _ = await self._panel_call(
+                method, path, json={"userIds": numeric_ids}, fallback_paths=fallbacks
+            )
+        elif not ok and status in (400, 422) and uuids and "uuids" in str(res).lower() and "uuids" not in primary_body:
+            ok, res, _ = await self._panel_call(method, path, json={"uuids": uuids}, fallback_paths=fallbacks)
+
+        if ok:
+            label = "خارجی" if is_ext else "داخلی"
+            return True, f"تغییرات اسکواد {label} روی کاربران اعمال شد."
+        return False, str(res)
+
     async def external_squad_users_action(
         self, squad_uuid: str, user_uuids: list[str], *, action: str = "add"
     ) -> tuple[bool, str]:
         """Bulk add or remove users on an external squad."""
-        if action not in ("add", "remove") or not squad_uuid or not user_uuids:
-            return False, "اطلاعات اسکواد یا کاربران نامعتبر است."
-        method = "POST" if action == "add" else "DELETE"
-        suffix = "add-users" if action == "add" else "remove-users"
-        ok, res, _ = await self._panel_call(
-            method,
-            f"/api/external-squads/{squad_uuid}/bulk-actions/{suffix}",
-            json={"userUuids": user_uuids},
-        )
-        if ok:
-            return True, "تغییرات اسکواد خارجی روی کاربران اعمال شد."
-        return False, str(res)
+        return await self.squad_users_action("external", squad_uuid, user_uuids, action=action)
+
+    async def save_external_squad(
+        self,
+        name: str,
+        *,
+        headers_add: dict[str, str] | None = None,
+        headers_remove: list[str] | None = None,
+        squad_uuid: str | None = None,
+    ) -> tuple[bool, Any]:
+        """Create or update a Remnawave external squad."""
+        clean_name = str(name or "").strip()
+        if not clean_name:
+            return False, "نام اسکواد خارجی الزامی است."
+        payload: dict[str, Any] = {"name": clean_name}
+        if squad_uuid:
+            payload["uuid"] = str(squad_uuid).strip()
+        if headers_add:
+            payload["responseHeadersAdd"] = headers_add
+        if headers_remove:
+            payload["responseHeadersRemove"] = headers_remove
+        method = "PATCH" if squad_uuid else "POST"
+        ok, res, status = await self._panel_call(method, "/api/external-squads", json=payload)
+        if not ok and status in (400, 422) and ("responseHeadersAdd" in payload or "responseHeadersRemove" in payload):
+            minimal = {k: v for k, v in payload.items() if k in ("uuid", "name")}
+            ok, res, _ = await self._panel_call(method, "/api/external-squads", json=minimal)
+        return ok, res
+
+    async def delete_external_squad(self, squad_uuid: str) -> tuple[bool, Any]:
+        """Delete an external squad by UUID."""
+        clean_uuid = str(squad_uuid or "").strip()
+        if not clean_uuid:
+            return False, "شناسه اسکواد خارجی الزامی است."
+        ok, res, _ = await self._panel_call("DELETE", f"/api/external-squads/{clean_uuid}")
+        return ok, res
+
+    async def save_config_profile(
+        self, name: str, config: dict[str, Any], *, profile_uuid: str | None = None
+    ) -> tuple[bool, Any]:
+        """Create or update an Xray config profile in Remnawave."""
+        clean_name = str(name or "").strip()
+        if not clean_name or not isinstance(config, dict):
+            return False, "نام و ساختار JSON پروفایل معتبر نیست."
+        payload: dict[str, Any] = {"name": clean_name, "config": config}
+        if profile_uuid:
+            payload["uuid"] = str(profile_uuid).strip()
+            ok, res, _ = await self._panel_call("PATCH", "/api/config-profiles", json=payload)
+        else:
+            ok, res, _ = await self._panel_call("POST", "/api/config-profiles", json=payload)
+        return ok, res
+
+    async def delete_config_profile(self, profile_uuid: str) -> tuple[bool, Any]:
+        """Delete a config profile by UUID."""
+        clean_uuid = str(profile_uuid or "").strip()
+        if not clean_uuid:
+            return False, "شناسه پروفایل الزامی است."
+        ok, res, _ = await self._panel_call("DELETE", f"/api/config-profiles/{clean_uuid}")
+        return ok, res
+
+    async def get_node_keygen(self) -> tuple[bool, Any]:
+        """Fetch cryptographic pairing secret/public key from Remnawave /api/keygen."""
+        ok, res, _ = await self._panel_call("GET", "/api/keygen")
+        return ok, res
+
+    async def create_node(self, payload: dict[str, Any]) -> tuple[bool, Any]:
+        """Register a new node via POST /api/nodes."""
+        ok, res, status = await self._panel_call("POST", "/api/nodes", json=payload)
+        if not ok and status in (400, 422) and "configProfile" in payload and "configProfile" in str(res):
+            flat = {k: v for k, v in payload.items() if k != "configProfile"}
+            cp = payload["configProfile"]
+            if isinstance(cp, dict) and cp.get("activeConfigProfileUuid"):
+                flat["configProfileUuid"] = cp["activeConfigProfileUuid"]
+            ok, res, _ = await self._panel_call("POST", "/api/nodes", json=flat)
+        return ok, res
+
+    async def delete_node(self, node_uuid: str) -> tuple[bool, Any]:
+        """Delete a node from Remnawave panel by UUID."""
+        clean_uuid = str(node_uuid or "").strip()
+        if not clean_uuid:
+            return False, "شناسه نود الزامی است."
+        ok, res, _ = await self._panel_call("DELETE", f"/api/nodes/{clean_uuid}")
+        return ok, res
 
     async def save_internal_squad(
         self, name: str, inbounds: list[str], *, squad_uuid: str | None = None

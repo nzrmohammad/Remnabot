@@ -455,6 +455,8 @@
         {
           providerUuid: d.providerUuid || '',
           description: d.description || '',
+          address: d.address || '',
+          countryCode: d.countryCode || '',
           trackingActive: d.trackingActive || '',
           userMultiplier: d.userMultiplier || '',
           nodeMultiplier: d.nodeMultiplier || '',
