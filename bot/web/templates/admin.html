@@ -85,7 +85,7 @@
 
 
     <!-- Main Scrollable Content -->
-    <div id="adminContentArea" class="flex-1 overflow-y-auto custom-scroll scroll-right p-4 space-y-4">
+    <div id="adminContentArea" class="flex-1 overflow-y-auto custom-scroll scroll-right p-4">
 
       <!-- ===================================================== -->
       <!-- TAB 1: OVERVIEW & ANALYTICS (داشبورد کل)               -->
@@ -3599,7 +3599,7 @@
         </div>
         <input type="hidden" id="planModalId" value="" />
 
-        <div class="space-y-3 text-xs overflow-y-auto custom-scroll flex-1 py-2 px-2.5">
+        <div class="space-y-3 text-xs overflow-y-auto custom-scroll scroll-right flex-1 py-2 px-2.5">
           <!-- Segmented Plan Mode Selector -->
           <div>
             <div class="grid grid-cols-3 gap-1 p-1 card-inset rounded-2xl text-[11px] border border-card-border">
@@ -4495,7 +4495,6 @@
                   <div class="flex items-center gap-1.5">
                     <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                     <label for="nodeBillingDueDate" class="text-[11px] t-main font-bold">تاریخ سررسید بعدی</label>
-                    <span id="nodeBillingDueSourceBadge" class="hidden badge badge-info text-[10px] px-1.5 py-0" title="خوانده‌شده از Infra Billing پنل">از پنل</span>
                   </div>
                   <span id="nodeBillingJalaliPreview" class="text-[11px] font-sans num-bidi t-warn font-bold px-2 py-0.5 rounded-lg card border border-amber-500/20 empty:hidden" title="تاریخ به شمسی"></span>
                 </div>
@@ -4606,8 +4605,6 @@
                   <span class="text-[10px] t-muted block">مقدار 0 در محدودیت حجم به معنای نامحدود است؛ ریست بر اساس روز انتخابی هر ماه انجام می‌شود.</span>
                 </div>
               </div>
-
-              <button type="button" id="deleteNodeFromModalBtn" onclick="window.adminActions.deleteCurrentPanelNode()" class="w-full py-2.5 rounded-xl border border-rose-500/35 bg-rose-500/10 t-danger text-[11px] font-bold hover:bg-rose-500/15 transition active:scale-95">حذف این سرور از پنل Remnawave</button>
             </div>
           </div>
 

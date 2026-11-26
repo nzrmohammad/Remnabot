@@ -1416,12 +1416,6 @@ openEditSslDomainModal(domain) {
       });
     },
 
-    deleteCurrentPanelNode() {
-      const uuid = $('nodeBillingUuid')?.value?.trim() || '';
-      const name = $('nodeBillingName')?.value?.trim() || uuid;
-      this.deleteNodeByUuid(uuid, name, () => this.closeNodeBillingModal());
-    },
-
     toggleNodeEnabledState(nodeUuid, nodeName, isCurrentlyDisabled) {
       if (!nodeUuid) return;
       const run = async () => {
@@ -1633,10 +1627,6 @@ openEditSslDomainModal(domain) {
       const jalaliPreview = $('nodeBillingJalaliPreview');
       if (jalaliPreview) {
         jalaliPreview.innerText = dueDate ? (window.formatDateToJalali ? window.formatDateToJalali(dueDate) : dueDate.slice(0, 10)) : '';
-      }
-      const dueSourceBadge = $('nodeBillingDueSourceBadge');
-      if (dueSourceBadge) {
-        dueSourceBadge.classList.toggle('hidden', (meta.dueSource || '') !== 'panel');
       }
 
       this.setNodeBillingCurrency(currency || 'EUR', false);

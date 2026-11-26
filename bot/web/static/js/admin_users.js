@@ -1892,7 +1892,7 @@ async applyUserModification() {
           if (labelEl) labelEl.innerText = 'مقدار حجم هدیه (گیگابایت):';
           if (inputEl) inputEl.value = '5';
         } else {
-          if (labelEl) labelEl.innerText = 'تعداد روز تمدید (روز):';
+          if (labelEl) labelEl.innerText = 'تعداد روز تمدید:';
           if (inputEl) inputEl.value = '7';
         }
       }

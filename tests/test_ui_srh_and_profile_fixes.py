@@ -635,7 +635,12 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     assert "یادداشت و مشخصات:" not in billing_modal
     assert "scroll-right" in billing_modal
     assert 'id="nodeBillingInboundsWrap" class="hidden grid grid-cols-2 gap-1.5 pt-1"' in billing_modal
-    assert 'id="adminContentArea"' in admin_html and 'overflow-y-auto custom-scroll scroll-right p-4' in admin_html
+    assert 'id="adminContentArea"' in admin_html and 'overflow-y-auto custom-scroll scroll-right p-4"' in admin_html
+    assert 'id="deleteNodeFromModalBtn"' not in billing_modal and 'id="nodeBillingDueSourceBadge"' not in billing_modal
+    plan_modal = admin_html[admin_html.find('id="planModal"'):admin_html.find('id="couponModal"')]
+    assert "overflow-y-auto custom-scroll scroll-right" in plan_modal
+    admin_users_js = Path("bot/web/static/js/admin_users.js").read_text(encoding="utf-8")
+    assert "تعداد روز تمدید:" in admin_users_js and "تعداد روز تمدید (روز):" not in admin_users_js
     bulk_bar = admin_html[admin_html.find('id="panelHostsBulkBar"'):admin_html.find('id="panelHostsList"')]
     assert bulk_bar.find("runBulkHosts('enable')") < bulk_bar.find('id="panelHostsSelectedCount"')
     sub_row = admin_html[admin_html.find('id="panelSubUpdateInterval"'):admin_html.find('id="panelSubServeJson"') + 120]

@@ -1496,9 +1496,6 @@
         if (jalaliPreview) {
           jalaliPreview.innerText = window.formatDateToJalali ? window.formatDateToJalali(res.new_due_date) : res.new_due_date;
         }
-        if (!res.panel_sync_warning) {
-          $('nodeBillingDueSourceBadge')?.classList.remove('hidden');
-        }
       }
       if (res.panel_sync_warning) {
         toast(`✅ پرداخت ثبت شد اما سینک سررسید انجام نشد: ${res.panel_sync_warning}`);
