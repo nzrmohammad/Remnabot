@@ -630,8 +630,21 @@ async def test_node_billing_inline_rows_due_date_ui_plan_align_and_due_alert(ses
     assert "node-date-input" in billing_modal
     assert "[color-scheme:dark]" not in billing_modal
     assert "addDaysToNodeBillingDueDate(30)" in billing_modal
-    assert ">توضیحات سرور در پنل:</label>" in billing_modal
+    assert ">توضیحات سرور:</label>" in billing_modal
+    assert "توضیحات سرور در پنل:" not in billing_modal
     assert "یادداشت و مشخصات:" not in billing_modal
+    assert "scroll-right" in billing_modal
+    assert 'id="nodeBillingInboundsWrap" class="hidden grid grid-cols-2 gap-1.5 pt-1"' in billing_modal
+    assert 'id="adminContentArea"' in admin_html and 'overflow-y-auto custom-scroll scroll-right p-4' in admin_html
+    bulk_bar = admin_html[admin_html.find('id="panelHostsBulkBar"'):admin_html.find('id="panelHostsList"')]
+    assert bulk_bar.find("runBulkHosts('enable')") < bulk_bar.find('id="panelHostsSelectedCount"')
+    sub_row = admin_html[admin_html.find('id="panelSubUpdateInterval"'):admin_html.find('id="panelSubServeJson"') + 120]
+    assert 'grid grid-cols-2 gap-2.5 items-center' in sub_row
+    assert 'id="nodesStatusFilterBar"' in admin_html
+    assert 'id="nodeBillingBillsCard"' in billing_modal and 'id="nodeBillingBillsList"' in billing_modal
+    assert 'id="nodeBillingDueSyncStatus"' in billing_modal and 'id="syncNodeDueTabBtn"' in billing_modal
+    bill_modal = admin_html[admin_html.find('id="panelBillCreateModal"'):admin_html.find('id="panelTokenCreateModal"')]
+    assert 'id="panelBillExtendWrap"' in bill_modal and 'id="panelBillExtendNextMonth"' in bill_modal
     assert 'id="nodeBillingTabBtn_due"' in billing_modal
     assert 'input[type="date"]' in components_css
     assert "::-webkit-datetime-edit" in components_css

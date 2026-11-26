@@ -906,6 +906,110 @@ async def test_infra_node_sync_dto_validation_and_provider_switch():
         assert resp_missing.status == 400
         assert json.loads(resp_missing.text)["ok"] is False
 
+    # Existing linked node updated with empty clean_prov (due-date-only PATCH) must PATCH instead of DELETE+POST
+    billing_nodes.append({"uuid": "bn-1", "nodeUuid": "n-1", "providerUuid": "p-1", "nextBillingAt": "2026-12-01T00:00:00.000Z"})
+    calls.clear()
+    client._client.request = fake_request
+    ok_empty_prov, _ = await client.sync_infra_billing_node("", "n-1", next_billing_at="2027-01-10T00:00:00.000Z")
+    assert ok_empty_prov is True
+    assert not any(c[0] == "DELETE" for c in calls)
+    assert any(c[0] == "PATCH" and c[2] == {"uuid": "bn-1", "nextBillingAt": "2027-01-10T00:00:00.000Z"} for c in calls)
+
+
+@pytest.mark.anyio
+async def test_post_admin_node_cost_syncs_due_date_when_provider_unchanged(session_factory):
+    """Editing only due_date must sync nextBillingAt to panel without calling update_node."""
+    import json
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.admin_infra_api import post_admin_node_cost
+    from bot.web.cache import FastCache
+
+    remna = MagicMock()
+    remna.update_node = AsyncMock(return_value=(True, {"uuid": "n-1"}))
+    remna.sync_infra_billing_node = AsyncMock(return_value=(True, {"uuid": "bn-1"}))
+
+    req = make_mocked_request(
+        "POST",
+        "/api/admin/infra/node-cost",
+        app={"session_factory": session_factory, "cache": FastCache(), "remnawave": remna},
+    )
+    req.json = AsyncMock(return_value={
+        "node_uuid": "n-1",
+        "node_name": "NL",
+        "provider": "Spectraip",
+        "billing_provider_uuid": "prov-1",
+        "monthly_cost_toman": 1750000,
+        "monthly_cost_eur": 6.6,
+        "currency": "USD",
+        "due_date": "2027-02-15",
+    })
+    with patch("bot.web.admin_infra_api._check_admin", return_value={"id": 1, "is_admin": True}):
+        resp = await post_admin_node_cost(req)
+        assert resp.status == 200
+        body = json.loads(resp.text)
+        assert body["ok"] is True
+        assert body["panel_sync_ok"] is True
+    remna.update_node.assert_not_awaited()
+    remna.sync_infra_billing_node.assert_awaited_once_with(
+        "prov-1", "n-1", next_billing_at="2027-02-15T00:00:00.000Z"
+    )
+
+
+@pytest.mark.anyio
+async def test_post_admin_infra_bill_create_with_auto_extend_preserves_costs(session_factory):
+    """Creating a bill record with extend_days extends due_date in DB & panel without zeroing costs."""
+    import json
+    from aiohttp.test_utils import make_mocked_request
+    from bot.web.admin_panel_api import post_admin_infra_bill_create
+    from bot.web.cache import FastCache
+
+    base_due = datetime(2027, 3, 1, tzinfo=timezone.utc)
+    async with session_factory() as session:
+        await NodeCostRepository(session).upsert(
+            node_uuid="n-ext-1",
+            node_name="DE-1",
+            provider="Spectraip",
+            monthly_cost_toman=2500000,
+            monthly_cost_eur=10.0,
+            currency="USD",
+            due_date=base_due,
+        )
+        await session.commit()
+
+    remna = MagicMock()
+    remna.create_infra_billing_record = AsyncMock(return_value=(True, {"uuid": "bill-ext-1"}))
+    remna.sync_infra_billing_node = AsyncMock(return_value=(True, {"uuid": "bn-ext-1"}))
+
+    req = make_mocked_request(
+        "POST",
+        "/api/admin/infra/bills/create",
+        app={"session_factory": session_factory, "cache": FastCache(), "remnawave": remna},
+    )
+    req.json = AsyncMock(return_value={
+        "provider_uuid": "prov-ext-1",
+        "amount": 10.0,
+        "billed_at": "2027-02-25",
+        "node_uuid": "n-ext-1",
+        "extend_days": 30,
+        "current_due_date": "2027-03-01",
+    })
+    with patch("bot.web.admin_panel_api._check_admin", return_value={"id": 1, "is_admin": True}):
+        resp = await post_admin_infra_bill_create(req)
+        assert resp.status == 200
+        body = json.loads(resp.text)
+        assert body["ok"] is True
+        assert body["new_due_date"] == "2027-03-31"
+
+    remna.sync_infra_billing_node.assert_awaited_once_with(
+        "prov-ext-1", "n-ext-1", next_billing_at="2027-03-31T00:00:00.000Z"
+    )
+    async with session_factory() as session:
+        saved = await NodeCostRepository(session).get_by_uuid("n-ext-1")
+        assert saved is not None
+        assert saved.monthly_cost_toman == 2500000
+        assert saved.currency == "USD"
+        assert saved.due_date.strftime("%Y-%m-%d") == "2027-03-31"
+
 
 
 

@@ -28,31 +28,44 @@ async def resolve_admin_topic_id(
     """Resolve the target forum topic ID for a specific notification domain."""
     if settings is None:
         settings = get_settings()
-    attr_store = f"topic_{kind.lower()}"
-    attr_env = f"ADMIN_TOPIC_{kind.upper()}"
-    topic_id = getattr(settings, attr_env, None)
 
-    try:
-        if session is not None:
-            store = await get_store_settings(session)
-            db_topic = getattr(store, attr_store, None)
-            if db_topic is not None:
-                topic_id = db_topic
-        elif session_factory is not None:
-            if hasattr(session_factory, "execute") and not callable(session_factory):
-                store = await get_store_settings(session_factory)
+    async def _resolve_single(target_kind: str) -> int | None:
+        attr_store = f"topic_{target_kind.lower()}"
+        attr_env = f"ADMIN_TOPIC_{target_kind.upper()}"
+        raw_val = getattr(settings, attr_env, None)
+
+        try:
+            if session is not None:
+                store = await get_store_settings(session)
                 db_topic = getattr(store, attr_store, None)
                 if db_topic is not None:
-                    topic_id = db_topic
-            else:
-                async with session_factory() as sess:
-                    store = await get_store_settings(sess)
+                    raw_val = db_topic
+            elif session_factory is not None:
+                if hasattr(session_factory, "execute") and not callable(session_factory):
+                    store = await get_store_settings(session_factory)
                     db_topic = getattr(store, attr_store, None)
                     if db_topic is not None:
-                        topic_id = db_topic
-    except Exception as exc:
-        logger.warning("Could not fetch topic_%s from DB, using env fallback: %s", kind, exc)
+                        raw_val = db_topic
+                else:
+                    async with session_factory() as sess:
+                        store = await get_store_settings(sess)
+                        db_topic = getattr(store, attr_store, None)
+                        if db_topic is not None:
+                            raw_val = db_topic
+        except Exception as exc:
+            logger.warning("Could not fetch %s from DB, using env fallback: %s", attr_store, exc)
 
+        if isinstance(raw_val, bool):
+            return None
+        try:
+            parsed = int(raw_val) if raw_val is not None else 0
+        except (TypeError, ValueError):
+            return None
+        return parsed if parsed > 0 else None
+
+    topic_id = await _resolve_single(kind)
+    if topic_id is None and kind.lower() == "nodes":
+        topic_id = await _resolve_single("alerts")
     return topic_id
 
 

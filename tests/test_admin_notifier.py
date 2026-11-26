@@ -108,3 +108,18 @@ async def test_send_admin_topic_notification_falls_back_to_admins_only_without_g
         assert bot.send_message.call_count == 2
         calls = [c[0][0] for c in bot.send_message.call_args_list]
         assert calls == [111, 222]
+
+
+@pytest.mark.anyio
+async def test_resolve_admin_topic_id_nodes_falls_back_to_alerts_and_ignores_nonpositive():
+    mock_store = MagicMock()
+    mock_store.topic_nodes = 0
+    mock_store.topic_alerts = 505
+
+    mock_session = MagicMock()
+    with patch("bot.services.admin_notifier.get_store_settings", AsyncMock(return_value=mock_store)):
+        assert await resolve_admin_topic_id(session=mock_session, kind="nodes") == 505
+
+    mock_store.topic_nodes = 707
+    with patch("bot.services.admin_notifier.get_store_settings", AsyncMock(return_value=mock_store)):
+        assert await resolve_admin_topic_id(session=mock_session, kind="nodes") == 707

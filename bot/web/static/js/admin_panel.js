@@ -947,9 +947,12 @@
         </div>
       `;
     }).join('');
+    window.adminActions?.renderNodeBillingBillsHistory?.();
   }
 
-  async function openBillModal(prefillProviderUuid = '', prefillAmount = '') {
+  let activeBillNodeCtx = null;
+
+  async function openBillModal(prefillProviderUuid = '', prefillAmount = '', nodeCtx = null) {
     const modal = $('panelBillCreateModal');
     const provSel = $('panelBillProviderSelect');
     if (!modal || !provSel) return;
@@ -962,11 +965,30 @@
     if ($('panelBillAmount')) $('panelBillAmount').value = prefillAmount || '';
     const todayIso = new Date().toISOString().slice(0, 10);
     if ($('panelBillDate')) $('panelBillDate').value = todayIso;
+
+    activeBillNodeCtx = (nodeCtx && nodeCtx.nodeUuid) ? nodeCtx : null;
+    const extendWrap = $('panelBillExtendWrap');
+    const extendChk = $('panelBillExtendNextMonth');
+    const extendHint = $('panelBillExtendHint');
+    if (extendWrap) {
+      if (activeBillNodeCtx) {
+        extendWrap.classList.remove('hidden');
+        if (extendChk) extendChk.checked = true;
+        if (extendHint) {
+          extendHint.innerText = `برای سرور «${activeBillNodeCtx.nodeName || activeBillNodeCtx.nodeUuid}» و سینک در پنل`;
+        }
+      } else {
+        extendWrap.classList.add('hidden');
+        if (extendChk) extendChk.checked = false;
+      }
+    }
+
     modal.classList.remove('hidden');
     haptic('selection');
   }
 
   function closeBillModal() {
+    activeBillNodeCtx = null;
     $('panelBillCreateModal')?.classList.add('hidden');
   }
 
@@ -978,12 +1000,38 @@
       toast('ارائه‌دهنده و مبلغ معتبر الزامی است.');
       return;
     }
-    const res = await window.api?.createInfraBill?.({ provider_uuid, amount, billed_at });
+    const payload = { provider_uuid, amount, billed_at };
+    if (activeBillNodeCtx?.nodeUuid && $('panelBillExtendNextMonth')?.checked) {
+      payload.node_uuid = activeBillNodeCtx.nodeUuid;
+      payload.extend_days = 30;
+      if (activeBillNodeCtx.currentDueDate) payload.current_due_date = activeBillNodeCtx.currentDueDate;
+    }
+    const res = await window.api?.createInfraBill?.(payload);
     if (res && res.ok) {
-      toast(`✅ ${res.message}`);
+      if (res.new_due_date) {
+        const dueInput = $('nodeBillingDueDate');
+        if (dueInput) {
+          dueInput.value = res.new_due_date;
+          dueInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        const jalaliPreview = $('nodeBillingJalaliPreview');
+        if (jalaliPreview) {
+          jalaliPreview.innerText = window.formatDateToJalali ? window.formatDateToJalali(res.new_due_date) : res.new_due_date;
+        }
+        if (!res.panel_sync_warning) {
+          $('nodeBillingDueSourceBadge')?.classList.remove('hidden');
+          window.adminActions?.updateNodeBillingDueSyncStatus?.('panel');
+        }
+      }
+      if (res.panel_sync_warning) {
+        toast(`✅ پرداخت ثبت شد اما سینک سررسید انجام نشد: ${res.panel_sync_warning}`);
+      } else {
+        toast(`✅ ${res.message}`);
+      }
       closeBillModal();
       haptic('success');
       await fetchOverview(true);
+      if (window.syncAdminOverview) window.syncAdminOverview(true);
     } else {
       toast(`⚠️ ${res?.error || 'خطا در ثبت پرداخت'}`);
     }
@@ -1050,5 +1098,7 @@
     closeConfirmModal,
     executeConfirmAction,
     getConfigProfiles: () => panelState.config_profiles || [],
+    getBillingHistory: () => panelState.infra_billing_history || [],
+    getInfraBillingNodes: () => panelState.infra_billing_nodes || [],
   };
 })(window);

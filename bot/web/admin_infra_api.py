@@ -343,13 +343,39 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
 
     await _invalidate_node_caches(request)
 
-    eff_prov_uuid = str(body.get("provider_uuid") or "").strip()
-    if due_date and eff_prov_uuid and remnawave and hasattr(remnawave, "sync_infra_billing_node"):
-        try:
-            next_billing_iso = due_date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
-            await remnawave.sync_infra_billing_node(eff_prov_uuid, node_uuid, next_billing_at=next_billing_iso)
-        except Exception as sync_exc:
-            logger.debug("Optional panel infra-billing sync skipped for %s: %s", node_uuid, sync_exc)
+    eff_prov_uuid = str(body.get("provider_uuid") or body.get("billing_provider_uuid") or "").strip()
+    panel_sync_ok: bool | None = None
+    panel_sync_warning: str | None = None
+    if due_date and remnawave and hasattr(remnawave, "sync_infra_billing_node"):
+        should_sync = bool(eff_prov_uuid)
+        if not should_sync and hasattr(remnawave, "get_infra_billing_nodes"):
+            try:
+                existing_bn = await remnawave.get_infra_billing_nodes()
+                if isinstance(existing_bn, list):
+                    should_sync = any(
+                        str(x.get("nodeUuid") or (x.get("node") or {}).get("uuid") or "") == node_uuid
+                        for x in existing_bn
+                        if isinstance(x, dict)
+                    )
+            except Exception:
+                should_sync = False
+        if should_sync:
+            try:
+                next_billing_iso = due_date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+                sync_res = await remnawave.sync_infra_billing_node(
+                    eff_prov_uuid, node_uuid, next_billing_at=next_billing_iso
+                )
+                if isinstance(sync_res, tuple) and len(sync_res) >= 2:
+                    panel_sync_ok = bool(sync_res[0])
+                    if not panel_sync_ok:
+                        panel_sync_warning = str(sync_res[1] or "خطا در همگام‌سازی سررسید با پنل")
+                        logger.warning("Panel infra-billing sync rejected for %s: %s", node_uuid, panel_sync_warning)
+                else:
+                    panel_sync_ok = True
+            except Exception as sync_exc:
+                panel_sync_ok = False
+                panel_sync_warning = str(sync_exc)
+                logger.warning("Optional panel infra-billing sync skipped for %s: %s", node_uuid, sync_exc)
 
     bot_obj = request.app.get("bot")
     sf_obj = request.app.get("session_factory")
@@ -361,7 +387,7 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
             except Exception as exc:
                 logger.warning("Immediate node billing due check failed: %s", exc)
 
-    return web.json_response({
+    resp_payload: dict[str, Any] = {
         "ok": True,
         "message": "اطلاعات سرور و تنظیمات پنل با موفقیت ثبت شد.",
         "data": {
@@ -371,8 +397,13 @@ async def post_admin_node_cost(request: web.Request) -> web.Response:
             "due_date": item.due_date.strftime("%Y-%m-%d") if item.due_date else None,
             "provider": item.provider,
             **({"panel_updated": True} if panel_payload else {}),
-        }
-    })
+        },
+    }
+    if panel_sync_ok is not None:
+        resp_payload["panel_sync_ok"] = panel_sync_ok
+    if panel_sync_warning:
+        resp_payload["panel_sync_warning"] = panel_sync_warning
+    return web.json_response(resp_payload)
 
 
 async def post_admin_node_restart(request: web.Request) -> web.Response:

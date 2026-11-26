@@ -255,7 +255,7 @@ class RemnawavePanelExtrasMixin:
             matched_prov = str(
                 matched.get("providerUuid") or (matched.get("provider") or {}).get("uuid") or ""
             ).strip()
-            if matched_prov and matched_prov != clean_prov:
+            if clean_prov and matched_prov and matched_prov != clean_prov:
                 if not eff_next:
                     return False, "برای تغییر ارائه‌دهنده در پنل، تاریخ سررسید بعدی الزامی است."
                 ok_del, res_del, _ = await self._panel_call(
@@ -283,6 +283,8 @@ class RemnawavePanelExtrasMixin:
                 )
             return ok, res
 
+        if not clean_prov:
+            return False, "برای ثبت سرور در بخش Infra Billing پنل، انتخاب ارائه‌دهنده الزامی است."
         if not eff_next:
             return False, "برای ثبت اولیه سرور در Infra Billing پنل، تاریخ سررسید بعدی الزامی است."
         ok, res, _ = await self._panel_call(

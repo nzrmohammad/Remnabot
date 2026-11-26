@@ -85,7 +85,7 @@
 
 
     <!-- Main Scrollable Content -->
-    <div id="adminContentArea" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4">
+    <div id="adminContentArea" class="flex-1 overflow-y-auto custom-scroll scroll-right p-4 space-y-4">
 
       <!-- ===================================================== -->
       <!-- TAB 1: OVERVIEW & ANALYTICS (داشبورد کل)               -->
@@ -658,6 +658,25 @@
               </button>
             </div>
           </div>
+          <!-- Quick Node Status & Billing Filters -->
+          <div id="nodesStatusFilterBar" class="flex items-center gap-1.5 overflow-x-auto custom-scroll pb-0.5 text-[11px]" role="tablist">
+            <button type="button" id="nodeFilterBtn_all" onclick="window.adminActions.setNodesFilter('all')" class="px-2.5 py-1.5 rounded-xl font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap flex items-center gap-1.5 shrink-0">
+              <span>همه</span>
+              <span id="nodeFilterCount_all" class="px-1.5 py-0.5 rounded-md bg-white/20 text-[10px] font-sans num-bidi">0</span>
+            </button>
+            <button type="button" id="nodeFilterBtn_offline" onclick="window.adminActions.setNodesFilter('offline')" class="px-2.5 py-1.5 rounded-xl font-medium transition card border border-card-border t-muted hover:t-main whitespace-nowrap flex items-center gap-1.5 shrink-0">
+              <span>آفلاین / غیرفعال</span>
+              <span id="nodeFilterCount_offline" class="px-1.5 py-0.5 rounded-md card-inset t-danger text-[10px] font-sans num-bidi font-bold">0</span>
+            </button>
+            <button type="button" id="nodeFilterBtn_due_soon" onclick="window.adminActions.setNodesFilter('due_soon')" class="px-2.5 py-1.5 rounded-xl font-medium transition card border border-card-border t-muted hover:t-main whitespace-nowrap flex items-center gap-1.5 shrink-0">
+              <span>سررسید نزدیک</span>
+              <span id="nodeFilterCount_due_soon" class="px-1.5 py-0.5 rounded-md card-inset t-warn text-[10px] font-sans num-bidi font-bold">0</span>
+            </button>
+            <button type="button" id="nodeFilterBtn_alerts" onclick="window.adminActions.setNodesFilter('alerts')" class="px-2.5 py-1.5 rounded-xl font-medium transition card border border-card-border t-muted hover:t-main whitespace-nowrap flex items-center gap-1.5 shrink-0">
+              <span>فشار / هشدار</span>
+              <span id="nodeFilterCount_alerts" class="px-1.5 py-0.5 rounded-md card-inset t-accent text-[10px] font-sans num-bidi font-bold">0</span>
+            </button>
+          </div>
           <div id="adminNodesFullList" class="space-y-3">
             <div class="p-8 text-center text-xs t-muted">در حال دریافت وضعیت نودها...</div>
           </div>
@@ -903,12 +922,12 @@
             </div>
 
             <div id="panelHostsBulkBar" class="hidden card-inset p-2.5 rounded-2xl border border-cyan-500/35 flex flex-wrap items-center justify-between gap-2 text-[11px]">
-              <span id="panelHostsSelectedCount" class="font-bold t-accent">0 مورد انتخاب شده</span>
               <div class="flex items-center gap-1.5">
                 <button type="button" onclick="window.panelCtrl.runBulkHosts('enable')" class="px-2.5 py-1 rounded-xl border border-emerald-500/35 t-success font-bold hover:bg-emerald-500/10 transition">فعال‌سازی</button>
                 <button type="button" onclick="window.panelCtrl.runBulkHosts('disable')" class="px-2.5 py-1 rounded-xl border border-amber-500/35 t-warn font-bold hover:bg-amber-500/10 transition">غیرفعال</button>
                 <button type="button" onclick="window.panelCtrl.runBulkHosts('delete')" class="px-2.5 py-1 rounded-xl border border-rose-500/35 t-danger font-bold hover:bg-rose-500/10 transition">حذف</button>
               </div>
+              <span id="panelHostsSelectedCount" class="font-bold t-accent">0 مورد انتخاب شده</span>
             </div>
 
             <div id="panelHostsList" class="space-y-2">
@@ -933,19 +952,21 @@
                   <input type="text" id="panelSubSupportLink" dir="ltr" placeholder="https://t.me/support" class="input-base h-9 px-3 rounded-xl text-xs w-full min-w-0 text-left" />
                 </div>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-center">
+              <div class="space-y-2.5">
                 <div class="min-w-0">
                   <label for="panelSubUpdateInterval" class="text-[11px] t-muted block mb-1">بازه آپدیت (ساعت):</label>
                   <input type="number" id="panelSubUpdateInterval" min="1" max="720" dir="ltr" placeholder="12" class="input-base h-9 px-3 rounded-xl text-xs num-bidi font-bold w-full min-w-0 text-left" />
                 </div>
-                <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer">
-                  <span class="text-[11px] t-main font-semibold">صفحه وب ساب</span>
-                  <input type="checkbox" id="panelSubWebpageEnabled" class="accent-cyan-500 rounded" />
-                </label>
-                <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer">
-                  <span class="text-[11px] t-main font-semibold">خروجی JSON پایه</span>
-                  <input type="checkbox" id="panelSubServeJson" class="accent-cyan-500 rounded" />
-                </label>
+                <div class="grid grid-cols-2 gap-2.5 items-center">
+                  <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer min-w-0">
+                    <span class="text-[11px] t-main font-semibold truncate">صفحه وب ساب</span>
+                    <input type="checkbox" id="panelSubWebpageEnabled" class="accent-cyan-500 rounded shrink-0" />
+                  </label>
+                  <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer min-w-0">
+                    <span class="text-[11px] t-main font-semibold truncate">خروجی JSON پایه</span>
+                    <input type="checkbox" id="panelSubServeJson" class="accent-cyan-500 rounded shrink-0" />
+                  </label>
+                </div>
               </div>
               <button type="button" onclick="window.panelCtrl.saveSubSettings()" class="w-full btn btn-primary py-2.5 rounded-xl text-xs font-bold">ذخیره تنظیمات ساب در پنل</button>
             </div>
@@ -4369,7 +4390,7 @@
         </div>
 
         <form id="nodeBillingForm" onsubmit="event.preventDefault(); window.adminActions.saveNodeBilling();" class="flex-1 flex flex-col overflow-hidden">
-          <div class="space-y-3 text-xs overflow-y-auto custom-scroll flex-1 py-2.5 px-1">
+          <div class="space-y-3 text-xs overflow-y-auto custom-scroll scroll-right flex-1 py-2.5 pl-1 pr-2">
             <input type="hidden" id="nodeBillingUuid" value="" />
             <input type="hidden" id="nodeBillingId" value="" />
             <input type="hidden" id="nodeBillingName" value="" />
@@ -4383,8 +4404,8 @@
                     <img src="/static/img/icons/coins.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
                     <span class="text-[11px] font-bold t-main truncate">هزینه دوره ماهانه</span>
                   </div>
-                  <div class="flex items-center card border border-card-border rounded-xl p-0.5 h-8 w-[124px] gap-0.5 shrink-0">
-                    <button type="button" id="nodeBillingCurrEur" onclick="setNodeBillingCurrency('EUR')" class="flex-1 h-full rounded-lg text-[11px] font-bold transition flex items-center justify-center text-white bg-blue-600 shadow">
+                  <div class="flex items-center card-inset border border-card-border rounded-xl p-1 h-9 w-[124px] gap-1 shrink-0">
+                    <button type="button" id="nodeBillingCurrEur" onclick="setNodeBillingCurrency('EUR')" class="flex-1 h-full rounded-lg text-[11px] font-bold transition flex items-center justify-center bg-blue-600 text-white shadow-sm">
                       یورو
                     </button>
                     <button type="button" id="nodeBillingCurrUsd" onclick="setNodeBillingCurrency('USD')" class="flex-1 h-full rounded-lg text-[11px] font-medium transition flex items-center justify-center t-muted hover:t-main">
@@ -4421,11 +4442,11 @@
               <!-- Card 2: Provider Picker & Payment Records -->
               <div class="card-inset border border-card-border rounded-2xl p-3 space-y-2.5">
                 <div class="min-w-0">
-                  <div class="flex items-center justify-between gap-2 mb-1">
+                  <div class="flex items-center justify-between gap-2 mb-2">
                     <label class="text-[11px] t-muted">ارائه‌دهنده سرور:</label>
-                    <div class="flex items-center gap-2.5 shrink-0">
-                      <button type="button" onclick="window.adminActions.openBillFromNodeModal()" class="text-[10.5px] t-success font-bold hover:underline" title="ثبت رکورد پرداخت (Bill Record) در پنل">+ ثبت پرداخت</button>
-                      <button type="button" id="syncNodePanelBillingBtn" onclick="window.adminActions.syncNodeBillingToPanel()" class="text-[10.5px] t-accent font-bold hover:underline" title="همگام‌سازی ارائه‌دهنده و سررسید در بخش Infra Billing پنل">سینک در پنل</button>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <button type="button" onclick="window.adminActions.openBillFromNodeModal()" class="px-2 py-1 rounded-lg border border-emerald-500/35 bg-emerald-500/10 t-success text-[10.5px] font-bold hover:bg-emerald-500/15 transition active:scale-95" title="ثبت رکورد پرداخت (Bill Record) در پنل">+ ثبت پرداخت</button>
+                      <button type="button" id="syncNodePanelBillingBtn" onclick="window.adminActions.syncNodeBillingToPanel()" class="px-2 py-1 rounded-lg border border-cyan-500/35 bg-cyan-500/10 t-accent text-[10.5px] font-bold hover:bg-cyan-500/15 transition active:scale-95" title="همگام‌سازی ارائه‌دهنده و سررسید در بخش Infra Billing پنل">سینک در پنل</button>
                     </div>
                   </div>
                   <input type="hidden" id="nodeBillingProviderUuid" value="" />
@@ -4436,6 +4457,17 @@
                   <div id="nodeBillingProviderCustomWrap" class="hidden mt-1.5">
                     <input type="text" id="nodeBillingProvider" placeholder="نام ارائه‌دهنده دستی..." class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full min-w-0" />
                   </div>
+                </div>
+              </div>
+
+              <!-- Card 3: Provider Bill Records History -->
+              <div id="nodeBillingBillsCard" class="card-inset border border-card-border rounded-2xl p-3 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-[11px] font-bold t-main">سوابق پرداخت (Bill Records)</span>
+                  <span id="nodeBillingBillsCount" class="text-[10.5px] font-sans num-bidi t-muted"></span>
+                </div>
+                <div id="nodeBillingBillsList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scroll scroll-right">
+                  <div class="text-[11px] t-muted text-center py-2">با انتخاب ارائه‌دهنده پنل، سوابق پرداخت نمایش داده می‌شود.</div>
                 </div>
               </div>
             </div>
@@ -4464,6 +4496,10 @@
                   </button>
                 </div>
                 <span class="text-[10px] t-muted block">3 روز پیش از تاریخ سررسید، هشدار تمدید در تلگرام ارسال می‌شود.</span>
+                <div id="nodeBillingDueSyncStatus" class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl card border border-card-border text-[10.5px]">
+                  <span id="nodeBillingDueSyncText" class="t-muted truncate min-w-0">وضعیت همگام‌سازی پنل</span>
+                  <button type="button" id="syncNodeDueTabBtn" onclick="window.adminActions.syncNodeBillingToPanel(this)" class="px-2 py-1 rounded-lg border border-cyan-500/35 bg-cyan-500/10 t-accent text-[10.5px] font-bold hover:bg-cyan-500/15 transition active:scale-95 shrink-0">سینک الان</button>
+                </div>
               </div>
             </div>
 
@@ -4483,7 +4519,7 @@
 
                 <div class="min-w-0">
                   <div class="flex items-center justify-between mb-1">
-                    <label for="nodeBillingPanelDescription" class="text-[11px] t-muted">توضیحات سرور در پنل:</label>
+                    <label for="nodeBillingPanelDescription" class="text-[11px] t-muted">توضیحات سرور:</label>
                     <span class="badge-optional">پنل</span>
                   </div>
                   <input type="text" id="nodeBillingPanelDescription" placeholder="مثلاً: Frankfurt Dedicated" class="input-base font-sans text-xs px-3 py-2 rounded-xl w-full min-w-0" />
@@ -4497,7 +4533,7 @@
                     <span id="nodeBillingConfigProfileDisplay" class="t-main font-semibold truncate">بدون تغییر پروفایل</span>
                     <svg class="w-4 h-4 t-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
-                  <div id="nodeBillingInboundsWrap" class="hidden flex flex-wrap gap-1.5 pt-1" dir="ltr"></div>
+                  <div id="nodeBillingInboundsWrap" class="hidden grid grid-cols-2 gap-1.5 pt-1" dir="ltr"></div>
                 </div>
               </div>
 
@@ -4808,6 +4844,13 @@
             <label for="panelBillDate" class="text-[11px] t-muted block mb-1">تاریخ پرداخت:</label>
             <input type="date" id="panelBillDate" dir="ltr" class="node-date-input input-base h-9 px-3 rounded-xl text-xs w-full text-center" required />
           </div>
+          <label id="panelBillExtendWrap" class="hidden card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer">
+            <div class="min-w-0">
+              <span class="text-[11px] font-bold t-main block">تمدید خودکار سررسید (+30 روز)</span>
+              <span id="panelBillExtendHint" class="text-[10px] t-muted block truncate"></span>
+            </div>
+            <input type="checkbox" id="panelBillExtendNextMonth" class="accent-emerald-500 rounded shrink-0" checked />
+          </label>
           <button type="submit" class="w-full btn btn-primary text-xs py-2.5 rounded-xl font-bold">ثبت سابقه پرداخت در پنل</button>
         </form>
       </div>

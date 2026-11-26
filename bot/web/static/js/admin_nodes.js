@@ -234,20 +234,70 @@
     }).join('');
   }
 
-  function renderFullNodes(nodes) {
+  let currentNodesFilter = 'all';
+  let cachedFullNodes = [];
+
+  function _matchesNodeFilter(n, filterKey) {
+    const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
+    const isOffOrDisabled = !isOnline || Boolean(n.is_disabled);
+    const isDueSoon = n.days_until_due !== null && n.days_until_due !== undefined && Number(n.days_until_due) <= 7;
+    const cpu = Number(n.cpu_percent || 0);
+    const ram = Number(n.ram_percent || 0);
+    const hasTrafficLimit = Boolean(n.is_traffic_tracking_active) && Number(n.traffic_limit_gb || 0) > 0;
+    const trafficPct = hasTrafficLimit ? (Number(n.traffic_used_gb || 0) / Number(n.traffic_limit_gb)) * 100 : 0;
+    const isAlert = (isOnline && (cpu > 85 || ram > 85)) || (hasTrafficLimit && trafficPct >= Number(n.notify_percent || 80));
+
+    switch (filterKey) {
+      case 'offline':
+        return isOffOrDisabled;
+      case 'due_soon':
+        return isDueSoon;
+      case 'alerts':
+        return isAlert;
+      default:
+        return true;
+    }
+  }
+
+  function renderFullNodes(nodes, skipCacheUpdate = false) {
     const container = $('adminNodesFullList');
     if (!container) return;
-    if (!nodes || nodes.length === 0) {
+    if (!skipCacheUpdate) {
+      cachedFullNodes = Array.isArray(nodes) ? nodes : [];
+    }
+    const allNodes = cachedFullNodes;
+    const countMap = {
+      all: allNodes.length,
+      offline: allNodes.filter(n => _matchesNodeFilter(n, 'offline')).length,
+      due_soon: allNodes.filter(n => _matchesNodeFilter(n, 'due_soon')).length,
+      alerts: allNodes.filter(n => _matchesNodeFilter(n, 'alerts')).length,
+    };
+    Object.entries(countMap).forEach(([k, val]) => {
+      const el = $(`nodeFilterCount_${k}`);
+      if (el) el.innerText = toEnglishDigits(val);
+    });
+
+    const filteredNodes = allNodes.filter(n => _matchesNodeFilter(n, currentNodesFilter));
+    if (!allNodes.length) {
       container.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs">هیچ سروری در کلاستر یافت نشد.</div>';
       return;
     }
+    if (!filteredNodes.length) {
+      container.innerHTML = `
+        <div class="card p-6 rounded-2xl border border-card-border text-center space-y-2.5 text-xs">
+          <div class="t-muted">سروری مطابق این فیلتر یافت نشد.</div>
+          <button type="button" onclick="window.adminActions.setNodesFilter('all')" class="px-3 py-1.5 rounded-xl border border-cyan-500/35 bg-cyan-500/10 t-accent font-bold text-[11px] hover:bg-cyan-500/15 transition">نمایش همه سرورها</button>
+        </div>
+      `;
+      return;
+    }
 
-    // Preserve expanded node cards across 15s live auto-refresh cycles
+    // Preserve expanded node cards across 15s live auto-refresh cycles & filter switches
     const openNodeBoxIds = new Set(
       Array.from(container.querySelectorAll('.node-body:not(.hidden)')).map(el => el.id).filter(Boolean)
     );
 
-    container.innerHTML = nodes.map((n, idx) => {
+    container.innerHTML = filteredNodes.map((n, idx) => {
       const flag = n.flag || getFlagEmoji(n.country_code);
       const isOnline = (n.status || '').toUpperCase() === 'ONLINE';
       const statusBadge = isOnline ? 'آنلاین' : 'آفلاین';
@@ -803,6 +853,8 @@ openEditSslDomainModal(domain) {
         if (customWrap) customWrap.classList.add('hidden');
         if (customInput) customInput.value = '';
       }
+      this.renderNodeBillingBillsHistory?.();
+      this.updateNodeBillingDueSyncStatus?.();
     },
 
     _renderNodeProviderList() {
@@ -978,17 +1030,93 @@ openEditSslDomainModal(domain) {
       wrap.innerHTML = inbounds.map(i => {
         const u = String(i.uuid || '');
         const checked = chosenSet.has(u) ? 'checked' : '';
+        const labelText = i.tag || i.type || 'Inbound';
         return `
-          <label class="card px-2 py-1 rounded-lg border border-card-border text-[10px] font-en flex items-center gap-1 cursor-pointer">
-            <input type="checkbox" class="node-inbound-chk accent-cyan-500 rounded" value="${escapeHtml(u)}" ${checked} />
-            <span>${escapeHtml(i.tag || i.type || 'Inbound')}</span>
+          <label class="card-inset px-2.5 py-1.5 rounded-xl border border-card-border text-[10.5px] font-en flex items-center gap-1.5 min-w-0 cursor-pointer hover:border-cyan-500/40 transition" title="${escapeHtml(labelText)}">
+            <input type="checkbox" class="node-inbound-chk accent-cyan-500 rounded shrink-0" value="${escapeHtml(u)}" ${checked} />
+            <span class="truncate min-w-0 flex-1">${escapeHtml(labelText)}</span>
           </label>
         `;
       }).join('');
       wrap.classList.remove('hidden');
     },
 
-    async syncNodeBillingToPanel() {
+    setNodesFilter(filterKey = 'all') {
+      currentNodesFilter = filterKey || 'all';
+      const activeCls = 'px-2.5 py-1.5 rounded-xl font-bold transition bg-cyan-600 text-white shadow whitespace-nowrap flex items-center gap-1.5 shrink-0';
+      const inactiveCls = 'px-2.5 py-1.5 rounded-xl font-medium transition card border border-card-border t-muted hover:t-main whitespace-nowrap flex items-center gap-1.5 shrink-0';
+      ['all', 'offline', 'due_soon', 'alerts'].forEach(k => {
+        const btn = $(`nodeFilterBtn_${k}`);
+        if (btn) btn.className = (k === currentNodesFilter) ? activeCls : inactiveCls;
+      });
+      renderFullNodes(cachedFullNodes, true);
+      if (window.hapticFeedback) window.hapticFeedback('selection');
+    },
+
+    renderNodeBillingBillsHistory() {
+      const listEl = $('nodeBillingBillsList');
+      const countEl = $('nodeBillingBillsCount');
+      if (!listEl) return;
+      const provUuid = $('nodeBillingProviderUuid')?.value?.trim() || '';
+      if (!provUuid || provUuid === '__custom__') {
+        if (countEl) countEl.innerText = '';
+        listEl.innerHTML = '<div class="text-[11px] t-muted text-center py-2">با انتخاب ارائه‌دهنده پنل، سوابق پرداخت نمایش داده می‌شود.</div>';
+        return;
+      }
+      const allBills = window.panelCtrl?.getBillingHistory?.() || [];
+      const matched = allBills
+        .filter(b => String(b.providerUuid || b.provider?.uuid || '') === provUuid)
+        .slice()
+        .sort((a, b) => String(b.billedAt || '').localeCompare(String(a.billedAt || '')));
+      if (countEl) countEl.innerText = matched.length ? `${toEnglishDigits(matched.length)} رکورد` : '';
+      if (!matched.length) {
+        listEl.innerHTML = '<div class="text-[11px] t-muted text-center py-2">برای این ارائه‌دهنده سابقه پرداختی ثبت نشده است.</div>';
+        return;
+      }
+      listEl.innerHTML = matched.slice(0, 20).map(b => {
+        const billUuid = String(b.uuid || '');
+        const billedDate = b.billedAt ? String(b.billedAt).slice(0, 10) : '';
+        const jalaliStr = billedDate ? formatDateToJalali(billedDate) : '—';
+        const amountStr = Number(b.amount || 0).toLocaleString('en-US');
+        return `
+          <div class="card px-2.5 py-1.5 rounded-xl border border-card-border flex items-center justify-between gap-2 text-[11px]">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="badge badge-success text-[10px] font-sans num-bidi shrink-0" dir="ltr">${escapeHtml(amountStr)}</span>
+              <span class="t-muted font-sans num-bidi truncate" dir="ltr">${escapeHtml(jalaliStr)}</span>
+            </div>
+            ${billUuid ? `<button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(billUuid)}')" class="p-1 rounded-lg border border-rose-500/30 t-danger hover:bg-rose-500/10 transition shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
+          </div>
+        `;
+      }).join('');
+    },
+
+    updateNodeBillingDueSyncStatus(forceSource = null) {
+      const textEl = $('nodeBillingDueSyncText');
+      const syncBtn = $('syncNodeDueTabBtn');
+      if (!textEl) return;
+      const nodeUuid = $('nodeBillingUuid')?.value?.trim() || '';
+      const provUuid = $('nodeBillingProviderUuid')?.value?.trim() || '';
+      const provName = $('nodeBillingProviderDisplay')?.innerText?.trim() || '';
+      const billingNodes = window.panelCtrl?.getInfraBillingNodes?.() || [];
+      const linkedOnPanel = Boolean(nodeUuid && billingNodes.some(x => String(x.nodeUuid || x.node?.uuid || '') === nodeUuid));
+      const dueSource = forceSource || this._nodePanelSnapshot?.dueSource || '';
+
+      if (dueSource === 'panel' || linkedOnPanel) {
+        textEl.innerText = `🟢 همگام با پنل${provName && provUuid && provUuid !== '__custom__' ? ` (${provName})` : ''}`;
+        textEl.className = 't-success font-medium truncate min-w-0';
+        syncBtn?.classList.remove('hidden');
+      } else if (provUuid && provUuid !== '__custom__') {
+        textEl.innerText = `🟡 آماده همگام‌سازی با «${provName || 'پنل'}»`;
+        textEl.className = 't-warn font-medium truncate min-w-0';
+        syncBtn?.classList.remove('hidden');
+      } else {
+        textEl.innerText = '⚪ ذخیره محلی (برای سینک، ارائه‌دهنده پنل انتخاب کنید)';
+        textEl.className = 't-muted truncate min-w-0';
+        syncBtn?.classList.add('hidden');
+      }
+    },
+
+    async syncNodeBillingToPanel(triggerBtn = null) {
       const nodeUuid = $('nodeBillingUuid')?.value?.trim() || '';
       const providerUuid = $('nodeBillingProviderUuid')?.value?.trim() || '';
       const dueDate = $('nodeBillingDueDate')?.value?.trim() || '';
@@ -996,7 +1124,7 @@ openEditSslDomainModal(domain) {
         if (window.showToast) window.showToast('ابتدا یک ارائه‌دهنده ثبت‌شده در پنل انتخاب کنید.');
         return;
       }
-      const btn = $('syncNodePanelBillingBtn');
+      const btn = triggerBtn || $('syncNodePanelBillingBtn');
       const prevText = btn ? btn.innerText : '';
       if (btn) {
         btn.disabled = true;
@@ -1006,6 +1134,8 @@ openEditSslDomainModal(domain) {
         const res = await window.api?.syncInfraNodeBilling?.(nodeUuid, providerUuid, dueDate);
         if (res && res.ok) {
           $('nodeBillingDueSourceBadge')?.classList.remove('hidden');
+          if (this._nodePanelSnapshot) this._nodePanelSnapshot.dueSource = 'panel';
+          this.updateNodeBillingDueSyncStatus('panel');
           if (window.showToast) window.showToast(`✅ ${res.message}`);
           if (window.hapticFeedback) window.hapticFeedback('success');
           if (window.syncAdminOverview) window.syncAdminOverview(true);
@@ -1201,6 +1331,7 @@ openEditSslDomainModal(domain) {
         description: descVal,
         trackingActive: trackingStr === '' ? null : trackingBool,
         providerUuid,
+        dueSource: meta.dueSource || '',
         trafficLimitGb: limitGb,
         trafficResetDay: resetDay,
         notifyPercent: notifyPct,
@@ -1209,6 +1340,12 @@ openEditSslDomainModal(domain) {
       };
       this.loadInfraProviders(providerUuid, provider);
       this.loadNodeConfigProfiles(configProfileUuid, activeInbounds);
+      if (window.panelCtrl?.fetchOverview) {
+        window.panelCtrl.fetchOverview(false).then(() => {
+          this.renderNodeBillingBillsHistory?.();
+          this.updateNodeBillingDueSyncStatus?.();
+        }).catch(() => {});
+      }
 
       const jalaliPreview = $('nodeBillingJalaliPreview');
       if (jalaliPreview) {
@@ -1236,7 +1373,7 @@ openEditSslDomainModal(domain) {
       const symbolSpan = $('nodeBillingCurrencySymbol');
 
       if (eurBtn && usdBtn) {
-        const activeCls = 'flex-1 h-full rounded-lg text-[11px] font-bold transition flex items-center justify-center text-white bg-blue-600 shadow';
+        const activeCls = 'flex-1 h-full rounded-lg text-[11px] font-bold transition flex items-center justify-center bg-blue-600 text-white shadow-sm';
         const inactiveCls = 'flex-1 h-full rounded-lg text-[11px] font-medium transition flex items-center justify-center t-muted hover:t-main';
         eurBtn.className = isEur ? activeCls : inactiveCls;
         usdBtn.className = isEur ? inactiveCls : activeCls;
@@ -1365,7 +1502,11 @@ openEditSslDomainModal(domain) {
       const cleanProvUuid = provUuid === '__custom__' ? '' : provUuid;
       const amountVal = $('nodeBillingCostEur')?.value?.trim() || '';
       if (window.panelCtrl?.openBillModal) {
-        window.panelCtrl.openBillModal(cleanProvUuid, amountVal);
+        window.panelCtrl.openBillModal(cleanProvUuid, amountVal, {
+          nodeUuid: $('nodeBillingUuid')?.value?.trim() || '',
+          nodeName: $('nodeBillingName')?.value?.trim() || '',
+          currentDueDate: $('nodeBillingDueDate')?.value?.trim() || '',
+        });
       }
     },
 
@@ -1445,6 +1586,9 @@ openEditSslDomainModal(domain) {
         if (selectedProvVal !== '__custom__' && (providerUuidVal || '') !== String(snap.providerUuid || '')) {
           payload.provider_uuid = providerUuidVal;
         }
+        if (selectedProvVal && selectedProvVal !== '__custom__') {
+          payload.billing_provider_uuid = selectedProvVal;
+        }
         const cfgProfSel = $('nodeBillingConfigProfileSelect');
         const cfgProfUuid = cfgProfSel?.value?.trim() || '';
         const selectedInbounds = Array.from(document.querySelectorAll('#nodeBillingInboundsWrap .node-inbound-chk:checked'))
@@ -1458,10 +1602,15 @@ openEditSslDomainModal(domain) {
 
         const res = await window.api.saveNodeCost(payload);
         if (res && res.ok) {
-          if (window.showToast) window.showToast('✅ اطلاعات سرور و تنظیمات با موفقیت ثبت شد');
-          if (window.hapticFeedback) window.hapticFeedback('success');
+          if (res.panel_sync_warning) {
+            if (window.showToast) window.showToast(`⚠️ ذخیره شد اما سررسید در پنل همگام نشد: ${res.panel_sync_warning}`);
+          } else {
+            if (window.showToast) window.showToast('✅ اطلاعات سرور و تنظیمات با موفقیت ثبت شد');
+          }
+          if (window.hapticFeedback) window.hapticFeedback(res.panel_sync_warning ? 'warning' : 'success');
           this.closeNodeBillingModal();
           if (window.syncAdminOverview) window.syncAdminOverview(true);
+          if (window.panelCtrl?.fetchOverview) window.panelCtrl.fetchOverview(true);
         } else {
           if (window.showToast) window.showToast(`⚠️ ${res?.error || 'خطا در ذخیره تنظیمات سرور'}`);
           if (window.hapticFeedback) window.hapticFeedback('error');

@@ -4,12 +4,13 @@ from __future__ import annotations
 import asyncio
 import json as _json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from aiohttp import web
 
 from bot.db.models import AdminLog
+from bot.db.repositories.node_cost_repo import NodeCostRepository
 from bot.web.admin_common import _check_admin as _default_check_admin
 from bot.web.admin_common import db_session
 from bot.web.admin_infra_api import _invalidate_node_caches
@@ -431,8 +432,45 @@ async def post_admin_infra_bill_create(request: web.Request) -> web.Response:
     if not ok:
         return web.json_response({"ok": False, "error": str(res)}, status=502)
 
+    resp_data: dict[str, Any] = {"ok": True, "message": "سابقه پرداخت در پنل ثبت شد.", "bill": res}
+    node_uuid = str(body.get("node_uuid") or "").strip()
+    try:
+        extend_days = int(body.get("extend_days") or 0)
+    except (TypeError, ValueError):
+        extend_days = 0
+
+    if node_uuid and 1 <= extend_days <= 365:
+        now_date = datetime.now(timezone.utc).date()
+        base_date = now_date
+        raw_cur_due = str(body.get("current_due_date") or "").strip()
+        if raw_cur_due:
+            try:
+                cur_date = datetime.strptime(raw_cur_due[:10], "%Y-%m-%d").date()
+                if cur_date >= now_date:
+                    base_date = cur_date
+            except ValueError:
+                pass
+        new_due_dt = datetime.combine(
+            base_date + timedelta(days=extend_days), datetime.min.time(), tzinfo=timezone.utc
+        )
+        async with db_session(request) as session:
+            await NodeCostRepository(session).update_due_date(node_uuid, new_due_dt)
+            await session.commit()
+        new_due_str = new_due_dt.strftime("%Y-%m-%d")
+        new_due_iso = new_due_dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        resp_data["new_due_date"] = new_due_str
+        if hasattr(remnawave, "sync_infra_billing_node"):
+            try:
+                sync_out = await remnawave.sync_infra_billing_node(
+                    provider_uuid, node_uuid, next_billing_at=new_due_iso
+                )
+                if isinstance(sync_out, tuple) and len(sync_out) >= 2 and not sync_out[0]:
+                    resp_data["panel_sync_warning"] = str(sync_out[1] or "خطا در همگام‌سازی سررسید با پنل")
+            except Exception as exc:
+                resp_data["panel_sync_warning"] = str(exc)
+
     await _audit_and_refresh(request, admin["id"], "create_infra_bill", f"ثبت فاکتور پرداخت {amount} برای {provider_uuid}")
-    return web.json_response({"ok": True, "message": "سابقه پرداخت در پنل ثبت شد.", "bill": res})
+    return web.json_response(resp_data)
 
 
 async def post_admin_infra_bill_delete(request: web.Request) -> web.Response:

@@ -78,6 +78,17 @@ class NodeCostRepository:
         await self.session.flush()
         return item
 
+    async def update_due_date(self, node_uuid: str, due_date: datetime | None) -> NodeCost:
+        """Update only a node's due_date without resetting stored cost or provider fields."""
+        item = await self.get_by_uuid(node_uuid)
+        if item is None:
+            return await self.upsert(node_uuid=node_uuid, due_date=due_date)
+        if not _same_calendar_day(item.due_date, due_date):
+            item.due_date = due_date
+            item.alert_notified = False
+        await self.session.flush()
+        return item
+
     async def list_due_soon(
         self, days_threshold: int = 3, reference_date: datetime | None = None
     ) -> list[NodeCost]:
