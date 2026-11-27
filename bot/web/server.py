@@ -277,9 +277,9 @@ async def cors_and_security_middleware(request: web.Request, handler):
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' https://telegram.org; "
         "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: blob: https://t.me https://*.telegram.org https://*.telesco.pe https://*.telegram-cdn.org https://*.cdn-telegram.org; "
+        "img-src 'self' data: blob: https:; "
         "font-src 'self' data:; "
-        "connect-src 'self' https://api.telegram.org https://*.telegram.org; "
+        "connect-src 'self' https://api.telegram.org https://*.telegram.org https://ipwho.is https://speed.cloudflare.com; "
         "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org;"
     )
     response.headers["X-Content-Type-Options"] = "nosniff" 

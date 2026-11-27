@@ -1772,7 +1772,7 @@ function updateTronLinkButton(inv) {
     try {
       window.location.href = tronUri;
     } catch (_) {
-      window.open(redirectUrl, '_blank');
+      window.openExternalUrl ? window.openExternalUrl(redirectUrl) : window.open(redirectUrl, '_blank', 'noopener,noreferrer');
     }
   };
 }
@@ -2393,7 +2393,7 @@ function setupWalletListeners() {
             }
           });
         } else {
-          window.open(res.invoice_link, '_blank');
+          window.openExternalUrl ? window.openExternalUrl(res.invoice_link) : window.open(res.invoice_link, '_blank', 'noopener,noreferrer');
         }
       } else {
         showToast(`❌ ${res?.error || res?.message || 'خطا در ایجاد فاکتور استارز'}`);
@@ -2449,10 +2449,10 @@ function setupWalletListeners() {
         try {
           window.Telegram.WebApp.openLink(targetLink);
         } catch(err) {
-          window.open(targetLink, '_blank');
+          window.openExternalUrl ? window.openExternalUrl(targetLink) : window.open(targetLink, '_blank', 'noopener,noreferrer');
         }
       } else {
-        window.open(targetLink, '_blank');
+        window.openExternalUrl ? window.openExternalUrl(targetLink) : window.open(targetLink, '_blank', 'noopener,noreferrer');
       }
     }
   });
@@ -2555,10 +2555,10 @@ function setupWalletListeners() {
       try {
         window.Telegram.WebApp.openLink(tonUrl);
       } catch (e) {
-        window.open(tonUrl, '_blank');
+        window.openExternalUrl ? window.openExternalUrl(tonUrl) : window.open(tonUrl, '_blank', 'noopener,noreferrer');
       }
     } else {
-      window.open(tonUrl, '_blank');
+      window.openExternalUrl ? window.openExternalUrl(tonUrl) : window.open(tonUrl, '_blank', 'noopener,noreferrer');
     }
   });
 
@@ -2794,7 +2794,7 @@ function setupWalletListeners() {
     if (window.Telegram?.WebApp?.openLink) {
       window.Telegram.WebApp.openLink(deepLink);
     } else {
-      window.open(deepLink, '_blank');
+      window.openExternalUrl ? window.openExternalUrl(deepLink) : window.open(deepLink, '_blank', 'noopener,noreferrer');
     }
   });
 

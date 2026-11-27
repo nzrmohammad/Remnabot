@@ -289,6 +289,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                             support_link = f"https://t.me/{raw_support[1:]}"
                         else:
                             support_link = f"https://t.me/{raw_support}"
+                    if not panel_users_task.done():
+                        panel_users_task.cancel()
                     return web.json_response({
                         "ok": True,
                         "cached": False,
@@ -330,6 +332,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                     else:
                         support_link = f"https://t.me/{raw_support}"
 
+                if not panel_users_task.done():
+                    panel_users_task.cancel()
                 return web.json_response({
                     "ok": True,
                     "cached": False,

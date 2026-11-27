@@ -253,27 +253,27 @@
         <div class="card p-3 rounded-2xl border border-card-border space-y-2">
           <div class="flex items-start justify-between gap-2">
             <div class="flex items-center gap-1 shrink-0 pt-0.5">
-              <button type="button" onclick="window.openQuickDiagnosticModal('${escapeHtml(h.address || '')}', ${Number(h.port || 443)}, '${escapeHtml(h.remark || 'Host')}')" class="p-1.5 rounded-xl border border-emerald-500/35 t-success hover:bg-emerald-500/10 transition active:scale-95" title="تست پورت / دسترسی">
+              <button type="button" data-action="host-diag" data-host="${escapeHtml(h.address || '')}" data-port="${Number(h.port || 443)}" data-remark="${escapeHtml(h.remark || 'Host')}" class="btn-panel-host-act p-1.5 rounded-xl border border-emerald-500/35 t-success hover:bg-emerald-500/10 transition active:scale-95" title="تست پورت / دسترسی">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg>
               </button>
-              <button type="button" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}', true)" class="p-1.5 rounded-xl border border-indigo-500/35 t-info hover:bg-indigo-500/10 transition active:scale-95" title="کپی / ساخت مشابه">
+              <button type="button" data-action="host-clone" data-uuid="${escapeHtml(uuid)}" class="btn-panel-host-act p-1.5 rounded-xl border border-indigo-500/35 t-info hover:bg-indigo-500/10 transition active:scale-95" title="کپی / ساخت مشابه">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
               </button>
-              <button type="button" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش هاست">
+              <button type="button" data-action="host-edit" data-uuid="${escapeHtml(uuid)}" class="btn-panel-host-act p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش هاست">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
-              <button type="button" onclick="window.panelCtrl.toggleSingleHost('${escapeHtml(uuid)}', ${disabled ? 'true' : 'false'})" class="p-1.5 rounded-xl border ${disabled ? 'border-emerald-500/35 t-success hover:bg-emerald-500/10' : 'border-rose-500/35 t-danger hover:bg-rose-500/10'} transition active:scale-95" title="${disabled ? 'فعال‌سازی هاست' : 'غیرفعال‌سازی هاست'}">
+              <button type="button" data-action="host-toggle" data-uuid="${escapeHtml(uuid)}" data-disabled="${disabled ? '1' : '0'}" class="btn-panel-host-act p-1.5 rounded-xl border ${disabled ? 'border-emerald-500/35 t-success hover:bg-emerald-500/10' : 'border-rose-500/35 t-danger hover:bg-rose-500/10'} transition active:scale-95" title="${disabled ? 'فعال‌سازی هاست' : 'غیرفعال‌سازی هاست'}">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/></svg>
               </button>
             </div>
-            <div class="min-w-0 flex-1 text-left cursor-pointer" dir="ltr" onclick="window.panelCtrl.openHostModal('${escapeHtml(uuid)}')">
+            <div class="btn-panel-host-act min-w-0 flex-1 text-left cursor-pointer" data-action="host-edit" data-uuid="${escapeHtml(uuid)}" dir="ltr">
               <div class="flex items-center justify-start gap-1.5 min-w-0">
                 <b class="text-xs t-main truncate font-en">${escapeHtml(h.remark || 'Host')}</b>
                 ${statusIcon}
               </div>
               <div class="text-[11px] t-accent font-sans num-bidi truncate mt-0.5">${escapeHtml(h.address || '—')}:${Number(h.port || 443)}</div>
             </div>
-            <input type="checkbox" aria-label="انتخاب هاست" class="w-4 h-4 mt-1 rounded accent-cyan-500 cursor-pointer shrink-0" ${checked ? 'checked' : ''} onchange="window.panelCtrl.toggleHostSelection('${escapeHtml(uuid)}', this.checked)" />
+            <input type="checkbox" aria-label="انتخاب هاست" data-host-uuid="${escapeHtml(uuid)}" class="panel-host-chk w-4 h-4 mt-1 rounded accent-cyan-500 cursor-pointer shrink-0" ${checked ? 'checked' : ''} />
           </div>
           <div class="pt-1.5 border-t border-card-border space-y-1.5 text-[10.5px] t-muted">
             <div class="flex flex-wrap items-center gap-1">
@@ -288,6 +288,22 @@
         </div>
       `;
     }).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-panel-host-act', el => {
+        const act = el.dataset.action;
+        if (act === 'host-diag') window.openQuickDiagnosticModal?.(el.dataset.host || '', Number(el.dataset.port || 443), el.dataset.remark || 'Host');
+        else if (act === 'host-clone') openHostModal(el.dataset.uuid || '', true);
+        else if (act === 'host-edit') openHostModal(el.dataset.uuid || '');
+        else if (act === 'host-toggle') toggleSingleHost(el.dataset.uuid || '', el.dataset.disabled === '1');
+      });
+    }
+    if (!listEl.__hostChangeBound) {
+      listEl.__hostChangeBound = true;
+      listEl.addEventListener('change', e => {
+        const chk = e.target?.closest?.('.panel-host-chk');
+        if (chk) toggleHostSelection(chk.dataset.hostUuid || '', chk.checked);
+      });
+    }
   }
 
   function setHostsPage(page = 1) {
@@ -385,13 +401,14 @@
     const inbounds = allProfileInbounds();
     const currentVal = $('panelHostInboundSelect')?.value || '';
     const row = (val, profUuid, title, sub = '', isEnglish = true) => renderModalPickerRow({
-      onClick: `window.panelCtrl.selectHostInbound('${escapeHtml(val)}', '${escapeHtml(profUuid)}')`,
+      data: { inboundVal: val, profileUuid: profUuid },
       title,
       sub,
       selected: String(currentVal) === String(val),
       isEnglish,
       rowDir: 'ltr',
       subDir: 'ltr',
+      extraRowCls: 'btn-pick-host-inbound',
     });
 
     let html = row('', '', 'انتخاب اینباند متصل (اختیاری در ویرایش)', '', false);
@@ -399,6 +416,11 @@
       html += row(inb.uuid, inb.profileUuid, `${inb.profileName} — ${inb.tag}`, `${inb.type || 'inbound'}:${inb.port || ''}`, true);
     }
     listEl.innerHTML = html;
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-pick-host-inbound', el => {
+        selectHostInbound(el.dataset.inboundVal || '', el.dataset.profileUuid || '');
+      });
+    }
   }
 
   function openHostInboundModal() {
@@ -458,15 +480,21 @@
       const u = String(sq.uuid || '');
       const selected = hostSquadTempSet.has(u);
       return renderModalPickerRow({
-        onClick: `window.panelCtrl.toggleHostSquadSelection('${escapeHtml(u)}')`,
+        data: { squadUuid: u },
         title: sq.name || u,
         sub: '',
         selected,
         isEnglish: true,
         rowDir: 'ltr',
         subDir: 'ltr',
+        extraRowCls: 'btn-toggle-host-squad',
       });
     }).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-toggle-host-squad', el => {
+        toggleHostSquadSelection(el.dataset.squadUuid || '');
+      });
+    }
   }
 
   function openHostSquadsModal() {
@@ -632,11 +660,11 @@
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
           <div class="flex items-center gap-1 shrink-0">
-            <button type="button" onclick="window.panelCtrl.openSquadUsersModal('internal', '${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="px-2 py-1 rounded-xl border border-card-border t-main hover:border-cyan-500/40 text-[10.5px] font-bold transition active:scale-95">اعضا</button>
-            <button type="button" onclick="window.panelCtrl.openIntSquadModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسکواد داخلی">
+            <button type="button" data-action="users" data-uuid="${escapeHtml(uuid)}" data-name="${escapeHtml(sq.name || '')}" class="btn-int-squad-act px-2 py-1 rounded-xl border border-card-border t-main hover:border-cyan-500/40 text-[10.5px] font-bold transition active:scale-95">اعضا</button>
+            <button type="button" data-action="edit" data-uuid="${escapeHtml(uuid)}" class="btn-int-squad-act p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسکواد داخلی">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
-            <button type="button" onclick="window.panelCtrl.deleteIntSquad('${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسکواد داخلی">
+            <button type="button" data-action="delete" data-uuid="${escapeHtml(uuid)}" data-name="${escapeHtml(sq.name || '')}" class="btn-int-squad-act p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسکواد داخلی">
               ${TRASH_ICON_SVG}
             </button>
           </div>
@@ -647,6 +675,14 @@
         </div>
       `;
     }).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-int-squad-act', el => {
+        const act = el.dataset.action;
+        if (act === 'users') openSquadUsersModal('internal', el.dataset.uuid || '', el.dataset.name || '');
+        else if (act === 'edit') openIntSquadModal(el.dataset.uuid || '');
+        else if (act === 'delete') deleteIntSquad(el.dataset.uuid || '', el.dataset.name || '');
+      });
+    }
   }
 
   function openIntSquadModal(squadUuid = '') {
@@ -741,11 +777,11 @@
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
           <div class="flex items-center gap-1 shrink-0">
-            <button type="button" onclick="window.panelCtrl.openSquadUsersModal('external', '${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="px-2 py-1 rounded-xl border border-card-border t-main hover:border-cyan-500/40 text-[10.5px] font-bold transition active:scale-95">اعضا</button>
-            <button type="button" onclick="window.panelCtrl.openExtSquadModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسکواد خارجی">
+            <button type="button" data-action="users" data-uuid="${escapeHtml(uuid)}" data-name="${escapeHtml(sq.name || '')}" class="btn-ext-squad-act px-2 py-1 rounded-xl border border-card-border t-main hover:border-cyan-500/40 text-[10.5px] font-bold transition active:scale-95">اعضا</button>
+            <button type="button" data-action="edit" data-uuid="${escapeHtml(uuid)}" class="btn-ext-squad-act p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسکواد خارجی">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
-            <button type="button" onclick="window.panelCtrl.deleteExtSquad('${escapeHtml(uuid)}', '${escapeHtml(sq.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسکواد خارجی">
+            <button type="button" data-action="delete" data-uuid="${escapeHtml(uuid)}" data-name="${escapeHtml(sq.name || '')}" class="btn-ext-squad-act p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسکواد خارجی">
               ${TRASH_ICON_SVG}
             </button>
           </div>
@@ -756,6 +792,14 @@
         </div>
       `;
     }).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-ext-squad-act', el => {
+        const act = el.dataset.action;
+        if (act === 'users') openSquadUsersModal('external', el.dataset.uuid || '', el.dataset.name || '');
+        else if (act === 'edit') openExtSquadModal(el.dataset.uuid || '');
+        else if (act === 'delete') deleteExtSquad(el.dataset.uuid || '', el.dataset.name || '');
+      });
+    }
   }
 
   function openExtSquadModal(squadUuid = '') {
@@ -850,7 +894,7 @@
           : '<span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-500/15 border border-card-border t-subtle shrink-0" title="عضو نیست"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg></span>';
         return `
           <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 text-[11px] cursor-pointer hover:border-cyan-500/40 transition">
-            <input type="checkbox" class="squad-user-chk accent-cyan-500 rounded shrink-0" value="${escapeHtml(key)}" data-id="${escapeHtml(String(u.id || ''))}" ${checked} onchange="window.panelCtrl.toggleSquadUserPick('${escapeHtml(key)}', '${escapeHtml(String(u.id || ''))}', this.checked)" />
+            <input type="checkbox" class="squad-user-chk accent-cyan-500 rounded shrink-0" value="${escapeHtml(key)}" data-id="${escapeHtml(String(u.id || ''))}" ${checked} />
             <div class="min-w-0 flex-1 text-left" dir="ltr">
               <div class="flex items-center justify-start gap-1.5 min-w-0">
                 <span class="font-bold t-main truncate font-en">${escapeHtml(u.username || key)}</span>
@@ -861,6 +905,13 @@
           </label>
         `;
       }).join('');
+      if (!listEl.__squadPickChangeBound) {
+        listEl.__squadPickChangeBound = true;
+        listEl.addEventListener('change', e => {
+          const chk = e.target?.closest?.('.squad-user-chk');
+          if (chk) toggleSquadUserPick(chk.value || '', chk.dataset.id || '', chk.checked);
+        });
+      }
     } catch (_err) {
       listEl.innerHTML = '<div class="p-3 text-center text-[11px] t-danger">خطا در دریافت کاربران</div>';
     }
@@ -962,10 +1013,10 @@
         <div class="card p-3 rounded-2xl border border-card-border space-y-2">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-1 shrink-0">
-              <button type="button" onclick="window.panelCtrl.openConfigProfileModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش پروفایل">
+              <button type="button" data-action="edit" data-uuid="${escapeHtml(uuid)}" class="btn-panel-prof-act p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش پروفایل">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
-              <button type="button" onclick="window.panelCtrl.deleteConfigProfile('${escapeHtml(uuid)}', '${escapeHtml(p.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف پروفایل">
+              <button type="button" data-action="delete" data-uuid="${escapeHtml(uuid)}" data-name="${escapeHtml(p.name || '')}" class="btn-panel-prof-act p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف پروفایل">
                 ${TRASH_ICON_SVG}
               </button>
             </div>
@@ -982,6 +1033,13 @@
         </div>
       `;
     }).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-panel-prof-act', el => {
+        const act = el.dataset.action;
+        if (act === 'edit') openConfigProfileModal(el.dataset.uuid || '');
+        else if (act === 'delete') deleteConfigProfile(el.dataset.uuid || '', el.dataset.name || '');
+      });
+    }
   }
 
   function openConfigProfileModal(profileUuid = '') {
@@ -1065,10 +1123,10 @@
           <div class="flex items-center justify-between gap-2">
             <b class="text-xs t-main truncate font-en" dir="ltr">${escapeHtml(name)}</b>
             <div class="flex items-center gap-1 shrink-0">
-              <button type="button" onclick="window.panelCtrl.openSnippetModal('${escapeHtml(name)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسنیپت">
+              <button type="button" data-action="edit" data-name="${escapeHtml(name)}" class="btn-panel-snip-act p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش اسنیپت">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
-              <button type="button" onclick="window.panelCtrl.deleteSnippet('${escapeHtml(name)}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسنیپت">
+              <button type="button" data-action="delete" data-name="${escapeHtml(name)}" class="btn-panel-snip-act p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف اسنیپت">
                 ${TRASH_ICON_SVG}
               </button>
             </div>
@@ -1077,6 +1135,13 @@
         </div>
       `;
     }).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-panel-snip-act', el => {
+        const act = el.dataset.action;
+        if (act === 'edit') openSnippetModal(el.dataset.name || '');
+        else if (act === 'delete') deleteSnippet(el.dataset.name || '');
+      });
+    }
   }
 
   function openSnippetModal(name = '') {
@@ -1164,13 +1229,13 @@
       return `
         <div class="card p-3 rounded-2xl border border-card-border flex items-center justify-between gap-2">
           <div class="flex items-center gap-1 shrink-0">
-            <button type="button" onclick="window.panelCtrl.openProviderModal('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش ارائه‌دهنده">
+            <button type="button" data-action="edit" data-uuid="${escapeHtml(uuid)}" class="btn-panel-prov-act p-1.5 rounded-xl border border-cyan-500/35 t-accent hover:bg-cyan-500/10 transition active:scale-95" title="ویرایش ارائه‌دهنده">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
-            <button type="button" onclick="window.panelCtrl.deleteProvider('${escapeHtml(uuid)}', '${escapeHtml(p.name || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف ارائه‌دهنده">
+            <button type="button" data-action="delete" data-uuid="${escapeHtml(uuid)}" data-name="${escapeHtml(p.name || '')}" class="btn-panel-prov-act p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95" title="حذف ارائه‌دهنده">
               ${TRASH_ICON_SVG}
             </button>
-            ${loginHref ? `<button type="button" onclick="window.panelCtrl.openExternalUrl('${escapeHtml(loginHref)}')" class="px-2 py-1 rounded-xl border border-emerald-500/35 t-success hover:bg-emerald-500/10 text-[10.5px] font-bold transition active:scale-95" title="ورود به پنل ارائه‌دهنده">ورود</button>` : ''}
+            ${loginHref ? `<button type="button" data-action="open" data-url="${escapeHtml(loginHref)}" class="btn-panel-prov-act px-2 py-1 rounded-xl border border-emerald-500/35 t-success hover:bg-emerald-500/10 text-[10.5px] font-bold transition active:scale-95" title="ورود به پنل ارائه‌دهنده">ورود</button>` : ''}
           </div>
           <div class="min-w-0 text-left flex-1" dir="ltr">
             <div class="flex items-center gap-1.5 min-w-0">
@@ -1182,6 +1247,14 @@
         </div>
       `;
     }).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-panel-prov-act', el => {
+        const act = el.dataset.action;
+        if (act === 'edit') openProviderModal(el.dataset.uuid || '');
+        else if (act === 'delete') deleteProvider(el.dataset.uuid || '', el.dataset.name || '');
+        else if (act === 'open') openExternalUrl(el.dataset.url || '');
+      });
+    }
   }
 
   function openProviderModal(providerUuid = '', onSaved = null) {
@@ -1266,11 +1339,16 @@
           <b class="text-xs t-main block truncate font-en">${escapeHtml(t.tokenName || t.name || 'API Token')}</b>
           <span class="text-[10px] t-muted block truncate">${escapeHtml(t.uuid || '')}</span>
         </div>
-        <button type="button" onclick="window.panelCtrl.deleteToken('${escapeHtml(t.uuid || '')}', '${escapeHtml(t.tokenName || '')}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="ابطال توکن">
+        <button type="button" data-uuid="${escapeHtml(t.uuid || '')}" data-name="${escapeHtml(t.tokenName || '')}" class="btn-panel-del-token p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="ابطال توکن">
           ${TRASH_ICON_SVG}
         </button>
       </div>
     `).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-panel-del-token', el => {
+        deleteToken(el.dataset.uuid || '', el.dataset.name || '');
+      });
+    }
   }
 
   function openTokenModal() {
@@ -1357,11 +1435,16 @@
         const chipCls = (active) => active
           ? 'px-2.5 py-1 rounded-xl font-bold bg-cyan-600 text-white shadow shrink-0 whitespace-nowrap transition'
           : 'px-2.5 py-1 rounded-xl font-medium card-inset border border-card-border t-muted hover:t-main shrink-0 whitespace-nowrap transition';
-        filterEl.innerHTML = `<button type="button" onclick="window.panelCtrl.setBillsProviderFilter('')" class="${chipCls(!billsProviderFilter)}">همه (${bills.length})</button>` +
+        filterEl.innerHTML = `<button type="button" data-prov-uuid="" class="btn-panel-bill-filter ${chipCls(!billsProviderFilter)}">همه (${bills.length})</button>` +
           providers.map(p => {
             const pUid = String(p.uuid || '');
-            return `<button type="button" onclick="window.panelCtrl.setBillsProviderFilter('${escapeHtml(pUid)}')" class="${chipCls(billsProviderFilter === pUid)} font-en" dir="ltr">${escapeHtml(p.name || pUid)}</button>`;
+            return `<button type="button" data-prov-uuid="${escapeHtml(pUid)}" class="btn-panel-bill-filter ${chipCls(billsProviderFilter === pUid)} font-en" dir="ltr">${escapeHtml(p.name || pUid)}</button>`;
           }).join('');
+        if (typeof window.delegateClick === 'function') {
+          window.delegateClick(filterEl, '.btn-panel-bill-filter', el => {
+            setBillsProviderFilter(el.dataset.provUuid || '');
+          });
+        }
       }
     }
 
@@ -1403,7 +1486,7 @@
       const currIcon = window.renderCurrencyIcon ? window.renderCurrencyIcon(billCurr) : billCurr;
       return `
         <div class="card p-2.5 rounded-2xl border border-card-border flex items-center justify-between gap-2">
-          <button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(uuid)}')" class="p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت">
+          <button type="button" data-uuid="${escapeHtml(uuid)}" class="btn-panel-del-bill p-1.5 rounded-xl border border-rose-500/35 t-danger hover:bg-rose-500/10 transition active:scale-95 shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت">
             ${TRASH_ICON_SVG}
           </button>
           <div class="min-w-0 flex-1 text-left" dir="ltr">
@@ -1416,6 +1499,11 @@
         </div>
       `;
     }).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-panel-del-bill', el => {
+        deleteBill(el.dataset.uuid || '');
+      });
+    }
     window.adminActions?.renderNodeBillingBillsHistory?.();
   }
 
@@ -1448,14 +1536,20 @@
       return;
     }
     listEl.innerHTML = providers.map(p => renderModalPickerRow({
-      onClick: `window.panelCtrl.selectBillProvider('${escapeHtml(p.uuid)}')`,
+      data: { billProvUuid: p.uuid },
       title: p.name || p.uuid,
       sub: p.login || '',
       selected: String(curVal) === String(p.uuid),
       isEnglish: true,
       rowDir: 'ltr',
       subDir: 'ltr',
+      extraRowCls: 'btn-pick-bill-prov',
     })).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(listEl, '.btn-pick-bill-prov', el => {
+        selectBillProvider(el.dataset.billProvUuid || '');
+      });
+    }
   }
 
   function openBillProviderModal() {

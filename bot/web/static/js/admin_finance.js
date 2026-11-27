@@ -172,6 +172,10 @@ async openReceiptImageModal(photoUrl, topupId) {
 
         const objectUrl = URL.createObjectURL(blob);
         if (img) {
+          if (img.dataset.objectUrl) {
+            try { URL.revokeObjectURL(img.dataset.objectUrl); } catch (_) {}
+          }
+          img.dataset.objectUrl = objectUrl;
           img.onload = () => {
             if (spinner) spinner.classList.add('hidden');
             img.classList.remove('hidden');
@@ -732,8 +736,8 @@ openCryptoRatesModal() {
 
               <!-- Left column: Username on line 1, Numeric ID on line 2 (بدون ID: و کاملاً چسبیده به چپ بدون فاصله) -->
               <div class="flex flex-col items-start justify-center gap-0.5 font-sans text-[11px] t-muted flex-shrink-0 text-left" dir="ltr">
-                ${t.username ? `<span onclick="window.adminActions.quickCopy('@${escapeHtml(t.username)}', 'نام کاربری')" class="cursor-pointer hover:t-accent t-muted font-sans truncate max-w-[130px] block leading-tight" title="@${escapeHtml(t.username)}">@${escapeHtml(t.username)}</span>` : ''}
-                <span class="cursor-pointer hover:t-accent t-subtle font-sans block leading-tight" onclick="window.adminActions.quickCopy('${t.telegram_id}', 'شناسه عددی')" title="شناسه عددی">${t.telegram_id}</span>
+                ${t.username ? `<span data-copy="@${escapeHtml(t.username)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربری')" class="cursor-pointer hover:t-accent t-muted font-sans truncate max-w-[130px] block leading-tight" title="@${escapeHtml(t.username)}">@${escapeHtml(t.username)}</span>` : ''}
+                <span class="cursor-pointer hover:t-accent t-subtle font-sans block leading-tight" data-copy="${t.telegram_id}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'شناسه عددی')" title="شناسه عددی">${t.telegram_id}</span>
               </div>
             </div>
 
@@ -746,7 +750,7 @@ openCryptoRatesModal() {
 
               <div class="flex items-center gap-1.5">
                 ${hasPhoto ? `
-                  <button type="button" onclick="window.adminActions.openReceiptImageModal('${photoUrl}', ${t.id})" class="w-8 h-8 rounded-xl bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/40 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده تصویر فیش">
+                  <button type="button" data-photo-url="${escapeHtml(photoUrl)}" data-topupid="${t.id}" onclick="window.adminActions.openReceiptImageModal(this.dataset.photoUrl, Number(this.dataset.topupid))" class="w-8 h-8 rounded-xl bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/40 flex items-center justify-center transition active:scale-95 shadow-sm" title="مشاهده تصویر فیش">
                     <img src="/static/img/icons/photo.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="تصویر فیش" />
                   </button>
                 ` : `

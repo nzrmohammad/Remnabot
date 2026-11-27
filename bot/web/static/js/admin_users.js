@@ -215,9 +215,9 @@
                   ${uiIcon('clock', `w-4 h-4 ${timeColor}`)}
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
-                  <span class="text-slate-400 text-[11px] block truncate" title="${timeSub}">${timeSub}</span>
+                  <span class="text-slate-400 text-[11px] block truncate" title="${escapeHtml(timeSub)}">${escapeHtml(timeSub)}</span>
                   <span class="font-bold ${timeColor} truncate block text-[11px]">
-                    ${timeText}
+                    ${escapeHtml(timeText)}
                   </span>
                 </div>
               </div>
@@ -614,7 +614,7 @@ async applyUserModification() {
         if (uNameElem) uNameElem.innerText = '@' + user.username;
         if (tgLinkBtn) {
           tgLinkBtn.classList.remove('hidden');
-          tgLinkBtn.onclick = () => window.open(`https://t.me/${user.username}`, '_blank');
+          tgLinkBtn.onclick = () => (window.openExternalUrl ? window.openExternalUrl(`https://t.me/${encodeURIComponent(user.username)}`) : window.open(`https://t.me/${encodeURIComponent(user.username)}`, '_blank', 'noopener,noreferrer'));
         }
         if (copyUNameBtn) {
           copyUNameBtn.classList.remove('hidden');
@@ -630,7 +630,7 @@ async applyUserModification() {
       const idElem = $('userProfModalId');
       if (idElem) idElem.innerText = String(user.telegram_id);
       const tgIdLinkBtn = $('userProfModalTgIdLinkBtn');
-      if (tgIdLinkBtn) tgIdLinkBtn.onclick = () => window.open(`tg://user?id=${user.telegram_id}`, '_blank');
+      if (tgIdLinkBtn) tgIdLinkBtn.onclick = () => (window.openExternalUrl ? window.openExternalUrl(`tg://user?id=${encodeURIComponent(user.telegram_id)}`) : window.open(`tg://user?id=${encodeURIComponent(user.telegram_id)}`, '_blank', 'noopener,noreferrer'));
       const copyIdBtn = $('userProfModalCopyIdBtn');
       if (copyIdBtn) copyIdBtn.onclick = () => window.adminActions.quickCopy(String(user.telegram_id), 'شناسه عددی');
 
@@ -670,9 +670,9 @@ async applyUserModification() {
       const chatBtn = $('userProfModalQuickChatBtn');
       if (chatBtn) {
         if (user.username) {
-          chatBtn.onclick = () => window.open(`https://t.me/${user.username}`, '_blank');
+          chatBtn.onclick = () => (window.openExternalUrl ? window.openExternalUrl(`https://t.me/${encodeURIComponent(user.username)}`) : window.open(`https://t.me/${encodeURIComponent(user.username)}`, '_blank', 'noopener,noreferrer'));
         } else {
-          chatBtn.onclick = () => window.open(`tg://user?id=${user.telegram_id}`, '_blank');
+          chatBtn.onclick = () => (window.openExternalUrl ? window.openExternalUrl(`tg://user?id=${encodeURIComponent(user.telegram_id)}`) : window.open(`tg://user?id=${encodeURIComponent(user.telegram_id)}`, '_blank', 'noopener,noreferrer'));
         }
       }
 
@@ -940,19 +940,22 @@ async applyUserModification() {
             const rawClientName = String(r.client_name || 'کلاینت').replace(/\s*\((?:ویندوز|اندروید|آیفون|مک|لینوکس|Windows|Android|iOS|macOS|Linux)\)\s*$/i, '').trim() || 'کلاینت';
             const errorBadgeHtml = !r.is_success ? `
               <span class="inline-flex items-center gap-1 text-[11px] font-bold s-danger-soft px-2 py-0.5 rounded-lg border flex-shrink-0">
-                ${r.status_code ? 'خطا ' + r.status_code : 'خطا'}
+                ${r.status_code ? 'خطا ' + escapeHtml(r.status_code) : 'خطا'}
               </span>
             ` : '';
-            const tsText = toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده'));
+            const tsText = escapeHtml(toEnglishDigits(r.date_str && r.date_str !== '—' ? r.date_str : (r.relative_time || 'ثبت‌شده')));
             const relHtml = (r.relative_time && r.relative_time !== '—' && r.relative_time !== r.date_str)
               ? `<span class="text-[10.5px] t-subtle font-sans shrink-0" dir="rtl">${escapeHtml(r.relative_time)}</span>`
               : '';
+            const clientIconHtml = r.client_icon
+              ? escapeHtml(r.client_icon)
+              : '<img src="/static/img/icons/desktop.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />';
             return `
               <div class="srh-card card-inset p-3 rounded-2xl border border-card-border space-y-2 text-xs overflow-hidden">
                 <!-- Line 1: Client name & OS/platform tag -->
                 <div class="flex items-center justify-between gap-2 min-w-0" dir="ltr">
                   <div class="flex items-center gap-2 min-w-0 flex-1">
-                    <span class="text-base flex-shrink-0">${r.client_icon || '<img src="/static/img/icons/desktop.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />'}</span>
+                    <span class="text-base flex-shrink-0">${clientIconHtml}</span>
                     <b class="t-main text-xs truncate min-w-0 flex-1 font-sans font-bold" title="${escapeHtml(r.user_agent || rawClientName)}">${escapeHtml(rawClientName)}</b>
                   </div>
                   <div class="flex items-center gap-1.5 shrink-0" dir="rtl">
@@ -1513,7 +1516,7 @@ async applyUserModification() {
         const sqName = sq.name || sq.uuid || 'Squad';
         const isSelected = String(currentVal) === String(sqId);
         html += `
-          <div onclick="window.adminActions.selectCreateUserSquad('${escapeHtml(sqId)}', '${escapeHtml(sqName)}', '🧩')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+          <div data-squad-uuid="${escapeHtml(sqId)}" data-squad-name="${escapeHtml(sqName)}" dir="ltr" class="p-3 rounded-2xl btn-pick-create-squad border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
             <div class="flex items-center gap-2 min-w-0 flex-1">
               <span class="text-sm shrink-0 leading-none">🧩</span>
               <span class="text-xs font-bold truncate ${isSelected ? 't-info' : 't-main'}">${escapeHtml(sqName)}</span>
@@ -1524,6 +1527,11 @@ async applyUserModification() {
       });
 
       list.innerHTML = html;
+      if (typeof window.delegateClick === 'function') {
+        window.delegateClick(list, '.btn-pick-create-squad', el => {
+          window.adminActions.selectCreateUserSquad(el.dataset.squadUuid || '', el.dataset.squadName || '', '🧩');
+        });
+      }
     },
 
     closeSquadPickerModal() {

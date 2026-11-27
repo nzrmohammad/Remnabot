@@ -606,7 +606,7 @@ def test_latest_requested_ui_features_and_english_digits():
     assert 'dir="ltr"' in buyer_inner
     assert 'dir="ltr"' not in seller_box
     assert "<span>پرداخت شده</span> <span>✅</span>" in app_html
-    assert "<span>${statusText}</span> <span>${icon}</span>" in app_js
+    assert "<span>${escapeHtml(statusText)}</span> <span>${icon}</span>" in app_js
 
     # 6. Karing, PattN, PattNG, Zedsecure added across app configs, logos & guide + alternative app + Portable label
     for app_id in ("karing", "pattn", "pattng", "zedsecure"):

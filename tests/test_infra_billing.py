@@ -602,9 +602,10 @@ async def test_admin_node_panel_endpoints_and_ui_fixes(session_factory):
     assert panel_js.find("${escapeHtml(h.remark || 'Host')}") < panel_js.rfind("${statusIcon}")
     assert "panelCtrl.openHostSquadsModal()" in admin_html
     assert panel_js.find("${inbounds.length} اینباند") < panel_js.find("${escapeHtml(p.name || 'Profile')}")
-    assert panel_js.find("openProviderModal(") < panel_js.find("renderInfraProviders") or (
-        panel_js[panel_js.find("function renderInfraProviders"):].find("openProviderModal")
-        < panel_js[panel_js.find("function renderInfraProviders"):].find("${escapeHtml(p.name || '')}")
+    infra_section = panel_js[panel_js.find("function renderInfraProviders"):]
+    assert (
+        infra_section.find('data-action="edit"') < infra_section.find("${escapeHtml(p.name || '')}")
+        and "openProviderModal(" in infra_section
     )
 
 

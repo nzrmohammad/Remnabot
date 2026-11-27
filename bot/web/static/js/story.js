@@ -60,9 +60,9 @@ function setupStoryCard() {
       const shareMsg = `🚀 اتصال فوق‌سریع و بدون قطعی به اینترنت آزاد\n🎁 با لینک دعوت اختصاصی من ${rewardGb} گیگابایت اینترنت هدیه بگیرید:\n` + refLink;
       const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(shareMsg)}`;
       if (window.Telegram?.WebApp?.openTelegramLink) {
-        try { window.Telegram.WebApp.openTelegramLink(tgShareUrl); } catch (e) { window.open(tgShareUrl, '_blank'); }
+        try { window.Telegram.WebApp.openTelegramLink(tgShareUrl); } catch (e) { window.openExternalUrl ? window.openExternalUrl(tgShareUrl) : window.open(tgShareUrl, '_blank', 'noopener,noreferrer'); }
       } else {
-        window.open(tgShareUrl, '_blank');
+        window.openExternalUrl ? window.openExternalUrl(tgShareUrl) : window.open(tgShareUrl, '_blank', 'noopener,noreferrer');
       }
     }
     showToast('🚀 لینک دعوت کپی شد و صفحه اشتراک‌گذاری در استوری باز گردید.');

@@ -157,12 +157,14 @@ async def run_reconcile(
         )
         for gc in stale_gifts_res.scalars().all():
             ord_res = await session.execute(
-                select(Order).where(
+                select(Order)
+                .where(
                     Order.telegram_id == gc.receiver_telegram_id,
                     Order.service_id == gc.service_id,
                     Order.created_at >= (gc.claimed_at - timedelta(minutes=2)),
                     Order.status == "paid",
                 )
+                .limit(1)
             )
             if not ord_res.scalar_one_or_none():
                 masked_gc_code = f"{gc.code[:4]}***" if gc.code else "***"

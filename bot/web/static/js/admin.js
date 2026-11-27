@@ -305,25 +305,32 @@
     }
 
     if (contentEl) {
+      const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s => String(s ?? ''));
+      const allowedDirs = new Set(['ltr', 'rtl', 'auto']);
       contentEl.innerHTML = items.map(item => {
+        const safeLabel = esc(item.label ?? '');
+        const safeValue = esc(item.value ?? '');
+        const safeDir = allowedDirs.has(item.dir) ? item.dir : 'auto';
+        const safeColor = typeof item.color === 'string' && /^[a-zA-Z0-9_:/-\s]+$/.test(item.color) ? item.color : 't-main';
         if (item.highlight) {
           return `
             <div class="s-success-soft p-3 rounded-2xl border flex items-center justify-between text-xs">
-              <span class="t-muted font-medium">${item.label}:</span>
-              <b class="t-success font-sans font-bold text-sm" dir="ltr">${item.value}</b>
+              <span class="t-muted font-medium">${safeLabel}:</span>
+              <b class="t-success font-sans font-bold text-sm" dir="ltr">${safeValue}</b>
             </div>
           `;
         }
         return `
           <div class="card-inset p-2.5 rounded-xl border border-card-border flex items-center justify-between text-xs">
-            <span class="t-muted text-[11px]">${item.label}:</span>
-            <span class="${item.color || 't-main'} font-semibold text-xs truncate max-w-[200px]" dir="${item.dir || 'auto'}">${item.value}</span>
+            <span class="t-muted text-[11px]">${safeLabel}:</span>
+            <span class="${safeColor} font-semibold text-xs truncate max-w-[200px]" dir="${safeDir}">${safeValue}</span>
           </div>
         `;
       }).join('');
     }
 
-    modal.classList.remove('hidden');
+    if (typeof window.openModal === 'function') window.openModal(modal.id);
+    else modal.classList.remove('hidden');
     if (window.hapticFeedback) window.hapticFeedback('success');
   }
 
@@ -347,14 +354,25 @@
 
   if (tg?.BackButton) {
     tg.BackButton.onClick(() => {
-      const openModals = Array.from(document.querySelectorAll('.modal-backdrop[role="dialog"], [role="dialog"].modal-backdrop'))
+      const domOpenModals = Array.from(document.querySelectorAll('.modal-backdrop[role="dialog"], [role="dialog"].modal-backdrop'))
         .filter(el => !el.classList.contains('hidden'));
-      if (openModals.length > 0) {
-        const topModal = openModals[openModals.length - 1];
+      const topModal = (typeof window.getTopOpenModal === 'function' && window.getTopOpenModal(domOpenModals.map(m => m.id).filter(Boolean)))
+        || domOpenModals[domOpenModals.length - 1];
+      if (topModal) {
         if (topModal.id === 'confirmActionModal') {
           $('confirmModalCancelBtn')?.click();
         } else {
-          topModal.classList.add('hidden');
+          const closeBtn = topModal.querySelector('.modal-close-btn');
+          if (closeBtn && typeof closeBtn.click === 'function') {
+            closeBtn.click();
+          } else if (typeof window.closeModal === 'function' && topModal.id) {
+            window.closeModal(topModal.id);
+          } else {
+            topModal.classList.add('hidden');
+          }
+          if (topModal.id === 'broadcastReportModal' && typeof window.clearBroadcastPoll === 'function') {
+            window.clearBroadcastPoll();
+          }
         }
         syncAdminBackButton();
         return;

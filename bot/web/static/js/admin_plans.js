@@ -582,7 +582,7 @@
         itemsHtml += adminRemnawaveSquads.map(s => {
           const isSelected = currentVal === s.uuid;
           return `
-            <div onclick="window.adminActions.selectPlanSquad('${escapeHtml(s.uuid)}', '${escapeHtml(s.name)}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
+            <div data-squad-uuid="${escapeHtml(s.uuid)}" data-squad-name="${escapeHtml(s.name)}" dir="ltr" class="p-3 rounded-2xl btn-pick-plan-squad border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset hover:border-slate-500/50'}">
               <div class="flex items-center gap-2 min-w-0 flex-1">
                 <span class="text-sm shrink-0 leading-none">🧩</span>
                 <span class="text-xs font-bold truncate ${isSelected ? 't-info' : 't-main'}">${escapeHtml(s.name)}</span>
@@ -596,6 +596,11 @@
       }
 
       list.innerHTML = itemsHtml;
+      if (typeof window.delegateClick === 'function') {
+        window.delegateClick(list, '.btn-pick-plan-squad', el => {
+          window.adminActions.selectPlanSquad(el.dataset.squadUuid || '', el.dataset.squadName || '');
+        });
+      }
       modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('selection');
     },
@@ -1071,7 +1076,7 @@
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden relative">
                     <img data-auth-avatar="${escapeHtml(avatarSrc)}" alt="Avatar" class="w-full h-full object-cover hidden" />
-                    <span class="font-bold">${initial}</span>
+                    <span class="font-bold">${escapeHtml(initial)}</span>
                   </div>
                   <div class="min-w-0 space-y-0.5">
                     <b class="t-main text-xs font-bold block truncate max-w-[130px] sm:max-w-[160px] cursor-pointer hover:t-pink" data-copy="${escapeHtml(displayName)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربر')" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</b>
@@ -1085,7 +1090,7 @@
                 <!-- Left column: Username on line 1, Numeric ID on line 2 (سمت چپ‌ترین نقطه، بالا و بدون ID:) -->
                 <div class="flex flex-col items-start justify-center gap-0.5 font-sans text-[11px] t-muted flex-shrink-0 text-left" dir="ltr">
                   ${hasUsername ? `
-                    <div class="text-[11px] t-pink font-sans cursor-pointer hover:underline truncate max-w-[130px] leading-tight" onclick="window.adminActions.quickCopy('@${escapeHtml(u.username)}', 'نام کاربری')" title="@${escapeHtml(u.username)}">
+                    <div class="text-[11px] t-pink font-sans cursor-pointer hover:underline truncate max-w-[130px] leading-tight" data-copy="@${escapeHtml(u.username)}" onclick="window.adminActions.quickCopy(this.dataset.copy, 'نام کاربری')" title="@${escapeHtml(u.username)}">
                       @${escapeHtml(u.username)}
                     </div>
                   ` : ''}

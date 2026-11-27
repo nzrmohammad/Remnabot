@@ -99,11 +99,22 @@ async def cmd_start(
                     if gift_code:
                         gift_row = (
                             await session.execute(
-                                select(GiftCard.id).where(GiftCard.code == gift_code, GiftCard.is_claimed.is_(False))
+                                select(GiftCard).where(GiftCard.code == gift_code, GiftCard.is_claimed.is_(False))
                             )
                         ).scalar_one_or_none()
-                        if gift_row is not None:
-                            has_invite = True
+                        if gift_row is not None and gift_row.sender_telegram_id != message.from_user.id:
+                            if gift_row.delivery_type != "DIRECT":
+                                has_invite = True
+                            elif gift_row.receiver_telegram_id and gift_row.receiver_telegram_id == message.from_user.id:
+                                has_invite = True
+                            elif (
+                                not gift_row.receiver_telegram_id
+                                and gift_row.receiver_username
+                                and message.from_user.username
+                                and gift_row.receiver_username.lstrip("@").strip().lower()
+                                == message.from_user.username.lstrip("@").strip().lower()
+                            ):
+                                has_invite = True
             if not has_invite:
                 from aiogram.utils.keyboard import InlineKeyboardBuilder
                 kb = InlineKeyboardBuilder()

@@ -406,8 +406,8 @@
                 <span>آدرس سرور:</span>
               </span>
               <div class="flex items-center gap-1.5 min-w-0">
-                <span class="font-sans text-blue-600 dark:text-cyan-300 text-xs font-semibold truncate max-w-[175px] select-all" dir="ltr" title="${n.address || '—'}">${n.address || '—'}</span>
-                ${n.address && n.address !== '—' ? `<button type="button" onclick="event.stopPropagation(); window.openQuickDiagnosticModal('${escapeHtml(n.address)}', null, '${escapeHtml(n.name || 'Node')}')" class="p-1 rounded-lg border border-emerald-500/35 t-success hover:bg-emerald-500/10 transition shrink-0" title="تست پینگ / اتصال سرور"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg></button>` : ''}
+                <span class="font-sans text-blue-600 dark:text-cyan-300 text-xs font-semibold truncate max-w-[175px] select-all" dir="ltr" title="${escapeHtml(n.address || '—')}">${escapeHtml(n.address || '—')}</span>
+                ${n.address && n.address !== '—' ? `<button type="button" data-host="${escapeHtml(n.address)}" data-name="${escapeHtml(n.name || 'Node')}" class="btn-node-quick-diag p-1 rounded-lg border border-emerald-500/35 t-success hover:bg-emerald-500/10 transition shrink-0" title="تست پینگ / اتصال سرور"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg></button>` : ''}
               </div>
             </div>
 
@@ -548,7 +548,7 @@
                     ${uiIcon('desktop', 'w-3.5 h-3.5 t-muted shrink-0')}
                     <span>ارائه‌دهنده:</span>
                   </span>
-                  <b class="t-main font-semibold truncate text-left">${n.provider || 'ثبت‌نشده'}</b>
+                  <b class="t-main font-semibold truncate text-left">${escapeHtml(n.provider || 'ثبت‌نشده')}</b>
                 </div>
                 <div class="flex items-center justify-between gap-2 min-w-0">
                   <span class="t-muted flex items-center gap-1 shrink-0">
@@ -703,6 +703,13 @@
         </div>
       `;
     }).join('');
+
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(container, '.btn-node-quick-diag', (el, e) => {
+        e.stopPropagation();
+        window.openQuickDiagnosticModal?.(el.dataset.host || '', null, el.dataset.name || 'Node');
+      });
+    }
 
     openNodeBoxIds.forEach(boxId => {
       const bodyEl = document.getElementById(boxId);
@@ -902,13 +909,13 @@ openEditSslDomainModal(domain) {
       const providers = Array.isArray(this._cachedInfraProviders) ? this._cachedInfraProviders : [];
       const currentVal = $('nodeBillingProviderUuid')?.value || '';
       const row = (val, title, sub = '', isEnglish = false) => renderModalPickerRow({
-        onClick: `window.adminActions.selectNodeProvider('${escapeHtml(val)}', '${escapeHtml(title)}')`,
+        data: { providerVal: val, providerTitle: title },
         title,
         sub,
         selected: currentVal === val,
         isEnglish,
         rowDir: '',
-        extraRowCls: isEnglish ? 'flex-row-reverse text-left' : 'text-right',
+        extraRowCls: `btn-pick-node-provider ${isEnglish ? 'flex-row-reverse text-left' : 'text-right'}`,
       });
 
       let html = row('', 'بدون ارائه‌دهنده', '', false);
@@ -917,6 +924,11 @@ openEditSslDomainModal(domain) {
       }
       html += row('__custom__', 'سایر / وارد کردن دستی...', '', false);
       listEl.innerHTML = html;
+      if (typeof window.delegateClick === 'function') {
+        window.delegateClick(listEl, '.btn-pick-node-provider', el => {
+          window.adminActions.selectNodeProvider(el.dataset.providerVal || '', el.dataset.providerTitle || '');
+        });
+      }
     },
 
     openAddProviderFromPicker() {
@@ -993,13 +1005,14 @@ openEditSslDomainModal(domain) {
       const profiles = this._nodeConfigProfilesCache || window.panelCtrl?.getConfigProfiles?.() || [];
       const currentVal = $('nodeBillingConfigProfileSelect')?.value || '';
       const row = (val, title, sub = '', isEnglish = true) => renderModalPickerRow({
-        onClick: `window.adminActions.selectNodeConfigProfile('${escapeHtml(val)}')`,
+        data: { profileUuid: val },
         title,
         sub,
         selected: String(currentVal) === String(val),
         isEnglish,
         rowDir: 'ltr',
         subDir: 'rtl',
+        extraRowCls: 'btn-pick-node-profile',
       });
 
       let html = row('', 'بدون تغییر پروفایل', 'حفظ تنظیمات فعلی نود در پنل', false);
@@ -1008,6 +1021,11 @@ openEditSslDomainModal(domain) {
         html += row(prof.uuid, prof.name || prof.uuid, `${cnt} اینباند`, true);
       }
       listEl.innerHTML = html;
+      if (typeof window.delegateClick === 'function') {
+        window.delegateClick(listEl, '.btn-pick-node-profile', el => {
+          window.adminActions.selectNodeConfigProfile(el.dataset.profileUuid || '');
+        });
+      }
     },
 
     async openNodeConfigProfileModal() {
@@ -1129,12 +1147,17 @@ openEditSslDomainModal(domain) {
         const currIcon = typeof window.renderCurrencyIcon === 'function' ? window.renderCurrencyIcon(billCurr) : escapeHtml(billCurr);
         return `
           <div class="card px-2.5 py-1.5 rounded-xl border border-card-border grid grid-cols-[auto_1fr_auto] items-center gap-2 text-[11px]" dir="rtl">
-            ${billUuid ? `<button type="button" onclick="window.panelCtrl.deleteBill('${escapeHtml(billUuid)}')" class="p-1 rounded-lg border border-rose-500/30 t-danger hover:bg-rose-500/10 transition shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : '<span class="w-5"></span>'}
+            ${billUuid ? `<button type="button" data-bill-uuid="${escapeHtml(billUuid)}" class="btn-del-node-bill p-1 rounded-lg border border-rose-500/30 t-danger hover:bg-rose-500/10 transition shrink-0" title="حذف رکورد پرداخت" aria-label="حذف رکورد پرداخت"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : '<span class="w-5"></span>'}
             <span class="t-muted font-sans num-bidi text-center truncate" dir="ltr">${escapeHtml(jalaliStr)}</span>
             <span class="badge badge-success text-[10px] font-sans inline-flex items-center gap-1 shrink-0" dir="ltr"><span class="num-bidi font-bold">${escapeHtml(amountStr)}</span>${currIcon}</span>
           </div>
         `;
       }).join('');
+      if (typeof window.delegateClick === 'function') {
+        window.delegateClick(listEl, '.btn-del-node-bill', el => {
+          window.panelCtrl?.deleteBill?.(el.dataset.billUuid || '');
+        });
+      }
     },
 
     _splitHostPort(raw) {
@@ -1184,7 +1207,7 @@ openEditSslDomainModal(domain) {
         rows = [{ code: iso, nameFa: `کد دلخواه (${iso})`, nameEn: iso }];
       }
       const clearRow = !q ? `
-        <button type="button" onclick="window.adminActions.selectNodeCountry('')" class="w-full p-2.5 rounded-xl border ${!currentVal ? 'border-cyan-500/45 bg-cyan-500/10' : 'border-card-border card-inset'} flex items-center justify-between text-xs hover:border-cyan-500/40 transition">
+        <button type="button" data-country-code="" class="btn-pick-node-country w-full p-2.5 rounded-xl border ${!currentVal ? 'border-cyan-500/45 bg-cyan-500/10' : 'border-card-border card-inset'} flex items-center justify-between text-xs hover:border-cyan-500/40 transition">
           <span class="t-muted font-bold">🌐 بدون مشخص‌سازی (پیش‌فرض XX)</span>
           ${!currentVal ? '<span class="t-accent font-bold">✓</span>' : ''}
         </button>
@@ -1193,7 +1216,7 @@ openEditSslDomainModal(domain) {
         const isSel = currentVal === c.code;
         const flagHtml = typeof renderFlagHtml === 'function' ? renderFlagHtml(c.code, 'w-5 h-3.5 inline-block rounded-xs shadow-xs object-cover shrink-0') : '';
         return `
-          <button type="button" onclick="window.adminActions.selectNodeCountry('${escapeHtml(c.code)}')" class="w-full p-2.5 rounded-xl border ${isSel ? 'border-cyan-500/45 bg-cyan-500/10' : 'border-card-border card-inset'} flex items-center justify-between gap-2 text-xs hover:border-cyan-500/40 transition">
+          <button type="button" data-country-code="${escapeHtml(c.code)}" class="btn-pick-node-country w-full p-2.5 rounded-xl border ${isSel ? 'border-cyan-500/45 bg-cyan-500/10' : 'border-card-border card-inset'} flex items-center justify-between gap-2 text-xs hover:border-cyan-500/40 transition">
             <span class="flex items-center gap-2 min-w-0">
               ${flagHtml}
               <span class="font-bold t-main truncate">${escapeHtml(c.nameFa)}</span>
@@ -1203,6 +1226,11 @@ openEditSslDomainModal(domain) {
           </button>
         `;
       }).join('');
+      if (typeof window.delegateClick === 'function') {
+        window.delegateClick(listEl, '.btn-pick-node-country', el => {
+          window.adminActions.selectNodeCountry(el.dataset.countryCode || '');
+        });
+      }
     },
 
     openNodeCountryModal(target = 'create') {
@@ -2120,8 +2148,9 @@ openEditSslDomainModal(domain) {
     if (input) input.value = type;
     const disp = $('checkHostTypeDisplay');
     if (disp) {
+      const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s => String(s ?? ''));
       const iconSrc = CHECK_HOST_TYPE_ICONS[type] || '/static/img/icons/antenna.svg?v=fl2';
-      disp.innerHTML = `<img src="${iconSrc}" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /><span>${label || type}</span>`;
+      disp.innerHTML = `<img src="${iconSrc}" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /><span>${esc(label || type)}</span>`;
     }
     window.handleCheckHostTypeChange(type);
     window.closeCheckHostTypeModal();
@@ -2144,7 +2173,8 @@ openEditSslDomainModal(domain) {
     if (input) input.value = count;
     const disp = $('checkHostNodesDisplay');
     if (disp) {
-      disp.innerHTML = `<img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /><span>${label || count + ' نود'}</span>`;
+      const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s => String(s ?? ''));
+      disp.innerHTML = `<img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /><span>${esc(label || count + ' نود')}</span>`;
     }
     window.closeCheckHostNodesModal();
     if (window.hapticFeedback) window.hapticFeedback('selection');
@@ -2290,11 +2320,18 @@ openEditSslDomainModal(domain) {
       list.innerHTML = '<div class="col-span-4 p-4 text-center t-muted">هیچ پیشوندی یافت نشد.</div>';
       return;
     }
+    const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s => String(s ?? ''));
     list.innerHTML = items.map(p => `
-      <div class="px-2 py-1 rounded-lg card-inset border border-[var(--card-border)] hover:border-purple-500 t-purple font-bold text-[11px] text-center cursor-pointer select-all active:scale-95 transition" onclick="window.copyToClipboard('${p}', 'پیشوند ${p} کپی شد')">
-        ${p}
+      <div class="btn-copy-asn-prefix px-2 py-1 rounded-lg card-inset border border-[var(--card-border)] hover:border-purple-500 t-purple font-bold text-[11px] text-center cursor-pointer select-all active:scale-95 transition" data-prefix="${esc(p)}">
+        ${esc(p)}
       </div>
     `).join('');
+    if (typeof window.delegateClick === 'function') {
+      window.delegateClick(list, '.btn-copy-asn-prefix', el => {
+        const prefix = el.dataset.prefix || '';
+        if (prefix && window.copyToClipboard) window.copyToClipboard(prefix, `پیشوند ${prefix} کپی شد`);
+      });
+    }
   }
 
   window.filterAsnPrefixes = function(val) {

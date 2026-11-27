@@ -1246,35 +1246,17 @@ def _seconds_until_backup(hour: int = BACKUP_HOUR, minute: int = BACKUP_MINUTE) 
     return max(1.0, (target - now).total_seconds())
 
 
-def create_encrypted_backup_archive(json_path: Path, password: str | None = None) -> Path:
-    """Compress JSON dump into a password-protected zip file.
+def create_encrypted_backup_archive(json_path: Path, password: str | None = None) -> Path | None:
+    """Compress JSON dump into a ZIP archive protected with pyzipper AES-256 when password is set.
 
-    Uses 'zip -P' CLI if available, otherwise pyzipper (AES-256).
     Removes raw unencrypted JSON after compression.
     """
-    import shutil
-    import subprocess
     import zipfile
 
     zip_path = json_path.with_suffix(".zip")
     pwd = (password or "").strip()
 
     if pwd:
-        # 1. Try system zip CLI if present (e.g. Linux container)
-        if shutil.which("zip"):
-            try:
-                cmd = ["zip", "-j", "-P", pwd, str(zip_path), str(json_path)]
-                subprocess.run(cmd, capture_output=True, text=True, check=True)
-                if zip_path.is_file():
-                    try:
-                        json_path.unlink(missing_ok=True)
-                    except Exception as exc:
-                        logger.warning("Could not unlink json_path: %s", exc)
-                    return zip_path
-            except Exception as exc:
-                logger.warning("CLI zip command failed, falling back to pyzipper: %s", exc)
-
-        # 2. Use pyzipper (AES-256)
         try:
             import pyzipper
             with pyzipper.AESZipFile(

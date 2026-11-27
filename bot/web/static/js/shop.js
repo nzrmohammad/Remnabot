@@ -971,7 +971,7 @@ function openCheckoutConfirmModal(plan) {
   openModal('checkoutConfirmModal');
 }
 
-function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionText, onAction, secondaryText = 'انصراف', onSecondary = null }) {
+function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionText, onAction, secondaryText = 'انصراف', onSecondary = null, allowHtml = false }) {
   const modal = document.getElementById('shopGuidanceModal');
   if (!modal) return;
 
@@ -1003,7 +1003,10 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
     bEl.innerHTML = `${uiEmojiIcon(badgeIcon, 'w-3.5 h-3.5 shrink-0')}<span>${escapeHtml(cleanBadge)}</span>`;
     bEl.className = `${badgeClass || 'px-2 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border border-cyan-500/30'} inline-flex items-center gap-1 w-fit leading-none`;
   }
-  if (txtEl) txtEl.innerHTML = message || '';
+  if (txtEl) {
+    if (allowHtml) txtEl.innerHTML = message || '';
+    else txtEl.textContent = String(message || '');
+  }
 
   if (actBtn) {
     actBtn.innerHTML = renderLabelWithIcon(actionText || 'تایید و ادامه', 'check');
@@ -1172,6 +1175,7 @@ function setupBuyButtons() {
           message: 'بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند. لطفاً ابتدا از تب «سرویس‌های کامل» یک اشتراک جدید تهیه فرمایید.',
           actionText: 'مشاهده سرویس‌های کامل',
           onAction: () => switchShopCategory('full'),
+          allowHtml: true,
         });
         return;
       }
@@ -1195,7 +1199,7 @@ function setupBuyButtons() {
             title: 'هشدار مهم تغییر دسته سرور',
             badgeText: '⚠️ تغییر دسته سرور',
             badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
-            message: `شما در حال تغییر سرویس اشتراک فعلی خود به بسته «<b>${formatPlanTitle(planObj.name, { plainText: true, iconPosition: 'left' })}</b>» هستید.<br><br>
+            message: `شما در حال تغییر سرویس اشتراک فعلی خود به بسته «<b>${escapeHtml(formatPlanTitle(planObj.name, { plainText: true, iconPosition: 'left' }))}</b>» هستید.<br><br>
 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
 1. با تغییر سرویس، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند).<br>
 2. <b>لینک اتصال اشتراک شما تغییری نمی‌کند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription (بروزرسانی اشتراک)</b> را در برنامه بزنید.<br>
@@ -1206,33 +1210,37 @@ function setupBuyButtons() {
             onAction: () => openCheckoutConfirmModal(planObj),
             secondaryText: 'انصراف',
             onSecondary: () => closeModal('shopGuidanceModal'),
+            allowHtml: true,
           });
           return;
         }
 
         // Rule 2: User has active subscription with plenty of days (> 3 days), and clicked on a Full Plan
         if (hasActiveSub && daysLeft > 3 && isFullPlan) {
+          const safeDaysLeft = Number(daysLeft) || 0;
           if (pctRemaining <= 25) {
             openShopGuidanceModal({
               title: 'پیشنهاد هوشمند خرید حجم',
               badgeText: '⚡ صرفه‌جویی در هزینه',
               badgeClass: 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
-              message: `شما هنوز <b>${daysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
+              message: `شما هنوز <b>${safeDaysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
               actionText: '⚡ رفتن به بسته‌های افزایش حجم',
               onAction: () => switchShopCategory('traffic'),
               secondaryText: 'انصراف',
               onSecondary: () => closeModal('shopGuidanceModal'),
+              allowHtml: true,
             });
           } else {
             openShopGuidanceModal({
               title: 'اشتراک شما فعال است',
               badgeText: 'سرویس فعال دارید',
               badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/40',
-              message: `شما در حال حاضر دارای اشتراک فعال با <b>${daysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در 3 روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
+              message: `شما در حال حاضر دارای اشتراک فعال با <b>${safeDaysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در 3 روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
               actionText: 'بسته‌های افزایش حجم',
               onAction: () => switchShopCategory('traffic'),
               secondaryText: 'بسته‌های افزایش زمان',
               onSecondary: () => switchShopCategory('time'),
+              allowHtml: true,
             });
           }
           return;
@@ -1240,15 +1248,17 @@ function setupBuyButtons() {
 
         // Rule 3: User has active subscription with low time (<= 3 days), but they clicked on a Traffic Addon
         if (hasActiveSub && daysLeft <= 3 && isExtraTraffic) {
+          const safeDaysLeft = Number(daysLeft) || 0;
           openShopGuidanceModal({
             title: 'هشدار پایان اعتبار زمانی',
             badgeText: 'تمدید سرویس کامل',
             badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
-            message: `تنها <b>${daysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
+            message: `تنها <b>${safeDaysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
             actionText: 'تمدید دوره کامل',
             onAction: () => switchShopCategory('full'),
             secondaryText: 'ادامه خرید بسته حجم',
             onSecondary: () => openCheckoutConfirmModal(planObj),
+            allowHtml: true,
           });
           return;
         }
@@ -1277,6 +1287,7 @@ function setupBuyButtons() {
           onAction: proceedPurchaseFlow,
           secondaryText: '❌ انصراف',
           onSecondary: () => closeModal('shopGuidanceModal'),
+          allowHtml: true,
         });
         return;
       }
@@ -1371,9 +1382,9 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
     openBtn.onclick = () => {
       if (subUrl) {
         if (window.Telegram?.WebApp?.openLink) {
-          try { window.Telegram.WebApp.openLink(subUrl); } catch(e) { window.open(subUrl, '_blank'); }
+          try { window.Telegram.WebApp.openLink(subUrl); } catch(e) { window.openExternalUrl ? window.openExternalUrl(subUrl) : window.open(subUrl, '_blank', 'noopener,noreferrer'); }
         } else {
-          window.open(subUrl, '_blank');
+          window.openExternalUrl ? window.openExternalUrl(subUrl) : window.open(subUrl, '_blank', 'noopener,noreferrer');
         }
       }
     };

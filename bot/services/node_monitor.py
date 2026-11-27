@@ -58,10 +58,12 @@ async def check_nodes_health_once(
 
     for n in nodes:
         node_id = str(n.get("id") or n.get("uuid") or n.get("name") or "unknown")
-        raw_name = n.get("name") or "Node"
+        raw_name = str(n.get("name") or "Node")
+        safe_name = html.escape(raw_name)
         country_code = n.get("countryCode") or n.get("country_code")
         flag = country_flag(country_code) if country_code else "🌐"
         address = str(n.get("address") or "—")
+        safe_address = html.escape(address)
         online_users = int(n.get("usersOnline") or n.get("connectionCount") or 0)
 
         is_connected = n.get("isConnected")
@@ -79,8 +81,8 @@ async def check_nodes_health_once(
                 state["last_alert_ts"] = now_ts
                 msg = (
                     f"🚨 <b>هشدار قطعی سرور (Node Offline)</b>\n\n"
-                    f"سرور: <b>{flag} {raw_name}</b>\n"
-                    f"آدرس: <code>{address}</code>\n"
+                    f"سرور: <b>{flag} {safe_name}</b>\n"
+                    f"آدرس: <code>{safe_address}</code>\n"
                     f"وضعیت: ❌ <b>آفلاین / قطع اتصال</b>\n"
                     f"کاربران متأثر: <b>{online_users} نفر</b>\n"
                     f"زمان بررسی: <code>{shamsi_time}</code>"
@@ -94,8 +96,8 @@ async def check_nodes_health_once(
                 state["last_alert_ts"] = now_ts
                 msg = (
                     f"✅ <b>اتصال سرور برقرار شد (Node Recovered)</b>\n\n"
-                    f"سرور: <b>{flag} {raw_name}</b>\n"
-                    f"آدرس: <code>{address}</code>\n"
+                    f"سرور: <b>{flag} {safe_name}</b>\n"
+                    f"آدرس: <code>{safe_address}</code>\n"
                     f"وضعیت: 🟢 <b>آنلاین</b>\n"
                     f"زمان بازیابی: <code>{shamsi_time}</code>"
                 )
@@ -113,7 +115,7 @@ async def check_nodes_health_once(
                 state["last_alert_ts"] = now_ts
                 msg = (
                     f"⚠️ <b>هشدار فشار سنگین منابع (High Resource Alert)</b>\n\n"
-                    f"سرور: <b>{flag} {raw_name}</b>\n"
+                    f"سرور: <b>{flag} {safe_name}</b>\n"
                     f"مصرف رم (RAM): <b>{ram:.1f}%</b>\n"
                     f"مصرف پردازنده (CPU): <b>{cpu:.1f}%</b>\n"
                     f"کاربران آنلاین: <b>{online_users} نفر</b>\n"
@@ -141,7 +143,7 @@ async def check_nodes_health_once(
                     usage_str = ltr_frag(f"{used_gb:.1f} / {limit_gb:.1f} GB ({used_pct:.1f}%)")
                     msg = (
                         f"📊 <b>هشدار مصرف ترافیک سرور (Node Traffic Alert)</b>\n\n"
-                        f"سرور: <b>{flag} {raw_name}</b>\n"
+                        f"سرور: <b>{flag} {safe_name}</b>\n"
                         f"مصرف فعلی: <b>{usage_str}</b>\n"
                         f"آستانه هشدار تنظیم‌شده: <b>{notify_pct}%</b>\n"
                         f"زمان بررسی: <code>{shamsi_time}</code>\n\n"

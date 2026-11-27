@@ -28,7 +28,7 @@ const localPrizes = [
   { id: 'again', name: 'دوباره (شانس مجدد!)', icon: '🔄', isAgain: true, isZero: false }
 ];
 
-function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = '', couponCode = null, isError = false }) {
+function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = '', couponCode = null, isError = false, allowHtml = false, channelUrl = '' }) {
   const modal = document.getElementById('wheelResultModal');
   const iconEl = document.getElementById('wheelResultModalIcon');
   const iconBox = document.getElementById('wheelResultModalIconBox');
@@ -50,7 +50,33 @@ function showWheelResultModal({ icon = '🎉', title = 'تبریک!', message = 
     }
   }
   if (titleEl) titleEl.innerText = title;
-  if (bodyEl) bodyEl.innerHTML = message;
+  if (bodyEl) {
+    const safeUrl = channelUrl && typeof window.safeHttpUrl === 'function' ? window.safeHttpUrl(channelUrl) : '';
+    if (safeUrl) {
+      bodyEl.textContent = '';
+      const msgNode = document.createTextNode(String(message || ''));
+      const btnWrap = document.createElement('div');
+      btnWrap.className = 'mt-3';
+      const anchor = document.createElement('a');
+      anchor.href = safeUrl;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      anchor.className = 'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow transition active:scale-95';
+      const icSpan = document.createElement('span');
+      icSpan.textContent = '📢';
+      const lblSpan = document.createElement('span');
+      lblSpan.textContent = 'عضویت در کانال رسمی';
+      anchor.appendChild(icSpan);
+      anchor.appendChild(lblSpan);
+      btnWrap.appendChild(anchor);
+      bodyEl.appendChild(msgNode);
+      bodyEl.appendChild(btnWrap);
+    } else if (allowHtml) {
+      bodyEl.innerHTML = message;
+    } else {
+      bodyEl.textContent = String(message || '');
+    }
+  }
 
   if (iconBox) {
     if (isError) {
@@ -111,6 +137,7 @@ function launchCelebrationConfetti() {
     window.launchCelebrationConfetti(modal);
     return;
   }
+  const canvas = document.createElement('canvas');
   canvas.className = 'absolute inset-0 pointer-events-none z-50 w-full h-full';
   modal.appendChild(canvas);
   const ctx = canvas.getContext('2d');
@@ -430,14 +457,15 @@ function setupLuckyWheel() {
           showWheelResultModal({
             icon: '📢',
             title: 'عضویت در کانال الزامی است',
-            message: `${res.error}<div class="mt-3"><a href="${res.channel_url}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow transition active:scale-95"><span>📢</span><span>عضویت در کانال رسمی</span></a></div>`,
+            message: String(res.error || ''),
+            channelUrl: res.channel_url,
             isError: true,
           });
         } else {
           showWheelResultModal({
             icon: '⚠️',
             title: 'خطا در گردونه',
-            message: res.error,
+            message: String(res.error || ''),
             isError: true,
           });
         }
@@ -493,7 +521,10 @@ function setupLuckyWheel() {
       const isAgain = chosenPrize.id === 'again';
       const isBlank = chosenPrize.id === 'blank' || chosenPrize.id === 'blank_1' || chosenPrize.id === 'blank_2' || chosenPrize.type === 'blank';
       const usedTicket = spinResult?.used_ticket;
-      const fNum = (n) => (typeof toEnglishDigits === 'function' ? toEnglishDigits(n) : String(n ?? ''));
+      const fNum = (n) => {
+        const s = typeof toEnglishDigits === 'function' ? toEnglishDigits(n) : String(n ?? '');
+        return typeof escapeHtml === 'function' ? escapeHtml(s) : s;
+      };
 
       let streakNote = '';
       if (currentWheelStreak > 1) {
@@ -505,23 +536,28 @@ function setupLuckyWheel() {
       }
 
       if (isAgain) {
-        wheelCooldownSeconds = 0;
-        wheelTargetEndTime = 0;
-        if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
-        const timerBox = document.getElementById('wheelTimerContainer');
-        if (timerBox) timerBox.classList.add('hidden');
-        if (window.lastUserData?.wheel_status) {
-          window.lastUserData.wheel_status.next_spin_seconds = 0;
-          window.lastUserData.wheel_status.can_spin = true;
-          window.lastUserData.wheel_status.is_cooldown = false;
+        if (!usedTicket || wheelCooldownSeconds <= 0) {
+          wheelCooldownSeconds = 0;
+          wheelTargetEndTime = 0;
+          if (wheelCountdownInterval) clearInterval(wheelCountdownInterval);
+          const timerBox = document.getElementById('wheelTimerContainer');
+          if (timerBox) timerBox.classList.add('hidden');
+          if (window.lastUserData?.wheel_status) {
+            window.lastUserData.wheel_status.next_spin_seconds = 0;
+            window.lastUserData.wheel_status.can_spin = true;
+            window.lastUserData.wheel_status.is_cooldown = false;
+          }
+          updateWheelUIState(true, true, 0, currentWheelStreak, currentWheelMultiplier, currentWheelTickets);
+          spinBtnState(spinWheelBtn, false, 'بچرخون!');
+        } else {
+          updateWheelUIState(currentWheelTickets > 0, true, wheelCooldownSeconds, currentWheelStreak, currentWheelMultiplier, currentWheelTickets);
         }
-        updateWheelUIState(true, true, 0, currentWheelStreak, currentWheelMultiplier, currentWheelTickets);
-        spinBtnState(spinWheelBtn, false, 'بچرخون!');
         if (wheelResultText) wheelResultText.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-4 h-4 shrink-0 text-cyan-400')}<span><b>شانس مجدد!</b> گردونه دوباره برای شما شارژ شد، همین الان بچرخون!</span></span>`;
         showWheelResultModal({
           icon: '🔄',
           title: 'شانس مجدد برنده شدید!',
           message: `گردونه مجدداً برای شما شارژ شد! همین حالا دکمه وسط را لمس کنید و یک‌بار دیگر شانس خود را امتحان فرمایید.${ticketNote}`,
+          allowHtml: true,
         });
       } else {
         const nextSec = usedTicket ? wheelCooldownSeconds : 86400;
@@ -534,6 +570,7 @@ function setupLuckyWheel() {
             title: 'متاسفانه این بار پوچ شد!',
             message: `در این چرخش جایزه‌ای به شما تعلق نگرفت.<br/><span class="text-slate-400 block mt-1">${usedTicket ? 'تیکت مصرف شد، اما مهلت روزانه شما محفوظ است.' : 'شانس بعدی شما دقیقاً <b>24 ساعت دیگر</b> فعال خواهد شد. فردا حتماً دوباره سر بزنید!'}</span>${streakNote}${ticketNote}`,
             isError: true,
+            allowHtml: true,
           });
         } else if (chosenPrize.code || chosenPrize.type === 'coupon') {
           const couponCode = chosenPrize.code || 'OFF10';
@@ -558,17 +595,19 @@ function setupLuckyWheel() {
             title: 'تبریک! برنده کد تخفیف شدید',
             message: `کد تخفیف اختصاصی <span dir="ltr" class="font-sans font-bold">10%</span> برای شما فعال شد. می‌توانید در خرید بعدی از تب فروشگاه آن را اعمال کنید.${streakNote}${ticketNote}`,
             couponCode: couponCode,
+            allowHtml: true,
           });
         } else {
           const rawPrize = chosenPrize.id === '500mb' ? '500 MB' : (chosenPrize.value || 1);
           const parsed = typeof fmtTrafficValue === 'function' ? fmtTrafficValue(rawPrize) : { num: 1, unit: 'GB' };
-          const valNum = typeof toEnglishDigits === 'function' ? toEnglishDigits(parsed.num) : parsed.num;
-          const unit = parsed.unit;
+          const valNum = fNum(parsed.num);
+          const unit = typeof escapeHtml === 'function' ? escapeHtml(parsed.unit) : parsed.unit;
           if (wheelResultText) wheelResultText.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('sparkles', 'w-4 h-4 shrink-0')}<span><b>تبریک فوق‌العاده!</b> شما برنده <b class="t-success font-bold" dir="ltr"><span class="font-sans">${valNum}</span> ${unit}</b> ترافیک رایگان شدید!</span></span>`;
           showWheelResultModal({
             icon: '🎁',
             title: 'تبریک فوق‌العاده!',
             message: `شما برنده ترافیک رایگان شدید:<br/><div class="my-2 inline-flex items-baseline gap-1" dir="ltr"><b class="text-2xl font-black font-sans t-success">${valNum}</b><span class="text-sm font-bold text-slate-600 dark:text-slate-300 font-sans">${unit}</span></div><br/><span class="text-slate-400 text-[11px]">این هدیه به صورت خودکار به اشتراک فعال شما اضافه شد.</span>${streakNote}${ticketNote}`,
+            allowHtml: true,
           });
         }
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);

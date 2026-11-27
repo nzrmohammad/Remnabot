@@ -196,8 +196,8 @@ async def execute_lucky_wheel_spin(
         rem_secs = 0
 
     using_ticket = False
+    cur_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
     if use_ticket:
-        cur_tickets = int(getattr(db_user, "spin_tickets", 0) or 0) if db_user else 0
         if cur_tickets > 0:
             using_ticket = True
             if db_user:
@@ -218,6 +218,8 @@ async def execute_lucky_wheel_spin(
                 "next_spin_seconds": rem_secs,
                 "code": "cooldown",
             }
+
+    was_using_ticket = using_ticket
 
     # 5. Calculate streak
     now_local = now_utc.astimezone(ZoneInfo(tz_name))
@@ -362,9 +364,9 @@ async def execute_lucky_wheel_spin(
 
     # Record spin in DB report & update spin cooldown
     if chosen["type"] != "again" and not prize_delivery_failed:
-        if cache and hasattr(cache, "delete"):
-            await cache.delete(f"wheel:has_free_retry:{telegram_id}")
-        if not using_ticket:
+        if not was_using_ticket:
+            if cache and hasattr(cache, "delete"):
+                await cache.delete(f"wheel:has_free_retry:{telegram_id}")
             if db_user:
                 db_user.wheel_last_spin_at = now_utc
             if cache and hasattr(cache, "set"):
@@ -376,12 +378,13 @@ async def execute_lucky_wheel_spin(
             except Exception as exc:
                 logger.warning("Failed to record wheel spin in DB for %s: %s", telegram_id, exc)
     else:
-        # Free retry prize or delivery failure! Keep cooldown off and restore ticket if used
-        if cache and hasattr(cache, "set"):
-            await cache.set(f"wheel:has_free_retry:{telegram_id}", 1, ttl_seconds=86400)
-        if using_ticket and db_user:
+        # Free retry prize or delivery failure:
+        # Ticket spins only restore the spent ticket (never clear daily cooldown!).
+        if was_using_ticket and db_user:
             db_user.spin_tickets = cur_tickets
             using_ticket = False
+        elif not was_using_ticket and cache and hasattr(cache, "set"):
+            await cache.set(f"wheel:has_free_retry:{telegram_id}", 1, ttl_seconds=86400)
 
     if session is not None:
         await session.commit()

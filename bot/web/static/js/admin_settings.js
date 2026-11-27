@@ -744,7 +744,7 @@
         const name = sq.name || uuid;
         const isSelected = currentVal === uuid;
         html += `
-          <div onclick="window.adminActions.selectDefaultSquad('${escapeHtml(uuid)}', '${escapeHtml(name)}')" dir="ltr" class="p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
+          <div data-squad-uuid="${escapeHtml(uuid)}" data-squad-name="${escapeHtml(name)}" dir="ltr" class="btn-pick-default-squad p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-blue-600/15 border-blue-500 shadow-sm' : 'card-inset border-card-border hover:border-slate-500/50'}">
             <div class="flex items-center gap-2.5 min-w-0">
               <img src="/static/img/icons/nodes.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 text-cyan-400" width="16" height="16" alt="" />
               <span class="text-xs font-sans font-bold ${isSelected ? 't-info' : 't-main'} truncate block">${escapeHtml(name)}</span>
@@ -755,6 +755,11 @@
       });
 
       list.innerHTML = html;
+      if (typeof window.delegateClick === 'function') {
+        window.delegateClick(list, '.btn-pick-default-squad', el => {
+          window.adminActions.selectDefaultSquad(el.dataset.squadUuid || '', el.dataset.squadName || '');
+        });
+      }
     },
     closeDefaultSquadPickerModal() {
       $('defaultSquadPickerModal')?.classList.add('hidden');
@@ -1407,7 +1412,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const appName = CLIENT_APP_META[appId]?.name || appId;
         const isSelected = currentVal === appId;
         html += `
-          <button type="button" onclick="window.adminActions.selectRecommendedApp('${os}', '${appId}', '${escapeHtml(appName)}', '${pickerRole}')" dir="ltr" class="w-full p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-card-border t-muted hover:t-main'} active:scale-95">
+          <button type="button" data-os="${escapeHtml(os)}" data-app-id="${escapeHtml(appId)}" data-app-name="${escapeHtml(appName)}" data-role="${escapeHtml(pickerRole)}" dir="ltr" class="btn-pick-rec-app w-full p-3 rounded-2xl border transition flex items-center justify-between ${isSelected ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold' : 'card-inset border-card-border t-muted hover:t-main'} active:scale-95">
             <div class="flex items-center gap-2.5">
               <img src="/static/img/apps/${appId}.webp?v=fl4" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl4';}else{this.style.display='none';}" class="w-6 h-6 rounded-lg object-contain shrink-0" alt="${escapeHtml(appName)}" loading="lazy" />
               <span class="font-sans font-bold text-xs">${escapeHtml(appName)}</span>
@@ -1418,6 +1423,11 @@ openUserChat(telegram_id, name, tag, topup_id) {
       });
 
       list.innerHTML = html;
+      if (typeof window.delegateClick === 'function') {
+        window.delegateClick(list, '.btn-pick-rec-app', el => {
+          window.adminActions.selectRecommendedApp(el.dataset.os || '', el.dataset.appId || '', el.dataset.appName || '', el.dataset.role || 'recommended');
+        });
+      }
       list.scrollTop = 0;
       modal.classList.remove('hidden');
       if (window.hapticFeedback) window.hapticFeedback('selection');

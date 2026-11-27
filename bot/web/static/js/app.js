@@ -655,7 +655,7 @@ const copyAndLaunch = (makeUri, appName) => {
   } catch (e) {
     console.debug('Deep link trigger fallback', e);
     try {
-      window.open(redirectUrl, '_blank');
+      window.openExternalUrl ? window.openExternalUrl(redirectUrl) : window.open(redirectUrl, '_blank', 'noopener,noreferrer');
     } catch (e2) {}
   }
 
@@ -1464,10 +1464,10 @@ function renderTutorialApps(osKey) {
           if (window.Telegram?.WebApp?.openLink) {
             window.Telegram.WebApp.openLink(url);
           } else {
-            window.open(url, '_blank');
+            window.openExternalUrl ? window.openExternalUrl(url) : window.open(url, '_blank', 'noopener,noreferrer');
           }
         } catch (e) {
-          window.open(url, '_blank');
+          window.openExternalUrl ? window.openExternalUrl(url) : window.open(url, '_blank', 'noopener,noreferrer');
         }
         hapticFeedback('impact');
       });
@@ -1729,10 +1729,10 @@ function renderTutorialApps(osKey) {
           if (window.Telegram?.WebApp?.openLink) {
             window.Telegram.WebApp.openLink(url);
           } else {
-            window.open(url, '_blank');
+            window.openExternalUrl ? window.openExternalUrl(url) : window.open(url, '_blank', 'noopener,noreferrer');
           }
         } catch (e) {
-          window.open(url, '_blank');
+          window.openExternalUrl ? window.openExternalUrl(url) : window.open(url, '_blank', 'noopener,noreferrer');
         }
         hapticFeedback('impact');
       });
@@ -1930,10 +1930,10 @@ function renderTutorialApps(osKey) {
         if (window.Telegram?.WebApp?.openLink) {
           window.Telegram.WebApp.openLink(url);
         } else {
-          window.open(url, '_blank');
+          window.openExternalUrl ? window.openExternalUrl(url) : window.open(url, '_blank', 'noopener,noreferrer');
         }
       } catch (e) {
-        window.open(url, '_blank');
+        window.openExternalUrl ? window.openExternalUrl(url) : window.open(url, '_blank', 'noopener,noreferrer');
       }
       hapticFeedback('impact');
     });
@@ -1947,10 +1947,10 @@ function renderTutorialApps(osKey) {
         if (window.Telegram?.WebApp?.openLink) {
           window.Telegram.WebApp.openLink(url);
         } else {
-          window.open(url, '_blank');
+          window.openExternalUrl ? window.openExternalUrl(url) : window.open(url, '_blank', 'noopener,noreferrer');
         }
       } catch (e) {
-        window.open(url, '_blank');
+        window.openExternalUrl ? window.openExternalUrl(url) : window.open(url, '_blank', 'noopener,noreferrer');
       }
       hapticFeedback('impact');
     });
@@ -2105,10 +2105,10 @@ function verifyPhoneNative() {
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(verifyLink);
     } else {
-      window.open(verifyLink, '_blank');
+      window.openExternalUrl ? window.openExternalUrl(verifyLink) : window.open(verifyLink, '_blank', 'noopener,noreferrer');
     }
   } catch (e) {
-    window.open(verifyLink, '_blank');
+    window.openExternalUrl ? window.openExternalUrl(verifyLink) : window.open(verifyLink, '_blank', 'noopener,noreferrer');
   }
 }
 window.verifyPhoneNative = verifyPhoneNative;
@@ -3279,7 +3279,7 @@ const tg = window.Telegram?.WebApp;
 // Single source of truth for modal ids used by the Telegram BackButton sync
 const APP_MODAL_IDS = [
   'revokeModal', 'switchAccountModal', 'activeSessionsModal',
-  'topupModal', 'luckyWheelModal', 'storyCardModal',
+  'topupModal', 'walletCurrencyModal', 'luckyWheelModal', 'storyCardModal',
   'supportChatModal', 'purchaseSuccessModal',
   'qrModal', 'checkoutConfirmModal', 'configsModal', 'tutorialModal',
   'shopGuidanceModal', 'speedTestModal', 'wheelResultModal',
@@ -3355,14 +3355,22 @@ function setupTelegramSDK() {
 
     if (tg.BackButton) {
       tg.BackButton.onClick(() => {
-        const modalIds = APP_MODAL_IDS;
-        for (const id of modalIds) {
-          const el = $(id);
-          if (el && !el.classList.contains('hidden')) {
-            el.classList.add('hidden');
-            syncTelegramBackButton();
-            return;
+        const topEl = typeof window.getTopOpenModal === 'function' ? window.getTopOpenModal(APP_MODAL_IDS) : null;
+        if (topEl) {
+          if (topEl.id === 'revokeModal') {
+            $('cancelRevokeBtn')?.click();
+          } else {
+            const closeBtn = topEl.querySelector('.modal-close-btn');
+            if (closeBtn && typeof closeBtn.click === 'function') {
+              closeBtn.click();
+            } else if (typeof window.closeModal === 'function' && topEl.id) {
+              window.closeModal(topEl.id);
+            } else {
+              topEl.classList.add('hidden');
+            }
           }
+          syncTelegramBackButton();
+          return;
         }
         const qr = $('qrContainer');
         if (qr && !qr.classList.contains('hidden')) {
@@ -3501,10 +3509,10 @@ function setupProfileHandlers() {
       if (window.Telegram?.WebApp?.openTelegramLink) {
         window.Telegram.WebApp.openTelegramLink(shareUrl);
       } else {
-        window.open(shareUrl, '_blank');
+        window.openExternalUrl ? window.openExternalUrl(shareUrl) : window.open(shareUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (e) {
-      window.open(shareUrl, '_blank');
+      window.openExternalUrl ? window.openExternalUrl(shareUrl) : window.open(shareUrl, '_blank', 'noopener,noreferrer');
     }
     hapticFeedback('impact');
   });
@@ -5850,7 +5858,7 @@ function openSupportContact() {
     } else if (window.Telegram?.WebApp?.openLink) {
       window.Telegram.WebApp.openLink(link);
     } else {
-      window.open(link, '_blank');
+      window.openExternalUrl ? window.openExternalUrl(link) : window.open(link, '_blank', 'noopener,noreferrer');
     }
   } else if (typeof window.openSupportModal === 'function') {
     window.openSupportModal();
@@ -6389,7 +6397,7 @@ function renderInvoiceModalFields(inv, orderId) {
     }
     let icon = iconSvg;
     statusEl.className = 'inline-block';
-    statusEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${badgeClass} text-[11px] font-bold shadow-xs select-none"><span>${statusText}</span> <span>${icon}</span></span>`;
+    statusEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${badgeClass} text-[11px] font-bold shadow-xs select-none"><span>${escapeHtml(statusText)}</span> <span>${icon}</span></span>`;
   }
 
   const dedStatusEl = $('invWalletDeductionStatus');
@@ -6812,7 +6820,6 @@ function printCurrentInvoice() {
 window.openInvoiceModal = openInvoiceModal;
 window.closeInvoiceModal = closeInvoiceModal;
 window.sendCurrentInvoiceTelegram = sendCurrentInvoiceTelegram;
-window.printCurrentInvoice = printCurrentInvoice;
 window.printCurrentInvoice = printCurrentInvoice;
 
 // VIP Loyalty Modal Handler

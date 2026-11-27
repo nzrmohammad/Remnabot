@@ -792,19 +792,50 @@ function formatCountdown(sec) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// Modal open/close helpers with background scroll lock
+// Ordered modal stack + open/close helpers with background scroll lock
+function _getModalStack() {
+  if (typeof window === 'undefined') return [];
+  if (!Array.isArray(window.__remnaModalStack)) window.__remnaModalStack = [];
+  return window.__remnaModalStack;
+}
+
+function getTopOpenModal(candidateIds = null) {
+  const stack = _getModalStack();
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const id = stack[i];
+    if (candidateIds && !candidateIds.includes(id)) continue;
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains('hidden')) return el;
+  }
+  if (Array.isArray(candidateIds)) {
+    for (let i = candidateIds.length - 1; i >= 0; i--) {
+      const el = document.getElementById(candidateIds[i]);
+      if (el && !el.classList.contains('hidden')) return el;
+    }
+  }
+  const open = Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]:not(.hidden), [id$="Modal"]:not(.hidden)'));
+  return open.length ? open[open.length - 1] : null;
+}
+
 function openModal(id) {
   const el = document.getElementById(id);
   if (el) {
+    const stack = _getModalStack();
+    const idx = stack.indexOf(id);
+    if (idx !== -1) stack.splice(idx, 1);
+    stack.push(id);
     el.classList.remove('hidden');
     document.body.classList.add('modal-open');
   }
 }
 
 function closeModal(id) {
+  const stack = _getModalStack();
+  const idx = stack.indexOf(id);
+  if (idx !== -1) stack.splice(idx, 1);
   const el = document.getElementById(id);
   if (el) el.classList.add('hidden');
-  const anyOpen = document.querySelector('[id$="Modal"]:not(.hidden)');
+  const anyOpen = document.querySelector('[role="dialog"][aria-modal="true"]:not(.hidden), [id$="Modal"]:not(.hidden)');
   if (!anyOpen) {
     document.body.classList.remove('modal-open');
   }
@@ -1592,9 +1623,18 @@ if (typeof window !== 'undefined') {
             return;
           }
         }
+        if (topModal.id === 'revokeModal') {
+          const cancelRevoke = document.getElementById('cancelRevokeBtn');
+          if (cancelRevoke && typeof cancelRevoke.click === 'function') {
+            cancelRevoke.click();
+            return;
+          }
+        }
         const closeBtn = topModal.querySelector('.modal-close-btn');
         if (closeBtn && typeof closeBtn.click === 'function') {
           closeBtn.click();
+        } else if (topModal.id) {
+          closeModal(topModal.id);
         } else {
           topModal.click();
         }
@@ -1631,8 +1671,28 @@ function updateTopPadding(topBarId) {
   }
   topBar.style.paddingTop = padTop + 'px';
 }
+function delegateClick(containerOrId, selector, handler) {
+  const container = typeof containerOrId === 'string' ? document.getElementById(containerOrId) : containerOrId;
+  if (!container || typeof handler !== 'function') return;
+  if (!container.__remnaDelegatedSelectors) container.__remnaDelegatedSelectors = new Map();
+  container.__remnaDelegatedSelectors.set(selector, handler);
+  if (!container.__remnaDelegatedBound) {
+    container.__remnaDelegatedBound = true;
+    container.addEventListener('click', (e) => {
+      for (const [sel, fn] of container.__remnaDelegatedSelectors.entries()) {
+        const hit = e.target?.closest?.(sel);
+        if (hit && container.contains(hit)) {
+          fn(hit, e);
+          return;
+        }
+      }
+    });
+  }
+}
+
 function renderModalPickerRow({
-  onClick,
+  onClick = '',
+  data = null,
   title,
   sub = '',
   selected = false,
@@ -1648,8 +1708,15 @@ function renderModalPickerRow({
   const dirAttr = rowDir ? ` dir="${esc(rowDir)}"` : '';
   const alignCls = isEnglish ? 'text-left font-en' : 'text-right font-sans';
   const txtDir = isEnglish ? 'ltr' : 'rtl';
+  let dataAttrs = '';
+  if (data && typeof data === 'object') {
+    dataAttrs = Object.entries(data)
+      .map(([k, v]) => ` data-${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}="${esc(v ?? '')}"`)
+      .join('');
+  }
+  const onclickAttr = onClick ? ` onclick="${onClick}"` : '';
   return `
-    <button type="button"${dirAttr} class="${baseCls} ${extraRowCls}" onclick="${onClick}">
+    <button type="button"${dirAttr}${dataAttrs} class="${baseCls} ${extraRowCls}"${onclickAttr}>
       <div class="min-w-0 flex-1 ${alignCls}" dir="${txtDir}">
         <span class="font-bold t-main block truncate">${esc(title)}</span>
         ${sub ? `<span class="text-[10px] t-muted block truncate" dir="${esc(subDir)}">${esc(sub)}</span>` : ''}
@@ -1665,6 +1732,16 @@ function safeHttpUrl(rawUrl) {
   const s = String(rawUrl || '').trim();
   if (!/^https?:\/\//i.test(s)) return '';
   return s;
+}
+
+function openExternalUrl(rawUrl) {
+  const s = String(rawUrl || '').trim();
+  if (!s) return null;
+  const lower = s.toLowerCase();
+  if (!(lower.startsWith('https://') || lower.startsWith('http://') || lower.startsWith('tg://') || lower.startsWith('ton://') || lower.startsWith('/'))) {
+    return null;
+  }
+  return window.open(s, '_blank', 'noopener,noreferrer');
 }
 
 function renderCurrencyIcon(curr = 'USD') {
@@ -1843,8 +1920,11 @@ if (typeof window !== 'undefined') {
   window.COUNTRY_CATALOG = COUNTRY_CATALOG;
   window.getCountryInfo = getCountryInfo;
   window.updateTopPadding = updateTopPadding;
+  window.getTopOpenModal = getTopOpenModal;
+  window.delegateClick = delegateClick;
   window.renderModalPickerRow = renderModalPickerRow;
   window.safeHttpUrl = safeHttpUrl;
+  window.openExternalUrl = openExternalUrl;
   window.renderCurrencyIcon = renderCurrencyIcon;
   window.openQuickDiagnosticModal = openQuickDiagnosticModal;
   window.closeQuickDiagnosticModal = closeQuickDiagnosticModal;

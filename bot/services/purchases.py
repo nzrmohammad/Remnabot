@@ -563,11 +563,7 @@ async def _execute_purchase_impl(
 
         if is_extra_traffic:
             if current_expire is None or current_expire <= now:
-                if claimed_usage and coupon_obj:
-                    try:
-                        await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
-                    except Exception:
-                        pass
+                await _cleanup_failure()
                 await order_repo.mark_failed(pending)
                 await session.commit()
                 return PurchaseResult(ok=False, kind="needs_active_sub")
@@ -632,11 +628,12 @@ async def _execute_purchase_impl(
                     await remnawave.set_user_squads(int(account["id"]), orig_squad_uuids)
                 except Exception as sq_revert_err:
                     logger.warning("Failed to revert user squad after failed update: %s", sq_revert_err)
-            if claimed_usage and coupon_obj:
+            if hwid_changed and orig_hwid_limit is not None:
                 try:
-                    await coupon_repo.release_usage(coupon_obj.id, telegram_id, claimed_usage.id)
-                except Exception as c_err:
-                    logger.warning("Failed to release coupon usage: %s", c_err)
+                    await remnawave.update_user_fields(int(account["id"]), hwidDeviceLimit=orig_hwid_limit)
+                except Exception as hw_revert_err:
+                    logger.warning("Failed to revert hwid limit after failed update: %s", hw_revert_err)
+            await _cleanup_failure()
             await order_repo.mark_failed(pending)
             await session.commit()
             await _report_purchase_err("renew_failed", f"Panel update_user_subscription failed for acc={account.get('id')}")
