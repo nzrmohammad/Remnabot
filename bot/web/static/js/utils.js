@@ -72,6 +72,12 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
 
   // Strip any orphan broken surrogates to prevent rendering missing glyph/tofu boxes
   text = text.replace(/[\uD800-\uDFFF]/g, '').trim();
+  if (typeof window !== 'undefined' && typeof window.translateUiPhrase === 'function') {
+    text = window.translateUiPhrase(text);
+  }
+  if (toast) {
+    toast.dir = (typeof window !== 'undefined' && window.getAppLanguage?.() === 'en') ? 'ltr' : 'rtl';
+  }
 
   const iconNameMap = {
     success: 'check',
@@ -1615,9 +1621,12 @@ function getChartThemeTokens(isLight = false) {
       };
 }
 
-function fmtMoney(amount, currency = 'تومان') {
-  if (amount == null || isNaN(amount)) return `0 ${currency}`;
-  return `${formatPrice(amount)} ${currency}`;
+function fmtMoney(amount, currency) {
+  const unit = currency !== undefined
+    ? currency
+    : ((typeof window !== 'undefined' && typeof window.getAppLanguage === 'function' && window.getAppLanguage() === 'en') ? 'Toman' : 'تومان');
+  if (amount == null || isNaN(amount)) return `0 ${unit}`;
+  return `${formatPrice(amount)} ${unit}`;
 }
 
 function fmtCompact(val) {

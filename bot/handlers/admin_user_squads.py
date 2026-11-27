@@ -25,12 +25,12 @@ async def panel_user_squads_view(
     remnawave: RemnawaveClient,
 ):
     if not _is_admin(call.from_user.id):
-        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "not_authorized"), show_alert=True)
         return
 
     parts = safe_split_cb(call.data, 6)
     if not parts:
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "expired_or_invalid_action"), show_alert=True)
         return
     p_id = int(parts[3])
     cat = parts[4]
@@ -41,7 +41,7 @@ async def panel_user_squads_view(
 
     puser = await remnawave.get_panel_user_by_id(p_id)
     if not puser:
-        await call.answer(t("fa", "acc_error"), show_alert=True)
+        await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
     active_uuids = set()
@@ -77,12 +77,12 @@ async def panel_user_squad_toggle(
     session: AsyncSession, remnawave: RemnawaveClient,
 ):
     if not _is_admin(call.from_user.id):
-        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "not_authorized"), show_alert=True)
         return
 
     parts = safe_split_cb(call.data, 7)
     if not parts:
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "expired_or_invalid_action"), show_alert=True)
         return
     p_id = int(parts[3])
     target_uuid = parts[4]
@@ -94,7 +94,7 @@ async def panel_user_squad_toggle(
 
     puser = await remnawave.get_panel_user_by_id(p_id)
     if not puser:
-        await call.answer(t("fa", "acc_error"), show_alert=True)
+        await call.answer(t(lang, "acc_error"), show_alert=True)
         return
 
     active_uuids = set()

@@ -25,6 +25,12 @@
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.add('theme-light');
       }
+      var savedLang = localStorage.getItem('remna_user_lang') || window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || 'fa';
+      var normLang = String(savedLang).trim().toLowerCase().split(/[-_]/)[0];
+      if (normLang === 'en') {
+        document.documentElement.lang = 'en';
+        document.documentElement.dir = 'ltr';
+      }
     } catch(e) {}
   </script>
   <link rel="stylesheet" href="/static/css/app.css">
@@ -1793,12 +1799,12 @@
             <!-- Language Selector (تغییر زبان) -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />زبان برنامه</span>
-                <span class="text-[11px] t-muted">زبان پیش‌فرض ربات و داشبورد</span>
+                <span class="t-main font-medium block flex items-center gap-1.5"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="app_lang_title">زبان برنامه</span></span>
+                <span data-i18n="app_lang_desc" class="text-[11px] t-muted">زبان پیش‌فرض ربات و داشبورد</span>
               </div>
               <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg">
                 <button id="langFaBtn" class="px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white">Persian</button>
-                <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-slate-200">English</button>
+                <button id="langEnBtn" class="px-2.5 py-1 text-xs rounded-md font-medium transition t-muted hover:t-main">English</button>
               </div>
             </div>
           </div>
@@ -4306,6 +4312,7 @@
 
   <!-- Modular Frontend Architecture (DRY; Chart.js lazy-loaded via charts.js) -->
   <script src="/static/js/icons.js" defer></script>
+  <script src="/static/js/i18n.js" defer></script>
   <script src="/static/js/utils.js" defer></script>
   <script src="/static/js/api.js" defer></script>
   <script src="/static/js/charts.js" defer></script>

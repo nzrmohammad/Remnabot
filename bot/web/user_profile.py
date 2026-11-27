@@ -33,6 +33,7 @@ from bot.db.repositories.referral_repo import ReferralRepository
 from bot.db.repositories.report_repo import ReportRepository
 from bot.db.repositories.service_repo import SERVICE_ORDER_BY
 from bot.db.repositories.user_repo import UserRepository
+from bot.locales.texts import normalize_lang
 from bot.services.app_settings import get_store_settings, is_maintenance
 from bot.services.formatting import COUNTRY_FLAGS_MAP, country_flag, now_tz
 from bot.services.loyalty import apply_loyalty_discount, get_user_loyalty
@@ -115,9 +116,11 @@ from bot.web.user_subscription_detail import (
 _format_jalali_dt = format_jalali_dt
 
 
-async def _fetch_transaction_history(session: Any, telegram_id: int, tz_name: str) -> list[dict[str, Any]]:
+async def _fetch_transaction_history(
+    session: Any, telegram_id: int, tz_name: str, *, lang: str = "fa"
+) -> list[dict[str, Any]]:
     """Fetch unified orders, topups, crypto, card-auto, and admin adjustments sorted by timestamp."""
-    return await fetch_user_transactions(session, telegram_id, tz_name, include_failed_orders=True, limit=50)
+    return await fetch_user_transactions(session, telegram_id, tz_name, include_failed_orders=True, limit=50, lang=lang)
 
 
 async def _fetch_user_perks_and_settings(
@@ -656,7 +659,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                         is_invite_only = True
             except Exception as e:
                 logger.debug("Failed checking invite-only status: %s", e)
-        transactions = await _fetch_transaction_history(session, telegram_id, tz_name)
+        user_lang = normalize_lang(getattr(db_user, "language", None) or user_auth.get("language_code"))
+        transactions = await _fetch_transaction_history(session, telegram_id, tz_name, lang=user_lang)
         user_settings, active_won_coupons, wheel_status, total_gift_traffic, birthday_claimed = await _fetch_user_perks_and_settings(
             session, cache, telegram_id, has_active_sub, db_user
         )
@@ -826,7 +830,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                     if idx < 20 and used_val > 0:
                         raw_uname = u.get("username") or f"user_{u.get('id')}"
                         if is_me:
-                            display_name = f"{raw_uname} (شما)"
+                            display_name = f"{raw_uname} ({'You' if user_lang == 'en' else 'شما'})"
                         else:
                             if len(raw_uname) > 4:
                                 display_name = f"{raw_uname[:2]}***{raw_uname[-1]}"
@@ -902,7 +906,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             "client_apps_override": store_settings.client_apps_json,
             "user": {
                 "id": telegram_id,
-                "first_name": user_auth.get("first_name", "کاربر"),
+                "first_name": user_auth.get("first_name") or ("User" if user_lang == "en" else "کاربر"),
                 "username": user_auth.get("username"),
                 "wallet_balance": wallet_balance,
                 "referrals_count": referrals_count,
@@ -915,7 +919,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "is_birthday_today": is_birthday_today,
                 "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
                 "created_at_jalali": user_reg_jalali,
-                "language": db_user.language if isinstance(getattr(db_user, "language", None), str) else "fa",
+                "language": user_lang,
                 "photo_url": user_auth.get("photo_url", ""),
                 "is_admin": user_auth.get("is_admin", False),
                 "auto_renew": bool(getattr(db_user, "auto_renew", False)),

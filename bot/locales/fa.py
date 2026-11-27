@@ -783,4 +783,23 @@ FA_TEXTS: dict[str, str] = {
         "settings_trial_duration": "زمان (روز)",
         "settings_referral_enabled": "سیستم دعوت (1/0)",
         "settings_referral_reward": "حجم \u2066(GB)\u2069",
+        # --- generic / api / webapp notices ---
+        "user_tma_no_url": "⚠️ آدرس مینی‌اپ در تنظیمات سرور ثبت نشده است.",
+        "expired_or_invalid_action": "دستور منقضی یا نامعتبر است.",
+        "err_invalid_json": "فرمت JSON نامعتبر است.",
+        "err_account_banned": "حساب کاربری شما مسدود شده است.",
+        "err_invite_only_api": "عضویت در این سرویس فقط با لینک دعوت معتبر امکان‌پذیر است.",
+        "spin_preview_blocked": "چرخش گردونه فقط در محیط رسمی تلگرام امکان‌پذیر است.",
+        "spin_rate_limited": "درخواست همزمان شناسایی شد. لطفاً چند لحظه بعد تلاش کنید.",
+        "wheel_prize_coupon_msg": (
+            "🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n\n"
+            "🎟 <b>کد تخفیف 10% اختصاصی شما:</b> <code>{code}</code>\n\n"
+            "🗓 <b>مهلت استفاده:</b> 7 روز\n"
+            "💡 این کد اختصاصی شماست و برای خرید از فروشگاه قابل استفاده است."
+        ),
+        "wheel_prize_direct_msg": (
+            "🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n"
+            "✨ <b>{name}</b>\n\n"
+            "این جایزه با موفقیت به سرویس شما اعمال گردید."
+        ),
 }

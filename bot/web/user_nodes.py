@@ -158,12 +158,15 @@ async def post_user_settings(request: web.Request) -> web.Response:
 
     from bot.db.repositories.alert_repo import AlertRepository
     from bot.db.repositories.report_repo import ReportRepository
+    from bot.locales.texts import SUPPORTED_LANGS, normalize_lang
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
         user = await user_repo.get_or_create(telegram_id, user_auth.get("username"))
-        if language in ("fa", "en"):
-            user.language = language
+        if isinstance(language, str) and language.strip():
+            norm_req_lang = normalize_lang(language)
+            if norm_req_lang in SUPPORTED_LANGS:
+                user.language = norm_req_lang
 
         rep_repo = ReportRepository(session)
         rep_settings = await rep_repo.get_settings(telegram_id)
@@ -230,7 +233,7 @@ async def post_user_settings(request: web.Request) -> web.Response:
 
         return web.json_response({
             "ok": True,
-            "language": user.language,
+            "language": normalize_lang(user.language),
             "settings": {
                 "nightly": bool(rep_settings.nightly),
                 "weekly": bool(rep_settings.weekly),

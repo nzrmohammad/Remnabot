@@ -788,4 +788,23 @@ EN_TEXTS: dict[str, str] = {
         "settings_trial_duration": "Duration (Days)",
         "settings_referral_enabled": "Invite System (1/0)",
         "settings_referral_reward": "Traffic (GB)",
+        # --- generic / api / webapp notices ---
+        "user_tma_no_url": "⚠️ Mini App URL is not configured on the server.",
+        "expired_or_invalid_action": "This action has expired or is invalid.",
+        "err_invalid_json": "Invalid JSON payload format.",
+        "err_account_banned": "Your account has been banned.",
+        "err_invite_only_api": "Registration requires a valid invite link.",
+        "spin_preview_blocked": "The Lucky Wheel can only be spun inside Telegram.",
+        "spin_rate_limited": "Concurrent request detected. Please try again in a moment.",
+        "wheel_prize_coupon_msg": (
+            "🎉 <b>Congratulations! You won on the Lucky Wheel:</b>\n\n"
+            "🎟 <b>Exclusive 10% Discount Code:</b> <code>{code}</code>\n\n"
+            "🗓 <b>Valid for:</b> 7 days\n"
+            "💡 Apply this personal code at checkout in the shop."
+        ),
+        "wheel_prize_direct_msg": (
+            "🎉 <b>Congratulations! You won on the Lucky Wheel:</b>\n"
+            "✨ <b>{name}</b>\n\n"
+            "This reward has been automatically applied to your service."
+        ),
 }

@@ -14,6 +14,7 @@ from sqlalchemy import func, select, update
 from bot.db.models import AdminLog, Service, User
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.user_repo import UserRepository
+from bot.locales.texts import normalize_lang, t
 from bot.services.app_settings import StoreSettings, get_store_settings
 from bot.services.gift_service import claim_gift, create_gift, get_user_gifts
 from bot.services.invoice_service import get_order_invoice_data, send_invoice_to_telegram
@@ -37,9 +38,10 @@ async def post_user_spin(request: web.Request) -> web.Response:
     if err:
         return err
 
+    req_lang = normalize_lang(request.query.get("lang") or user_auth.get("language_code"))
     if user_auth.get("is_preview"):
         return web.json_response(
-            {"ok": False, "error": "چرخش گردونه فقط در محیط رسمی تلگرام امکان‌پذیر است."},
+            {"ok": False, "error": t(req_lang, "spin_preview_blocked")},
             status=400,
         )
 
@@ -49,7 +51,7 @@ async def post_user_spin(request: web.Request) -> web.Response:
     async with _user_action_lock(cache, telegram_id, "spin", ttl_seconds=30) as acquired:
         if not acquired:
             return web.json_response(
-                {"ok": False, "error": "درخواست همزمان شناسایی شد. لطفاً چند لحظه بعد تلاش کنید."},
+                {"ok": False, "error": t(req_lang, "spin_rate_limited")},
                 status=429,
             )
         return await _do_user_spin(request, telegram_id, cache, user_auth=user_auth)
@@ -117,19 +119,12 @@ async def _do_user_spin(
                     rep_prefs.last_wheel_message_id = None
 
                 if applied and chosen.get("type") not in ("blank", "again"):
+                    spin_user = await UserRepository(s_notify).get_by_telegram_id(telegram_id)
+                    u_lang = normalize_lang(getattr(spin_user, "language", None) or (user_auth or {}).get("language_code"))
                     if chosen.get("type") == "coupon":
-                        msg_text = (
-                            f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n\n"
-                            f"🎟 <b>کد تخفیف 10% اختصاصی شما:</b> <code>{chosen.get('code')}</code>\n\n"
-                            f"🗓 <b>مهلت استفاده:</b> 7 روز\n"
-                            f"💡 این کد اختصاصی شماست و برای خرید از فروشگاه قابل استفاده است."
-                        )
+                        msg_text = t(u_lang, "wheel_prize_coupon_msg", code=chosen.get("code"))
                     else:
-                        msg_text = (
-                            f"🎉 <b>تبریک! شما در گردونه شانس برنده شدید:</b>\n"
-                            f"✨ <b>{chosen['name']}</b>\n\n"
-                            f"این جایزه با موفقیت به سرویس شما اعمال گردید."
-                        )
+                        msg_text = t(u_lang, "wheel_prize_direct_msg", name=chosen.get("name", ""))
                     sent_msg = await bot.send_message(
                         telegram_id,
                         msg_text,

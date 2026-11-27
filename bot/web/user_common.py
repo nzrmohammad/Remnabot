@@ -3,19 +3,29 @@ from typing import Any
 
 from aiohttp import web
 
+from bot.locales.texts import normalize_lang, t
 from bot.web.auth import get_authenticated_user, get_client_ip, require_auth, resolve_cached_auth
 from bot.web.db import db_session
 
 
+def get_request_lang(request: web.Request, user: dict[str, Any] | None = None) -> str:
+    """Resolve normalized request language from query/header or Telegram user info."""
+    raw = request.query.get("lang") or request.headers.get("X-App-Language")
+    if not raw and isinstance(user, dict):
+        raw = user.get("language") or user.get("language_code")
+    return normalize_lang(raw)
+
+
 async def parse_json_dict(request: web.Request) -> tuple[dict[str, Any] | None, web.Response | None]:
     """Safely parse request body as a JSON dict. Returns (data, None) or (None, 400 response)."""
+    lang = get_request_lang(request, _check_user(request))
     try:
         data = await request.json()
         if not isinstance(data, dict):
-            return None, web.json_response({"ok": False, "message": "فرمت JSON نامعتبر است."}, status=400)
+            return None, web.json_response({"ok": False, "message": t(lang, "err_invalid_json")}, status=400)
         return data, None
     except Exception:
-        return None, web.json_response({"ok": False, "message": "داده‌های ارسالی JSON نامعتبر است."}, status=400)
+        return None, web.json_response({"ok": False, "message": t(lang, "err_invalid_json")}, status=400)
 
 
 def format_support_link(raw_contact: str) -> str:
@@ -52,11 +62,12 @@ def require_user(request: web.Request) -> tuple[dict[str, Any] | None, web.Respo
         is_banned = user.get("is_banned")
 
     if is_banned:
+        lang = get_request_lang(request, user)
         return None, web.json_response(
             {
                 "ok": False,
                 "error": "banned",
-                "message": "حساب کاربری شما مسدود شده است.",
+                "message": t(lang, "err_account_banned"),
             },
             status=403,
         )
@@ -111,11 +122,12 @@ async def enforce_invite_only(
         except Exception:
             pass
 
+    inv_lang = normalize_lang(getattr(db_user, "language", None) or user_auth.get("language_code"))
     return web.json_response(
         {
             "ok": False,
             "error": "invite_only",
-            "message": "عضویت در این سرویس فقط با لینک دعوت معتبر امکان‌پذیر است.",
+            "message": t(inv_lang, "err_invite_only_api"),
         },
         status=403,
     )
@@ -123,6 +135,7 @@ async def enforce_invite_only(
 
 __all__ = [
     "_check_user",
+    "get_request_lang",
     "require_user",
     "require_auth",
     "get_client_ip",

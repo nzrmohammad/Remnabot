@@ -33,13 +33,14 @@ async def apply_coupon_prompt(
 ):
 
     parts = call.data.split(":")
+    lang_code = getattr(call.from_user, "language_code", None)
     if len(parts) < 5:
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(lang_code, "expired_or_invalid_action"), show_alert=True)
         return
     try:
         service_id = int(parts[2])
     except (ValueError, TypeError):
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(lang_code, "expired_or_invalid_action"), show_alert=True)
         return
     flow_type = parts[3]
     target_id = parts[4]
@@ -69,13 +70,14 @@ async def remove_coupon(
     cache=None,
 ):
     parts = call.data.split(":")
+    lang_code = getattr(call.from_user, "language_code", None)
     if len(parts) < 5:
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(lang_code, "expired_or_invalid_action"), show_alert=True)
         return
     try:
         service_id = int(parts[2])
     except (ValueError, TypeError):
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(lang_code, "expired_or_invalid_action"), show_alert=True)
         return
     flow_type = parts[3]
     target_id = parts[4]

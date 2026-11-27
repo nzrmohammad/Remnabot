@@ -13,6 +13,13 @@ const {
   syncTelegramThemeParams,
   nativeConfirm,
 } = require('../../bot/web/static/js/utils.js');
+const {
+  normalizeAppLang,
+  getAppLanguage,
+  applyAppLocale,
+  translateUiPhrase,
+  t: i18nT,
+} = require('../../bot/web/static/js/i18n.js');
 
 const testsQueue = [];
 let passCount = 0;
@@ -159,6 +166,45 @@ test('nativeConfirm delegates to tg.showConfirm when supported else window.confi
     assert.strictEqual(await nativeConfirm('Fallback?'), false);
   } finally {
     delete global.window;
+  }
+});
+
+test('i18n runtime normalizes locale codes, translates strings, and switches RTL/LTR', () => {
+  assert.strictEqual(normalizeAppLang('en-US'), 'en');
+  assert.strictEqual(normalizeAppLang('fa_IR'), 'fa');
+  assert.strictEqual(normalizeAppLang('fr'), 'fa');
+
+  const navDash = { dataset: {}, textContent: 'داشبورد' };
+  const store = {};
+  global.localStorage = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v); },
+  };
+  global.document = {
+    documentElement: { lang: 'fa', dir: 'rtl' },
+    getElementById: () => null,
+    querySelector: (sel) => (sel.includes('tab-dashboard') ? navDash : null),
+    querySelectorAll: () => [],
+  };
+  global.window = { getAppLanguage };
+  try {
+    applyAppLocale('en');
+    assert.strictEqual(document.documentElement.lang, 'en');
+    assert.strictEqual(document.documentElement.dir, 'ltr');
+    assert.strictEqual(navDash.textContent, 'Dashboard');
+    assert.strictEqual(i18nT('traffic_alert_sub', { percent: 85 }), 'Alert before quota ends (85%)');
+    assert.strictEqual(translateUiPhrase('تنظیمات با موفقیت ذخیره شد.'), 'Settings saved successfully.');
+    assert.strictEqual(fmtMoney(25000), '25,000 Toman');
+
+    applyAppLocale('fa');
+    assert.strictEqual(document.documentElement.lang, 'fa');
+    assert.strictEqual(document.documentElement.dir, 'rtl');
+    assert.strictEqual(navDash.textContent, 'داشبورد');
+    assert.strictEqual(fmtMoney(25000), '25,000 تومان');
+  } finally {
+    delete global.window;
+    delete global.document;
+    delete global.localStorage;
   }
 });
 

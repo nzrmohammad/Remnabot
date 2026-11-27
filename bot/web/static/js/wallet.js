@@ -644,19 +644,22 @@ function renderWalletTransactions(transactions) {
     ` : '';
 
     const txIcon = ({ topup: '💳', card_auto: '💳', crypto: '💎', admin_adjust: '⚡️' })[tx.type] || '🛒';
+    const isEnLang = typeof window.getAppLanguage === 'function' && window.getAppLanguage() === 'en';
+    const txUnitLabel = isEnLang ? 'Toman' : 'تومان';
+    const txDateDisplay = toEnglishDigits(isEnLang ? (tx.date_formatted || tx.date_jalali || '') : (tx.date_jalali || ''));
     return `
     <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id}, '${tx.type || 'order'}');"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <span class="text-xl shrink-0">${txIcon}</span>
         <div class="min-w-0 flex-1 space-y-1">
           ${titleBlock}
-          <span class="text-[10px] t-muted font-sans num-bidi block" dir="ltr">${toEnglishDigits(tx.date_jalali || '')}</span>
+          <span class="text-[10px] t-muted font-sans num-bidi block" dir="ltr">${txDateDisplay}</span>
         </div>
       </div>
       <div class="text-left shrink-0 space-y-0.5">
-        <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 't-success' : 't-main'}" dir="rtl">
+        <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 't-success' : 't-main'}" dir="${isEnLang ? 'ltr' : 'rtl'}">
           <span class="font-sans num-bidi text-xs sm:text-sm" dir="ltr">${tx.is_positive ? "+" : "-"}${Number(tx.amount != null ? tx.amount : 0).toLocaleString("en-US")}</span>
-          <span class="font-sans text-[10px] t-muted font-normal">تومان</span>
+          <span class="font-sans text-[10px] t-muted font-normal">${txUnitLabel}</span>
         </div>
         <div class="flex items-center justify-end gap-1.5">
           <span class="text-[10px] ${statusColor} font-sans block">

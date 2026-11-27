@@ -24,12 +24,12 @@ async def panel_user_hwid_limit_picker(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
 ):
     if not _is_admin(call.from_user.id):
-        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "not_authorized"), show_alert=True)
         return
 
     parts = safe_split_cb(call.data, 6)
     if not parts:
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "expired_or_invalid_action"), show_alert=True)
         return
     p_id = int(parts[3])
     cat = parts[4]
@@ -57,14 +57,14 @@ async def panel_user_hwid_limit_set(
     session: AsyncSession, remnawave: RemnawaveClient,
 ):
     if not _is_admin(call.from_user.id):
-        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "not_authorized"), show_alert=True)
         return
 
     from bot.handlers.admin_user_detail import _render_panel_user_detail
 
     parts = safe_split_cb(call.data, 7)
     if not parts:
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "expired_or_invalid_action"), show_alert=True)
         return
     p_id = int(parts[3])
     val = int(parts[4])
@@ -89,12 +89,12 @@ async def panel_user_devices_list(
     remnawave: RemnawaveClient,
 ):
     if not _is_admin(call.from_user.id):
-        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "not_authorized"), show_alert=True)
         return
 
     parts = safe_split_cb(call.data, 6)
     if not parts:
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "expired_or_invalid_action"), show_alert=True)
         return
     p_id = int(parts[3])
     cat = parts[4]
@@ -129,12 +129,12 @@ async def panel_user_device_delete(
     session: AsyncSession, remnawave: RemnawaveClient,
 ):
     if not _is_admin(call.from_user.id):
-        await call.answer(t("fa", "not_authorized"), show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "not_authorized"), show_alert=True)
         return
 
     parts = safe_split_cb(call.data, 7)
     if not parts:
-        await call.answer("دستور منقضی یا نامعتبر است.", show_alert=True)
+        await call.answer(t(getattr(call.from_user, "language_code", None), "expired_or_invalid_action"), show_alert=True)
         return
     p_id = int(parts[3])
     hwid = parts[4]

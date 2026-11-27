@@ -17,7 +17,7 @@ const CSS_DIR = path.resolve(__dirname, '..', 'bot', 'web', 'static', 'css');
 const DIST_DIR = path.join(JS_DIR, 'dist');
 
 const USER_JS_ORDER = [
-  'icons.js', 'utils.js', 'api.js', 'charts.js', 'shop.js',
+  'icons.js', 'i18n.js', 'utils.js', 'api.js', 'charts.js', 'shop.js',
   'wallet.js', 'wheel.js', 'story.js', 'speedtest.js', 'app.js',
 ];
 const ADMIN_JS_ORDER = [

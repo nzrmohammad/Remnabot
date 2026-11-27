@@ -3466,13 +3466,17 @@ function setupProfileHandlers() {
     try {
       const res = await window.api.changeLanguage(lang);
       if (res.ok) {
-        showToast(lang === 'fa' ? '✅ زبان به فارسی تغییر یافت.' : '✅ Language changed to English.');
-        syncUserDataWithApi(window.currentAccountId);
+        const appliedLang = window.applyAppLocale ? window.applyAppLocale(res.language || lang) : lang;
+        showToast(appliedLang === 'en' ? '✅ Language changed to English.' : '✅ زبان به فارسی تغییر یافت.', 'success');
+        await syncUserDataWithApi(window.currentAccountId);
+        if (typeof renderReportsCharts === 'function') {
+          try { renderReportsCharts(); } catch (_) {}
+        }
       } else {
-        showToast('❌ خطا در ذخیره تنظیمات زبان.');
+        showToast(window.t ? window.t('lang_save_error', '❌ خطا در ذخیره تنظیمات زبان.') : '❌ خطا در ذخیره تنظیمات زبان.', 'error');
       }
     } catch (e) {
-      showToast('❌ خطا در ذخیره تنظیمات زبان.');
+      showToast(window.t ? window.t('lang_save_error', '❌ خطا در ذخیره تنظیمات زبان.') : '❌ خطا در ذخیره تنظیمات زبان.', 'error');
     }
   }
 
@@ -4515,10 +4519,11 @@ function hydrateUserInterface(data) {
     }
 
     // Alert Subtexts & Selects
+    const tr = (key, vars, faFallback) => (typeof window.t === 'function' ? window.t(key, vars, faFallback) : faFallback);
     function updateAlertSubtexts(percent, days) {
       if (percent !== undefined && percent !== null) {
         const traf = $('settingTrafficSubtext');
-        if (traf) traf.innerText = `هشدار قبل از پایان ترافیک (${toEnglishDigits(percent)}%)`;
+        if (traf) traf.innerText = tr('traffic_alert_sub', { percent: toEnglishDigits(percent) }, `هشدار قبل از پایان ترافیک (${toEnglishDigits(percent)}%)`);
         const disp = $('trafficPercentDisplay');
         if (disp) disp.innerText = `${percent}%`;
         const hiddenInp = $('settingTrafficPercentSelect');
@@ -4526,9 +4531,9 @@ function hydrateUserInterface(data) {
       }
       if (days !== undefined && days !== null) {
         const exp = $('settingExpireSubtext');
-        if (exp) exp.innerText = `اطلاع‌رسانی ${toEnglishDigits(days)} روز مانده به انقضا`;
+        if (exp) exp.innerText = tr('expire_alert_sub', { days: toEnglishDigits(days) }, `اطلاع‌رسانی ${toEnglishDigits(days)} روز مانده به انقضا`);
         const disp = $('expireDaysDisplay');
-        if (disp) disp.innerText = `${days} روز`;
+        if (disp) disp.innerText = tr('expire_days_badge', { days }, `${days} روز`);
         const hiddenInp = $('settingExpireDaysSelect');
         if (hiddenInp) hiddenInp.value = String(days);
       }
@@ -4576,21 +4581,10 @@ function hydrateUserInterface(data) {
 
     updateAlertSubtexts(settings.traffic_percent || 80, settings.expire_days || 3);
 
-    // Language Buttons
-    const currentLang = user.language || 'fa';
-    const langFaBtn = $('langFaBtn');
-    const langEnBtn = $('langEnBtn');
-    if (currentLang === 'en') {
-      langEnBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
-      langEnBtn?.classList.remove('text-slate-400');
-      langFaBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
-      langFaBtn?.classList.add('text-slate-400');
-    } else {
-      langFaBtn?.classList.add('bg-blue-600', 'text-white', 'font-bold');
-      langFaBtn?.classList.remove('text-slate-400');
-      langEnBtn?.classList.remove('bg-blue-600', 'text-white', 'font-bold');
-      langEnBtn?.classList.add('text-slate-400');
-    }
+    // Language Buttons & Live DOM Locale Sync
+    const currentLang = window.applyAppLocale
+      ? window.applyAppLocale(user.language || 'fa')
+      : (user.language || 'fa');
 
     // Wallet Display Currency Selector Sync
     const curVal = localStorage.getItem('user_wallet_currency') || 'toman';
@@ -4599,15 +4593,15 @@ function hydrateUserInterface(data) {
     const curSub = $('userCurrencySubtext');
     if (curInput) curInput.value = curVal;
     const curLabels = {
-      toman: { name: 'تومان', full: 'تومان (IRT)' },
-      ton: { name: 'تون', full: 'تون (TON)' },
-      usdt: { name: 'تتر', full: 'تتر (USDT)' },
-      trx: { name: 'ترون', full: 'ترون (TRX)' },
-      pol: { name: 'پالیگان', full: 'پالیگان (POL / MATIC)' },
-      stars: { name: 'ستاره', full: 'ستاره تلگرام (Stars ⭐️)' },
+      toman: { name: tr('cur_toman_name', null, 'تومان'), full: tr('cur_toman_full', null, 'تومان (IRT)') },
+      ton: { name: tr('cur_ton_name', null, 'تون'), full: tr('cur_ton_full', null, 'تون (TON)') },
+      usdt: { name: tr('cur_usdt_name', null, 'تتر'), full: tr('cur_usdt_full', null, 'تتر (USDT)') },
+      trx: { name: tr('cur_trx_name', null, 'ترون'), full: tr('cur_trx_full', null, 'ترون (TRX)') },
+      pol: { name: tr('cur_pol_name', null, 'پالیگان'), full: tr('cur_pol_full', null, 'پالیگان (POL / MATIC)') },
+      stars: { name: tr('cur_stars_name', null, 'ستاره'), full: tr('cur_stars_full', null, 'ستاره تلگرام (Stars ⭐️)') },
     };
     if (curDisp && curLabels[curVal]) curDisp.innerText = curLabels[curVal].name;
-    if (curSub && curLabels[curVal]) curSub.innerText = `واحد اصلی: ${curLabels[curVal].full}`;
+    if (curSub && curLabels[curVal]) curSub.innerText = `${tr('primary_unit_prefix', null, 'واحد اصلی:')} ${curLabels[curVal].full}`;
 
     // Wallet Card Graphic/Classic View Toggle Sync
     const isGraphicWallet = localStorage.getItem('user_wallet_card_view') !== 'classic';

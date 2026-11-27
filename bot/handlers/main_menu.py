@@ -70,4 +70,4 @@ async def open_section(call: CallbackQuery, bot: Bot, user_repo: UserRepository)
 @router.callback_query(F.data == "nav:user_tma:nourl")
 async def user_tma_no_url_handler(call: CallbackQuery) -> None:
     """Handle click on User TMA button when WEB_APP_URL is not set."""
-    await call.answer("⚠️ آدرس مینی‌اپ در تنظیمات سرور ثبت نشده است.", show_alert=True)
+    await call.answer(t(getattr(call.from_user, "language_code", None), "user_tma_no_url"), show_alert=True)

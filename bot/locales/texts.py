@@ -16,6 +16,9 @@ MAINTENANCE_NOTICE = (
 
 # Shown to brand-new users when invite-only mode is active and they lack an invite code.
 INVITE_ONLY_NOTICE = (
+    "🔒 <b>Private System — Invite Only</b>\n"
+    "Registration is currently available only via a member's invite link. "
+    "If you have one, tap it again to enter, or contact support.\n\n"
     "🔒 <b>سامانه خصوصی — عضویت فقط با دعوت‌نامه</b>\n"
     "──────────────────\n"
     "کاربر گرامی، در حال حاضر ثبت‌نام و عضویت در این سامانه <b>تنها از طریق لینک اختصاصی دعوت اعضا</b> امکان‌پذیر است.\n\n"
@@ -28,11 +31,25 @@ TEXTS: dict[str, dict[str, str]] = {
     "fa": FA_TEXTS,
 }
 
+SUPPORTED_LANGS: tuple[str, ...] = tuple(TEXTS.keys())
 DEFAULT_LANG = "fa"
 
 
+def normalize_lang(lang: str | None) -> str:
+    """Normalize BCP-47 / Telegram language codes (e.g. 'en-US' → 'en', 'fa-IR' → 'fa')."""
+    if not isinstance(lang, str):
+        return DEFAULT_LANG
+    base = lang.strip().lower().replace("_", "-").split("-", 1)[0]
+    return base if base in TEXTS else DEFAULT_LANG
+
+
 def t(lang: str | None, key: str, **kwargs) -> str:
-    """Translate a key for the given language with optional formatting."""
-    lang = lang if lang in TEXTS else DEFAULT_LANG
-    text = TEXTS[lang].get(key, key)
-    return text.format(**kwargs) if kwargs else text
+    """Translate a key for the normalized language with safe formatting fallback."""
+    norm = normalize_lang(lang)
+    text = TEXTS[norm].get(key) or TEXTS[DEFAULT_LANG].get(key, key)
+    if not kwargs:
+        return text
+    try:
+        return text.format(**kwargs)
+    except (KeyError, ValueError, IndexError):
+        return text

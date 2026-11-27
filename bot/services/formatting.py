@@ -4,6 +4,8 @@ from zoneinfo import ZoneInfo
 
 import jdatetime
 
+from bot.locales.texts import normalize_lang
+
 KB = 1024
 MB = 1024 ** 2
 GB = 1024 ** 3
@@ -140,15 +142,58 @@ COUNTRY_NAMES_FA: dict[str, str] = {
     "EU": "اروپا",
 }
 
+COUNTRY_NAMES_EN: dict[str, str] = {
+    "NL": "Netherlands",
+    "DE": "Germany",
+    "FR": "France",
+    "US": "United States",
+    "GB": "United Kingdom",
+    "TR": "Turkey",
+    "FI": "Finland",
+    "SE": "Sweden",
+    "CA": "Canada",
+    "IR": "Iran",
+    "RU": "Russia",
+    "PL": "Poland",
+    "IT": "Italy",
+    "ES": "Spain",
+    "CH": "Switzerland",
+    "AE": "UAE",
+    "SG": "Singapore",
+    "AT": "Austria",
+    "AU": "Australia",
+    "BR": "Brazil",
+    "NO": "Norway",
+    "DK": "Denmark",
+    "BE": "Belgium",
+    "JP": "Japan",
+    "KR": "South Korea",
+    "UA": "Ukraine",
+    "RO": "Romania",
+    "BG": "Bulgaria",
+    "CZ": "Czechia",
+    "HU": "Hungary",
+    "IE": "Ireland",
+    "PT": "Portugal",
+    "GR": "Greece",
+    "IN": "India",
+    "HK": "Hong Kong",
+    "MY": "Malaysia",
+    "KZ": "Kazakhstan",
+    "EU": "Europe",
+}
 
-def country_name(code_or_name: str | None, default: str = "") -> str:
-    """ISO country code or name → Persian country name ('DE' → 'آلمان')."""
+
+def country_name(code_or_name: str | None, default: str = "", lang: str = "fa") -> str:
+    """ISO country code or name → localized country name ('DE' → 'آلمان' or 'Germany')."""
     if not code_or_name:
         return default
+    norm_lang = normalize_lang(lang)
+    names_map = COUNTRY_NAMES_EN if norm_lang == "en" else COUNTRY_NAMES_FA
     c = str(code_or_name).strip()
     c_up = c.upper()
-    if c_up in COUNTRY_NAMES_FA:
-        return COUNTRY_NAMES_FA[c_up]
+    if c_up in names_map:
+        return names_map[c_up]
     c_low = c.lower()
     for kw, iso in (
         ("netherland", "NL"), ("holland", "NL"), ("germany", "DE"),
@@ -164,7 +209,7 @@ def country_name(code_or_name: str | None, default: str = "") -> str:
         ("belgium", "BE"), ("japan", "JP"),
     ):
         if kw in c_low:
-            return COUNTRY_NAMES_FA.get(iso, default)
+            return names_map.get(iso, default)
     return default
 
 
@@ -210,7 +255,7 @@ def format_datetime(dt: datetime | str | int | float | None, lang: str, tz_name:
                 dt = dt.astimezone(tz)
         except Exception:
             pass
-    if lang == "fa":
+    if normalize_lang(lang) == "fa":
         try:
             j = jdatetime.datetime.fromgregorian(datetime=dt)
             return ltr_frag(j.strftime("%Y/%m/%d - %H:%M"))
@@ -245,7 +290,7 @@ def format_date(dt: datetime | str | int | float | None, lang: str, tz_name: str
                 dt = dt.astimezone(tz)
         except Exception:
             pass
-    if lang == "fa":
+    if normalize_lang(lang) == "fa":
         try:
             return jdatetime.datetime.fromgregorian(datetime=dt).strftime("%Y/%m/%d")
         except Exception:

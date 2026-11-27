@@ -11,6 +11,7 @@ import jdatetime
 from sqlalchemy import select
 
 from bot.db.models import AdminLog, CardAutoInvoice, CryptoInvoice, Order, Topup
+from bot.locales.texts import normalize_lang
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,15 @@ def format_jalali_dt(dt: Any, tz_name: str) -> str:
     return f"{j_dt.year}/{j_dt.month:02d}/{j_dt.day:02d} - {j_dt.hour:02d}:{j_dt.minute:02d}"
 
 
+def _format_tx_date(dt: Any, tz_name: str, lang: str) -> tuple[str, str]:
+    """Return (date_jalali, date_formatted) so legacy callers and localized UI both work cleanly."""
+    jalali_str = format_jalali_dt(dt, tz_name)
+    if normalize_lang(lang) == "fa" or not dt:
+        return jalali_str, jalali_str
+    local_dt = dt.astimezone(ZoneInfo(tz_name)) if getattr(dt, "tzinfo", None) else dt
+    return jalali_str, local_dt.strftime("%Y-%m-%d - %H:%M")
+
+
 async def fetch_user_transactions(
     session: Any,
     telegram_id: int,
@@ -66,6 +76,9 @@ async def fetch_user_transactions(
     lang: str = "fa",
 ) -> list[dict[str, Any]]:
     """Fetch unified wallet movements (Orders, Topups, CardAuto, Crypto, AdminAdjust) newest first."""
+    norm_lang = normalize_lang(lang)
+    is_fa = norm_lang == "fa"
+    unit_label = "تومان" if is_fa else "Toman"
     history_items: list[dict[str, Any]] = []
     try:
         orders_res = await session.execute(
@@ -77,30 +90,32 @@ async def fetch_user_transactions(
                 continue
             o_dt = _as_utc(o.created_at)
             if raw_st == "paid":
-                st_text, st_color, is_pos = "موفق", "emerald", False
+                st_text, st_color, is_pos = ("موفق" if is_fa else "Paid"), "emerald", False
             elif raw_st == "refunded":
-                st_text, st_color, is_pos = "مسترد شده", "purple", True
+                st_text, st_color, is_pos = ("مسترد شده" if is_fa else "Refunded"), "purple", True
             elif raw_st == "pending":
-                st_text, st_color, is_pos = "در انتظار پرداخت", "amber", False
+                st_text, st_color, is_pos = ("در انتظار پرداخت" if is_fa else "Pending"), "amber", False
             else:
-                st_text, st_color, is_pos = "ناموفق", "rose", False
+                st_text, st_color, is_pos = ("ناموفق" if is_fa else "Failed"), "rose", False
 
+            d_jalali, d_fmt = _format_tx_date(o.created_at, tz_name, norm_lang)
             history_items.append({
                 "id": o.id,
                 "type": "order",
-                "title": f"خرید {o.service_name}",
+                "title": f"{'خرید' if is_fa else 'Purchase'} {o.service_name}",
                 "service_id": o.service_id,
                 "service_name": o.service_name,
                 "is_custom": not bool(o.service_id) and "دلخواه" in (o.service_name or ""),
                 "traffic_gb": o.traffic_gb or 0,
                 "duration_days": o.duration_days or 0,
                 "amount": o.amount,
-                "amount_formatted": f"{o.amount:,} تومان",
+                "amount_formatted": f"{o.amount:,} {unit_label}",
                 "is_positive": is_pos,
                 "status": st_text,
                 "raw_status": raw_st,
                 "status_color": st_color,
-                "date_jalali": format_jalali_dt(o.created_at, tz_name),
+                "date_jalali": d_jalali,
+                "date_formatted": d_fmt,
                 "timestamp": o_dt.timestamp() if o_dt else 0,
             })
 
@@ -110,20 +125,28 @@ async def fetch_user_transactions(
         for tp in topups_res.scalars().all():
             t_dt = _as_utc(tp.created_at)
             st = (tp.status or "pending").lower()
-            _, method_label = classify_topup_method(getattr(tp, "receipt_hash", None), lang=lang)
+            _, method_label = classify_topup_method(getattr(tp, "receipt_hash", None), lang=norm_lang)
             clean_method = method_label.split(" ", 1)[1] if " " in method_label else method_label
+            if st == "approved":
+                tp_status = "تایید شده" if is_fa else "Approved"
+            elif st == "rejected":
+                tp_status = "رد شده" if is_fa else "Rejected"
+            else:
+                tp_status = "در انتظار بررسی" if is_fa else "Pending Review"
+            d_jalali, d_fmt = _format_tx_date(tp.created_at, tz_name, norm_lang)
             history_items.append({
                 "id": tp.id,
                 "type": "topup",
-                "title": f"افزایش موجودی ({clean_method})",
+                "title": f"{'افزایش موجودی' if is_fa else 'Top-up'} ({clean_method})",
                 "method_label": method_label,
                 "amount": tp.amount,
-                "amount_formatted": f"{tp.amount:,} تومان",
+                "amount_formatted": f"{tp.amount:,} {unit_label}",
                 "is_positive": st == "approved",
-                "status": "تایید شده" if st == "approved" else ("رد شده" if st == "rejected" else "در انتظار بررسی"),
+                "status": tp_status,
                 "raw_status": st,
                 "status_color": "emerald" if st == "approved" else ("rose" if st == "rejected" else "amber"),
-                "date_jalali": format_jalali_dt(tp.created_at, tz_name),
+                "date_jalali": d_jalali,
+                "date_formatted": d_fmt,
                 "timestamp": t_dt.timestamp() if t_dt else 0,
             })
 
@@ -143,17 +166,19 @@ async def fetch_user_transactions(
                     parsed_amt = int(m.group(1).replace(",", ""))
                 except Exception:
                     parsed_amt = 0
+            d_jalali, d_fmt = _format_tx_date(al.created_at, tz_name, norm_lang)
             history_items.append({
                 "id": al.id,
                 "type": "admin_adjust",
-                "title": "شارژ دستی مدیریت" if is_pos else "کسر دستی مدیریت",
+                "title": ("شارژ دستی مدیریت" if is_pos else "کسر دستی مدیریت") if is_fa else ("Admin Credit" if is_pos else "Admin Debit"),
                 "amount": parsed_amt,
-                "amount_formatted": f"{parsed_amt:,} تومان" if parsed_amt else "--",
+                "amount_formatted": f"{parsed_amt:,} {unit_label}" if parsed_amt else "--",
                 "is_positive": is_pos,
-                "status": "ثبت شد",
+                "status": "ثبت شد" if is_fa else "Recorded",
                 "raw_status": "approved" if is_pos else "deducted",
                 "status_color": "emerald" if is_pos else "rose",
-                "date_jalali": format_jalali_dt(al.created_at, tz_name),
+                "date_jalali": d_jalali,
+                "date_formatted": d_fmt,
                 "timestamp": al_dt.timestamp() if al_dt else 0,
             })
 
@@ -166,17 +191,19 @@ async def fetch_user_transactions(
         for ca in card_auto_res.scalars().all():
             raw_ca_dt = ca.paid_at or ca.created_at
             ca_dt = _as_utc(raw_ca_dt)
+            d_jalali, d_fmt = _format_tx_date(raw_ca_dt, tz_name, norm_lang)
             history_items.append({
                 "id": f"ca_{ca.id}",
                 "type": "card_auto",
-                "title": "افزایش موجودی (کارت به کارت خودکار)",
+                "title": "افزایش موجودی (کارت به کارت خودکار)" if is_fa else "Top-up (Instant Card Transfer)",
                 "amount": ca.exact_amount,
-                "amount_formatted": f"{ca.exact_amount:,} تومان",
+                "amount_formatted": f"{ca.exact_amount:,} {unit_label}",
                 "is_positive": True,
-                "status": "تایید خودکار",
+                "status": "تایید خودکار" if is_fa else "Auto-Verified",
                 "raw_status": "paid",
                 "status_color": "emerald",
-                "date_jalali": format_jalali_dt(raw_ca_dt, tz_name),
+                "date_jalali": d_jalali,
+                "date_formatted": d_fmt,
                 "timestamp": ca_dt.timestamp() if ca_dt else 0,
             })
 
@@ -190,18 +217,20 @@ async def fetch_user_transactions(
             raw_cr_dt = cr.paid_at or cr.created_at
             cr_dt = _as_utc(raw_cr_dt)
             cr_curr = (cr.currency or "TON").upper()
+            d_jalali, d_fmt = _format_tx_date(raw_cr_dt, tz_name, norm_lang)
             history_items.append({
                 "id": f"cr_{cr.id}",
                 "type": "crypto",
                 "currency": cr_curr,
-                "title": f"شارژ کیف پول (رمزارز {cr_curr})",
+                "title": f"شارژ کیف پول (رمزارز {cr_curr})" if is_fa else f"Wallet Top-up ({cr_curr})",
                 "amount": cr.amount_toman,
-                "amount_formatted": f"{cr.amount_toman:,} تومان",
+                "amount_formatted": f"{cr.amount_toman:,} {unit_label}",
                 "is_positive": True,
-                "status": "تایید شده",
+                "status": "تایید شده" if is_fa else "Approved",
                 "raw_status": "paid",
                 "status_color": "emerald",
-                "date_jalali": format_jalali_dt(raw_cr_dt, tz_name),
+                "date_jalali": d_jalali,
+                "date_formatted": d_fmt,
                 "timestamp": cr_dt.timestamp() if cr_dt else 0,
             })
 
