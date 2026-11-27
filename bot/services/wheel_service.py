@@ -375,6 +375,8 @@ async def execute_lucky_wheel_spin(
             try:
                 rep_repo = ReportRepository(session)
                 await rep_repo.record_wheel_spin(telegram_id, now_utc)
+                from bot.services.engagement_service import record_weekly_quest_event
+                await record_weekly_quest_event(session, telegram_id, "spin", tz_name=tz_name, commit=False)
             except Exception as exc:
                 logger.warning("Failed to record wheel spin in DB for %s: %s", telegram_id, exc)
     else:

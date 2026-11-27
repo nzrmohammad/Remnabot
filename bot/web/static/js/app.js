@@ -3287,6 +3287,7 @@ const APP_MODAL_IDS = [
   'speedResultsModal', 'birthdayModal', 'alertThresholdModal',
   'expiryCountdownModal', 'birthdayCountdownModal', 'membershipModal', 'giftModal',
   'giftServiceSelectModal', 'invoiceModal', 'loyaltyModal', 'killAllSessionsModal', 'killSingleDeviceModal',
+  'walletTransferModal', 'weeklyQuestsModal',
 ];
 
 function applyUserTopPadding() {
@@ -5614,6 +5615,14 @@ function applySyncedUserData(data) {
     resetActiveSubAnalytics();
   }
 
+  if (typeof window.renderEngagementFeatures === 'function') {
+    try {
+      window.renderEngagementFeatures(data);
+    } catch (engErr) {
+      console.warn('[applySyncedUserData] Error rendering engagement features:', engErr);
+    }
+  }
+
   saveUserCache(data);
 }
 
@@ -6045,21 +6054,35 @@ window.selectGiftService = selectGiftService;
 function setGiftType(type) {
   currentGiftType = type;
   const isBal = type === 'BALANCE';
+  const isSvc = type === 'SERVICE';
+  const isDrop = type === 'RED_PACKET';
   $('giftBalanceSection')?.classList.toggle('hidden', !isBal);
-  $('giftServiceSection')?.classList.toggle('hidden', isBal);
+  $('giftServiceSection')?.classList.toggle('hidden', !isSvc);
+  $('giftRedPacketSection')?.classList.toggle('hidden', !isDrop);
+  $('giftDeliveryModelSection')?.classList.toggle('hidden', isDrop);
+  if (isDrop) {
+    $('giftReceiverSection')?.classList.add('hidden');
+  } else {
+    $('giftReceiverSection')?.classList.toggle('hidden', currentGiftDelivery !== 'DIRECT');
+  }
 
-  const activeBtnClass = 'py-2.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40';
-  const inactiveBtnClass = 'py-2.5 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition';
+  const activeBtnClass = 'py-2 px-2 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1 transition shadow-sm border border-pink-500/40';
+  const inactiveBtnClass = 'py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1 transition';
 
   const btnBal = $('giftTypeBtn-balance');
   const btnSvc = $('giftTypeBtn-service');
+  const btnDrop = $('giftTypeBtn-redpacket');
   if (btnBal) {
     btnBal.className = isBal ? activeBtnClass : inactiveBtnClass;
     btnBal.setAttribute('aria-selected', isBal ? 'true' : 'false');
   }
   if (btnSvc) {
-    btnSvc.className = !isBal ? activeBtnClass : inactiveBtnClass;
-    btnSvc.setAttribute('aria-selected', !isBal ? 'true' : 'false');
+    btnSvc.className = isSvc ? activeBtnClass : inactiveBtnClass;
+    btnSvc.setAttribute('aria-selected', isSvc ? 'true' : 'false');
+  }
+  if (btnDrop) {
+    btnDrop.className = isDrop ? activeBtnClass : inactiveBtnClass;
+    btnDrop.setAttribute('aria-selected', isDrop ? 'true' : 'false');
   }
   updateGiftCostDisplay();
 }
@@ -6103,6 +6126,8 @@ function updateGiftCostDisplay() {
   let cost = 0;
   if (currentGiftType === 'BALANCE') {
     cost = Math.max(0, Number($('giftBalanceAmount')?.value || 0));
+  } else if (currentGiftType === 'RED_PACKET') {
+    cost = Math.max(0, Number($('redPacketAmountInput')?.value || 0));
   } else {
     cost = Math.max(0, Number(_giftSelectedService?.original_price ?? _giftSelectedService?.price ?? 0));
   }
@@ -6111,6 +6136,12 @@ function updateGiftCostDisplay() {
 }
 
 async function submitCreateGift() {
+  if (currentGiftType === 'RED_PACKET') {
+    if (typeof window.submitCreateRedPacket === 'function') {
+      return window.submitCreateRedPacket();
+    }
+    return;
+  }
   const btn = $('submitCreateGiftBtn');
   if (btn) btn.disabled = true;
 
@@ -6255,6 +6286,9 @@ async function submitClaimVoucher() {
 }
 
 async function loadGiftsHistory() {
+  if (typeof window.renderRedPacketsHistory === 'function') {
+    window.renderRedPacketsHistory();
+  }
   const container = $('giftsHistoryContainer');
   if (!container) return;
   container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">در حال دریافت تاریخچه...</div>';

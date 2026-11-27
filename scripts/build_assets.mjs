@@ -18,7 +18,7 @@ const DIST_DIR = path.join(JS_DIR, 'dist');
 
 const USER_JS_ORDER = [
   'icons.js', 'i18n.js', 'utils.js', 'api.js', 'charts.js', 'shop.js',
-  'wallet.js', 'wheel.js', 'story.js', 'speedtest.js', 'app.js',
+  'wallet.js', 'wheel.js', 'story.js', 'speedtest.js', 'engagement.js', 'app.js',
 ];
 const ADMIN_JS_ORDER = [
   'icons.js', 'utils.js', 'api.js', 'charts.js', 'admin_charts.js', 'admin_nodes.js',

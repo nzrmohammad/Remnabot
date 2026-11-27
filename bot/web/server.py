@@ -159,6 +159,11 @@ async def api_rate_limit_middleware(request: web.Request, handler):
             "/api/user/spin",
             "/api/user/gift/claim",
             "/api/user/gift/create",
+            "/api/user/quests/claim",
+            "/api/user/wallet/transfer",
+            "/api/user/red-packet/create",
+            "/api/user/red-packet/claim",
+            "/api/user/red-packet/refund",
             "/api/user/wallet/redeem",
             "/api/user/wallet/redeem-voucher",
             "/api/user/topup/card",
@@ -282,7 +287,7 @@ async def cors_and_security_middleware(request: web.Request, handler):
         "connect-src 'self' https://api.telegram.org https://*.telegram.org https://ipwho.is https://speed.cloudflare.com; "
         "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org;"
     )
-    response.headers["X-Content-Type-Options"] = "nosniff" 
+    response.headers["X-Content-Type-Options"] = "nosniff"
 
     # Caching strategy for static assets (/static/...)
     if request.path.startswith("/static/"):
@@ -826,6 +831,14 @@ def create_web_app(
     app.router.add_post("/api/user/gift/create", routes_user.post_user_create_gift)
     app.router.add_post("/api/user/gift/claim", routes_user.post_user_claim_gift)
     app.router.add_get("/api/user/gifts", routes_user.get_user_gifts_history)
+    app.router.add_post("/api/user/quests/event", routes_user.post_user_quest_event)
+    app.router.add_post("/api/user/quests/claim", routes_user.post_user_quest_claim)
+    app.router.add_post("/api/user/theme", routes_user.post_user_set_theme)
+    app.router.add_post("/api/user/wallet/transfer", routes_user.post_user_wallet_transfer)
+    app.router.add_post("/api/user/red-packet/create", routes_user.post_user_red_packet_create)
+    app.router.add_post("/api/user/red-packet/claim", routes_user.post_user_red_packet_claim)
+    app.router.add_post("/api/user/red-packet/refund", routes_user.post_user_red_packet_refund)
+    app.router.add_get("/api/user/red-packets", routes_user.get_user_red_packets_history)
     app.router.add_post("/api/user/custom-plan/calculate", routes_user.post_user_custom_plan_calculate)
     app.router.add_post("/api/user/custom-plan/purchase", routes_user.post_user_custom_plan_purchase)
     app.router.add_get("/api/user/invoice/{order_id}", routes_user.get_user_invoice)

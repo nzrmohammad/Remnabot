@@ -628,6 +628,8 @@ async def build_active_subscription(
         burn_status = "idle"
         burn_text = "مصرف قابل توجهی در 3 روز اخیر ثبت نشده است."
 
+    from bot.services.engagement_service import compute_renewal_advisor
+
     burn_rate = {
         "avg_daily_gb": avg_3days_gb,
         "projected_days": projected_days,
@@ -635,6 +637,10 @@ async def build_active_subscription(
         "text": burn_text,
         "days_left_plan": days_left,
     }
+    burn_rate["advisor"] = compute_renewal_advisor(
+        burn_rate,
+        {"days_left": days_left, "traffic_remaining_gb": traffic_remaining_gb},
+    )
 
     primary_squad_uuid = None
     raw_primary_sqs = (

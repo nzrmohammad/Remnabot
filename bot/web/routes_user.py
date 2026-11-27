@@ -11,6 +11,16 @@ Modularized into domain-specific modules:
 """
 from bot.db.repositories.user_repo import UserRepository as UserRepository
 from bot.web.user_common import require_user as require_user
+from bot.web.user_engagement import (
+    get_user_red_packets_history,
+    post_user_quest_claim,
+    post_user_quest_event,
+    post_user_red_packet_claim,
+    post_user_red_packet_create,
+    post_user_red_packet_refund,
+    post_user_set_theme,
+    post_user_wallet_transfer,
+)
 from bot.web.user_nodes import (
     get_qr_code,
     get_user_avatar,
@@ -74,6 +84,14 @@ __all__ = [
     "post_user_set_birthday",
     "post_user_spin",
     "post_user_easter_egg",
+    "post_user_quest_event",
+    "post_user_quest_claim",
+    "post_user_set_theme",
+    "post_user_wallet_transfer",
+    "post_user_red_packet_create",
+    "post_user_red_packet_claim",
+    "post_user_red_packet_refund",
+    "get_user_red_packets_history",
     "post_user_revoke_sub",
     "post_user_kill_device",
     "post_user_validate_coupon",

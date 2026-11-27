@@ -431,6 +431,7 @@
               <div id="dashboardTodayUsed" class="text-sm font-extrabold t-accent mt-0.5 font-sans num-bidi" dir="ltr">0.00 GB</div>
             </div>
           </div>
+          <div id="dashboardRenewalAdvisorChip" class="hidden mt-2.5"></div>
         </div>
 
         <!-- Today's Per-Country Breakdown Card (Accordion Collapsible) -->
@@ -794,6 +795,18 @@
                 <b id="achieveSpinTickets" class="font-sans t-info font-bold" dir="rtl">0 عدد</b>
               </div>
             </div>
+
+            <!-- Weekly Quests Strip (Rewards Spin Tickets & Visual Badges Only) -->
+            <div id="userWeeklyQuestsSection" class="border-t border-card-border pt-2.5 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold t-main flex items-center gap-1.5">
+                  <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
+                  <span id="weeklyQuestsInlineTitle">مأموریت‌های هفتگی</span>
+                </span>
+                <span id="userWeeklyQuestsCount" dir="ltr" class="text-[11px] font-sans font-bold px-2 py-0.5 rounded-full card-inset border border-card-border t-accent">0 / 4</span>
+              </div>
+              <div id="userWeeklyQuestsList" class="space-y-1.5"></div>
+            </div>
           </div>
 
           <!-- Chart 2: Burn-Rate & Projected Expiry (پیش‌بینی هوشمند اتمام حجم) -->
@@ -816,6 +829,7 @@
                   <b id="repBurnProjectedDays" class="font-sans t-success text-xs" dir="rtl">-- روز</b>
                 </div>
               </div>
+              <div id="smartRenewalAdvisorBox" class="hidden card-inset rounded-xl p-3 border border-cyan-500/30 space-y-1.5"></div>
             </div>
           </div>
 
@@ -1242,15 +1256,19 @@
             </div>
           </div>
 
-          <!-- Quick Action Buttons: Charge & Gift -->
-          <div class="grid grid-cols-2 gap-2">
-            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-              <span class="inline-block">شارژ کیف پول</span>
+          <!-- Quick Action Buttons: Charge, Transfer & Gift -->
+          <div class="grid grid-cols-3 gap-1.5">
+            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span class="inline-block truncate">شارژ کیف پول</span>
             </button>
-            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-              <span class="inline-block">ارسال هدیه</span>
+            <button id="transferWalletBtn" type="button" onclick="window.openWalletTransferModal && window.openWalletTransferModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
+              <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span class="inline-block truncate">انتقال</span>
+            </button>
+            <button id="walletSendGiftBtn" type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
+              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span class="inline-block truncate">ارسال هدیه</span>
             </button>
           </div>
         </div>
@@ -1274,14 +1292,18 @@
             <span class="text-[11px] t-muted block mt-1">قابل استفاده برای خرید، تمدید اشتراک و بسته‌های حجمی و زمانی</span>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-card-border">
-            <button onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-              <span class="inline-block">شارژ کیف پول</span>
+          <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-card-border">
+            <button onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span class="inline-block truncate">شارژ کیف پول</span>
             </button>
-            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
-              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
-              <span class="inline-block">ارسال هدیه</span>
+            <button type="button" onclick="window.openWalletTransferModal && window.openWalletTransferModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
+              <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span class="inline-block truncate">انتقال</span>
+            </button>
+            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
+              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span class="inline-block truncate">ارسال هدیه</span>
             </button>
           </div>
         </div>
@@ -1364,6 +1386,9 @@
           <div class="flex items-center justify-center gap-2 mt-2.5">
             <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>کاربر فعال</span></span>
             <span id="profileAuthBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5"><img src="/static/img/icons/shield.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>حساب تأییدشده</span></span>
+          </div>
+          <div class="mt-2 flex justify-center">
+            <span id="profileChampionBadge" class="hidden px-3 py-1 rounded-full text-[11px] font-black s-warn-soft border border-amber-500/40 shadow-sm"></span>
           </div>
         </div>
 
@@ -2819,6 +2844,11 @@
             <span id="wheelTicketsBadge" class="badge-ticket inline-flex items-center gap-1">
               <img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /> <span id="wheelTicketsText">0 تیکت</span>
             </span>
+            <span class="text-slate-300 dark:text-slate-600">|</span>
+            <button id="wheelQuestsOpenBtn" type="button" onclick="window.openWeeklyQuestsModal && window.openWeeklyQuestsModal()" class="inline-flex items-center gap-1 text-cyan-600 dark:text-cyan-300 hover:underline bg-transparent border-0 p-0">
+              <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <span id="wheelQuestsBadge">مأموریت‌ها</span>
+            </button>
           </div>
         </div>
 
@@ -3027,6 +3057,7 @@
                 <svg class="w-3.5 h-3.5 t-accent shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
               </div>
               <span id="storyCardUsername" dir="ltr" class="text-[11px] text-sky-400 font-sans inline-block mt-0.5 font-medium">@user</span>
+              <span id="storyChampionBadge" class="hidden mt-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-400/40"></span>
             </div>
 
             <!-- Modern Metric Card -->
@@ -3056,6 +3087,12 @@
               </span>
             </div>
           </div>
+        </div>
+
+        <!-- Theme Swatches Picker (Loyalty Tier Unlocked Themes) -->
+        <div class="w-full space-y-1.5 text-right">
+          <span id="storyThemePickerLabel" class="text-[11px] t-muted font-bold block">🎨 تم کارت استوری و اشتراک:</span>
+          <div id="storyThemePickerBar" class="grid grid-cols-5 gap-1.5"></div>
         </div>
 
         <!-- Gamification Banner (پاداش دعوت در ازای استوری) -->
@@ -3912,15 +3949,18 @@
 
         <!-- Tab 1: New Gift View -->
         <div id="giftNewView" class="space-y-2.5 flex-1 overflow-y-auto pr-0.5">
-          <!-- Step 1: Select Gift Type (Balance or Service) -->
+          <!-- Step 1: Select Gift Type (Balance, Service, or Group Red Packet) -->
           <div class="space-y-1">
             <span class="text-[11px] t-muted block">نوع هدیه:</span>
-            <div class="grid grid-cols-2 gap-1.5">
-              <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
-                <img src="/static/img/icons/finance.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">شارژ کیف پول</span>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button type="button" onclick="window.setGiftType('BALANCE')" id="giftTypeBtn-balance" class="py-2 px-2 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1 transition shadow-sm border border-pink-500/40">
+                <img src="/static/img/icons/finance.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="truncate text-[11px]">شارژ کیف پول</span>
               </button>
-              <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2 px-3 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1.5 transition">
-                <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="whitespace-nowrap text-[11px] sm:text-xs">بسته اشتراک</span>
+              <button type="button" onclick="window.setGiftType('SERVICE')" id="giftTypeBtn-service" class="py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1 transition">
+                <img src="/static/img/icons/package.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="truncate text-[11px]">بسته اشتراک</span>
+              </button>
+              <button type="button" onclick="window.setGiftType('RED_PACKET')" id="giftTypeBtn-redpacket" class="py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs flex items-center justify-center gap-1 transition">
+                <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span class="truncate text-[11px]">پاکت گروهی</span>
               </button>
             </div>
           </div>
@@ -3955,8 +3995,35 @@
             <input type="hidden" id="giftServiceSelect" value="" />
           </div>
 
+          <!-- Group Red Packet Section -->
+          <div id="giftRedPacketSection" class="space-y-2 hidden">
+            <div class="space-y-1">
+              <span class="text-[11px] t-muted block">مبلغ کل پاکت شانس گروهی (تومان):</span>
+              <input type="number" id="redPacketAmountInput" min="10000" step="5000" placeholder="حداقل 5,000 به ازای هر نفر" class="input-base w-full p-2.5 rounded-xl text-xs outline-none num-bidi font-sans" oninput="window.updateGiftCostDisplay()" />
+              <div class="grid grid-cols-4 gap-1 text-[11px] font-sans font-medium">
+                <button type="button" onclick="window.setRedPacketAmountPreset(50000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-amber-500 transition num-bidi">50K</button>
+                <button type="button" onclick="window.setRedPacketAmountPreset(100000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-amber-500 transition num-bidi">100K</button>
+                <button type="button" onclick="window.setRedPacketAmountPreset(200000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-amber-500 transition num-bidi">200K</button>
+                <button type="button" onclick="window.setRedPacketAmountPreset(500000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-amber-500 transition num-bidi">500K</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="space-y-1">
+                <label for="redPacketSlotsInput" class="text-[11px] t-muted block">تعداد نفرات (2 تا 50):</label>
+                <input type="number" id="redPacketSlotsInput" min="2" max="50" value="5" class="input-base w-full p-2 rounded-xl text-xs outline-none num-bidi font-sans" />
+              </div>
+              <div class="space-y-1">
+                <span class="text-[11px] t-muted block">نحوه تقسیم مبلغ:</span>
+                <div class="grid grid-cols-2 gap-1">
+                  <button type="button" id="rpSplitBtn-random" onclick="window.setRedPacketSplitMode('RANDOM')" class="py-2 px-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs transition shadow-sm">تصادفی</button>
+                  <button type="button" id="rpSplitBtn-equal" onclick="window.setRedPacketSplitMode('EQUAL')" class="py-2 px-2 rounded-xl card-inset border border-card-border t-muted hover:t-main font-medium text-xs transition">مساوی</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Step 2: Select Delivery Model (Direct or Link) -->
-          <div class="space-y-1">
+          <div id="giftDeliveryModelSection" class="space-y-1">
             <span class="text-[11px] t-muted block">نحوه تحویل هدیه:</span>
             <div class="grid grid-cols-2 gap-1.5">
               <button type="button" onclick="window.setGiftDeliveryType('DIRECT')" id="giftDeliveryBtn-direct" class="py-2 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm border border-pink-500/40">
@@ -4031,7 +4098,11 @@
         </div>
 
         <!-- Tab 2: Gifts History (لیست هدایای ارسال شده) -->
-        <div id="giftHistoryView" class="space-y-2.5 flex-1 overflow-y-auto pr-0.5 hidden">
+        <div id="giftHistoryView" class="space-y-3 flex-1 overflow-y-auto pr-0.5 hidden">
+          <div class="space-y-1.5">
+            <span class="text-[11px] t-muted block">پاکت‌های شانس گروهی شما:</span>
+            <div id="giftRedPacketsHistoryList" class="space-y-2"></div>
+          </div>
           <div class="space-y-1.5">
             <span class="text-[11px] t-muted block">لیست هدایای ارسال شده شما:</span>
             <div id="giftsHistoryContainer" class="space-y-2 max-h-80 overflow-y-auto">
@@ -4308,6 +4379,71 @@
         </div>
       </div>
     </div>
+
+    <!-- ======================================================== -->
+    <!-- 17. MODAL: P2P WALLET TRANSFER (انتقال مستقیم کیف پول)  -->
+    <!-- ======================================================== -->
+    <div id="walletTransferModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeWalletTransferModal && window.closeWalletTransferModal()" class="fixed inset-0 modal-backdrop z-[85] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[390px] my-auto">
+        <button type="button" onclick="window.closeWalletTransferModal && window.closeWalletTransferModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن انتقال کیف پول"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <div class="flex items-center gap-2.5 pb-1">
+          <div class="w-10 h-10 rounded-2xl s-success-soft border border-emerald-500/30 flex items-center justify-center shrink-0">
+            <img src="/static/img/icons/finance.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+          </div>
+          <div>
+            <h3 id="walletTransferModalTitle" class="text-sm font-bold t-main">انتقال مستقیم کیف پول</h3>
+            <span id="walletTransferModalSubtitle" class="text-[11px] t-muted block mt-0.5">واریز آنی و بدون کارمزد به کیف پول کاربر دیگر</span>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <label for="transferRecipientInput" class="text-[11px] t-muted block">آیدی یا شناسه عددی تلگرام گیرنده:</label>
+          <input type="text" id="transferRecipientInput" placeholder="@username یا 123456789" dir="ltr" class="input-base w-full p-2.5 rounded-xl text-xs outline-none font-sans text-left" />
+        </div>
+        <div class="space-y-1.5">
+          <label for="transferAmountInput" class="text-[11px] t-muted block">مبلغ انتقال (حداقل 5,000 تومان):</label>
+          <input type="number" id="transferAmountInput" min="5000" max="50000000" step="5000" placeholder="50000" dir="ltr" class="input-base w-full p-2.5 rounded-xl text-xs outline-none font-sans num-bidi text-left" />
+          <div class="grid grid-cols-4 gap-1 text-[11px] font-sans font-medium">
+            <button type="button" onclick="window.setTransferAmountPreset(20000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-emerald-500 transition num-bidi">20K</button>
+            <button type="button" onclick="window.setTransferAmountPreset(50000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-emerald-500 transition num-bidi">50K</button>
+            <button type="button" onclick="window.setTransferAmountPreset(100000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-emerald-500 transition num-bidi">100K</button>
+            <button type="button" onclick="window.setTransferAmountPreset(200000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-emerald-500 transition num-bidi">200K</button>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <label for="transferNoteInput" class="text-[11px] t-muted block">یادداشت (اختیاری):</label>
+          <input type="text" id="transferNoteInput" maxlength="120" placeholder="بابت اشتراک یا تسویه دوستانه..." class="input-base w-full p-2.5 rounded-xl text-xs outline-none" />
+        </div>
+        <div class="card-inset p-2.5 rounded-2xl flex items-center justify-between text-[11px] t-muted">
+          <span>موجودی فعلی شما:</span>
+          <div class="font-sans font-bold t-success num-bidi">
+            <span id="transferCurrentBalance">0</span> <span>تومان</span>
+          </div>
+        </div>
+        <button id="submitWalletTransferBtn" type="button" onclick="window.submitWalletTransfer && window.submitWalletTransfer()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2">
+          <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+          <span>تایید و انتقال آنی</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 18. MODAL: WEEKLY QUESTS (مأموریت‌های هفتگی گردونه)      -->
+    <!-- ======================================================== -->
+    <div id="weeklyQuestsModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeWeeklyQuestsModal && window.closeWeeklyQuestsModal()" class="fixed inset-0 modal-backdrop z-[85] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
+      <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[390px] my-auto">
+        <button type="button" onclick="window.closeWeeklyQuestsModal && window.closeWeeklyQuestsModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن مأموریت‌های هفتگی"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <div class="flex items-center gap-2.5 pb-1 border-b border-card-border">
+          <div class="w-10 h-10 rounded-2xl s-accent-soft border border-cyan-500/30 flex items-center justify-center shrink-0">
+            <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+          </div>
+          <div>
+            <h3 id="weeklyQuestsTitle" class="text-sm font-bold t-main">مأموریت‌های هفتگی</h3>
+            <span id="weeklyQuestsModalSubtitle" class="text-[11px] t-muted block mt-0.5">با انجام فعالیت‌ها بلیت رایگان گردونه شانس بگیرید</span>
+          </div>
+        </div>
+        <div id="weeklyQuestsModalList" class="space-y-2 max-h-[60vh] overflow-y-auto pr-0.5"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Modular Frontend Architecture (DRY; Chart.js lazy-loaded via charts.js) -->
@@ -4321,6 +4457,7 @@
   <script src="/static/js/wheel.js" defer></script>
   <script src="/static/js/story.js" defer></script>
   <script src="/static/js/speedtest.js" defer></script>
+  <script src="/static/js/engagement.js" defer></script>
   <script src="/static/js/app.js" defer></script>
 </body>
 </html>

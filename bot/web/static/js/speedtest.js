@@ -689,6 +689,9 @@
 
       // Step 6: Open summary results modal if test finished without abort
       if (!ctrl.signal.aborted && runId === currentSpeedRunId) {
+        if (typeof window.recordWeeklyQuestEvent === 'function') {
+          window.recordWeeklyQuestEvent('speedtest');
+        }
         setTimeout(() => {
           if (runId !== currentSpeedRunId) return;
           openSpeedResultsModal({

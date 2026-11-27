@@ -883,7 +883,32 @@ async def get_user_me(request: web.Request) -> web.Response:
         except Exception as lb_err:
             logger.debug("Failed calculating user leaderboard: %s", lb_err)
 
+        from bot.services.engagement_service import (
+            compute_leaderboard_champion_badge,
+            compute_renewal_advisor,
+            get_weekly_quests_state,
+            resolve_card_themes,
+        )
         from bot.web.auth import build_signed_qr_url
+
+        if isinstance(active_sub, dict) and isinstance(active_sub.get("burn_rate"), dict):
+            active_sub["burn_rate"]["advisor"] = compute_renewal_advisor(
+                active_sub["burn_rate"],
+                active_sub,
+                custom_settings=store_settings,
+                lang=user_lang,
+            )
+
+        leaderboard_badge = compute_leaderboard_champion_badge(user_leaderboard, lang=user_lang)
+        quests_data = await get_weekly_quests_state(session, telegram_id, tz_name=tz_name, lang=user_lang)
+        card_themes_data = resolve_card_themes(
+            ((loyalty_data or {}).get("tier_id") or (loyalty_data or {}).get("id") or "bronze")
+            if isinstance(locals().get("loyalty_data"), dict)
+            else "bronze",
+            getattr(db_user, "card_theme", None),
+            lang=user_lang,
+        )
+
         bot_token = str(request.app.get("bot_token", "") or "")
         referral_qr_url = build_signed_qr_url(ref_link, bot_token) if (ref_link and bot_token) else ""
 
@@ -923,6 +948,8 @@ async def get_user_me(request: web.Request) -> web.Response:
                 "photo_url": user_auth.get("photo_url", ""),
                 "is_admin": user_auth.get("is_admin", False),
                 "auto_renew": bool(getattr(db_user, "auto_renew", False)),
+                "card_theme": card_themes_data["selected"],
+                "leaderboard_badge": leaderboard_badge,
             },
             "settings": user_settings,
             "accounts": accounts_list,
@@ -939,6 +966,9 @@ async def get_user_me(request: web.Request) -> web.Response:
             "wheel_status": wheel_status,
             "achievements": achievements_data,
             "leaderboard": user_leaderboard,
+            "leaderboard_badge": leaderboard_badge,
+            "quests": quests_data,
+            "card_themes": card_themes_data,
             "loyalty": loyalty_data,
             "custom_plan_settings": {
                 "enabled": store_settings.custom_plan_enabled,

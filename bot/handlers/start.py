@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from bot.common.helpers import format_channel_link, matches_channel
 from bot.config import get_settings
-from bot.db.models import Campaign, GiftCard
+from bot.db.models import Campaign, GiftCard, RedPacket
 from bot.db.repositories.user_repo import UserRepository
 from bot.handlers.auth import try_auto_verify_from_panel
 from bot.keyboards.inline import (
@@ -115,6 +115,20 @@ async def cmd_start(
                                 == message.from_user.username.lstrip("@").strip().lower()
                             ):
                                 has_invite = True
+                elif param.startswith("drop_"):
+                    drop_code = param.removeprefix("drop_").strip().upper()
+                    if drop_code:
+                        rp_row = (
+                            await session.execute(
+                                select(RedPacket).where(
+                                    RedPacket.code == drop_code,
+                                    RedPacket.is_refunded.is_(False),
+                                    RedPacket.claimed_count < RedPacket.max_claims,
+                                )
+                            )
+                        ).scalar_one_or_none()
+                        if rp_row is not None and rp_row.sender_telegram_id != message.from_user.id:
+                            has_invite = True
             if not has_invite:
                 from aiogram.utils.keyboard import InlineKeyboardBuilder
                 kb = InlineKeyboardBuilder()
@@ -187,6 +201,32 @@ async def cmd_start(
                 await message.answer(
                     f"⚠️ <b>خطا در دریافت هدیه:</b>\n{escape(str(res.get('message', 'کارت هدیه نامعتبر است.')))}",
                     parse_mode="HTML"
+                )
+        elif param.startswith("drop_"):
+            drop_code = param.removeprefix("drop_").strip().upper()
+            from bot.services.engagement_service import claim_red_packet
+            cache_obj = cache or getattr(bot, "cache", None)
+            res = await claim_red_packet(
+                session=session,
+                code=drop_code,
+                claimer_telegram_id=message.from_user.id,
+                claimer_name=message.from_user.full_name or message.from_user.username,
+                bot=bot,
+                cache=cache_obj,
+                lang=getattr(user, "language", None) or "fa",
+            )
+            if res.get("ok"):
+                await message.answer(
+                    f"🧧 <b>پاکت شانس گروهی دریافت شد!</b>\n\n"
+                    f"👤 از طرف: <b>{escape(str(res.get('sender_name') or 'دوست شما'))}</b>\n"
+                    f"✨ {escape(str(res.get('message') or ''))}\n"
+                    f"👛 موجودی فعلی: <b>{int(res.get('new_balance') or 0):,} تومان</b>",
+                    parse_mode="HTML",
+                )
+            else:
+                await message.answer(
+                    f"⚠️ <b>خطا در دریافت پاکت شانس:</b>\n{escape(str(res.get('message', 'پاکت شانس نامعتبر است.')))}",
+                    parse_mode="HTML",
                 )
         elif param == "verify_phone":
             from aiogram.types import KeyboardButton, ReplyKeyboardMarkup

@@ -98,6 +98,7 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
     spin_tickets: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    card_theme: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -657,6 +658,96 @@ class SupportChatMessage(Base):
     text: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), index=True
+    )
+
+
+class RedPacket(Base):
+    """Group gift / Red Packet splitting wallet balance across multiple recipients."""
+
+    __tablename__ = "red_packets"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    sender_telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
+    sender_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    split_mode: Mapped[str] = mapped_column(String(16), default="RANDOM")  # "EQUAL" | "RANDOM"
+    total_amount: Mapped[int] = mapped_column(BigInteger)
+    remaining_amount: Mapped[int] = mapped_column(BigInteger)
+    max_claims: Mapped[int] = mapped_column(Integer)
+    claimed_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    message: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    is_refunded: Mapped[bool] = mapped_column(Boolean, default=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class RedPacketClaim(Base):
+    """Per-user claim record ensuring strict single claim per participant per RedPacket."""
+
+    __tablename__ = "red_packet_claims"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    packet_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("red_packets.id", ondelete="CASCADE"), index=True
+    )
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
+    claimer_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    amount: Mapped[int] = mapped_column(BigInteger)
+    claimed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("packet_id", "telegram_id", name="uq_red_packet_claim_user"),
+    )
+
+
+class WalletTransfer(Base):
+    """Direct Peer-to-Peer wallet balance transfer ledger."""
+
+    __tablename__ = "wallet_transfers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sender_telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
+    receiver_telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
+    amount: Mapped[int] = mapped_column(BigInteger)
+    note: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
+
+
+class WeeklyQuestProgress(Base):
+    """Weekly interactive quest tracker rewarding Lucky Wheel spin tickets only."""
+
+    __tablename__ = "weekly_quest_progress"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.telegram_id", ondelete="CASCADE"), index=True
+    )
+    week_key: Mapped[str] = mapped_column(String(16), index=True)
+    quest_id: Mapped[str] = mapped_column(String(32))
+    progress: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    target: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    is_claimed: Mapped[bool] = mapped_column(Boolean, default=False)
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("telegram_id", "week_key", "quest_id", name="uq_weekly_quest_user_week"),
     )
 
 

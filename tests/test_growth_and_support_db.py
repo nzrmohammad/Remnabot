@@ -387,7 +387,7 @@ async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
         tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
     finally:
         con.close()
-    assert {"users", "support_chat_messages", "alembic_version"} <= tables
+    assert {"users", "support_chat_messages", "red_packets", "red_packet_claims", "wallet_transfers", "weekly_quest_progress", "alembic_version"} <= tables
 
     # 2. Pre-Alembic legacy DB (created at 0001 tables, but missing alembic_version) auto-stamps baseline then upgrades
     legacy_db = tmp_path / "legacy_mig.db"
@@ -413,7 +413,8 @@ async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
     finally:
         con.close()
     assert "support_chat_messages" in tables_legacy
-    assert rev == ("0003_referral_commission_total",)
+    assert {"red_packets", "red_packet_claims", "wallet_transfers", "weekly_quest_progress"} <= tables_legacy
+    assert rev == ("0004_engagement_features",)
     con_cols = sqlite3.connect(legacy_db)
     try:
         ref_cols_legacy = {r[1] for r in con_cols.execute("PRAGMA table_info(referral_rewards)").fetchall()}
@@ -421,7 +422,7 @@ async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
         con_cols.close()
     assert "commission_toman" in ref_cols_legacy
 
-    # 3. Existing DB created via create_all (has BOTH users and support_chat_messages, no alembic_version) must NOT crash
+    # 3. Existing DB created via create_all (has all current tables, no alembic_version) must NOT crash
     pre_existing_db = tmp_path / "pre_existing_all.db"
     pre_existing_url = f"sqlite+aiosqlite:///{str(pre_existing_db).replace(chr(92), '/')}"
     from sqlalchemy.ext.asyncio import create_async_engine
@@ -439,7 +440,7 @@ async def test_ensure_schema_migrated_fresh_and_legacy_db(tmp_path):
         rev_existing = con.execute("SELECT version_num FROM alembic_version").fetchone()
     finally:
         con.close()
-    assert rev_existing == ("0003_referral_commission_total",)
+    assert rev_existing == ("0004_engagement_features",)
 
 
 @pytest.mark.anyio

@@ -8,9 +8,18 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import jdatetime
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
-from bot.db.models import AdminLog, CardAutoInvoice, CryptoInvoice, Order, Topup
+from bot.db.models import (
+    AdminLog,
+    CardAutoInvoice,
+    CryptoInvoice,
+    Order,
+    RedPacket,
+    RedPacketClaim,
+    Topup,
+    WalletTransfer,
+)
 from bot.locales.texts import normalize_lang
 
 logger = logging.getLogger(__name__)
@@ -233,6 +242,95 @@ async def fetch_user_transactions(
                 "date_formatted": d_fmt,
                 "timestamp": cr_dt.timestamp() if cr_dt else 0,
             })
+
+        try:
+            transfer_res = await session.execute(
+                select(WalletTransfer)
+                .where(
+                    or_(
+                        WalletTransfer.sender_telegram_id == telegram_id,
+                        WalletTransfer.receiver_telegram_id == telegram_id,
+                    )
+                )
+                .order_by(WalletTransfer.id.desc())
+                .limit(20)
+            )
+            for tr in transfer_res.scalars().all():
+                tr_dt = _as_utc(tr.created_at)
+                is_pos = tr.receiver_telegram_id == telegram_id
+                d_jalali, d_fmt = _format_tx_date(tr.created_at, tz_name, norm_lang)
+                history_items.append({
+                    "id": f"tr_{tr.id}",
+                    "type": "p2p_transfer",
+                    "title": (
+                        ("دریافت انتقال کیف پول" if is_pos else "انتقال کیف پول به کاربر")
+                        if is_fa
+                        else ("Received Wallet Transfer" if is_pos else "Sent Wallet Transfer")
+                    ),
+                    "amount": tr.amount,
+                    "amount_formatted": f"{tr.amount:,} {unit_label}",
+                    "is_positive": is_pos,
+                    "status": "موفق" if is_fa else "Completed",
+                    "raw_status": "paid",
+                    "status_color": "emerald" if is_pos else "rose",
+                    "date_jalali": d_jalali,
+                    "date_formatted": d_fmt,
+                    "timestamp": tr_dt.timestamp() if tr_dt else 0,
+                })
+
+            rp_sent_res = await session.execute(
+                select(RedPacket)
+                .where(RedPacket.sender_telegram_id == telegram_id)
+                .order_by(RedPacket.id.desc())
+                .limit(15)
+            )
+            for rp in rp_sent_res.scalars().all():
+                rp_dt = _as_utc(rp.created_at)
+                d_jalali, d_fmt = _format_tx_date(rp.created_at, tz_name, norm_lang)
+                history_items.append({
+                    "id": f"rp_{rp.id}",
+                    "type": "red_packet_send",
+                    "title": (
+                        f"ایجاد پاکت شانس گروهی ({rp.claimed_count}/{rp.max_claims})"
+                        if is_fa
+                        else f"Created Group Red Packet ({rp.claimed_count}/{rp.max_claims})"
+                    ),
+                    "amount": rp.total_amount,
+                    "amount_formatted": f"{rp.total_amount:,} {unit_label}",
+                    "is_positive": False,
+                    "status": ("مسترد شده" if is_fa else "Refunded") if rp.is_refunded else ("ارسال شده" if is_fa else "Created"),
+                    "raw_status": "refunded" if rp.is_refunded else "paid",
+                    "status_color": "purple" if rp.is_refunded else "rose",
+                    "date_jalali": d_jalali,
+                    "date_formatted": d_fmt,
+                    "timestamp": rp_dt.timestamp() if rp_dt else 0,
+                })
+
+            rp_claim_res = await session.execute(
+                select(RedPacketClaim)
+                .where(RedPacketClaim.telegram_id == telegram_id)
+                .order_by(RedPacketClaim.id.desc())
+                .limit(15)
+            )
+            for cl in rp_claim_res.scalars().all():
+                cl_dt = _as_utc(cl.claimed_at)
+                d_jalali, d_fmt = _format_tx_date(cl.claimed_at, tz_name, norm_lang)
+                history_items.append({
+                    "id": f"rpc_{cl.id}",
+                    "type": "red_packet_claim",
+                    "title": "دریافت پاکت شانس گروهی" if is_fa else "Claimed Group Red Packet",
+                    "amount": cl.amount,
+                    "amount_formatted": f"{cl.amount:,} {unit_label}",
+                    "is_positive": True,
+                    "status": "دریافت شد" if is_fa else "Claimed",
+                    "raw_status": "paid",
+                    "status_color": "emerald",
+                    "date_jalali": d_jalali,
+                    "date_formatted": d_fmt,
+                    "timestamp": cl_dt.timestamp() if cl_dt else 0,
+                })
+        except Exception as eng_hist_err:
+            logger.debug("Optional engagement history query skipped: %s", eng_hist_err)
 
         history_items.sort(key=lambda x: x["timestamp"], reverse=True)
     except Exception as exc:

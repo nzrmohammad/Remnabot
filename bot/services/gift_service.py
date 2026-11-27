@@ -136,7 +136,7 @@ async def create_gift(
             from aiogram.utils.keyboard import InlineKeyboardBuilder
             kb = InlineKeyboardBuilder()
             kb.button(text="🎁 دریافت و باز کردن هدیه", url=share_url)
-            
+
             gift_title = (
                 f"{amount:,} تومان اعتبار"
                 if gift_type == "BALANCE"
@@ -186,7 +186,7 @@ async def _claim_gift_core(
 ) -> dict[str, Any]:
     """Internal core gift claiming logic."""
     clean_code = code.strip().upper()
-    
+
     # Atomic lookup with row lock
     res = await session.execute(
         select(GiftCard).where(GiftCard.code == clean_code).with_for_update()
@@ -445,12 +445,26 @@ async def redeem_code_to_wallet(
     session_factory: Any = None,
     cache: Any = None,
 ) -> dict[str, Any]:
-    """Unified SSOT helper to redeem either a credit voucher coupon or a friend GiftCard."""
+    """Unified SSOT helper to redeem either a credit voucher coupon, RedPacket, or a friend GiftCard."""
+    from bot.db.models import RedPacket
     from bot.db.repositories.coupon_repo import CouponRepository
 
     clean_code = code.strip().upper()
     if not clean_code:
         return {"ok": False, "amount": 0, "message": "کد وارد شده خالی است."}
+
+    # 0. Check if it is a Group Red Packet code (DROP-...)
+    rp_res = await session.execute(select(RedPacket.id).where(RedPacket.code == clean_code))
+    if rp_res.scalar_one_or_none() is not None:
+        from bot.services.engagement_service import claim_red_packet
+        return await claim_red_packet(
+            session=session,
+            code=clean_code,
+            claimer_telegram_id=telegram_id,
+            claimer_name=username,
+            bot=bot,
+            cache=cache,
+        )
 
     # 1. First check if it exists in GiftCard table (friend gift card for balance or service)
     gift_res = await session.execute(select(GiftCard.id).where(GiftCard.code == clean_code))

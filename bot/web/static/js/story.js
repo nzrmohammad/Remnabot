@@ -24,10 +24,16 @@ function setupStoryCard() {
       const rewardVal = window.lastUserData?.user?.referral_reward_gb ?? (document.getElementById('storyCardRewardGb')?.innerText || '5');
       rewardText.innerHTML = `<img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" />با این کارت <span id="storyCardRewardGb" class="font-sans">${toEnglishDigits(rewardVal)}</span> گیگابایت هدیه بگیرید`;
     }
+    if (typeof window.renderEngagementFeatures === 'function' && window.lastUserData) {
+      window.renderEngagementFeatures(window.lastUserData);
+    }
     storyModal.open();
   };
 
   shareTelegramStoryBtn?.addEventListener('click', () => {
+    if (typeof window.recordWeeklyQuestEvent === 'function') {
+      window.recordWeeklyQuestEvent('story_share');
+    }
     (window.api?.haptic || window.hapticFeedback || hapticFeedback)('light');
     const botUser = window.lastUserData?.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
     const fallbackRef = window.buildRefLink(botUser, window.lastUserData?.user?.id);
@@ -69,6 +75,9 @@ function setupStoryCard() {
   });
 
   downloadStoryBtn?.addEventListener('click', () => {
+    if (typeof window.recordWeeklyQuestEvent === 'function') {
+      window.recordWeeklyQuestEvent('story_share');
+    }
     const canvas = document.createElement('canvas');
     canvas.width = 600;
     canvas.height = 780;
@@ -78,16 +87,24 @@ function setupStoryCard() {
       return;
     }
 
+    const activeTheme = typeof window.getActiveStoryCanvasTheme === 'function' ? window.getActiveStoryCanvasTheme() : null;
+    const bgFrom = activeTheme?.bg_from || '#0b0f19';
+    const bgMid = activeTheme?.bg_mid || '#131b2e';
+    const bgTo = activeTheme?.bg_to || '#1e1b4b';
+    const borderCol = activeTheme?.border_rgba || 'rgba(99, 102, 241, 0.4)';
+    const accentCol = activeTheme?.accent || '#38bdf8';
+    const secCol = activeTheme?.secondary || '#6366f1';
+
     // Modern glassmorphism gradient card background
     const bgGrad = ctx.createLinearGradient(0, 0, 600, 780);
-    bgGrad.addColorStop(0, '#0b0f19');
-    bgGrad.addColorStop(0.5, '#131b2e');
-    bgGrad.addColorStop(1, '#1e1b4b');
+    bgGrad.addColorStop(0, bgFrom);
+    bgGrad.addColorStop(0.5, bgMid);
+    bgGrad.addColorStop(1, bgTo);
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 600, 780);
 
     // Subtle border
-    ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+    ctx.strokeStyle = borderCol;
     ctx.lineWidth = 4;
     ctx.strokeRect(12, 12, 576, 756);
 
@@ -101,8 +118,11 @@ function setupStoryCard() {
       ctx.arc(gx, gy, r, 0, Math.PI * 2);
       ctx.fill();
     };
-    drawGlow(520, 80, 140, 'rgba(6, 182, 212, 0.18)');
-    drawGlow(80, 700, 160, 'rgba(99, 102, 241, 0.22)');
+    ctx.save();
+    ctx.globalAlpha = 0.22;
+    drawGlow(520, 80, 140, accentCol);
+    drawGlow(80, 700, 160, secCol);
+    ctx.restore();
 
     // Header bar
     ctx.textAlign = 'center';
@@ -167,9 +187,16 @@ function setupStoryCard() {
     ctx.font = 'bold 24px Vazirmatn, sans-serif';
     ctx.fillText(sName, 300, 250);
 
-    ctx.fillStyle = '#60a5fa';
+    ctx.fillStyle = accentCol;
     ctx.font = '15px Vazirmatn, sans-serif';
     ctx.fillText(sUser, 300, 276);
+
+    const champBadge = typeof window.getActiveChampionBadge === 'function' ? window.getActiveChampionBadge() : null;
+    if (champBadge?.title) {
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 14px Vazirmatn, sans-serif';
+      ctx.fillText(champBadge.title, 300, 299);
+    }
 
     // Metrics container box
     ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';

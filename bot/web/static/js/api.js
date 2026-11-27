@@ -379,11 +379,49 @@ const api = {
     return this.post('/api/user/easter-egg', {});
   },
 
+  async recordQuestEvent(event) {
+    return this.post('/api/user/quests/event', { event });
+  },
+
+  async claimWeeklyQuest(questId) {
+    return this.post('/api/user/quests/claim', { quest_id: questId });
+  },
+
+  async setCardTheme(themeId) {
+    return this.post('/api/user/theme', { theme_id: themeId });
+  },
+
+  async transferWalletBalance(payload) {
+    return this.post('/api/user/wallet/transfer', payload);
+  },
+
+  async createRedPacket(payload) {
+    return this.post('/api/user/red-packet/create', payload);
+  },
+
+  async claimRedPacket(code) {
+    return this.post('/api/user/red-packet/claim', { code });
+  },
+
+  async refundRedPacket(packetId) {
+    return this.post('/api/user/red-packet/refund', { packet_id: packetId });
+  },
+
+  async getRedPacketsHistory() {
+    return this.get('/api/user/red-packets');
+  },
+
   async getNodes() {
+    if (typeof window !== 'undefined' && typeof window.recordWeeklyQuestEvent === 'function') {
+      window.recordWeeklyQuestEvent('nodes_check');
+    }
     return this.get(`/api/user/nodes?t=${Date.now()}`);
   },
 
   async getIpInfo() {
+    if (typeof window !== 'undefined' && typeof window.recordWeeklyQuestEvent === 'function') {
+      window.recordWeeklyQuestEvent('nodes_check');
+    }
     return this.get('/api/user/ip_info');
   },
 

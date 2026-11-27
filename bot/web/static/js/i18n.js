@@ -125,11 +125,20 @@
     // Loyalty Tiers
     loyalty_modal_title: 'Loyalty Levels & VIP Tiers',
 
-    // Modals
+    // Modals & Engagement
     revoke_title: 'Regenerate subscription link?',
     revoke_confirm_btn: 'Confirm & Regenerate',
     cancel_btn: 'Cancel',
     close_btn: 'Close',
+    charge_wallet_btn: 'Top Up',
+    send_gift_btn: 'Gift',
+    transfer_wallet_btn: 'Transfer',
+    weekly_quests_title: 'Weekly Quests',
+    weekly_quests_subtitle: 'Complete quests to earn free Lucky Wheel spin tickets',
+    transfer_modal_title: 'Direct Wallet Transfer',
+    transfer_modal_subtitle: 'Instant P2P Toman transfer to another user',
+    story_theme_title: 'Card & Story Visual Theme:',
+    red_packet_tab: 'Red Packet',
   };
 
   // Automatic lookup for legacy Persian notifications / alerts when user switches UI to English
@@ -185,6 +194,15 @@
     ['#revokeModal h3', 'revoke_title'],
     ['#cancelRevokeBtn', 'cancel_btn'],
     ['#cardAutoInitialBox button > span', 'card_auto_create'],
+    ['#chargeWalletBtn span:last-child', 'charge_wallet_btn'],
+    ['#walletSendGiftBtn span:last-child', 'send_gift_btn'],
+    ['#transferWalletBtn span:last-child', 'transfer_wallet_btn'],
+    ['#weeklyQuestsTitle', 'weekly_quests_title'],
+    ['#weeklyQuestsModalSubtitle', 'weekly_quests_subtitle'],
+    ['#walletTransferModalTitle', 'transfer_modal_title'],
+    ['#walletTransferModalSubtitle', 'transfer_modal_subtitle'],
+    ['#storyThemePickerLabel', 'story_theme_title'],
+    ['#giftTypeBtn-redpacket span:last-child', 'red_packet_tab'],
   ];
 
   function translateUiPhrase(text) {
