@@ -1049,10 +1049,12 @@ async def test_admin_settings_full(session_factory):
 async def test_admin_user_wallet_modify(session_factory):
     from aiohttp.test_utils import make_mocked_request
 
-    from bot.db.models import Wallet
+    from bot.db.models import User, Wallet
     from bot.web.routes_admin import post_admin_user_wallet
 
     async with session_factory() as session:
+        session.add(User(telegram_id=12345, username="wallet_u"))
+        await session.flush()
         session.add(Wallet(telegram_id=12345, balance=50000))
         await session.commit()
 
@@ -1364,6 +1366,7 @@ async def test_admin_topups_listing(session_factory):
 
     async with session_factory() as session:
         session.add(User(telegram_id=55555, username="payer_user"))
+        await session.flush()
         wallet_repo = WalletRepository(session)
         await wallet_repo.create_topup(telegram_id=55555, amount=75000, receipt_hash="hash-receipt-123")
         await session.commit()
@@ -1492,12 +1495,14 @@ async def test_post_user_purchase_commits_session_without_coupon(session_factory
     from aiohttp.test_utils import make_mocked_request
     from sqlalchemy import select
 
-    from bot.db.models import Order, Service, Wallet
+    from bot.db.models import Order, Service, User, Wallet
     from bot.web.user_shop import post_user_purchase
 
     async with session_factory() as session:
+        session.add(User(telegram_id=33333, username="u33333"))
         svc = Service(name="Plan Test", traffic_gb=20, duration_days=30, price=50000, is_active=True)
         session.add(svc)
+        await session.flush()
         wallet = Wallet(telegram_id=33333, balance=100000)
         session.add(wallet)
         await session.commit()

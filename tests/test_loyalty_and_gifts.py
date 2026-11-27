@@ -279,6 +279,11 @@ async def test_gift_subscription_provisioning_for_new_user_without_wallet(sessio
     async with session_factory() as session:
         sender_id = 991122
         claimer_id = 993344
+        session.add_all([
+            User(telegram_id=sender_id, username="sender991122"),
+            User(telegram_id=claimer_id, username="claimer993344"),
+        ])
+        await session.flush()
 
         sender_w = Wallet(telegram_id=sender_id, balance=120_000)
         session.add(sender_w)

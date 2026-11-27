@@ -93,21 +93,31 @@ async def session_factory(shared_db_engine):
     db_url = os.environ.get("DATABASE_URL", "")
     is_pg = db_url.startswith("postgresql")
     if not is_pg:
+        async with shared_db_engine.connect() as conn:
+            ac_conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
+            await ac_conn.execute(text("PRAGMA foreign_keys=ON"))
         async with shared_db_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     factory = async_sessionmaker(shared_db_engine, expire_on_commit=False)
     try:
         yield factory
     finally:
-        async with shared_db_engine.begin() as conn:
-            if is_pg:
+        if is_pg:
+            async with shared_db_engine.begin() as conn:
                 table_names = ", ".join(f'"{t.name}"' for t in Base.metadata.sorted_tables)
                 if table_names:
                     await conn.execute(text(f"TRUNCATE TABLE {table_names} RESTART IDENTITY CASCADE"))
-            else:
-                await conn.execute(text("PRAGMA foreign_keys=OFF"))
-                try:
+        else:
+            # SQLite ignores PRAGMA foreign_keys changes inside DML transactions,
+            # so toggle it via AUTOCOMMIT outside the delete transaction.
+            async with shared_db_engine.connect() as conn:
+                ac_conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
+                await ac_conn.execute(text("PRAGMA foreign_keys=OFF"))
+            try:
+                async with shared_db_engine.begin() as conn:
                     for table in reversed(Base.metadata.sorted_tables):
                         await conn.execute(table.delete())
-                finally:
-                    await conn.execute(text("PRAGMA foreign_keys=ON"))
+            finally:
+                async with shared_db_engine.connect() as conn:
+                    ac_conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
+                    await ac_conn.execute(text("PRAGMA foreign_keys=ON"))

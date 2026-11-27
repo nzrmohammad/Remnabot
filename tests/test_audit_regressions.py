@@ -119,6 +119,7 @@ async def test_reconcile_only_disables_new_accounts_not_renewals(session_factory
     async with session_factory() as session:
         user = User(telegram_id=tid, username="stale_user", full_name="Stale")
         session.add(user)
+        await session.flush()
         # Order 1: Brand new account that crashed mid-purchase
         new_stale_order = Order(
             telegram_id=tid,
@@ -786,6 +787,9 @@ async def test_reconcile_skips_revert_when_newer_paid_order_exists(session_facto
     panel_uid = 778899
 
     async with session_factory() as session:
+        session.add(User(telegram_id=tid, username="u665545"))
+        await session.flush()
+
         # 1. Stale pending order with snapshot
         snap = json.dumps({"expireAt": "2026-05-01T00:00:00Z", "trafficLimitBytes": 10000000000, "status": "ACTIVE"})
         old_order = Order(
@@ -900,6 +904,7 @@ async def test_auto_renew_targets_expiring_account_multi_account(session_factory
     async with session_factory() as session:
         session.add(User(telegram_id=tid, auto_renew=True, is_banned=False))
         session.add(Service(id=10, name="Base Plan 30D", price=50000, duration_days=30, traffic_gb=50, is_active=True))
+        await session.flush()
         session.add(Wallet(telegram_id=tid, balance=100000))
         # Last paid order for account 2
         session.add(Order(

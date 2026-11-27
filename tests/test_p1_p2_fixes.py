@@ -189,6 +189,8 @@ async def test_html_escaping_in_admin_replies_wallet_and_menu_truncation(session
 
     # Wallet adjustment escapes reason
     async with session_factory() as s:
+        s.add(User(telegram_id=3001, username="u3001"))
+        await s.flush()
         s.add(Wallet(telegram_id=3001, balance=0))
         await s.commit()
     mock_bot.send_message.reset_mock()

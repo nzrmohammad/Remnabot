@@ -175,6 +175,7 @@ async def test_send_invoice_to_telegram_sends_png_photo_and_handles_invalid_fall
     tid = 716253
     async with session_factory() as session:
         session.add(User(telegram_id=tid, username="inv_u"))
+        await session.flush()
         order = Order(
             id=701,
             telegram_id=tid,

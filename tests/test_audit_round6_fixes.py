@@ -149,7 +149,9 @@ async def test_invoice_order_topup_namespace_and_html_escape(session_factory):
     """Invoices for orders vs topups must not collide and must escape HTML in Telegram notification."""
     async with session_factory() as session:
         user = User(telegram_id=888899, username="test_esc", full_name="<b>John</b> Doe")
-        session.add(user)
+        svc = Service(id=10, name="Test <VIP> Plan", price=100000, duration_days=30, traffic_gb=50, is_active=True)
+        session.add_all([user, svc])
+        await session.flush()
 
         order = Order(
             telegram_id=888899,

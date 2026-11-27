@@ -337,10 +337,12 @@ async def test_srh_incy_no_duplicate_os_and_v2raytun_detection():
 async def test_payment_methods_chart_includes_all_gateways(session_factory):
     """Verify payment distribution includes manual card, auto card, TON, TRX, POL, and Stars."""
     from datetime import datetime, timezone
-    from bot.db.models import CardAutoInvoice, CryptoInvoice, Topup, TopupStatus
+    from bot.db.models import CardAutoInvoice, CryptoInvoice, Topup, TopupStatus, User
     from bot.web.admin_overview_charts import _calc_retention_and_payments
 
     async with session_factory() as session:
+        session.add_all([User(telegram_id=101, username="u101"), User(telegram_id=102, username="u102")])
+        await session.flush()
         session.add(Topup(telegram_id=101, amount=100_000, status=TopupStatus.APPROVED.value, receipt_hash="photo:abc"))
         session.add(Topup(telegram_id=102, amount=50_000, status=TopupStatus.APPROVED.value, receipt_hash="stars:xyz"))
         session.add(CardAutoInvoice(

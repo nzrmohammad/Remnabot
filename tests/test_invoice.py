@@ -4,16 +4,17 @@ from __future__ import annotations
 import pytest
 from unittest.mock import AsyncMock
 
-from bot.db.models import Order, OrderStatus, User
+from bot.db.models import Order, OrderStatus, Service, User
 from bot.services.invoice_service import generate_invoice_number, get_order_invoice_data, send_invoice_to_telegram
 
 
 @pytest.mark.anyio
 async def test_get_order_invoice_data_and_telegram_dispatch(session_factory):
     async with session_factory() as session:
-        # Create user
+        # Create user and service
         user = User(telegram_id=987654321, username="test_buyer", full_name="خریدار تست", phone_number="09123456789")
-        session.add(user)
+        svc = Service(id=1, name="بسته طلایی 50 گیگ 30 روزه", price=150000, duration_days=30, traffic_gb=50)
+        session.add_all([user, svc])
         await session.flush()
 
         # Create paid order

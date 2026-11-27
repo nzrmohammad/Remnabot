@@ -19,6 +19,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from bot.db.models import (
     Base,
     Order,
+    Service,
+    User,
 )
 from bot.db.repositories.coupon_repo import CouponRepository
 from bot.db.repositories.referral_repo import ReferralRepository
@@ -83,6 +85,11 @@ async def test_coupon_validation_and_usage(async_session: AsyncSession):
     await repo.toggle_active(c_percent.id)  # re-activate
 
     # 5. Usage tracking & per-user limit
+    async_session.add_all([
+        User(telegram_id=111, username="coupon_u111"),
+        Service(id=1, name="Test Plan", price=80_000, duration_days=30, traffic_gb=20, is_active=True),
+    ])
+    await async_session.flush()
     order = Order(
         telegram_id=111,
         service_id=1,
@@ -434,16 +441,16 @@ async def test_insufficient_balance_allows_service_view_and_coupon_flow(async_se
     from bot.db.models import Service, Wallet
     from bot.handlers.service_request import _render_buy_confirm, service_view
 
+    u_repo = UserRepository(async_session)
+    user = await u_repo.get_or_create(99002, "poor_user")
+    await u_repo.set_language(user, "fa")
+
     w = Wallet(telegram_id=99002, balance=0)
     async_session.add(w)
 
     svc = Service(name="Expensive Plan", price=100_000, duration_days=30, traffic_gb=50, is_active=True)
     async_session.add(svc)
     await async_session.flush()
-
-    u_repo = UserRepository(async_session)
-    user = await u_repo.get_or_create(99002, "poor_user")
-    await u_repo.set_language(user, "fa")
 
     call = MagicMock(spec=CallbackQuery)
     user_mock = MagicMock()

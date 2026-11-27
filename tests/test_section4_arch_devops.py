@@ -299,6 +299,7 @@ async def test_resolved_topup_cleans_local_receipt_when_telegram_file_id_exists(
 
     async with session_factory() as session:
         session.add(User(telegram_id=5050, username="topup_user"))
+        await session.flush()
         t = Topup(telegram_id=5050, amount=50000, receipt_photo_id="AgACAgQAAxkBAA_REAL_FILE_ID", status="pending")
         session.add(t)
         await session.commit()

@@ -57,6 +57,11 @@ async def test_gift_voucher_routing_credit_coupon(session_factory):
 async def test_gift_card_routing_friend_gift(session_factory):
     """Verify that friend GiftCards with GIFT- prefix still route to claim_gift."""
     async with session_factory() as session:
+        sender = User(telegram_id=11111, username="sender11111")
+        user = User(telegram_id=22222, username="receiver_user", full_name="Receiver")
+        session.add_all([sender, user])
+        await session.flush()
+
         # Create a GiftCard
         gift = GiftCard(
             code="GIFT-FRIEND-123",
@@ -66,9 +71,8 @@ async def test_gift_card_routing_friend_gift(session_factory):
             is_claimed=False,
             delivery_type="LINK",
         )
-        user = User(telegram_id=22222, username="receiver_user", full_name="Receiver")
         wallet = Wallet(telegram_id=22222, balance=10000)
-        session.add_all([gift, user, wallet])
+        session.add_all([gift, wallet])
         await session.commit()
 
     async with session_factory() as session:

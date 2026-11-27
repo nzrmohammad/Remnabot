@@ -17,6 +17,7 @@ async def test_concurrent_admin_claim_topup_prevents_double_credit(session_facto
     async with session_factory() as session:
         user = User(telegram_id=987654, full_name="Topup User")
         session.add(user)
+        await session.flush()
         topup = Topup(telegram_id=987654, amount=50_000, status=TopupStatus.PENDING)
         session.add(topup)
         await session.commit()

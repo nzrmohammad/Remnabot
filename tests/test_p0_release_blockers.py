@@ -158,6 +158,8 @@ async def test_campaign_create_and_delete_persist_across_sessions(session_factor
 async def test_squad_switch_none_aborts_purchase_and_skips_wallet_deduction(session_factory):
     """P0-3a: If set_user_squads returns None, purchase aborts without charging wallet."""
     async with session_factory() as session:
+        session.add(User(telegram_id=7001, username="u7001"))
+        await session.flush()
         session.add(Wallet(telegram_id=7001, balance=300_000))
         service = Service(
             name="Tunnel Plan",

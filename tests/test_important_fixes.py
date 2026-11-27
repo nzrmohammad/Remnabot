@@ -71,6 +71,13 @@ async def test_item11_crypto_mark_expired_mark_cancelled_atomic(session_factory)
 async def test_item13_coupon_duplicate_usage_does_not_burn_quota(session_factory):
     """Test Item 13: Duplicate usage inside record_usage rolls back used_count increment."""
     async with session_factory() as session:
+        session.add(User(telegram_id=1001, username="u1001"))
+        await session.flush()
+        o1 = Order(telegram_id=1001, service_name="S1", amount=50000, status="paid")
+        o2 = Order(telegram_id=1001, service_name="S2", amount=50000, status="paid")
+        session.add_all([o1, o2])
+        await session.flush()
+
         coupon = Coupon(
             code="SAVE10",
             discount_percent=10,
@@ -83,7 +90,7 @@ async def test_item13_coupon_duplicate_usage_does_not_burn_quota(session_factory
 
         repo = CouponRepository(session)
         # First usage succeeds
-        u1 = await repo.record_usage(coupon, telegram_id=1001, order_id=1, discount_applied=5000)
+        u1 = await repo.record_usage(coupon, telegram_id=1001, order_id=o1.id, discount_applied=5000)
         assert u1 is not None
         await session.commit()
 
@@ -92,7 +99,7 @@ async def test_item13_coupon_duplicate_usage_does_not_burn_quota(session_factory
         assert c_check.used_count == 1
 
         # Second usage by same user violates unique constraint (coupon_id, telegram_id)
-        u2 = await repo.record_usage(c_check, telegram_id=1001, order_id=2, discount_applied=5000)
+        u2 = await repo.record_usage(c_check, telegram_id=1001, order_id=o2.id, discount_applied=5000)
         assert u2 is None
         await session.commit()
 
@@ -142,6 +149,8 @@ async def test_item14_coupon_naive_datetime_validation(session_factory):
 async def test_item15_gift_claim_ownership_username_bypass(session_factory):
     """Test Item 15: User without username cannot claim DIRECT gift targeted at a specific username."""
     async with session_factory() as session:
+        session.add(User(telegram_id=999, username="sender999"))
+        await session.flush()
         gift = GiftCard(
             code="GIFT-FOR-ALICE",
             gift_type="BALANCE",
