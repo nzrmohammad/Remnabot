@@ -783,3 +783,55 @@ async def test_performance_optimizations_cache_pool_and_bundles(session_factory)
 
     admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
     assert "Background Pre-fetching" not in admin_js
+
+
+# ---------------------------------------------------------------------- #
+# 8. Section 3 UI/UX, Accessibility, Mobile Keyboard & Telegram SDK Sync
+# ---------------------------------------------------------------------- #
+def test_ui_ux_accessibility_keyboard_haptics_and_zero_js_dark_leaks():
+    utils_js = Path("bot/web/static/js/utils.js").read_text(encoding="utf-8")
+    api_js = Path("bot/web/static/js/api.js").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+    components_css = Path("bot/web/static/css/components.css").read_text(encoding="utf-8")
+    tokens_css = Path("bot/web/static/css/tokens.css").read_text(encoding="utf-8")
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+
+    # 1. Modal focus trap (Tab), MutationObserver focus entry & restoration
+    assert "e.key === 'Tab'" in utils_js
+    assert "function _restoreModalTrigger" in utils_js
+    assert "function initModalAccessibility" in utils_js
+
+    # 2. Mobile virtual keyboard offset adapter + CSS lift rules
+    assert "function initViewportKeyboardAdapter" in utils_js
+    assert "--vkb-offset" in tokens_css
+    assert "html.vkb-open .modal-card" in components_css
+
+    # 3. Accessible touch targets & compact admin nav responsiveness + reduced backdrop blur
+    assert ".hit-area-expand::after" in components_css
+    assert "@media (max-width: 390px)" in components_css
+    assert "id=\"navBottom\"" in app_html and "backdrop-blur-md" in app_html
+    assert "id=\"adminNavBottom\"" in admin_html and "backdrop-blur-md" in admin_html
+
+    # 4. Telegram HapticFeedback SSOT + validated themeParams sync + nativeConfirm
+    assert "window.hapticFeedback = hapticFeedback" in utils_js
+    assert "HapticFeedback" not in api_js
+    assert "HapticFeedback" not in wallet_js
+    assert "function syncTelegramThemeParams" in utils_js
+    assert "function nativeConfirm" in utils_js
+
+    # 5. Zero dark-mode untokenized slate leaks across editable JS UI modules
+    leak_re = re.compile(
+        r"(?<![\w:-])(?:settings-box\s+bg-slate-800|bg-slate-(?:800|900|950)|text-slate-(?:100|200|300)|border-slate-(?:700|800))"
+    )
+    js_leaks = []
+    for p in sorted(Path("bot/web/static/js").glob("*.js")):
+        if p.name in ("chart.umd.min.js", "app.min.js") or ".min." in p.name:
+            continue
+        for ln_no, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if "dark:" in line:
+                continue
+            m = leak_re.search(line)
+            if m:
+                js_leaks.append(f"{p.name}:{ln_no}: {m.group(0)}")
+    assert not js_leaks, "Found untokenized dark-mode class leaks in JS:\n" + "\n".join(js_leaks)

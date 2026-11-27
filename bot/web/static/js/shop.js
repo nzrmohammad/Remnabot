@@ -591,7 +591,7 @@ function renderFilteredShopPlans() {
     const isExtraTraffic = ((Number(p.duration_days) === 0 && Number(p.traffic_gb) > 0) || planBadgeKey === 'traffic') && !isTimeOnly;
 
     let planBadge = '';
-    let badgeBorderClass = 'border-slate-700/80';
+    let badgeBorderClass = 'border-card-border';
     let btnClass = 'btn-plan-default';
 
     const badgeIcon = (name) => (typeof uiIcon === 'function' ? uiIcon(name, 'w-3.5 h-3.5') : '');

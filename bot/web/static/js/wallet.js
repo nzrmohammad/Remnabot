@@ -1323,9 +1323,7 @@ function startCardAutoPolling(uuid) {
           if (window.showToast) {
             window.showToast('✅ پرداخت شما با موفقیت تأیید شد و کیف پول شارژ گردید!', 'success');
           }
-          if (window.Telegram?.WebApp?.HapticFeedback) {
-            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-          }
+          window.hapticFeedback?.('success');
           resetCardAutoUI();
           applyManualCardLockState(res.manual_card_blocked ? res.manual_card_blocked_until : null, res.manual_card_block_remaining_seconds || 0);
           if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);

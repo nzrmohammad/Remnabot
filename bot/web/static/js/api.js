@@ -756,21 +756,7 @@ const api = {
   },
 
   haptic(type = 'success') {
-    if (typeof window.hapticFeedback === 'function') {
-      window.hapticFeedback(type);
-    } else if (window.Telegram?.WebApp?.HapticFeedback) {
-      try {
-        if (type === 'impact') {
-          window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-        } else if (type === 'light') {
-          window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-        } else if (type === 'selection') {
-          window.Telegram.WebApp.HapticFeedback.selectionChanged();
-        } else {
-          window.Telegram.WebApp.HapticFeedback.notificationOccurred(type);
-        }
-      } catch (e) {}
-    }
+    window.hapticFeedback?.(type);
   },
 };
 

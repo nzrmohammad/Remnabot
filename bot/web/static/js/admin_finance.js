@@ -277,11 +277,11 @@ openCryptoRatesModal() {
         let usdtRowsHtml = '';
         if (usdtList.length > 0) {
           usdtRowsHtml = usdtList.map(([src, p]) => `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
               <span class="t-main font-medium text-[11px]">${escapeHtml(src)}</span>
               <div class="flex items-center gap-2">
                 <span class="font-sans font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[11px] t-muted font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('usdt', ${p}, this)" class="bg-transparent hover:bg-emerald-500/10 t-success hover:text-emerald-300 border border-emerald-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('usdt', ${p}, this)" class="bg-transparent hover:bg-emerald-500/10 t-success hover:text-emerald-600 dark:hover:text-emerald-300 border border-emerald-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -292,11 +292,11 @@ openCryptoRatesModal() {
         let eurRowsHtml = '';
         if (eurList.length > 0) {
           eurRowsHtml = eurList.map(([src, p]) => `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
               <span class="t-main font-medium text-[11px]">${escapeHtml(src)}</span>
               <div class="flex items-center gap-2">
                 <span class="font-sans font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[11px] t-muted font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('eur', ${p}, this)" class="bg-transparent hover:bg-indigo-500/10 text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('eur', ${p}, this)" class="bg-transparent hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 border border-indigo-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -307,11 +307,11 @@ openCryptoRatesModal() {
         let tonRowsHtml = '';
         if (tonList.length > 0) {
           tonRowsHtml = tonList.map(([src, p]) => `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
               <span class="t-main font-medium text-[11px]">${escapeHtml(src)}</span>
               <div class="flex items-center gap-2">
                 <span class="font-sans font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[11px] t-muted font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('ton', ${p}, this)" class="bg-transparent hover:bg-cyan-500/10 t-accent hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('ton', ${p}, this)" class="bg-transparent hover:bg-cyan-500/10 t-accent hover:text-cyan-600 dark:hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -323,12 +323,12 @@ openCryptoRatesModal() {
           const tonTomanBinance = bestTon.price;
           const globalSrc = res.global_ton_source ? `${res.global_ton_source} (جهانی)` : 'بایننس (جهانی)';
           tonRowsHtml += `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
               <span class="t-main font-medium text-[11px]">${escapeHtml(globalSrc)}</span>
               <div class="flex items-center gap-2">
-                <span class="font-sans font-bold text-cyan-500 dark:text-cyan-300 text-[11px] num-bidi">${Number(binanceUsd).toFixed(2)}</span>
+                <span class="font-sans font-bold text-cyan-600 dark:text-cyan-300 text-[11px] num-bidi">${Number(binanceUsd).toFixed(2)}</span>
                 ${tonTomanBinance ? `
-                <button onclick="window.adminActions.applySpecificRate('ton', ${tonTomanBinance}, this)" class="bg-transparent hover:bg-cyan-500/10 t-accent hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('ton', ${tonTomanBinance}, this)" class="bg-transparent hover:bg-cyan-500/10 t-accent hover:text-cyan-600 dark:hover:text-cyan-300 border border-cyan-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>` : ''}
               </div>
@@ -339,7 +339,7 @@ openCryptoRatesModal() {
         let trxRowsHtml = '';
         if (trxList.length > 0) {
           trxRowsHtml = trxList.map(([src, p]) => `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
               <span class="t-main font-medium text-[11px]">${escapeHtml(src)}</span>
               <div class="flex items-center gap-2">
                 <span class="font-sans font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[11px] t-muted font-sans">تومان</span></span>
@@ -354,10 +354,10 @@ openCryptoRatesModal() {
         if (binanceTrxUsd) {
           const trxTomanBinance = bestTrx.price;
           trxRowsHtml += `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
               <span class="t-main font-medium text-[11px]">بایننس (جهانی)</span>
               <div class="flex items-center gap-2">
-                <span class="font-sans font-bold text-rose-500 dark:text-rose-300 text-[11px] num-bidi">${Number(binanceTrxUsd).toFixed(4)}</span>
+                <span class="font-sans font-bold text-rose-600 dark:text-rose-300 text-[11px] num-bidi">${Number(binanceTrxUsd).toFixed(4)}</span>
                 ${trxTomanBinance ? `
                 <button onclick="window.adminActions.applySpecificRate('trx', ${trxTomanBinance}, this)" class="bg-transparent hover:bg-rose-500/10 t-danger border border-rose-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
@@ -370,11 +370,11 @@ openCryptoRatesModal() {
         let polRowsHtml = '';
         if (polList.length > 0) {
           polRowsHtml = polList.map(([src, p]) => `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
               <span class="t-main font-medium text-[11px]">${escapeHtml(src)}</span>
               <div class="flex items-center gap-2">
                 <span class="font-sans font-bold t-main text-[11px] num-bidi">${formatNumber(p)} <span class="text-[11px] t-muted font-sans">تومان</span></span>
-                <button onclick="window.adminActions.applySpecificRate('pol', ${p}, this)" class="bg-transparent hover:bg-purple-500/10 text-purple-400 hover:text-purple-300 border border-purple-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('pol', ${p}, this)" class="bg-transparent hover:bg-purple-500/10 t-purple border border-purple-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>
               </div>
@@ -385,12 +385,12 @@ openCryptoRatesModal() {
         if (binancePolUsd) {
           const polTomanBinance = bestPol.price;
           polRowsHtml += `
-            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-slate-700/50 hover:border-slate-500/50 transition">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
               <span class="t-main font-medium text-[11px]">بایننس (جهانی)</span>
               <div class="flex items-center gap-2">
-                <span class="font-sans font-bold text-purple-400 text-[11px] num-bidi">$${Number(binancePolUsd).toFixed(4)}</span>
+                <span class="font-sans font-bold t-purple text-[11px] num-bidi">$${Number(binancePolUsd).toFixed(4)}</span>
                 ${polTomanBinance ? `
-                <button onclick="window.adminActions.applySpecificRate('pol', ${polTomanBinance}, this)" class="bg-transparent hover:bg-purple-500/10 text-purple-400 hover:text-purple-300 border border-purple-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
+                <button onclick="window.adminActions.applySpecificRate('pol', ${polTomanBinance}, this)" class="bg-transparent hover:bg-purple-500/10 t-purple border border-purple-500/40 text-[11px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95">
                   اعمال
                 </button>` : ''}
               </div>
@@ -440,7 +440,7 @@ openCryptoRatesModal() {
           </div>
 
           <!-- Stars Auto-Calculation from Live USDT Benchmark -->
-          <div class="space-y-1.5 mt-3 pt-2.5 border-t border-slate-700/60">
+          <div class="space-y-1.5 mt-3 pt-2.5 border-t border-card-border">
             <div class="flex items-center justify-between px-1">
               <span id="modalStarsBenchmarkTitle" class="text-[11px] font-bold t-warn flex items-center gap-1">
                 <img src="/static/img/icons/star.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
@@ -448,13 +448,13 @@ openCryptoRatesModal() {
               </span>
             </div>
             <div class="space-y-1.5">
-              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
                 <div>
-                  <span class="text-slate-200 font-bold text-[11px] flex items-center gap-1">
+                  <span class="t-main font-bold text-[11px] flex items-center gap-1">
                     <img src="/static/img/icons/shield.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
                     <span>فرمول بدون ضرر</span>
                   </span>
-                  <span class="text-[11px] text-slate-400">نقد کردن با کسر کارمزد تلگرام</span>
+                  <span class="text-[11px] t-muted">نقد کردن با کسر کارمزد تلگرام</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span id="modalStarsLosslessPrice" class="font-sans font-bold text-amber-700 dark:text-amber-300 text-[11px]"></span>
@@ -463,13 +463,13 @@ openCryptoRatesModal() {
                   </button>
                 </div>
               </div>
-              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 hover:border-slate-600 transition">
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 transition">
                 <div>
-                  <span class="text-slate-200 font-bold text-[11px] flex items-center gap-1">
+                  <span class="t-main font-bold text-[11px] flex items-center gap-1">
                     <img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
                     <span>نرخ خرید فرگمنت</span>
                   </span>
-                  <span class="text-[11px] text-slate-400">بر اساس قیمت خرید استارز در فرگمنت</span>
+                  <span class="text-[11px] t-muted">بر اساس قیمت خرید استارز در فرگمنت</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span id="modalStarsFragmentPrice" class="font-sans font-bold text-blue-700 dark:text-blue-300 text-[11px]"></span>

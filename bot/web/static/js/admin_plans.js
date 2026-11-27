@@ -248,14 +248,14 @@
 
         const squadObj = adminRemnawaveSquads.find(s => s.uuid === p.squad_uuid);
         const squadName = squadObj ? squadObj.name : (p.squad_uuid ? `اسکواد ${p.squad_uuid.slice(0, 8)}…` : '');
-        const squadBadge = squadName ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold card-inset t-muted border border-slate-700/60 truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">${uiIcon('layers', 'w-3.5 h-3.5')}<span>${escapeHtml(squadName)}</span></span>` : '';
+        const squadBadge = squadName ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold card-inset t-muted border border-card-border truncate max-w-[130px]" title="اسکواد: ${escapeHtml(squadName)}">${uiIcon('layers', 'w-3.5 h-3.5')}<span>${escapeHtml(squadName)}</span></span>` : '';
 
         const descHtml = (!isExtraTraffic && !isExtraTime && p.description)
-          ? `<p class="text-[11px] text-slate-400 line-clamp-1">${escapeHtml(p.description)}</p>`
+          ? `<p class="text-[11px] t-muted line-clamp-1">${escapeHtml(p.description)}</p>`
           : '';
 
         return `
-          <div data-plan-type="${planCategory}" data-plan-id="${p.id}" class="plan-card admin-plan-card bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 space-y-3 shadow transition">
+          <div data-plan-type="${planCategory}" data-plan-id="${p.id}" class="plan-card admin-plan-card card rounded-2xl p-4 border border-card-border space-y-3 shadow transition">
             <div class="space-y-1.5">
               <!-- Top Row: Price and تومان on Right, Icons + Name + statusBadge flush Left (LTR) -->
               <div class="flex items-center justify-between gap-2" dir="ltr">
@@ -264,17 +264,17 @@
                   <b dir="ltr" class="t-main text-xs font-bold truncate">${escapeHtml(cleanName)}</b>
                   ${statusBadge ? `<div class="flex-shrink-0">${statusBadge}</div>` : ''}
                 </div>
-                <div class="flex items-center gap-1 shrink-0 px-1" dir="ltr">
-                  <button type="button" data-move-up onclick="window.adminActions.movePlan(${p.id}, 'up')" class="w-7 h-7 rounded-lg card-inset border border-slate-700/60 hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به بالا" aria-label="انتقال به بالا">
+                <div class="flex items-center gap-2 shrink-0 px-1" dir="ltr">
+                  <button type="button" data-move-up onclick="window.adminActions.movePlan(${p.id}, 'up')" class="hit-area-expand w-7 h-7 rounded-lg card-inset border border-card-border hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به بالا" aria-label="انتقال به بالا">
                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
                   </button>
-                  <button type="button" data-move-down onclick="window.adminActions.movePlan(${p.id}, 'down')" class="w-7 h-7 rounded-lg card-inset border border-slate-700/60 hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به پایین" aria-label="انتقال به پایین">
+                  <button type="button" data-move-down onclick="window.adminActions.movePlan(${p.id}, 'down')" class="hit-area-expand w-7 h-7 rounded-lg card-inset border border-card-border hover:border-cyan-500/50 t-main hover:t-accent transition flex items-center justify-center active:scale-95" title="انتقال به پایین" aria-label="انتقال به پایین">
                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                 </div>
                 <div class="flex items-baseline gap-1 shrink-0 text-right" dir="rtl">
                   <span class="text-sm font-black t-success font-sans num-bidi" dir="ltr">${formatNumber(p.price || 0)}</span>
-                  <span class="text-[11px] font-sans font-medium text-slate-400">تومان</span>
+                  <span class="text-[11px] font-sans font-medium t-muted">تومان</span>
                 </div>
               </div>
 
@@ -293,20 +293,20 @@
 
             <!-- 3 Action Buttons + Duplicate with Compact Elegant Spacing -->
             <div class="grid grid-cols-4 gap-1 pt-1">
-              <button onclick="window.adminActions.openPlanModal(${p.id})" class="card-inset hover:border-cyan-500/40 t-main border border-slate-700/60 py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="ویرایش بسته" aria-label="ویرایش بسته">
+              <button onclick="window.adminActions.openPlanModal(${p.id})" class="card-inset hover:border-cyan-500/40 t-main border border-card-border py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="ویرایش بسته" aria-label="ویرایش بسته">
                 ${uiIcon('edit', 'w-3.5 h-3.5 t-accent shrink-0')}
                 <span class="text-[11px] font-semibold leading-none truncate">ویرایش</span>
               </button>
-              <button type="button" onclick="window.adminActions.duplicatePlan(${p.id})" class="card-inset hover:border-purple-500/40 t-main border border-slate-700/60 py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="تکثیر / کپی بسته" aria-label="تکثیر بسته">
+              <button type="button" onclick="window.adminActions.duplicatePlan(${p.id})" class="card-inset hover:border-purple-500/40 t-main border border-card-border py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="تکثیر / کپی بسته" aria-label="تکثیر بسته">
                 ${uiIcon('copy', 'w-3.5 h-3.5 t-purple shrink-0')}
                 <span class="text-[11px] font-semibold leading-none truncate">تکثیر</span>
               </button>
-              <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:text-amber-400' : 't-success hover:border-emerald-500/50'} border border-slate-700/60 py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
+              <button onclick="window.adminActions.togglePlan(${p.id}, ${p.is_active})" class="card-inset ${p.is_active ? 't-main hover:border-amber-500/40 hover:t-warn' : 't-success hover:border-emerald-500/50'} border border-card-border py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}" aria-label="${p.is_active ? 'غیرفعال‌سازی بسته' : 'فعال‌سازی بسته'}">
                 ${p.is_active
                   ? `${uiIcon('pause', 'w-3.5 h-3.5 t-warn shrink-0')}<span class="text-[11px] font-semibold leading-none truncate">غیرفعال</span>`
                   : `${uiIcon('play_btn', 'w-3.5 h-3.5 t-success shrink-0')}<span class="text-[11px] font-semibold leading-none truncate">فعال‌سازی</span>`}
               </button>
-              <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:text-rose-400 border border-slate-700/60 py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="حذف بسته" aria-label="حذف بسته">
+              <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name)}" class="btn-delete-plan card-inset hover:border-rose-500/50 hover:bg-rose-500/10 t-main hover:t-danger border border-card-border py-2 px-0.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 leading-none" title="حذف بسته" aria-label="حذف بسته">
                 ${uiIcon('trash', 'w-3.5 h-3.5 t-danger shrink-0')}
                 <span class="text-[11px] font-semibold leading-none truncate">حذف</span>
               </button>
@@ -424,7 +424,7 @@
         if (trafBox) trafBox.classList.remove('hidden');
         if (trafInp) {
           trafInp.disabled = false;
-          trafInp.classList.remove('opacity-50', 'bg-slate-950');
+          trafInp.classList.remove('opacity-50');
           if (trafInp.value === '0') trafInp.value = '';
         }
         if (badgeSel && (!badgeSel.value || badgeSel.value === 'time')) badgeSel.value = 'traffic';
@@ -446,7 +446,7 @@
         if (durBox) durBox.classList.remove('hidden');
         if (durInp) {
           durInp.disabled = false;
-          durInp.classList.remove('opacity-50', 'bg-slate-950');
+          durInp.classList.remove('opacity-50');
           if (durInp.value === '0') durInp.value = '';
         }
         if (badgeSel && (!badgeSel.value || badgeSel.value === 'traffic')) badgeSel.value = 'time';
@@ -464,11 +464,11 @@
         if (durationHwidRow) durationHwidRow.classList.remove('hidden');
         if (durInp) {
           durInp.disabled = false;
-          durInp.classList.remove('opacity-50', 'bg-slate-950');
+          durInp.classList.remove('opacity-50');
         }
         if (trafInp) {
           trafInp.disabled = false;
-          trafInp.classList.remove('opacity-50', 'bg-slate-950');
+          trafInp.classList.remove('opacity-50');
         }
         if (badgeSel && (badgeSel.value === 'traffic' || badgeSel.value === 'time')) badgeSel.value = '';
         if (notice) {

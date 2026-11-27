@@ -338,10 +338,10 @@ function setupSubscriptionActions() {
     if (ok) {
       hapticFeedback('success');
       copySubBtn.classList.add('t-success', 'border-emerald-500');
-      copySubBtn.classList.remove('text-slate-300');
+      copySubBtn.classList.remove('t-muted');
       setTimeout(() => {
         copySubBtn.classList.remove('t-success', 'border-emerald-500');
-        copySubBtn.classList.add('text-slate-300');
+        copySubBtn.classList.add('t-muted');
       }, 1800);
     }
   });
@@ -2170,10 +2170,10 @@ function selectBdayItem(type, val, displayText, autoAdvance = false) {
       const bVal = btn.getAttribute('data-val');
       if (String(bVal) === String(val)) {
         btn.classList.add('active-bday-item', 'bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-400');
-        btn.classList.remove('text-slate-300', 'bg-slate-800/80', 'border-slate-700/60');
+        btn.classList.remove('t-main', 'card-inset', 'border-card-border');
       } else {
         btn.classList.remove('active-bday-item', 'bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-400');
-        btn.classList.add('text-slate-300', 'bg-slate-800/80', 'border-slate-700/60');
+        btn.classList.add('t-main', 'card-inset', 'border-card-border');
       }
     });
   }
@@ -2241,7 +2241,7 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', d);
-      btn.className = 'bday-grid-btn py-1.5 px-1 h-8 min-h-[32px] text-center text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-sans active:scale-95 flex items-center justify-center';
+      btn.className = 'bday-grid-btn py-1.5 px-1 h-8 min-h-[32px] text-center text-xs font-bold t-main card-inset hover:t-accent border border-card-border rounded-xl transition font-sans active:scale-95 flex items-center justify-center';
       btn.textContent = String(d);
       btn.onclick = () => selectBdayItem('day', d, String(d), false);
       dayGrid.appendChild(btn);
@@ -2254,7 +2254,7 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', mVal);
-      btn.className = 'bday-grid-btn py-2 px-1 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-medium active:scale-95';
+      btn.className = 'bday-grid-btn py-2 px-1 text-center text-xs t-main card-inset hover:t-accent border border-card-border rounded-xl transition font-medium active:scale-95';
       btn.textContent = mName;
       btn.onclick = () => selectBdayItem('month', mVal, mName, false);
       monthGrid.appendChild(btn);
@@ -2266,7 +2266,7 @@ function initBirthdaySelects() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.setAttribute('data-val', y);
-      btn.className = 'bday-grid-btn py-1.5 px-0.5 text-center text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition font-sans active:scale-95';
+      btn.className = 'bday-grid-btn py-1.5 px-0.5 text-center text-xs t-main card-inset hover:t-accent border border-card-border rounded-xl transition font-sans active:scale-95';
       btn.textContent = String(y);
       btn.onclick = () => selectBdayItem('year', y, String(y), false);
       yearGrid.appendChild(btn);
@@ -3043,15 +3043,15 @@ function setupThemeToggle() {
       document.documentElement.classList.remove('theme-light');
       document.documentElement.classList.add('dark');
       if (themeIcon) themeIcon.innerHTML = `<img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 transition" alt="تم روشن" width="16" height="16" />`;
-      try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#111a2e'); } catch(e) {}
-      try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#0c1220'); } catch(e) {}
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('theme-light');
       if (themeIcon) themeIcon.innerHTML = `<img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 transition" alt="تم تاریک" width="16" height="16" />`;
-      try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#ffffff'); } catch(e) {}
-      try { if (window.Telegram?.WebApp?.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#f1f5f9'); } catch(e) {}
     }
+    if (typeof window.syncTelegramChromeColors === 'function') {
+      window.syncTelegramChromeColors(!isDark);
+    }
+    window.syncTelegramThemeParams?.();
 
     const speedModal = $('speedTestModal');
     if (speedModal) {
@@ -3337,8 +3337,13 @@ function setupTelegramSDK() {
       tg.expand();
       if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
       const curLight = document.documentElement.classList.contains('theme-light');
-      if (tg.setHeaderColor) tg.setHeaderColor(curLight ? '#ffffff' : '#111a2e');
-      if (tg.setBackgroundColor) tg.setBackgroundColor(curLight ? '#f1f5f9' : '#0c1220');
+      if (typeof window.syncTelegramChromeColors === 'function') {
+        window.syncTelegramChromeColors(curLight, tg);
+      } else {
+        if (tg.setHeaderColor) tg.setHeaderColor(curLight ? '#ffffff' : '#111a2e');
+        if (tg.setBackgroundColor) tg.setBackgroundColor(curLight ? '#f1f5f9' : '#0c1220');
+      }
+      window.syncTelegramThemeParams?.(tg);
     } catch (e) {}
 
     applyUserTopPadding();
@@ -3346,7 +3351,11 @@ function setupTelegramSDK() {
       if (tg.onEvent) {
         tg.onEvent('contentSafeAreaChanged', applyUserTopPadding);
         tg.onEvent('safeAreaChanged', applyUserTopPadding);
-        tg.onEvent('viewportChanged', applyUserTopPadding);
+        tg.onEvent('viewportChanged', () => {
+          applyUserTopPadding();
+          window.syncTelegramThemeParams?.(tg);
+        });
+        tg.onEvent('themeChanged', () => window.syncTelegramThemeParams?.(tg));
       }
     } catch (e) {}
 
@@ -3417,16 +3426,16 @@ function setupAccountSwitcher() {
     const accounts = window.lastUserData?.accounts || [];
     if (!switchAccountList) return;
     switchAccountList.innerHTML = accounts.map(acc => `
-      <button class="select-acc-item w-full p-2.5 rounded-xl border ${acc.is_active ? 'border-blue-500 bg-transparent' : 'border-slate-700/60 bg-transparent hover:border-slate-500'} text-right flex items-center justify-between transition" data-id="${acc.id}">
+      <button class="select-acc-item w-full p-2.5 rounded-xl border ${acc.is_active ? 'border-blue-500 bg-transparent' : 'border-card-border bg-transparent hover:border-cyan-500/40'} text-right flex items-center justify-between transition" data-id="${acc.id}">
         <div>
-          <div class="font-bold text-white text-xs flex items-center gap-1.5">
+          <div class="font-bold t-main text-xs flex items-center gap-1.5">
             <span>👤</span> ${escapeHtml(acc.username || '')}
           </div>
-          <span class="text-[11px] text-slate-400 mt-0.5 block font-sans num-bidi" dir="ltr">
+          <span class="text-[11px] t-muted mt-0.5 block font-sans num-bidi" dir="ltr">
             ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : 'نامحدود'}
           </span>
         </div>
-        ${acc.is_active ? '<span class="text-xs text-blue-500 dark:text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/30 inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /><span>فعال</span></span>' : '<span class="text-xs text-slate-400 bg-transparent border border-card-border px-2 py-0.5 rounded-full">انتخاب</span>'}
+        ${acc.is_active ? '<span class="text-xs text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/30 inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /><span>فعال</span></span>' : '<span class="text-xs t-muted bg-transparent border border-card-border px-2 py-0.5 rounded-full">انتخاب</span>'}
       </button>
     `).join('');
 
@@ -5328,19 +5337,19 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
         const diffTrafficHtml = fmtTraffic(diffGb, { html: true, persianDigits: false });
         noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> قرار دارید. برای ورود به <b class="font-sans">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
         if (noticeEl) {
-          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
+          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-card-border t-main';
         }
       } else if (myUsedGb > 0) {
         if (noticeIconEl) noticeIconEl.innerText = '📈';
         noticeTextEl.innerHTML = `مصرف شما برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-sans">20</b> کاربر برتر بپیوندید!`;
         if (noticeEl) {
-          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-main';
+          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-card-border t-main';
         }
       } else {
         if (noticeIconEl) noticeIconEl.innerText = 'ℹ️';
         noticeTextEl.innerHTML = `در این بازه هنوز مصرفی برای شما ثبت نشده است.`;
         if (noticeEl) {
-          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-slate-700/40 t-muted';
+          noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-card-border t-muted';
         }
       }
     }

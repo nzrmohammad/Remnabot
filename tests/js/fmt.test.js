@@ -3,18 +3,21 @@
  * Run with: node tests/js/fmt.test.js
  */
 const assert = require('assert');
-const { fmtTraffic, fmtTrafficValue, formatPlanTitle, fmtMoney, fmtCompact, parseDeviceMeta } = require('../../bot/web/static/js/utils.js');
+const {
+  fmtTraffic,
+  fmtTrafficValue,
+  formatPlanTitle,
+  fmtMoney,
+  fmtCompact,
+  parseDeviceMeta,
+  syncTelegramThemeParams,
+  nativeConfirm,
+} = require('../../bot/web/static/js/utils.js');
 
+const testsQueue = [];
 let passCount = 0;
 function test(name, fn) {
-  try {
-    fn();
-    passCount++;
-    console.log(`  ✓ ${name}`);
-  } catch (err) {
-    console.error(`  ✗ ${name}:`, err.message);
-    process.exit(1);
-  }
+  testsQueue.push({ name, fn });
 }
 
 console.log('Testing fmtTraffic & fmtTrafficValue:');
@@ -113,4 +116,62 @@ test('parseDeviceMeta removes redundant 10.0 from Windows 10 / 11 OS labels', ()
   assert.strictEqual(parseDeviceMeta({ platform: 'iOS', osVersion: '17.5' }).resolvedOs, 'iOS 17.5');
 });
 
-console.log(`\nAll ${passCount} tests passed successfully!`);
+test('syncTelegramThemeParams validates hex colors and viewportStableHeight', () => {
+  const props = {};
+  global.document = {
+    documentElement: {
+      style: {
+        setProperty: (k, v) => { props[k] = v; },
+      },
+    },
+  };
+  try {
+    syncTelegramThemeParams({
+      themeParams: {
+        accent_text_color: '#38bdf8',
+        button_color: 'javascript:evil()',
+        button_text_color: '#ffffff',
+      },
+      viewportStableHeight: 742.4,
+    });
+    assert.strictEqual(props['--tg-accent-color'], '#38bdf8');
+    assert.strictEqual(props['--tg-button-color'], undefined);
+    assert.strictEqual(props['--tg-button-text-color'], '#ffffff');
+    assert.strictEqual(props['--tg-viewport-stable-height'], '742px');
+  } finally {
+    delete global.document;
+  }
+});
+
+test('nativeConfirm delegates to tg.showConfirm when supported else window.confirm', async () => {
+  global.window = {
+    Telegram: {
+      WebApp: {
+        isVersionAtLeast: (v) => v === '6.2',
+        showConfirm: (_msg, cb) => cb(true),
+      },
+    },
+    confirm: () => false,
+  };
+  try {
+    assert.strictEqual(await nativeConfirm('Proceed?'), true);
+    global.window.Telegram.WebApp = null;
+    assert.strictEqual(await nativeConfirm('Fallback?'), false);
+  } finally {
+    delete global.window;
+  }
+});
+
+(async () => {
+  for (const t of testsQueue) {
+    try {
+      await t.fn();
+      passCount++;
+      console.log(`  ✓ ${t.name}`);
+    } catch (err) {
+      console.error(`  ✗ ${t.name}:`, err.message);
+      process.exit(1);
+    }
+  }
+  console.log(`\nAll ${passCount} tests passed successfully!`);
+})();

@@ -117,7 +117,7 @@
       <!-- ======================================================== -->
       <div id="systemMaintenanceScreen" hidden class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
         <!-- Ambient Glow Behind Card -->
-        <div class="absolute w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
+        <div class="absolute w-64 h-64 bg-amber-500/10 rounded-full blur-2xl pointer-events-none -top-4"></div>
         <div class="absolute w-56 h-56 bg-orange-600/10 rounded-full blur-2xl pointer-events-none -bottom-4"></div>
 
         <div class="system-status-card relative z-10 w-full max-w-sm mx-auto card rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
@@ -157,7 +157,7 @@
       <!-- ======================================================== -->
       <div id="systemInviteOnlyScreen" hidden class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
         <!-- Ambient Glow Behind Card -->
-        <div class="absolute w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
+        <div class="absolute w-64 h-64 bg-sky-500/10 rounded-full blur-2xl pointer-events-none -top-4"></div>
 
         <div class="system-status-card relative z-10 w-full max-w-sm mx-auto card rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
           <!-- Floating Animated Badge -->
@@ -195,7 +195,7 @@
       <!-- 0.25 SYSTEM JOIN-GATE OVERLAY (عضویت اجباری کانال)        -->
       <!-- ======================================================== -->
       <div id="systemJoinGateScreen" hidden class="hidden select-none py-6 sm:py-10 flex flex-col items-center justify-center relative my-auto">
-        <div class="absolute w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
+        <div class="absolute w-64 h-64 bg-blue-500/10 rounded-full blur-2xl pointer-events-none -top-4"></div>
 
         <div class="system-status-card relative z-10 w-full max-w-sm mx-auto card rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
           <div class="relative mb-5">
@@ -240,7 +240,7 @@
       <!-- 0.3 SYSTEM BANNED OVERLAY                                -->
       <!-- ======================================================== -->
       <div id="systemBannedScreen" hidden class="hidden select-none w-full py-2 flex flex-col items-center justify-center relative">
-        <div class="absolute w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none -top-4"></div>
+        <div class="absolute w-64 h-64 bg-rose-500/10 rounded-full blur-2xl pointer-events-none -top-4"></div>
 
         <div class="system-status-card relative z-10 w-full max-w-sm mx-auto card rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center">
           <div class="relative mb-5">
@@ -1896,7 +1896,7 @@
     <!-- ======================================================== -->
     <!-- 3. BOTTOM NAVIGATION BAR (5 Standard Tabs)               -->
     <!-- ======================================================== -->
-    <div id="navBottom" class="absolute bottom-0 inset-x-0 backdrop-blur-xl px-2 pt-1.5 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] flex justify-around items-center z-30 transition-colors">
+    <div id="navBottom" class="absolute bottom-0 inset-x-0 backdrop-blur-md px-2 pt-1.5 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] flex justify-around items-center z-30 transition-colors">
       <button class="nav-btn is-active flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-0.5 gap-0.5 transition cursor-pointer active:scale-95" data-tab="tab-dashboard" onclick="window.switchTab && window.switchTab('tab-dashboard')" aria-label="تب داشبورد" aria-selected="true">
         <span class="nav-icon-pill">
           <img src="/static/img/icons/dashboard.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" alt="" aria-hidden="true" loading="eager" width="24" height="24">
@@ -2992,10 +2992,10 @@
         <button id="closeStoryCardBtn" class="modal-close-btn absolute -top-3.5 left-0 z-20" title="بستن" aria-label="بستن کارت استوری"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <!-- Redesigned Premium Glassmorphic Card Container -->
-        <div id="exportableStoryCard" class="surface-dark on-dark w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-xl">
+        <div id="exportableStoryCard" class="surface-dark on-dark w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-md">
           <!-- Background decorative glows -->
-          <div id="storyGlow1" class="absolute -top-10 -right-10 w-36 h-36 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
-          <div id="storyGlow2" class="absolute -bottom-10 -left-10 w-36 h-36 bg-purple-500/25 rounded-full blur-3xl pointer-events-none"></div>
+          <div id="storyGlow1" class="absolute -top-10 -right-10 w-36 h-36 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div id="storyGlow2" class="absolute -bottom-10 -left-10 w-36 h-36 bg-purple-500/25 rounded-full blur-2xl pointer-events-none"></div>
           <div class="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.04] pointer-events-none"></div>
 
           <!-- Top Brand Header -->

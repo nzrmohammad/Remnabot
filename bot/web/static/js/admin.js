@@ -67,14 +67,22 @@
       if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
       // tg.requestFullscreen removed to prevent header falling under Telegram client menu
       const isLight = document.documentElement.classList.contains('theme-light');
-      const hColor = isLight ? '#ffffff' : '#111a2e';
-      const bColor = isLight ? '#f1f5f9' : '#0c1220';
-      if (tg.setHeaderColor) tg.setHeaderColor(hColor);
-      if (tg.setBackgroundColor) tg.setBackgroundColor(bColor);
+      if (typeof window.syncTelegramChromeColors === 'function') {
+        window.syncTelegramChromeColors(isLight, tg);
+      } else {
+        const hColor = isLight ? '#ffffff' : '#111a2e';
+        const bColor = isLight ? '#f1f5f9' : '#0c1220';
+        if (tg.setHeaderColor) tg.setHeaderColor(hColor);
+        if (tg.setBackgroundColor) tg.setBackgroundColor(bColor);
+      }
+      if (typeof window.syncTelegramThemeParams === 'function') {
+        window.syncTelegramThemeParams(tg);
+      }
       if (tg.onEvent) {
         tg.onEvent('viewportChanged', () => {
           if (!tg.isExpanded) tg.expand();
           updateAdminTopPadding();
+          window.syncTelegramThemeParams?.(tg);
         });
         tg.onEvent('contentSafeAreaChanged', updateAdminTopPadding);
         tg.onEvent('safeAreaChanged', updateAdminTopPadding);
@@ -240,7 +248,11 @@
       const iconBox = $('confirmModalIconBox');
 
       if (!modal || !confirmBtn || !cancelBtn) {
-        resolve(window.confirm(message));
+        if (typeof window.nativeConfirm === 'function') {
+          window.nativeConfirm(message).then(resolve);
+        } else {
+          resolve(window.confirm(message));
+        }
         return;
       }
 

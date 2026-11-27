@@ -1654,4 +1654,56 @@ html.theme-light .user-wallet-card-face * {
   }
 }
 
+/* --- Mobile Virtual Keyboard & Viewport Lift --- */
+html.vkb-open .modal-backdrop {
+  padding-bottom: calc(1rem + var(--vkb-offset, 0px));
+}
+
+html.vkb-open .modal-card {
+  max-height: calc(100dvh - 2rem - var(--vkb-offset, 0px));
+}
+
+html.vkb-open #contentArea,
+html.vkb-open #adminContentArea {
+  padding-bottom: calc(6.5rem + var(--vkb-offset, 0px));
+}
+
+/* --- Accessible Touch Target Expansion (>= 44x44px without inflating dense rows) --- */
+.hit-area-expand,
+.btn-node-quick-diag {
+  position: relative;
+}
+
+.hit-area-expand::after,
+.btn-node-quick-diag::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: var(--touch-target-min, 44px);
+  min-height: var(--touch-target-min, 44px);
+  transform: translate(-50%, -50%);
+}
+
+/* --- Compact Mobile Bottom Admin Bar (Prevents 6-col Cramping on <=390px) --- */
+@media (max-width: 390px) {
+  #adminNavBottom {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    justify-content: space-between;
+    gap: 0.125rem;
+  }
+
+  #adminNavBottom::-webkit-scrollbar {
+    display: none;
+  }
+
+  #adminNavBottom .admin-nav-btn {
+    flex: 1 0 56px;
+    min-width: 56px;
+  }
+}
+
+
 

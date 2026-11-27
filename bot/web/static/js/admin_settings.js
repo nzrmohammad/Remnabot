@@ -87,15 +87,15 @@
         const extraRow = hasDirectExtraBox ? `
           <div>
             <label class="text-[11px] t-muted block mb-1">لینک دانلود مستقیم:</label>
-            <input type="text" id="appDownloadExtra_${os}_${appId}" dir="ltr" placeholder="${os === 'android' ? 'مثلاً لینک فایل apk از گیت‌هاب' : 'مثلاً لینک گیت‌هاب یا فایل dmg'}" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-purple-300 outline-none focus:border-purple-500 transition" />
+            <input type="text" id="appDownloadExtra_${os}_${appId}" dir="ltr" placeholder="${os === 'android' ? 'مثلاً لینک فایل apk از گیت‌هاب' : 'مثلاً لینک گیت‌هاب یا فایل dmg'}" class="input-base input-compact font-sans num-bidi text-purple-700 dark:text-purple-300" />
           </div>` : '';
         const portableRow = (os === 'windows' && meta.hasPortable) ? `
           <div>
             <label class="text-[11px] t-muted block mb-1">لینک دانلود نسخه Portable:</label>
-            <input type="text" id="appDownloadPortable_${os}_${appId}" dir="ltr" placeholder="لینک نسخه پرتابل (اختیاری)" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-amber-500 transition" />
+            <input type="text" id="appDownloadPortable_${os}_${appId}" dir="ltr" placeholder="لینک نسخه پرتابل (اختیاری)" class="input-base input-compact font-sans num-bidi text-amber-700 dark:text-amber-300" />
           </div>` : '';
         const ghBtn = meta.hasGithub ? `
-          <button type="button" onclick="window.fetchGithubAppVersion('${appId}', '${os}')" class="text-[11px] t-accent hover:text-cyan-300 flex items-center justify-center p-1 rounded-lg card-inset border border-slate-700/40 active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
+          <button type="button" onclick="window.fetchGithubAppVersion('${appId}', '${os}')" class="hit-area-expand text-[11px] t-accent hover:t-main flex items-center justify-center p-1 rounded-lg card-inset border border-card-border active:scale-95 transition" title="استعلام آخرین نسخه از گیت‌هاب" aria-label="استعلام از گیت‌هاب">
             <img src="/static/img/icons/github.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="GitHub" />
           </button>` : '';
         return `
@@ -104,17 +104,17 @@
               <div class="flex items-center gap-2">
                 <img src="/static/img/apps/${appId}.webp?v=fl4" onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/static/img/apps/${appId}.png?v=fl4';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline';}" class="w-5 h-5 rounded-md object-contain shrink-0" width="20" height="20" alt="${meta.name}" loading="lazy" />
                 <span class="text-sm leading-none hidden" style="display:none;">${meta.icon || '📱'}</span>
-                <b class="text-white text-xs font-bold font-sans">${meta.name}</b>
+                <b class="t-main text-xs font-bold font-sans">${meta.name}</b>
               </div>
               <div class="flex items-center gap-2">
-                <span id="appCardVer_${os}_${appId}" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi" dir="ltr">—</span>
+                <span id="appCardVer_${os}_${appId}" class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-card-border num-bidi" dir="ltr">—</span>
                 <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </div>
             </button>
             <div class="admin-app-card-body space-y-2 pt-2.5 hidden">
               <div>
                 <label class="text-[11px] t-muted block mb-1">${downloadLabel}</label>
-                <input type="text" id="appDownload_${os}_${appId}"${hasStoreBox ? ' data-store-only="1"' : ''} dir="ltr" placeholder="${downloadPlaceholder}" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-cyan-300 outline-none focus:border-cyan-500 transition" />
+                <input type="text" id="appDownload_${os}_${appId}"${hasStoreBox ? ' data-store-only="1"' : ''} dir="ltr" placeholder="${downloadPlaceholder}" class="input-base input-compact font-sans num-bidi text-cyan-700 dark:text-cyan-300" />
               </div>
               ${extraRow}
               ${portableRow}
@@ -123,7 +123,7 @@
                   <label class="text-[11px] t-muted">نسخه نرم‌افزار (Version):</label>
                   ${ghBtn}
                 </div>
-                <input type="text" id="appVersion_${os}_${appId}" dir="ltr" placeholder="پیش‌فرض: ${meta.version || '1.0.0'}" class="w-full bg-slate-900 border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 text-[11px] font-sans num-bidi text-amber-300 outline-none focus:border-cyan-500 transition" />
+                <input type="text" id="appVersion_${os}_${appId}" dir="ltr" placeholder="پیش‌فرض: ${meta.version || '1.0.0'}" class="input-base input-compact font-sans num-bidi text-amber-700 dark:text-amber-300" />
               </div>
             </div>
           </div>`;
@@ -458,7 +458,7 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi admin-app-card-ver-badge" dir="ltr">${escapeHtml(ver)}</span>
+              <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-card-border num-bidi admin-app-card-ver-badge" dir="ltr">${escapeHtml(ver)}</span>
               <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </div>
           </button>
@@ -510,7 +510,7 @@
                   </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-slate-700/50 num-bidi admin-app-card-ver-badge" dir="ltr">${escapeHtml(ver)}</span>
+                  <span class="font-sans text-[11px] t-accent font-bold px-2 py-0.5 rounded-lg card-inset border border-card-border num-bidi admin-app-card-ver-badge" dir="ltr">${escapeHtml(ver)}</span>
                   <svg class="admin-app-card-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
               </button>
@@ -995,12 +995,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const sign = profit > 0 ? '+' : (profit < 0 ? '-' : '');
         const absFmt = formatNumber(Math.abs(profit));
         profEl.innerHTML = `<span dir="ltr">${sign}${absFmt}</span> <span class="text-[11px] font-sans">تومان</span>`;
-        profEl.className = profit > 0 ? 't-success font-sans num-bidi text-sm block' : (profit < 0 ? 't-danger font-sans num-bidi text-sm block' : 'text-slate-300 font-sans num-bidi text-sm block');
+        profEl.className = profit > 0 ? 't-success font-sans num-bidi text-sm block' : (profit < 0 ? 't-danger font-sans num-bidi text-sm block' : 't-main font-sans num-bidi text-sm block');
       }
       if (roiEl) {
         const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${toEnglishDigits(c.roi)}%` : '—';
         roiEl.innerText = roiText;
-        roiEl.className = c.roi !== null && c.roi > 0 ? 't-success font-sans num-bidi text-sm block' : (c.roi !== null && c.roi < 0 ? 't-danger font-sans num-bidi text-sm block' : 'text-slate-400 font-sans num-bidi text-sm block');
+        roiEl.className = c.roi !== null && c.roi > 0 ? 't-success font-sans num-bidi text-sm block' : (c.roi !== null && c.roi < 0 ? 't-danger font-sans num-bidi text-sm block' : 't-muted font-sans num-bidi text-sm block');
       }
       if (usersEl) usersEl.innerHTML = `${formatNumber(c.users_count)} <span class="font-sans text-[11px]">نفر</span>`;
       if (buyersEl) {
@@ -1159,7 +1159,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       if (!container) return;
 
       container.innerHTML = `
-        <div class="p-6 rounded-2xl bg-transparent border border-slate-700/50 text-center text-xs text-slate-400">
+        <div class="p-6 rounded-2xl bg-transparent border border-card-border text-center text-xs t-muted">
           در حال بارگذاری لیست کمپین‌ها...
         </div>
       `;
@@ -1176,12 +1176,12 @@ openUserChat(telegram_id, name, tag, topup_id) {
         const campaigns = res.campaigns || [];
         if (campaigns.length === 0) {
           container.innerHTML = `
-            <div class="p-8 rounded-2xl bg-slate-800/40 border border-slate-700/60 text-center space-y-2">
+            <div class="p-8 rounded-2xl card-inset border border-card-border text-center space-y-2">
               <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 t-warn flex items-center justify-center">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
               </div>
-              <p class="text-xs text-white font-bold">هنوز هیچ کمپین یا لینکی ساخته نشده است</p>
-              <p class="text-[11px] text-slate-400">با ساخت اولین لینک تبلیغاتی، می‌توانید ورودی‌ها و خرید کاربران از کانال‌ها و افراد مختلف را ردیابی کنید.</p>
+              <p class="text-xs t-main font-bold">هنوز هیچ کمپین یا لینکی ساخته نشده است</p>
+              <p class="text-[11px] t-muted">با ساخت اولین لینک تبلیغاتی، می‌توانید ورودی‌ها و خرید کاربران از کانال‌ها و افراد مختلف را ردیابی کنید.</p>
             </div>
           `;
           return;
@@ -1198,10 +1198,10 @@ openUserChat(telegram_id, name, tag, topup_id) {
           }
           c._resolvedLink = link;
           const roiText = c.roi !== null && c.roi !== undefined ? `${c.roi > 0 ? '+' : ''}${c.roi}%` : null;
-          const roiColor = c.roi !== null && c.roi > 0 ? 't-success' : (c.roi !== null && c.roi < 0 ? 't-danger' : 'text-slate-400');
+          const roiColor = c.roi !== null && c.roi > 0 ? 't-success' : (c.roi !== null && c.roi < 0 ? 't-danger' : 't-muted');
 
           return `
-            <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 space-y-3 transition hover:border-slate-600">
+            <div class="card p-3.5 rounded-2xl border border-card-border space-y-3 transition hover:border-cyan-500/40">
               <!-- Top Row: Name & Action Icons -->
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
@@ -1211,29 +1211,29 @@ openUserChat(telegram_id, name, tag, topup_id) {
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5">
                       <b class="text-xs t-main truncate">${escapeHtml(c.name)}</b>
-                      ${roiText ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-sans num-bidi ${roiColor} bg-slate-900/80 border border-slate-700/60" dir="ltr">${roiText}</span>` : ''}
+                      ${roiText ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-sans num-bidi ${roiColor} card-inset border border-card-border" dir="ltr">${roiText}</span>` : ''}
                     </div>
                     <span class="text-[10px] font-sans num-bidi t-accent dir-ltr block mt-0.5">ad_${escapeHtml(c.code)}</span>
                   </div>
                 </div>
-                <div class="flex items-center gap-1.5 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-shrink-0">
                   <!-- Copy Link Icon Button -->
-                  <button type="button" data-link="${escapeHtml(link)}" class="btn-copy-campaign-link w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="کپی لینک اختصاصی" aria-label="کپی لینک اختصاصی">
+                  <button type="button" data-link="${escapeHtml(link)}" class="btn-copy-campaign-link hit-area-expand w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-cyan-500/10 t-accent border border-cyan-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="کپی لینک اختصاصی" aria-label="کپی لینک اختصاصی">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   </button>
                   <!-- Details / Modal Icon Button -->
-                  <button type="button" onclick="window.adminActions.openCampaignDetailModal(${c.id})" class="w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-blue-500/10 text-blue-400 border border-blue-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="جزئیات و تحلیل مالی" aria-label="جزئیات و تحلیل مالی">
+                  <button type="button" onclick="window.adminActions.openCampaignDetailModal(${c.id})" class="hit-area-expand w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-blue-500/10 t-info border border-blue-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="جزئیات و تحلیل مالی" aria-label="جزئیات و تحلیل مالی">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                   </button>
                   <!-- Delete Campaign Button -->
-                  <button type="button" data-id="${c.id}" data-name="${escapeHtml(c.name)}" data-code="${escapeHtml(c.code || '')}" class="btn-delete-campaign w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 t-danger border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
+                  <button type="button" data-id="${c.id}" data-name="${escapeHtml(c.name)}" data-code="${escapeHtml(c.code || '')}" class="btn-delete-campaign hit-area-expand w-8 h-8 min-w-[32px] min-h-[32px] bg-transparent hover:bg-rose-500/10 t-danger border border-rose-500/40 rounded-xl flex items-center justify-center transition active:scale-95 shadow-sm" title="حذف کمپین" aria-label="حذف کمپین">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
               </div>
 
               <!-- Stats Grid: 4 symmetric boxes including Cost -->
-              <div class="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 border-t border-slate-700/50 text-center">
+              <div class="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 border-t border-card-border text-center">
                 <div class="p-1.5 sm:p-2 rounded-xl card-inset">
                   <span class="text-[10px] t-muted block mb-0.5 whitespace-nowrap">ورودی</span>
                   <b class="text-xs font-sans num-bidi t-main">${formatNumber(c.users_count)}</b>
@@ -2506,7 +2506,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
   document.querySelectorAll('.broadcast-audience-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.broadcast-audience-btn').forEach(b => {
-        b.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main text-[10.5px] font-medium transition border border-slate-700/50';
+        b.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl card-inset t-muted hover:t-main text-[10.5px] font-medium transition border border-card-border';
       });
       btn.className = 'broadcast-audience-btn px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold text-[10.5px] transition border border-blue-500 shadow-sm';
       currentBroadcastTarget = btn.getAttribute('data-target') || 'all';
@@ -2910,7 +2910,7 @@ openUserChat(telegram_id, name, tag, topup_id) {
       const osBadges = supportedOses.map(os => {
         const info = OS_ICON_MAP[os];
         if (!info) return '';
-        return `<span class="w-6 h-6 rounded-lg card-inset border border-slate-700/50 flex items-center justify-center p-1" title="${info.title}" aria-label="${info.title}"><img src="${info.icon}" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="${info.title}" /></span>`;
+        return `<span class="w-6 h-6 rounded-lg card-inset border border-card-border flex items-center justify-center p-1" title="${info.title}" aria-label="${info.title}"><img src="${info.icon}" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="${info.title}" /></span>`;
       }).join(' ');
 
       const isIosOnly = (supportedOses.length === 1 && supportedOses[0] === 'ios') || ['shadowrocket', 'streisand', 'onexray'].includes(appId);
@@ -2930,13 +2930,13 @@ openUserChat(telegram_id, name, tag, topup_id) {
             <div class="text-[10px] t-accent font-bold px-1 mb-1">آخرین نسخه (گیت‌هاب):</div>
             <div class="flex items-center justify-between px-1">
               <span class="t-muted text-[11px]">🖥️ نسخه دسکتاپ (Windows / Mac / Linux):</span>
-              <b class="font-sans ${desktopVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${desktopVer ? `v${escapeHtml(desktopVer)}` : '—'}</b>
+              <b class="font-sans ${desktopVer ? 't-success font-bold' : 't-muted'} num-bidi" dir="ltr">${desktopVer ? `v${escapeHtml(desktopVer)}` : '—'}</b>
             </div>
             <div class="flex items-center justify-between px-1">
               <span class="t-muted text-[11px]">🤖 نسخه اندروید (Android):</span>
-              <b class="font-sans ${androidVer ? 'text-emerald-400 font-bold' : 't-muted'} num-bidi" dir="ltr">${androidVer ? `v${escapeHtml(androidVer)}` : '—'}</b>
+              <b class="font-sans ${androidVer ? 't-success font-bold' : 't-muted'} num-bidi" dir="ltr">${androidVer ? `v${escapeHtml(androidVer)}` : '—'}</b>
             </div>
-            <div class="border-t border-slate-700/30 pt-1.5 mt-1 space-y-1">
+            <div class="border-t border-card-border pt-1.5 mt-1 space-y-1">
               <div class="text-[10px] t-muted font-medium px-1">نسخه فعلی در تنظیمات:</div>
               <div class="flex items-center justify-between px-1">
                 <span class="t-muted text-[11px]">دسکتاپ:</span>

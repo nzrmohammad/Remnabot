@@ -172,13 +172,13 @@
       }
 
       const editBtnHtml = item.is_custom
-        ? `<button type="button" data-domain="${escapeHtml(item.domain)}" class="btn-edit-ssl-domain p-1.5 rounded-xl bg-transparent hover:bg-cyan-500/15 t-accent hover:text-cyan-300 border border-slate-700/70 hover:border-cyan-500/40 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="ویرایش دامنه">
+        ? `<button type="button" data-domain="${escapeHtml(item.domain)}" class="btn-edit-ssl-domain hit-area-expand p-1.5 rounded-xl bg-transparent hover:bg-cyan-500/15 t-accent hover:t-main border border-card-border hover:border-cyan-500/40 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="ویرایش دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
            </button>`
         : '';
 
       const deleteBtnHtml = item.is_custom
-        ? `<button type="button" data-domain="${escapeHtml(item.domain)}" class="btn-del-ssl-domain p-1.5 rounded-xl bg-transparent hover:bg-rose-500/15 t-danger hover:text-rose-300 border border-slate-700/70 hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
+        ? `<button type="button" data-domain="${escapeHtml(item.domain)}" class="btn-del-ssl-domain hit-area-expand p-1.5 rounded-xl bg-transparent hover:bg-rose-500/15 t-danger hover:t-main border border-card-border hover:border-rose-500/30 transition active:scale-95 flex-shrink-0 flex items-center justify-center" title="حذف دامنه">
              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
            </button>`
         : '';
@@ -186,19 +186,19 @@
       let detailsHtml = '';
       if (item.is_ip) {
         detailsHtml = `
-          <div class="text-[11px] text-slate-500">
+          <div class="text-[11px] t-muted">
             <span>آدرس IP مستقیم (بدون گواهی SSL دامنه)</span>
           </div>`;
       } else if (item.valid) {
         detailsHtml = `
-          <div class="space-y-1 text-slate-300 text-xs">
+          <div class="space-y-1 t-muted text-xs">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-400">مرجع :</span>
-              <span class="font-medium text-slate-200">${escapeHtml(item.issuer || 'نامشخص')}</span>
+              <span class="t-muted">مرجع :</span>
+              <span class="font-medium t-main">${escapeHtml(item.issuer || 'نامشخص')}</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-400">تاریخ انقضا :</span>
-              <span class="font-sans text-slate-200" dir="ltr">${expiryDateFa}</span>
+              <span class="t-muted">تاریخ انقضا :</span>
+              <span class="font-sans t-main" dir="ltr">${expiryDateFa}</span>
             </div>
           </div>`;
       } else {
@@ -209,7 +209,7 @@
       }
 
       return `
-        <div class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-700/60 flex flex-col gap-2.5 transition hover:border-slate-600/70 shadow-sm">
+        <div class="p-3.5 rounded-2xl card-inset border border-card-border flex flex-col gap-2.5 transition hover:border-cyan-500/40 shadow-sm">
           <!-- Row 1: Right = Status / Days Left, Left = Domain Name (with status dot on its left) -->
           <div class="flex items-center justify-between gap-3">
             <div class="flex items-center flex-shrink-0">
@@ -217,14 +217,14 @@
             </div>
             <div class="text-left min-w-0 flex items-center gap-2" dir="ltr">
               ${statusDotHtml}
-              <span class="font-sans text-xs font-semibold text-slate-100 select-all break-all leading-normal" title="${escapeHtml(item.domain)}">${escapeHtml(item.domain)}</span>
+              <span class="font-sans text-xs font-semibold t-main select-all break-all leading-normal" title="${escapeHtml(item.domain)}">${escapeHtml(item.domain)}</span>
             </div>
           </div>
 
           <!-- Row 2: Right = Issuer & Jalali Expiration (زیر هم), Left = Actions (Edit, Delete) -->
-          <div class="flex items-end justify-between pt-2 border-t border-slate-800/80 gap-2">
+          <div class="flex items-end justify-between pt-2 border-t border-card-border gap-2">
             ${detailsHtml}
-            <div class="flex items-center gap-1.5 flex-shrink-0">
+            <div class="flex items-center gap-2 flex-shrink-0">
               ${editBtnHtml}
               ${deleteBtnHtml}
             </div>
@@ -362,7 +362,7 @@
       const boxId = `nodeBox_${nodeKey}`;
 
       return `
-        <div class="node-card settings-box bg-slate-800/90 rounded-2xl border ${isOverloaded ? 'border-rose-500/80 shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-heartbeat' : 'border-slate-700/80'} shadow-md relative overflow-hidden transition-all">
+        <div class="node-card settings-box rounded-2xl border ${isOverloaded ? 'border-rose-500/80 shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-heartbeat' : 'border-card-border'} shadow-md relative overflow-hidden transition-all">
           <!-- Top Accent Light -->
           <div class="absolute top-0 right-0 left-0 h-[2px] ${isOnline ? 'bg-gradient-to-r from-emerald-500/0 via-emerald-400/50 to-emerald-500/0' : 'bg-gradient-to-r from-rose-500/0 via-rose-500/40 to-rose-500/0'}"></div>
 
@@ -371,79 +371,79 @@
             <!-- Right: Flag and Server Name -->
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-2xl flex-shrink-0 filter drop-shadow">${typeof renderFlagHtml === 'function' ? renderFlagHtml(flag, 'w-6 h-4 inline-block rounded-xs shadow-xs object-cover align-middle') : flag}</span>
-              <h4 class="font-bold text-xs text-white truncate">${escapeHtml(n.name || 'Server Node')}</h4>
+              <h4 class="font-bold text-xs t-main truncate">${escapeHtml(n.name || 'Server Node')}</h4>
               ${n.is_disabled ? '<span class="badge badge-danger text-[10px] shrink-0">غیرفعال</span>' : ''}
             </div>
 
             <!-- Left: Online Status + Speeds + Renewal Alert + Chevron Arrow -->
             <div class="flex items-center gap-2 flex-shrink-0">
               ${(n.days_until_due !== null && n.days_until_due <= 3) ? `
-                <span class="relative inline-flex items-center justify-center w-6 h-6 rounded-full ${n.days_until_due <= 0 ? 'bg-rose-500/15 border border-rose-500/40 text-rose-400' : 'bg-amber-500/15 border border-amber-500/40 text-amber-400'}" title="${n.days_until_due <= 0 ? 'سررسید پرداخت!' : 'سررسید تا ' + n.days_until_due + ' روز آینده'}" aria-label="هشدار سررسید">
+                <span class="relative inline-flex items-center justify-center w-6 h-6 rounded-full ${n.days_until_due <= 0 ? 'bg-rose-500/15 border border-rose-500/40 text-rose-500 dark:text-rose-400' : 'bg-amber-500/15 border border-amber-500/40 text-amber-600 dark:text-amber-400'}" title="${n.days_until_due <= 0 ? 'سررسید پرداخت!' : 'سررسید تا ' + n.days_until_due + ' روز آینده'}" aria-label="هشدار سررسید">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${n.days_until_due <= 0 ? 'bg-rose-400' : 'bg-amber-400'} opacity-45"></span>
                   ${uiIcon('clock', 'relative w-3.5 h-3.5')}
                 </span>
               ` : ''}
               ${isOnline && (dlSpeed > 0 || ulSpeed > 0) ? `
-                <div class="hidden sm:flex items-center gap-1.5 text-[11px] font-sans text-slate-300 bg-slate-900/60 px-2 py-0.5 rounded-xl border border-slate-700/60" dir="ltr">
+                <div class="hidden sm:flex items-center gap-1.5 text-[11px] font-sans t-main card-inset px-2 py-0.5 rounded-xl border border-card-border" dir="ltr">
                   <span class="t-success font-bold">↓${formatSpeed(dlSpeed)}</span>
-                  <span class="text-slate-600">|</span>
-                  <span class="text-indigo-400 font-bold">↑${formatSpeed(ulSpeed)}</span>
+                  <span class="t-subtle">|</span>
+                  <span class="text-indigo-500 dark:text-indigo-400 font-bold">↑${formatSpeed(ulSpeed)}</span>
                 </div>
               ` : ''}
               ${typeof renderNodeStatusBadge === 'function' ? renderNodeStatusBadge(isOnline) : (isOnline ? '<span class="relative flex items-center justify-center w-3 h-3" title="آنلاین"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>' : '<span class="badge badge-danger font-sans flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>آفلاین</span></span>')}
-              <svg class="settings-box-chevron node-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="settings-box-chevron node-chevron w-4 h-4 t-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
             </div>
           </div>
 
           <!-- Collapsible Body Details (Hidden by default, expands on click) -->
-          <div id="${boxId}" class="node-body p-3.5 pt-2 border-t border-slate-700/60 space-y-3 hidden">
+          <div id="${boxId}" class="node-body p-3.5 pt-2 border-t border-card-border space-y-3 hidden">
             <!-- Server Host Address Strip -->
-            <div class="bg-transparent px-3 py-2 rounded-xl border border-slate-700/60 flex items-center justify-between gap-2 text-xs">
-              <span class="text-[11px] text-slate-400 flex items-center gap-1.5 shrink-0">
+            <div class="bg-transparent px-3 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 text-xs">
+              <span class="text-[11px] t-muted flex items-center gap-1.5 shrink-0">
                 <svg class="w-3.5 h-3.5 t-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                 <span>آدرس سرور:</span>
               </span>
-              <div class="flex items-center gap-1.5 min-w-0">
+              <div class="flex items-center gap-2 min-w-0">
                 <span class="font-sans text-blue-600 dark:text-cyan-300 text-xs font-semibold truncate max-w-[175px] select-all" dir="ltr" title="${escapeHtml(n.address || '—')}">${escapeHtml(n.address || '—')}</span>
-                ${n.address && n.address !== '—' ? `<button type="button" data-host="${escapeHtml(n.address)}" data-name="${escapeHtml(n.name || 'Node')}" class="btn-node-quick-diag p-1 rounded-lg border border-emerald-500/35 t-success hover:bg-emerald-500/10 transition shrink-0" title="تست پینگ / اتصال سرور"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg></button>` : ''}
+                ${n.address && n.address !== '—' ? `<button type="button" data-host="${escapeHtml(n.address)}" data-name="${escapeHtml(n.name || 'Node')}" class="btn-node-quick-diag hit-area-expand p-1 rounded-lg border border-emerald-500/35 t-success hover:bg-emerald-500/10 transition shrink-0" title="تست پینگ / اتصال سرور" aria-label="تست پینگ سرور"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg></button>` : ''}
               </div>
             </div>
 
             <!-- Real-time Speeds: Download & Upload -->
             <div class="grid grid-cols-2 gap-2 text-center text-[11px]">
-              <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60">
+              <div class="bg-transparent p-2.5 rounded-xl border border-card-border">
                 <div class="flex items-center justify-between text-[11px] mb-1">
-                  <span class="text-slate-400 flex items-center gap-1">
+                  <span class="t-muted flex items-center gap-1">
                     <svg class="w-3 h-3 t-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                     <span>سرعت دانلود (DL):</span>
                   </span>
-                  <span class="text-[11px] text-slate-500 font-sans">RX</span>
+                  <span class="text-[11px] t-subtle font-sans">RX</span>
                 </div>
                 <b class="t-success font-sans text-xs block text-left" dir="ltr">↓ ${formatSpeed(dlSpeed)}</b>
               </div>
-              <div class="bg-transparent p-2.5 rounded-xl border border-slate-700/60">
+              <div class="bg-transparent p-2.5 rounded-xl border border-card-border">
                 <div class="flex items-center justify-between text-[11px] mb-1">
-                  <span class="text-slate-400 flex items-center gap-1">
-                    <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                  <span class="t-muted flex items-center gap-1">
+                    <svg class="w-3 h-3 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                     <span>سرعت آپلود (UL):</span>
                   </span>
-                  <span class="text-[11px] text-slate-500 font-sans">TX</span>
+                  <span class="text-[11px] t-subtle font-sans">TX</span>
                 </div>
-                <b class="text-indigo-400 font-sans text-xs block text-left" dir="ltr">↑ ${formatSpeed(ulSpeed)}</b>
+                <b class="text-indigo-500 dark:text-indigo-400 font-sans text-xs block text-left" dir="ltr">↑ ${formatSpeed(ulSpeed)}</b>
               </div>
             </div>
 
             <!-- System Resource Gauges (CPU, RAM & Traffic Quota Progress Bars) -->
-            <div class="space-y-2 bg-transparent p-2.5 rounded-xl border border-slate-700/50">
+            <div class="space-y-2 bg-transparent p-2.5 rounded-xl border border-card-border">
               <!-- CPU Progress -->
               <div class="space-y-1">
                 <div class="flex justify-between items-center text-[11px]">
-                  <span class="text-slate-400">پردازنده (CPU):</span>
-                  <span class="font-sans font-bold ${cpu > 80 ? 't-danger' : 'text-slate-100'}">${cpuDisplay}</span>
+                  <span class="t-muted">پردازنده (CPU):</span>
+                  <span class="font-sans font-bold ${cpu > 80 ? 't-danger' : 't-main'}">${cpuDisplay}</span>
                 </div>
-                <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
+                <div class="w-full h-1.5 bg-slate-500/20 rounded-full overflow-hidden">
                   <div class="h-full ${cpuBarColor} ${cpu > 80 ? 'shimmer-bar' : ''} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (cpu > 0 ? cpu : 1) : 0))}%"></div>
                 </div>
               </div>
@@ -451,10 +451,10 @@
               <!-- RAM Progress -->
               <div class="space-y-1">
                 <div class="flex justify-between items-center text-[11px]">
-                  <span class="text-slate-400">حافظه رم (RAM):</span>
-                  <span class="font-sans font-bold ${ram > 80 ? 't-danger' : 'text-slate-100'}">${ramDisplay}</span>
+                  <span class="t-muted">حافظه رم (RAM):</span>
+                  <span class="font-sans font-bold ${ram > 80 ? 't-danger' : 't-main'}">${ramDisplay}</span>
                 </div>
-                <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
+                <div class="w-full h-1.5 bg-slate-500/20 rounded-full overflow-hidden">
                   <div class="h-full ${ramBarColor} ${ram > 80 ? 'shimmer-bar' : ''} transition-all duration-500" style="width: ${Math.min(100, Math.max(0, isOnline ? (ram > 0 ? ram : 1) : 0))}%"></div>
                 </div>
               </div>
@@ -1761,7 +1761,7 @@ openEditSslDomainModal(domain) {
           if (isTarget) {
             tabBtn.className = 'admin-app-os-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap shrink-0 transition flex items-center justify-center gap-1.5 bg-cyan-600 text-white shadow';
           } else {
-            tabBtn.className = 'admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5';
+            tabBtn.className = 'admin-app-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:t-main transition flex items-center justify-center gap-1.5';
           }
         }
         if (pane) {

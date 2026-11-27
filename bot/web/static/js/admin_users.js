@@ -99,7 +99,7 @@
         : '';
 
       let serviceLineHtml = `
-        <div class="bg-transparent p-2.5 rounded-xl border border-dashed border-slate-700/60 flex items-center justify-center text-[11px] text-slate-400 gap-1.5">
+        <div class="bg-transparent p-2.5 rounded-xl border border-dashed border-card-border flex items-center justify-center text-[11px] t-muted gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
           <span>فاقد اشتراک فعال در پنل</span>
         </div>
@@ -174,22 +174,22 @@
         const usedDisplay = fmtTraffic(usedGb, { html: false });
 
         serviceLineHtml = `
-          <div class="bg-transparent rounded-xl p-2.5 border border-slate-700/60 space-y-2">
+          <div class="bg-transparent rounded-xl p-2.5 border border-card-border space-y-2">
             <!-- Glass Progress Bar & Top Metrics -->
             <div class="space-y-1">
               <div class="flex items-center justify-between text-[11px]">
-                <div class="flex items-center gap-1 font-sans text-slate-300">
-                  <span class="text-slate-400 text-[11px] font-sans">مصرف:</span>
+                <div class="flex items-center gap-1 font-sans t-muted">
+                  <span class="t-muted text-[11px] font-sans">مصرف:</span>
                   <span dir="ltr" class="font-bold t-main num-bidi">${usedDisplay}</span>
-                  <span class="text-slate-400 font-sans">از</span>
-                  <span dir="ltr" class="text-slate-400 font-sans num-bidi">${totalDisplay}</span>
+                  <span class="t-muted font-sans">از</span>
+                  <span dir="ltr" class="t-muted font-sans num-bidi">${totalDisplay}</span>
                 </div>
                 <span class="px-1.5 py-0.5 rounded-md text-[11px] font-sans font-bold border ${badgeColor}">
                   ${statusLabel}
                 </span>
               </div>
               <!-- Vercel-Style Glass Track -->
-              <div class="w-full h-1.5 rounded-full card-inset border border-slate-700/40 overflow-hidden relative" dir="ltr">
+              <div class="w-full h-1.5 rounded-full card-inset border border-card-border overflow-hidden relative" dir="ltr">
                 <div class="h-full rounded-full bg-gradient-to-r ${barGradient} ${barGlow} transition-all duration-500" style="width: ${percentUsed}%;"></div>
               </div>
             </div>
@@ -197,12 +197,12 @@
             <!-- Dual Metric Grid (گرید دوقلو بدون پس‌زمینه) -->
             <div class="grid grid-cols-2 gap-2 text-[11px]">
               <!-- Column 1: Remaining Volume -->
-              <div class="bg-transparent rounded-lg p-1.5 border border-slate-700/60 flex items-center gap-2">
-                <div class="w-7 h-7 rounded-md bg-transparent border border-cyan-500/30 flex items-center justify-center text-cyan-500 dark:text-cyan-400 text-xs shrink-0">
-                  ${uiIcon('zap', 'w-4 h-4 text-cyan-400')}
+              <div class="bg-transparent rounded-lg p-1.5 border border-card-border flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md bg-transparent border border-cyan-500/30 flex items-center justify-center t-accent text-xs shrink-0">
+                  ${uiIcon('zap', 'w-4 h-4 t-accent')}
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
-                  <span class="text-slate-400 text-[11px] block">حجم باقی‌مانده</span>
+                  <span class="t-muted text-[11px] block">حجم باقی‌مانده</span>
                   <span dir="ltr" class="font-sans font-bold t-accent truncate block text-[11px]">
                     ${remDisplay}
                   </span>
@@ -210,12 +210,12 @@
               </div>
 
               <!-- Column 2: Time & Expiration -->
-              <div class="bg-transparent rounded-lg p-1.5 border border-slate-700/60 flex items-center gap-2">
+              <div class="bg-transparent rounded-lg p-1.5 border border-card-border flex items-center gap-2">
                 <div class="w-7 h-7 rounded-md bg-transparent border ${timeBoxBorder} flex items-center justify-center ${timeColor} text-xs shrink-0">
                   ${uiIcon('clock', `w-4 h-4 ${timeColor}`)}
                 </div>
                 <div class="min-w-0 flex-1 leading-tight">
-                  <span class="text-slate-400 text-[11px] block truncate" title="${escapeHtml(timeSub)}">${escapeHtml(timeSub)}</span>
+                  <span class="t-muted text-[11px] block truncate" title="${escapeHtml(timeSub)}">${escapeHtml(timeSub)}</span>
                   <span class="font-bold ${timeColor} truncate block text-[11px]">
                     ${escapeHtml(timeText)}
                   </span>
@@ -231,7 +231,7 @@
       const isSelected = window.selectedAdminUsers.has(u.telegram_id) || window.selectedAdminUsers.has(String(u.telegram_id));
       const checkboxHtml = `
         <div class="flex-shrink-0 ${window.adminUserSelectMode ? '' : 'hidden'} user-select-checkbox-wrap" onclick="event.stopPropagation()">
-          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="window.adminActions.toggleUserSelect('${u.telegram_id}')" class="w-4 h-4 rounded text-teal-600 bg-slate-900 border-slate-700 focus:ring-teal-500 cursor-pointer" />
+          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="window.adminActions.toggleUserSelect('${u.telegram_id}')" class="w-4 h-4 rounded text-teal-600 bg-surface-inner border-card-border focus:ring-teal-500 cursor-pointer" />
         </div>
       `;
 
@@ -1851,7 +1851,7 @@ async applyUserModification() {
       };
 
       const activeClass = 'p-2 rounded-xl border border-blue-500 bg-blue-500/10 cursor-pointer flex flex-col items-center text-center gap-0.5 transition shadow-sm';
-      const inactiveClass = 'p-2 rounded-xl border border-slate-700/80 card-inset cursor-pointer flex flex-col items-center text-center gap-0.5 transition hover:border-slate-500/50';
+      const inactiveClass = 'p-2 rounded-xl border border-card-border card-inset cursor-pointer flex flex-col items-center text-center gap-0.5 transition hover:border-cyan-500/40';
 
       Object.entries(cards).forEach(([k, card]) => {
         if (!card) return;

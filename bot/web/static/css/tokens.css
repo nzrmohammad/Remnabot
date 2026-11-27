@@ -20,6 +20,8 @@
   --slate-750: #293548;
   --surface-overlay: rgba(0, 0, 0, 0.72);
   --gauge-track: rgba(148, 163, 184, 0.35);
+  --vkb-offset: 0px;
+  --tg-viewport-stable-height: 100dvh;
 
   /* --- 2. Typography & Content --- */
   --font-sans: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;

@@ -509,7 +509,7 @@ def test_latest_ui_and_font_polish_batch():
     assert '<b dir="ltr" class="t-main text-xs font-bold truncate">' in admin_plans
     assert "TAG_LABELS" in admin_plans
     assert "badge badge-plan-type" in admin_plans
-    assert "border-slate-700/80" in admin_plans
+    assert "border-card-border" in admin_plans
     assert "badge-stream" in shop_js
     assert "badge-family" in shop_js
     assert "border: 1px solid var(--card-border);" in comp_css

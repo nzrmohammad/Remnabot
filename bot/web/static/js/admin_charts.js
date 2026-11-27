@@ -145,10 +145,15 @@
     try {
       const tg = window.Telegram?.WebApp;
       if (tg) {
-        const hColor = isDark ? '#111a2e' : '#ffffff';
-        const bColor = isDark ? '#0c1220' : '#f8fafc';
-        if (tg.setHeaderColor) tg.setHeaderColor(hColor);
-        if (tg.setBackgroundColor) tg.setBackgroundColor(bColor);
+        if (typeof window.syncTelegramChromeColors === 'function') {
+          window.syncTelegramChromeColors(!isDark, tg);
+        } else {
+          const hColor = isDark ? '#111a2e' : '#ffffff';
+          const bColor = isDark ? '#0c1220' : '#f8fafc';
+          if (tg.setHeaderColor) tg.setHeaderColor(hColor);
+          if (tg.setBackgroundColor) tg.setBackgroundColor(bColor);
+        }
+        window.syncTelegramThemeParams?.(tg);
       }
     } catch (e) {}
   };
@@ -162,6 +167,8 @@
         isDark = window.Telegram.WebApp.colorScheme === 'dark';
         applyThemeClasses();
         updateChartsTheme();
+      } else {
+        window.syncTelegramThemeParams?.(window.Telegram.WebApp);
       }
     });
   } catch (e) {}
@@ -677,7 +684,7 @@
     const yestBtn = $('hourlyChartYesterdayBtn');
     if (todayBtn && yestBtn) {
       const activeCls = 'px-2.5 py-1 rounded-lg font-bold text-xs bg-amber-500 text-slate-950 shadow-sm transition';
-      const inactiveCls = 'px-2.5 py-1 rounded-lg font-medium text-xs text-slate-400 hover:text-slate-200 bg-transparent transition';
+      const inactiveCls = 'px-2.5 py-1 rounded-lg font-medium text-xs t-muted hover:t-main bg-transparent transition';
       if (day === 'today') {
         todayBtn.className = activeCls;
         yestBtn.className = inactiveCls;
@@ -1230,10 +1237,10 @@ openHighRiskUsersModal() {
       const users = window.currentHighRiskUsers || [];
       if (users.length === 0) {
         list.innerHTML = `
-          <div class="text-center py-8 text-slate-400 space-y-2">
+          <div class="text-center py-8 t-muted space-y-2">
             <img src="/static/img/icons/shield.svg?v=fl2" class="ui-icon-img w-10 h-10 mx-auto" width="40" height="40" alt="" />
-            <div class="text-xs font-bold text-slate-200">هیچ کاربر پرخطری یافت نشد</div>
-            <div class="text-[11px] text-slate-400">تمام کاربران دارای 3 دستگاه متصل یا کمتر هستند.</div>
+            <div class="text-xs font-bold t-main">هیچ کاربر پرخطری یافت نشد</div>
+            <div class="text-[11px] t-muted">تمام کاربران دارای 3 دستگاه متصل یا کمتر هستند.</div>
           </div>
         `;
       } else {
@@ -1244,7 +1251,7 @@ openHighRiskUsersModal() {
           const devCount = u.device_count ?? 0;
           const pUserId = u.user_id ? String(u.user_id) : '';
           return `
-            <div class="p-3 card-inset border border-slate-700/60 rounded-2xl flex items-center justify-between gap-2.5 transition mx-0.5 hover:border-slate-500/50">
+            <div class="p-3 card-inset border border-card-border rounded-2xl flex items-center justify-between gap-2.5 transition mx-0.5 hover:border-cyan-500/40">
               <div class="flex items-center gap-2.5 min-w-0 flex-1">
                 <span class="w-6 text-center font-sans num-bidi font-bold text-xs text-rose-600 dark:text-rose-400 shrink-0">
                   ${idx + 1}.
@@ -1470,10 +1477,10 @@ openHighRiskUsersModal() {
           '<img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="3" />',
         ];
         usersListEl.innerHTML = topUsers.map((u, i) => {
-          const medal = medalIcons[i] || `<span class="w-4 h-4 rounded-full bg-slate-700/60 text-slate-300 font-sans text-[10px] font-bold inline-flex items-center justify-center shrink-0">${i + 1}</span>`;
+          const medal = medalIcons[i] || `<span class="w-4 h-4 rounded-full card-inset t-main border border-card-border font-sans text-[10px] font-bold inline-flex items-center justify-center shrink-0">${i + 1}</span>`;
           const userTrafStr = typeof fmtTraffic === 'function' ? fmtTraffic(u.used_gb, { html: false }) : u.used_gb;
           return `
-            <div class="flex items-center justify-between p-1.5 rounded-lg border border-slate-700/40 bg-transparent">
+            <div class="flex items-center justify-between p-1.5 rounded-lg border border-card-border bg-transparent">
               <div class="flex items-center gap-1.5 min-w-0">
                 <span class="text-xs flex items-center justify-center">${medal}</span>
                 <span class="font-sans text-xs t-main font-semibold truncate max-w-[120px]" dir="ltr">${typeof escapeHtml === 'function' ? escapeHtml(u.username || '—') : (u.username || '—')}</span>
