@@ -45,6 +45,20 @@ def _parse_bool_flag(raw: object) -> bool:
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _pick_panel_user(
+    panel_users: list[dict],
+    panel_user_id: object = None,
+) -> tuple[dict | None, web.Response | None]:
+    """Select an explicit panel account by id/uuid among a user's panel accounts, defaulting to primary."""
+    if panel_user_id is not None and str(panel_user_id).strip():
+        wanted = str(panel_user_id).strip()
+        for pu in panel_users:
+            if str(pu.get("id") or "") == wanted or str(pu.get("uuid") or "") == wanted:
+                return pu, None
+        return None, web.json_response({"ok": False, "error": "اکانت انتخاب‌شده در پنل یافت نشد."}, status=404)
+    return panel_users[0], None
+
+
 async def post_admin_modify_user(request: web.Request) -> web.Response:
     """Add traffic (GB) and/or extend days for a user in a unified action."""
     admin = _check_admin(request)
@@ -94,8 +108,14 @@ async def post_admin_modify_user(request: web.Request) -> web.Response:
     if not panel_users:
         return web.json_response({"ok": False, "error": "اکانتی در پنل برای این کاربر یافت نشد."}, status=404)
 
-    puser = panel_users[0]
-    primary_id = puser.get("id")
+    puser, pick_err = _pick_panel_user(
+        panel_users,
+        body.get("panel_user_id") or body.get("account_id") or body.get("panel_uuid"),
+    )
+    if pick_err:
+        return pick_err
+    assert puser is not None
+    primary_id = puser.get("id") or puser.get("uuid")
     cur_limit = get_limit_bytes(puser)
     cur_exp_str = puser.get("expireAt")
     now = datetime.now(timezone.utc)
@@ -165,13 +185,26 @@ async def post_admin_kill_sessions(request: web.Request) -> web.Response:
     if not panel_users:
         return web.json_response({"ok": False, "error": "اکانتی در پنل یافت نشد."}, status=404)
 
-    primary_id = panel_users[0].get("id")
-    devices = await remnawave.get_user_hwid_devices(primary_id)
+    explicit_pid = body.get("panel_user_id") or body.get("account_id") or body.get("panel_uuid")
+    if explicit_pid is not None and str(explicit_pid).strip():
+        puser, pick_err = _pick_panel_user(panel_users, explicit_pid)
+        if pick_err:
+            return pick_err
+        assert puser is not None
+        targets = [puser]
+    else:
+        targets = [pu for pu in panel_users if str(pu.get("status") or "").upper() != "DELETED"] or [panel_users[0]]
+
     killed = 0
-    for dev in devices:
-        hwid = dev.get("hwid")
-        if hwid and await remnawave.delete_hwid_device(primary_id, hwid):
-            killed += 1
+    for target_acc in targets:
+        primary_id = target_acc.get("id") or target_acc.get("uuid")
+        if not primary_id:
+            continue
+        devices = await remnawave.get_user_hwid_devices(primary_id)
+        for dev in devices:
+            hwid = dev.get("hwid")
+            if hwid and await remnawave.delete_hwid_device(primary_id, hwid):
+                killed += 1
 
     return web.json_response({"ok": True, "killed_devices": killed})
 
@@ -344,7 +377,13 @@ async def post_admin_user_revoke_sub(request: web.Request) -> web.Response:
     if not panel_users:
         return web.json_response({"ok": False, "error": "اکانتی در پنل برای این کاربر یافت نشد."}, status=404)
 
-    target_user = panel_users[0]
+    target_user, pick_err = _pick_panel_user(
+        panel_users,
+        body.get("panel_user_id") or body.get("account_id") or body.get("panel_uuid"),
+    )
+    if pick_err:
+        return pick_err
+    assert target_user is not None
     primary_id = target_user.get("id") or target_user.get("uuid")
     user_uuid = target_user.get("uuid")
     if user_uuid:

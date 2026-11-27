@@ -153,6 +153,17 @@ async def _do_user_spin(
     })
 
 
+def _select_panel_account(panel_users: list[dict], account_id: object) -> dict | None:
+    """Resolve explicit account id/uuid within user's panel accounts, defaulting to primary when omitted."""
+    if account_id is not None and str(account_id).strip():
+        wanted = str(account_id).strip()
+        for acc in panel_users:
+            if str(acc.get("id") or "") == wanted or str(acc.get("uuid") or "") == wanted:
+                return acc
+        return None
+    return panel_users[0]
+
+
 async def post_user_revoke_sub(request: web.Request) -> web.Response:
     """Revoke and generate a fresh subscription URL for user."""
     user_auth, err = require_user(request)
@@ -179,15 +190,8 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     if not panel_users:
         return web.json_response({"ok": False, "error": "سرویس فعالی یافت نشد."}, status=404)
 
-    account_id = data.get("account_id")
-    target_user = None
-    if account_id:
-        for u in panel_users:
-            if str(u.get("id")) == str(account_id) or str(u.get("uuid")) == str(account_id):
-                target_user = u
-                break
-    if not target_user:
-        target_user = panel_users[0]
+    account_id = data.get("account_id") or data.get("panel_user_id")
+    target_user = _select_panel_account(panel_users, account_id) or panel_users[0]
     primary_id = target_user.get("id") or target_user.get("uuid")
     user_uuid = target_user.get("uuid")
     if user_uuid:
@@ -205,7 +209,8 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     if not new_sub_url:
         fresh_users = await remnawave.get_users_by_telegram_id(telegram_id) or []
         if fresh_users:
-            new_sub_url = fresh_users[0].get("subscriptionUrl") or fresh_users[0].get("subscription_url") or ""
+            matched_fresh = _select_panel_account(fresh_users, account_id or primary_id) or fresh_users[0]
+            new_sub_url = matched_fresh.get("subscriptionUrl") or matched_fresh.get("subscription_url") or ""
     return web.json_response({
         "ok": True,
         "subscription_url": new_sub_url,
@@ -241,7 +246,12 @@ async def post_user_kill_device(request: web.Request) -> web.Response:
     if not panel_users:
         return web.json_response({"ok": False, "error": "سرویس فعالی یافت نشد."}, status=404)
 
-    primary_id = panel_users[0].get("id")
+    account_id = body.get("account_id") or body.get("panel_user_id")
+    target_user = _select_panel_account(panel_users, account_id)
+    if target_user is None:
+        return web.json_response({"ok": False, "error": "اکانت انتخاب‌شده یافت نشد."}, status=404)
+
+    primary_id = target_user.get("id") or target_user.get("uuid")
     success = await remnawave.delete_hwid_device(primary_id, hwid)
 
     # Invalidate cache
@@ -673,6 +683,17 @@ async def get_user_gifts_history(request: web.Request) -> web.Response:
         return web.json_response({"ok": True, "gifts": gifts})
 
 
+def get_extra_device_rate(store_settings: object) -> int:
+    """Return configured extra-device percentage while preserving an explicit 0%."""
+    raw = getattr(store_settings, "custom_plan_extra_device_percent", None)
+    if raw is None:
+        return 15
+    try:
+        return max(0, int(raw))
+    except (TypeError, ValueError):
+        return 15
+
+
 def compute_custom_plan_price(
     traffic_gb: int,
     duration_days: int,
@@ -718,7 +739,7 @@ def compute_custom_plan_price(
             volume_pct = 30
 
     discounted_traffic_price = int(raw_traffic_price * (100 - volume_pct) / 100)
-    extra_device_rate = getattr(store_settings, "custom_plan_extra_device_percent", 15) or 15
+    extra_device_rate = get_extra_device_rate(store_settings)
     extra_user_pct = max(0, hwid_limit - 1) * extra_device_rate
     raw_subtotal = raw_traffic_price + time_price + base_fee
     discounted_subtotal = discounted_traffic_price + time_price + base_fee
@@ -764,7 +785,7 @@ async def post_user_custom_plan_calculate(request: web.Request) -> web.Response:
             and store_settings.custom_plan_base_price <= 0
         )
         raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings, hwid_limit=hwid_limit)
-        extra_device_rate = getattr(store_settings, "custom_plan_extra_device_percent", 15) or 15
+        extra_device_rate = get_extra_device_rate(store_settings)
         extra_user_pct = max(0, hwid_limit - 1) * extra_device_rate
         raw_traffic_price = traffic_gb * store_settings.custom_plan_price_per_gb
         time_price = duration_days * store_settings.custom_plan_price_per_day

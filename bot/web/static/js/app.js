@@ -6950,7 +6950,7 @@ async function confirmKillSingleDevice() {
   closeKillSingleDeviceModal();
   if (!hwid) return;
   try {
-    const res = await window.api.killDevice(hwid);
+    const res = await window.api.killDevice(hwid, window.currentAccountId);
     if (res && res.ok) {
       showToast('✅ دستگاه با موفقیت قطع شد.');
       syncUserDataWithApi();

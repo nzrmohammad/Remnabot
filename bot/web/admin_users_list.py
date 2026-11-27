@@ -352,15 +352,19 @@ async def get_admin_users(request: web.Request) -> web.Response:
         panel_by_tid, all_mapped = _map_panel_users_by_tid(all_panel)
 
     condition = None
-    if not query and status_filter in ("expiring", "expired") and panel_by_tid and all_mapped:
-        matching_tids = []
-        for tid_k, accs in panel_by_tid.items():
-            c_info = _classify_panel_account(accs, now_utc)
-            if status_filter == "expiring" and c_info["is_expiring"]:
-                matching_tids.append(tid_k)
-            elif status_filter == "expired" and (c_info["is_expired"] or c_info["is_limited"]):
-                matching_tids.append(tid_k)
-        condition = User.telegram_id.in_(matching_tids or [-1])
+    use_fallback_status_scan = False
+    if not query and status_filter in ("expiring", "expired"):
+        if panel_by_tid and all_mapped:
+            matching_tids = []
+            for tid_k, accs in panel_by_tid.items():
+                c_info = _classify_panel_account(accs, now_utc)
+                if status_filter == "expiring" and c_info["is_expiring"]:
+                    matching_tids.append(tid_k)
+                elif status_filter == "expired" and (c_info["is_expired"] or c_info["is_limited"]):
+                    matching_tids.append(tid_k)
+            condition = User.telegram_id.in_(matching_tids or [-1])
+        else:
+            use_fallback_status_scan = True
 
     async with db_session(request) as session:
         user_repo = UserRepository(session)
@@ -374,6 +378,9 @@ async def get_admin_users(request: web.Request) -> web.Response:
         if query:
             users = await user_repo.search(query, limit=limit)
             total = len(users)
+        elif use_fallback_status_scan:
+            users = await user_repo.list_paginated(0, 10000, None)
+            total = 0
         else:
             total = await user_repo.count(condition)
             users = await user_repo.list_paginated(offset, limit, condition)
@@ -402,6 +409,10 @@ async def get_admin_users(request: web.Request) -> web.Response:
         item = _serialize_user_item(u, p_users if isinstance(p_users, list) else [], balances, online_ids, now_utc, status_filter, active_uids)
         if item is not None:
             user_items.append(item)
+
+    if use_fallback_status_scan:
+        total = len(user_items)
+        user_items = user_items[offset : offset + limit]
 
     return web.json_response({"ok": True, "users": user_items, "total": total, "page": page, "limit": limit})
 

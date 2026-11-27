@@ -102,6 +102,7 @@ async def verify_polygon_transaction(
     }
 
     headers = {"Content-Type": "application/json", "User-Agent": "Remnabot/1.0"}
+    saw_unmined_tx = False
 
     for rpc_url in POLYGON_RPCS:
         try:
@@ -114,14 +115,15 @@ async def verify_polygon_transaction(
                     if not tx_info:
                         continue
 
-                # Query Receipt to confirm execution status
+                # Query Receipt to confirm execution status (failover to next RPC if node hasn't indexed receipt yet)
                 async with session.post(rpc_url, json=payload_receipt, headers=headers) as r_resp:
                     if r_resp.status != 200:
                         continue
                     r_data = await r_resp.json()
                     receipt = r_data.get("result")
                     if not receipt:
-                        return False, "تراکنش هنوز در بلاک‌های شبکه پالیگان تأیید (Mined) نشده است. لطفاً چند لحظه بعد تلاش کنید.", 0
+                        saw_unmined_tx = True
+                        continue
 
                     status = str(receipt.get("status") or "")
                     if status != "0x1" and status != "1":
@@ -181,6 +183,8 @@ async def verify_polygon_transaction(
             logger.debug("Polygon RPC error on %s for tx %s: %s", rpc_url, clean_tx, exc)
             continue
 
+    if saw_unmined_tx:
+        return False, "تراکنش هنوز در بلاک‌های شبکه پالیگان تأیید (Mined) نشده است. لطفاً چند لحظه بعد تلاش کنید.", 0
     return False, "تراکنش هنوز در شبکه پالیگان یافت یا تأیید نشده است. لطفاً 1 دقیقه صبر کرده و مجدداً امتحان نمایید.", 0
 
 

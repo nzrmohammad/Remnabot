@@ -29,7 +29,7 @@ from bot.services.purchases import (
 from bot.services.remnawave import RemnawaveClient
 from bot.states.custom_plan import CustomPlanStates
 from bot.web.cache import FastCache, invalidate_user_cache, user_action_lock
-from bot.web.user_shop import compute_custom_plan_price
+from bot.web.user_shop import compute_custom_plan_price, get_extra_device_rate
 
 logger = logging.getLogger(__name__)
 router = Router(name="custom_plan")
@@ -160,6 +160,7 @@ async def custom_plan_gb_selected(
 
     gb = parse_int(val) or 0
     await state.update_data(traffic_gb=gb)
+    await state.set_state(None)
     await _prompt_duration_days(call, bot, user, user_repo, store_settings, gb, lang)
 
 
@@ -190,6 +191,7 @@ async def custom_plan_custom_gb_input(
         return
 
     await state.update_data(traffic_gb=gb)
+    await state.set_state(None)
 
     # Render days choice via message reply
     lines = [
@@ -239,7 +241,7 @@ async def _prompt_devices(
     days: int,
     lang: str,
 ):
-    extra_rate = getattr(store_settings, "custom_plan_extra_device_percent", 15) or 15
+    extra_rate = get_extra_device_rate(store_settings)
     lines = [
         f"✅ حجم: <b>{gb} گیگابایت</b> | مدت: <b>{days} روز</b>",
         SEPARATOR,

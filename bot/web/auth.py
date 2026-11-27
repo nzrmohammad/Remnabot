@@ -219,28 +219,46 @@ CLOUDFLARE_IPV4_NETWORKS = (
     ipaddress.ip_network("131.0.72.0/22"),
 )
 
+CLOUDFLARE_IPV6_NETWORKS = (
+    ipaddress.ip_network("2400:cb00::/32"),
+    ipaddress.ip_network("2606:4700::/32"),
+    ipaddress.ip_network("2803:f800::/32"),
+    ipaddress.ip_network("2405:b500::/32"),
+    ipaddress.ip_network("2405:8100::/32"),
+    ipaddress.ip_network("2a06:98c0::/29"),
+    ipaddress.ip_network("2c0f:f248::/32"),
+)
+
+CLOUDFLARE_NETWORKS = CLOUDFLARE_IPV4_NETWORKS + CLOUDFLARE_IPV6_NETWORKS
+
+
+def _normalize_ip(ip_str: str | None) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    if not ip_str:
+        return None
+    try:
+        ip = ipaddress.ip_address(ip_str.strip())
+        if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
+            return ip.ipv4_mapped
+        return ip
+    except ValueError:
+        return None
+
 
 def _is_trusted_proxy(ip_str: str | None) -> bool:
-    if not ip_str:
+    ip = _normalize_ip(ip_str)
+    if ip is None:
         return False
-    try:
-        ip = ipaddress.ip_address(ip_str)
-        if ip.is_loopback or ip.is_private:
-            return True
-        return any(ip in net for net in CLOUDFLARE_IPV4_NETWORKS)
-    except ValueError:
-        return False
+    if ip.is_loopback or ip.is_private:
+        return True
+    return any(ip in net for net in CLOUDFLARE_NETWORKS)
 
 
 def get_client_ip(request: web.Request) -> str:
     """Extract public client IP prioritizing Cloudflare, X-Real-IP, X-Forwarded-For when behind a trusted proxy."""
     remote = request.remote or "127.0.0.1"
     if _is_trusted_proxy(remote):
-        try:
-            remote_ip = ipaddress.ip_address(remote)
-            is_cf = any(remote_ip in net for net in CLOUDFLARE_IPV4_NETWORKS)
-        except ValueError:
-            is_cf = False
+        remote_ip = _normalize_ip(remote)
+        is_cf = bool(remote_ip is not None and any(remote_ip in net for net in CLOUDFLARE_NETWORKS))
 
         headers_order = ("CF-Connecting-IP", "X-Real-IP") if is_cf else ("X-Real-IP", "CF-Connecting-IP")
         for header in headers_order:

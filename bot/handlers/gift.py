@@ -362,7 +362,7 @@ async def gift_receiver_input(
     await state.set_state(GiftStates.waiting_for_message)
 
     lines = [
-        f"👤 دریافت‌کننده: <b>\u200e{formatted_target}\u200e</b>",
+        f"👤 دریافت‌کننده: <b>\u200e{escape(formatted_target)}\u200e</b>",
         SEPARATOR,
         "آیا مایلید یک متن تبریک یا پیام دلخواه همراه با هدیه ارسال شود؟",
         "می‌توانید پیام خود را ارسال کنید یا دکمه «رد کردن و تأیید نهایی» را بزنید:",

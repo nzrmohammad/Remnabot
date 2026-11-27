@@ -156,13 +156,19 @@ def _parse_srh_timestamp(created_at_raw: Any, now_utc: datetime) -> tuple[str, s
         return "ثبت‌شده", str(created_at_raw)[:19], "—"
 
 
-async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | None]:
-    """Resolve target_id (Telegram ID, Remnawave user ID, username, or UUID) to (primary_id, primary_uuid)."""
-    if not target_id:
+async def _resolve_panel_user(
+    remnawave, target_id: Any, panel_user_id: Any = None
+) -> tuple[Any, str | None]:
+    """Resolve target_id and optional explicit panel_user_id/uuid to (primary_id, primary_uuid)."""
+    if not target_id and not panel_user_id:
         return None, None
-    target_str = str(target_id).strip()
-    if not target_str or target_str.lower() in ("none", "null", "undefined"):
-        return None, None
+    target_str = str(target_id).strip() if target_id else ""
+    wanted_panel = str(panel_user_id).strip() if panel_user_id is not None else ""
+    if wanted_panel.lower() in ("none", "null", "undefined"):
+        wanted_panel = ""
+
+    if target_str.lower() in ("none", "null", "undefined"):
+        target_str = ""
 
     panel_users = None
     if target_str.isdigit():
@@ -171,17 +177,26 @@ async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | Non
         except Exception:
             panel_users = None
 
-    if not panel_users:
+    if wanted_panel and panel_users:
+        for pu in panel_users:
+            if str(pu.get("id") or "") == wanted_panel or str(pu.get("uuid") or "") == wanted_panel:
+                return pu.get("id"), pu.get("uuid")
+
+    lookup_id = wanted_panel or target_str
+    if not lookup_id:
+        return None, None
+
+    if not panel_users or wanted_panel:
         try:
-            p_user = await remnawave.get_panel_user_by_id(int(target_str) if target_str.isdigit() else target_str)
+            p_user = await remnawave.get_panel_user_by_id(int(lookup_id) if lookup_id.isdigit() else lookup_id)
             if p_user:
                 panel_users = [p_user]
         except Exception:
             pass
 
-    if not panel_users:
+    if (not panel_users or wanted_panel) and not lookup_id.isdigit():
         try:
-            p_user = await remnawave.get_user_by_username(target_str)
+            p_user = await remnawave.get_user_by_username(lookup_id)
             if p_user:
                 panel_users = [p_user]
         except Exception:
@@ -191,8 +206,8 @@ async def _resolve_panel_user(remnawave, target_id: Any) -> tuple[Any, str | Non
         return panel_users[0].get("id"), panel_users[0].get("uuid")
 
     # If target is explicitly formatted as UUID, preserve it
-    if "-" in target_str and len(target_str) >= 32:
-        return None, target_str
+    if "-" in lookup_id and len(lookup_id) >= 32:
+        return None, lookup_id
 
     return None, None
 
@@ -203,11 +218,12 @@ async def get_admin_user_hwid_devices(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id") or request.query.get("user_id")
-    if not target_id:
+    explicit_pid = request.query.get("panel_user_id") or request.query.get("account_id")
+    if not target_id and not explicit_pid:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
     remnawave = request.app["remnawave"]
-    primary_id, primary_uuid = await _resolve_panel_user(remnawave, target_id)
+    primary_id, primary_uuid = await _resolve_panel_user(remnawave, target_id, panel_user_id=explicit_pid)
     if not primary_id and not primary_uuid:
         return web.json_response({"ok": False, "error": "کاربر مورد نظر در پنل یافت نشد."}, status=404)
 
@@ -229,12 +245,15 @@ async def post_admin_user_delete_hwid(request: web.Request) -> web.Response:
         body = {}
 
     target_id = body.get("telegram_id") or body.get("id") or body.get("target_id")
+    explicit_pid = body.get("panel_user_id") or body.get("account_id") or body.get("panel_uuid") or (
+        body.get("user_id") if target_id else None
+    )
     hwid = body.get("hwid")
-    if not target_id or not hwid:
+    if (not target_id and not explicit_pid) or not hwid:
         return web.json_response({"ok": False, "error": "شناسه کاربر و شناسه سخت‌افزار (HWID) الزامی است."}, status=400)
 
     remnawave = request.app["remnawave"]
-    primary_id, _ = await _resolve_panel_user(remnawave, target_id)
+    primary_id, _ = await _resolve_panel_user(remnawave, target_id, panel_user_id=explicit_pid)
     if not primary_id:
         return web.json_response({"ok": False, "error": "کاربر مورد نظر در پنل یافت نشد."}, status=404)
 
@@ -252,12 +271,13 @@ async def get_admin_user_sessions(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
 
     target_id = request.query.get("telegram_id") or request.query.get("id") or request.query.get("target_id") or request.query.get("user_id")
-    if not target_id:
+    explicit_pid = request.query.get("panel_user_id") or request.query.get("account_id")
+    if not target_id and not explicit_pid:
         return web.json_response({"ok": False, "error": "شناسه کاربر الزامی است."}, status=400)
 
     remnawave = request.app["remnawave"]
     try:
-        primary_id, _ = await _resolve_panel_user(remnawave, target_id)
+        primary_id, _ = await _resolve_panel_user(remnawave, target_id, panel_user_id=explicit_pid)
         if not primary_id:
             return web.json_response({"ok": False, "error": "کاربر مورد نظر در پنل یافت نشد."}, status=404)
         user_sessions = await remnawave.get_user_live_sessions(primary_id)

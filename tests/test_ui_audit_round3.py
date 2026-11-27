@@ -389,7 +389,8 @@ def test_revoke_sub_account_selection_and_modal():
 
     # user_shop.py matches account_id
     assert 'account_id = data.get("account_id")' in user_shop_py
-    assert 'str(u.get("id")) == str(account_id) or str(u.get("uuid")) == str(account_id)' in user_shop_py
+    assert "_select_panel_account(panel_users, account_id)" in user_shop_py
+    assert 'str(acc.get("id") or "") == wanted or str(acc.get("uuid") or "") == wanted' in user_shop_py
 
 
 def test_client_importers_icon_only_grid():

@@ -44,8 +44,12 @@ async def process_auto_renewals(
             if not panel_users:
                 continue
 
-            # Multi-account support: check ALL accounts and find the ones expiring soon
+            # Multi-account support: check non-disabled/non-deleted accounts expiring soon
             for acc in panel_users:
+                acc_status = str(acc.get("status") or "").upper()
+                if acc_status in {"DELETED", "DISABLED"}:
+                    continue
+
                 expire_str = acc.get("expireAt")
                 days_left = 999.0
                 if expire_str:

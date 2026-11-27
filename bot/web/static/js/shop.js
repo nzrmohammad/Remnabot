@@ -324,7 +324,7 @@ async function updateCustomPlanCalculation() {
       else if (gb > 200) volPct = 30;
     }
 
-    const extraDevicePercent = Number(settings.extra_device_percent || 15);
+    const extraDevicePercent = Math.max(0, Number(settings.extra_device_percent ?? 15) || 0);
     const extraUserPct = Math.max(0, hwid - 1) * extraDevicePercent;
     const rawTraffic = gb * pricePerGb;
     const rawSubtotal = rawTraffic + (days * pricePerDay) + baseFixed;

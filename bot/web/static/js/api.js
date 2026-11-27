@@ -229,8 +229,10 @@ const api = {
     return this.post('/api/user/revoke_sub', payload);
   },
 
-  async killDevice(hwid) {
-    return this.post('/api/user/kill_device', { hwid });
+  async killDevice(hwid, accountId = null) {
+    const acc = accountId || window.currentAccountId;
+    const payload = acc ? { hwid, account_id: acc } : { hwid };
+    return this.post('/api/user/kill_device', payload);
   },
 
   async validateCoupon(code) {
@@ -429,8 +431,10 @@ const api = {
     return this.post('/api/admin/user/modify', { telegram_id, action: actionOrPayload, amount });
   },
 
-  async killUserSessions(telegram_id) {
-    return this.post('/api/admin/user/kill_sessions', { telegram_id });
+  async killUserSessions(telegram_id, panel_user_id = null) {
+    const payload = { telegram_id };
+    if (panel_user_id) payload.panel_user_id = panel_user_id;
+    return this.post('/api/admin/user/kill_sessions', payload);
   },
 
   async toggleUserBan(telegram_id, ban) {
@@ -489,18 +493,22 @@ const api = {
     return this.post('/api/admin/user/wallet', { telegram_id, amount, reason });
   },
 
-  async revokeUserSub(telegram_id) {
-    return this.post('/api/admin/user/revoke_sub', { telegram_id });
+  async revokeUserSub(telegram_id, panel_user_id = null) {
+    const payload = { telegram_id };
+    if (panel_user_id) payload.panel_user_id = panel_user_id;
+    return this.post('/api/admin/user/revoke_sub', payload);
   },
 
   async getUserHwidDevices(telegram_id, user_id = null) {
     const params = { telegram_id };
-    if (user_id) params.user_id = user_id;
+    if (user_id) params.panel_user_id = user_id;
     return this.get('/api/admin/user/hwid_devices', params);
   },
 
-  async deleteUserHwid(telegram_id, hwid) {
-    return this.post('/api/admin/user/delete_hwid', { telegram_id, hwid });
+  async deleteUserHwid(telegram_id, hwid, panel_user_id = null) {
+    const payload = { telegram_id, hwid };
+    if (panel_user_id) payload.panel_user_id = panel_user_id;
+    return this.post('/api/admin/user/delete_hwid', payload);
   },
 
   async getAdminPlans() {
@@ -559,8 +567,10 @@ const api = {
     return this.get('/api/admin/sessions-explorer');
   },
 
-  async getUserLiveSessions(telegram_id) {
-    return this.get(`/api/admin/user/sessions?telegram_id=${telegram_id}`);
+  async getUserLiveSessions(telegram_id, panel_user_id = null) {
+    const params = { telegram_id };
+    if (panel_user_id) params.panel_user_id = panel_user_id;
+    return this.get('/api/admin/user/sessions', params);
   },
 
   async getUserSrh(params) {

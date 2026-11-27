@@ -1121,7 +1121,8 @@ async applyUserModification() {
       }
 
       try {
-        const res = await window.api.getUserLiveSessions(telegram_id);
+        const pUserId = currentHwidTarget?.panel_user_id || null;
+        const res = await window.api.getUserLiveSessions(telegram_id, pUserId);
         if (!res || !res.ok) {
           if (list) list.innerHTML = `<div class="p-4 text-center t-danger text-xs">${escapeHtml(res?.error || 'خطا در دریافت اطلاعات اتصالات')}</div>`;
           return;
@@ -1199,8 +1200,8 @@ async applyUserModification() {
       this.closeHwidModal();
     },
 
-    async openUserSessionsModal(telegram_id, name) {
-      await this.openHwidModal(telegram_id, name, 'sessions');
+    async openUserSessionsModal(telegram_id, name, panel_user_id = null) {
+      await this.openHwidModal(telegram_id, name, 'sessions', panel_user_id);
     },
 
     async refreshUserSessions() {
@@ -1211,7 +1212,7 @@ async applyUserModification() {
 
     async killSessionsFromModal() {
       if (!currentHwidTarget) return;
-      const { telegram_id, name } = currentHwidTarget;
+      const { telegram_id, name, panel_user_id } = currentHwidTarget;
       const ok = await showConfirmModal({
         title: 'قطع تمامی نشست‌های فعال',
         message: `آیا از قطع تمام نشست‌ها و اتصالات کاربر ${name} اطمینان دارید؟`,
@@ -1221,7 +1222,7 @@ async applyUserModification() {
       if (!ok) return;
 
       try {
-        const res = await window.api.killUserSessions(telegram_id);
+        const res = await window.api.killUserSessions(telegram_id, panel_user_id || null);
         if (res && res.ok) {
           if (window.showToast) window.showToast(`✅ تمامی نشست‌های فعال کاربر قطع شدند.`);
           if (window.hapticFeedback) window.hapticFeedback('success');
@@ -1250,7 +1251,8 @@ async applyUserModification() {
       if (!ok) return;
 
       try {
-        const res = await window.api.deleteUserHwid(telegram_id, hwid);
+        const pUserId = currentHwidTarget?.panel_user_id || null;
+        const res = await window.api.deleteUserHwid(telegram_id, hwid, pUserId);
         if (res && res.ok) {
           if (window.showToast) window.showToast('✅ اتصال دستگاه با موفقیت قطع شد.');
           if (window.hapticFeedback) window.hapticFeedback('success');

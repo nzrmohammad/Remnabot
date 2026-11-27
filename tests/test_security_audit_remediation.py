@@ -1,6 +1,7 @@
 """Regression tests verifying Critical & High security and logic fixes."""
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 from datetime import datetime, timedelta, timezone
@@ -10,6 +11,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pyzipper
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.base import StorageKey
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiohttp import web
+from aiohttp.test_utils import make_mocked_request
 
 from bot.db.models import Coupon, GiftCard, Order, Service, User, Wallet
 from bot.db.repositories.coupon_repo import CouponRepository
@@ -390,3 +396,296 @@ def test_frontend_security_csp_and_xss_guards():
     assert "openExternalUrl" in utils_js
     assert "delegateClick" in utils_js
     assert "topModal.id === 'revokeModal'" in utils_js
+
+
+# ---------------------------------------------------------------------- #
+# 7. Medium Severity: Multi-Account Targeting, auto_renew, Expiring Fallback
+# ---------------------------------------------------------------------- #
+@pytest.mark.anyio
+async def test_multi_account_endpoints_auto_renew_and_expiring_fallback(session_factory):
+    from bot.services.auto_renew import process_auto_renewals
+    from bot.web.admin_users_actions import (
+        post_admin_kill_sessions,
+        post_admin_modify_user,
+        post_admin_user_revoke_sub,
+    )
+    from bot.web.admin_users_detail import post_admin_user_delete_hwid
+    from bot.web.admin_users_list import get_admin_users
+    from bot.web.user_shop import post_user_kill_device
+
+    now = datetime.now(timezone.utc)
+    past_iso = (now - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # 1. User kill_device selects explicit account_id instead of always panel_users[0]
+    remna_user = AsyncMock()
+    remna_user.get_users_by_telegram_id = AsyncMock(
+        return_value=[{"id": 101, "uuid": "u-101"}, {"id": 202, "uuid": "u-202"}]
+    )
+    remna_user.delete_hwid_device = AsyncMock(return_value=True)
+    app_user = {
+        "bot_token": "123:abc",
+        "admin_ids": [],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "remnawave": remna_user,
+        "cache": FastCache(redis_client=None),
+    }
+
+    req_kd = make_mocked_request("POST", "/api/user/kill_device?user_id=61001", app=app_user)
+    req_kd.json = AsyncMock(return_value={"hwid": "hw-2", "account_id": "202"})
+    resp_kd = await post_user_kill_device(req_kd)
+    assert resp_kd.status == 200
+    remna_user.delete_hwid_device.assert_awaited_once_with(202, "hw-2")
+
+    req_kd_bad = make_mocked_request("POST", "/api/user/kill_device?user_id=61001", app=app_user)
+    req_kd_bad.json = AsyncMock(return_value={"hwid": "hw-2", "account_id": "999"})
+    assert (await post_user_kill_device(req_kd_bad)).status == 404
+
+    # 2. Admin endpoints respect explicit panel_user_id & kill_sessions targets all non-DELETED when omitted
+    remna_adm = AsyncMock()
+    remna_adm.get_users_by_telegram_id = AsyncMock(
+        return_value=[
+            {"id": 101, "uuid": "u-101", "status": "ACTIVE", "trafficLimitBytes": 10 * 1024**3, "expireAt": past_iso},
+            {"id": 202, "uuid": "u-202", "status": "ACTIVE", "trafficLimitBytes": 10 * 1024**3, "expireAt": past_iso},
+        ]
+    )
+    remna_adm.update_user_subscription = AsyncMock(return_value={"ok": True})
+    remna_adm.revoke_user_subscription = AsyncMock(return_value={"subscriptionUrl": "https://sub/new"})
+    remna_adm.get_user_hwid_devices = AsyncMock(side_effect=[[{"hwid": "hw-a"}], [{"hwid": "hw-b"}]])
+    remna_adm.delete_hwid_device = AsyncMock(return_value=True)
+    app_adm = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "remnawave": remna_adm,
+        "cache": FastCache(redis_client=None),
+    }
+
+    with patch("bot.web.admin_users_actions._check_admin", return_value={"id": 99999}):
+        req_mod = make_mocked_request("POST", "/api/admin/user/modify", app=app_adm)
+        req_mod.json = AsyncMock(return_value={"telegram_id": 61001, "panel_user_id": 202, "days": 5})
+        assert (await post_admin_modify_user(req_mod)).status == 200
+        assert remna_adm.update_user_subscription.await_args.args[0] == 202
+
+        req_rev = make_mocked_request("POST", "/api/admin/user/revoke_sub", app=app_adm)
+        req_rev.json = AsyncMock(return_value={"telegram_id": 61001, "panel_user_id": "202"})
+        assert (await post_admin_user_revoke_sub(req_rev)).status == 200
+        remna_adm.revoke_user_subscription.assert_awaited_once_with(202, user_uuid="u-202")
+
+        req_kill = make_mocked_request("POST", "/api/admin/user/kill_sessions", app=app_adm)
+        req_kill.json = AsyncMock(return_value={"telegram_id": 61001})
+        resp_kill = await post_admin_kill_sessions(req_kill)
+        assert json.loads(resp_kill.text)["killed_devices"] == 2
+        remna_adm.delete_hwid_device.assert_any_await(101, "hw-a")
+        remna_adm.delete_hwid_device.assert_any_await(202, "hw-b")
+
+    with patch("bot.web.admin_users_detail._check_admin", return_value={"id": 99999}):
+        remna_adm.delete_hwid_device.reset_mock()
+        req_dhw = make_mocked_request("POST", "/api/admin/user/delete_hwid", app=app_adm)
+        req_dhw.json = AsyncMock(return_value={"telegram_id": 61001, "panel_user_id": 202, "hwid": "hw-202"})
+        assert (await post_admin_user_delete_hwid(req_dhw)).status == 200
+        remna_adm.delete_hwid_device.assert_awaited_once_with(202, "hw-202")
+
+    # 3. auto_renew skips DELETED / DISABLED panel accounts
+    async with session_factory() as s:
+        await _seed_wallet_user(s, 61003, balance=500_000, auto_renew=True)
+        await _seed_wallet_user(s, 61001, balance=0)
+        await _seed_wallet_user(s, 61002, balance=0)
+        await s.commit()
+
+    remna_ar = AsyncMock()
+    remna_ar.get_users_by_telegram_id = AsyncMock(
+        return_value=[
+            {"id": 301, "status": "DELETED", "expireAt": past_iso, "trafficLimitBytes": 10**9},
+            {"id": 302, "status": "DISABLED", "expireAt": past_iso, "trafficLimitBytes": 10**9},
+        ]
+    )
+    with patch("bot.services.auto_renew.execute_purchase", AsyncMock()) as mock_pur:
+        renewed = await process_auto_renewals(None, session_factory, remna_ar, cache=FastCache(redis_client=None))
+    assert renewed == 0
+    mock_pur.assert_not_awaited()
+
+    # 4. admin users expiring filter works cleanly even when get_all_panel_users has unmapped rows
+    remna_list = AsyncMock()
+    remna_list.get_all_panel_users = AsyncMock(return_value=[{"username": "orphan_no_tid"}])
+    remna_list.get_active_sessions = AsyncMock(return_value=[])
+    remna_list.get_all_hwid_devices = AsyncMock(return_value=[])
+
+    async def _by_tid(uid: int):
+        if uid == 61002:
+            return [{"id": 702, "status": "ACTIVE", "trafficLimitBytes": 10 * 1024**3, "userTraffic": {"usedTrafficBytes": 9 * 1024**3}}]
+        return [{"id": 701, "status": "ACTIVE", "trafficLimitBytes": 50 * 1024**3, "userTraffic": {"usedTrafficBytes": 1 * 1024**3}}]
+
+    remna_list.get_users_by_telegram_id = AsyncMock(side_effect=_by_tid)
+    app_list = {"session_factory": session_factory, "remnawave": remna_list, "cache": FastCache(redis_client=None)}
+    req_list = make_mocked_request("GET", "/api/admin/users?filter=expiring&page=1&limit=10", app=app_list)
+    with patch("bot.web.admin_users_list._check_admin", return_value={"id": 99999}):
+        resp_list = await get_admin_users(req_list)
+    payload_list = json.loads(resp_list.text)
+    assert payload_list["total"] == 1
+    assert [u["telegram_id"] for u in payload_list["users"]] == [61002]
+
+
+# ---------------------------------------------------------------------- #
+# 8. Medium Severity: False-Zero Extra Device Rate & Custom Plan FSM Unstuck
+# ---------------------------------------------------------------------- #
+@pytest.mark.anyio
+async def test_zero_extra_device_percent_and_custom_plan_fsm(session_factory):
+    from bot.handlers.custom_plan import custom_plan_custom_gb_input
+    from bot.states.custom_plan import CustomPlanStates
+    from bot.web.user_shop import compute_custom_plan_price, get_extra_device_rate
+
+    st = SimpleNamespace(
+        custom_plan_price_per_gb=1000,
+        custom_plan_price_per_day=500,
+        custom_plan_base_price=0,
+        custom_plan_volume_tiers_json="",
+        custom_plan_extra_device_percent=0,
+    )
+    assert get_extra_device_rate(st) == 0
+    raw_base, _, disc_base = compute_custom_plan_price(10, 10, st, hwid_limit=3)
+    assert raw_base == 15_000 and disc_base == 15_000
+
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    assert "settings.extra_device_percent ?? 15" in shop_js
+
+    storage = MemoryStorage()
+    fsm = FSMContext(storage=storage, key=StorageKey(bot_id=1, chat_id=61010, user_id=61010))
+    await fsm.set_state(CustomPlanStates.waiting_for_custom_gb)
+    await fsm.update_data(squad_uuid="sq-keep")
+
+    async with session_factory() as s:
+        u_repo = UserRepository(s)
+        msg = MagicMock()
+        msg.from_user = SimpleNamespace(id=61010, username="cplan_u")
+        msg.text = "75"
+        msg.reply = AsyncMock()
+        await custom_plan_custom_gb_input(msg, MagicMock(), u_repo, s, fsm)
+
+    assert await fsm.get_state() is None
+    st_data = await fsm.get_data()
+    assert st_data["traffic_gb"] == 75
+    assert st_data["squad_uuid"] == "sq-keep"
+
+
+# ---------------------------------------------------------------------- #
+# 9. Medium Severity: Speedtest GeoIP / Quotas & Polygon RPC Fallback
+# ---------------------------------------------------------------------- #
+@pytest.mark.anyio
+async def test_speedtest_geoip_quotas_and_pol_rpc_fallback():
+    from bot.services.crypto.pol import verify_polygon_transaction
+    from bot.web.user_speedtest import (
+        _lookup_isp,
+        get_user_speedtest_payload,
+        post_user_speedtest_upload,
+    )
+
+    st_src = Path("bot/web/user_speedtest.py").read_text(encoding="utf-8")
+    assert "https://ip-api.com" not in st_src
+    assert "https://ipwho.is" in st_src and "http://ip-api.com" in st_src
+
+    assert await _lookup_isp("127.0.0.1") == "شبکه محلی (Local)"
+    assert await _lookup_isp("::1") == "شبکه محلی (Local)"
+
+    app_st = web.Application()
+    app_st["bot_token"] = "123:abc"
+    app_st["admin_ids"] = [61020]
+    app_st["is_dev"] = True
+    app_st["cache"] = FastCache(redis_client=None)
+    app_st["settings"] = None
+    # Bound download chunk to <= 16 MB and enforce byte quota per window
+    for _ in range(16):
+        req_dl = make_mocked_request("GET", "/api/user/speedtest/payload?user_id=61020&bytes=33554432", app=app_st)
+        resp_dl = await get_user_speedtest_payload(req_dl)
+        assert resp_dl.status == 200
+        assert resp_dl.headers["Content-Length"] == str(16 * 1024 * 1024)
+
+    req_over = make_mocked_request("GET", "/api/user/speedtest/payload?user_id=61020&bytes=16777216", app=app_st)
+    resp_over = await get_user_speedtest_payload(req_over)
+    assert resp_over.status == 429
+
+    req_big_up = make_mocked_request(
+        "POST",
+        "/api/user/speedtest/upload?user_id=61020",
+        headers={"Content-Length": str(9 * 1024 * 1024)},
+        app=app_st,
+    )
+    assert (await post_user_speedtest_upload(req_big_up)).status == 413
+
+    # Polygon RPC #1 returns tx_info without receipt -> must failover to RPC #2
+    expected_addr = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+    val_wei = 10**18
+
+    def _mk_cm(status: int, body: dict):
+        resp = MagicMock()
+        resp.status = status
+        resp.json = AsyncMock(return_value=body)
+        cm = MagicMock()
+        cm.__aenter__ = AsyncMock(return_value=resp)
+        cm.__aexit__ = AsyncMock(return_value=None)
+        return cm
+
+    class FallbackClientSession:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        def post(self, url, json=None, headers=None):
+            method = (json or {}).get("method")
+            if "polygon-rpc.com" in url:
+                if method == "eth_getTransactionByHash":
+                    return _mk_cm(200, {"result": {"to": expected_addr.lower(), "value": hex(val_wei)}})
+                return _mk_cm(200, {"result": None})
+            if method == "eth_getTransactionByHash":
+                return _mk_cm(200, {"result": {"to": expected_addr.lower(), "value": hex(val_wei)}})
+            return _mk_cm(200, {"result": {"status": "0x1"}})
+
+    with patch("aiohttp.ClientSession", FallbackClientSession):
+        ok, reason, wei = await verify_polygon_transaction("0x" + "c" * 64, expected_addr, val_wei)
+    assert ok is True and reason == "SUCCESS" and wei == val_wei
+
+
+# ---------------------------------------------------------------------- #
+# 10. Medium Severity: Gift HTML Escape & Cloudflare IPv6 Proxy Support
+# ---------------------------------------------------------------------- #
+@pytest.mark.anyio
+async def test_gift_receiver_html_escape_and_cloudflare_ipv6(session_factory):
+    from bot.handlers.gift import gift_receiver_input
+    from bot.states.gift import GiftStates
+    from bot.web.auth import _is_trusted_proxy, get_client_ip
+
+    storage = MemoryStorage()
+    fsm = FSMContext(storage=storage, key=StorageKey(bot_id=1, chat_id=61030, user_id=61030))
+    await fsm.set_state(GiftStates.waiting_for_receiver)
+
+    async with session_factory() as s:
+        u_repo = UserRepository(s)
+        msg = MagicMock()
+        msg.from_user = SimpleNamespace(id=61030, username="sender_u")
+        msg.text = "@evil<b&tag"
+        msg.reply = AsyncMock()
+        await gift_receiver_input(msg, MagicMock(), u_repo, s, fsm)
+
+    sent_html = msg.reply.await_args.args[0]
+    assert "&lt;b&amp;tag" in sent_html
+    assert "@evil<b" not in sent_html
+
+    assert _is_trusted_proxy("2400:cb00:2048:1::6814:155") is True
+    assert _is_trusted_proxy("::ffff:104.16.1.1") is True
+    assert _is_trusted_proxy("2001:4860:4860::8888") is False
+
+    req_cf_v6 = MagicMock()
+    req_cf_v6.remote = "2400:cb00:2048:1::6814:155"
+    req_cf_v6.headers = {"CF-Connecting-IP": "198.51.100.42"}
+    assert get_client_ip(req_cf_v6) == "198.51.100.42"
+
+    req_untrusted_v6 = MagicMock()
+    req_untrusted_v6.remote = "2001:4860:4860::8888"
+    req_untrusted_v6.headers = {"CF-Connecting-IP": "198.51.100.42"}
+    assert get_client_ip(req_untrusted_v6) == "2001:4860:4860::8888"
