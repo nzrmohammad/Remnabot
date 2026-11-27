@@ -1965,7 +1965,7 @@ openEditSslDomainModal(domain) {
     if (window.hapticFeedback) window.hapticFeedback('impact');
   });
 
-  // Auto-refresh Nodes Status every 15 seconds while Servers subtab is active & visible
+  // Auto-refresh Nodes Status every 30 seconds while Servers subtab is active & visible
   let _nodesAutoPollInFlight = false;
   setInterval(async () => {
     if (_nodesAutoPollInFlight) return;
@@ -1984,7 +1984,7 @@ openEditSslDomainModal(domain) {
     } finally {
       _nodesAutoPollInFlight = false;
     }
-  }, 15000);
+  }, 30000);
 
   $('refreshSslHealthBtn')?.addEventListener('click', async () => {
     const icon = $('refreshSslHealthIcon');

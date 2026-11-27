@@ -689,3 +689,97 @@ async def test_gift_receiver_html_escape_and_cloudflare_ipv6(session_factory):
     req_untrusted_v6.remote = "2001:4860:4860::8888"
     req_untrusted_v6.headers = {"CF-Connecting-IP": "198.51.100.42"}
     assert get_client_ip(req_untrusted_v6) == "2001:4860:4860::8888"
+
+
+# ---------------------------------------------------------------------- #
+# 11. Performance Optimizations: Caches, Pooling, N+1 Elimination, Bundles
+# ---------------------------------------------------------------------- #
+@pytest.mark.anyio
+async def test_performance_optimizations_cache_pool_and_bundles(session_factory):
+    from bot.handlers.inline import inline_query_handler
+    from bot.middlewares.ban_check import BanCheckMiddleware
+    from bot.services.auto_renew import process_auto_renewals
+    from bot.services.http_client import close_http_sessions, shared_http_session
+    from bot.web.server import create_web_app, serve_admin_html, serve_app_html
+
+    # 1. BanCheckMiddleware caches unbanned lookups and skips DB on repeated updates
+    cache = FastCache(redis_client=None)
+    async with session_factory() as s:
+        await _seed_wallet_user(s, 62001, username="fast_ok", auto_renew=True)
+        await _seed_wallet_user(s, 62002, username="fast_ok2", auto_renew=True)
+        await s.commit()
+
+    mw = BanCheckMiddleware()
+    handler_ok = AsyncMock()
+    ev = SimpleNamespace(from_user=SimpleNamespace(id=62001), answer=AsyncMock())
+
+    async with session_factory() as s:
+        with patch("bot.middlewares.ban_check.UserRepository", wraps=UserRepository) as repo_spy:
+            await mw(handler_ok, ev, {"session": s, "cache": cache})
+            assert repo_spy.call_count == 1
+            await mw(handler_ok, ev, {"session": s, "cache": cache})
+            # Cache hit ("0") bypasses UserRepository completely on second update
+            assert repo_spy.call_count == 1
+            assert handler_ok.await_count == 2
+
+    # 2. inline_query_handler caches bot.get_me() and cluster snapshot nodes
+    await cache.set("snapshot:remnawave:cluster", {"nodes": [{"id": "n1", "countryCode": "DE"}]}, ttl_seconds=60)
+    inline_bot = AsyncMock()
+    inline_bot._me = None
+    inline_bot._cached_me = None
+    inline_bot.get_me = AsyncMock(return_value=SimpleNamespace(username="CachedInlineBot"))
+    inline_remna = AsyncMock()
+    inline_remna.get_users_by_telegram_id = AsyncMock(return_value=[])
+    inline_remna.get_nodes = AsyncMock(return_value=[])
+    iq = SimpleNamespace(from_user=SimpleNamespace(id=62001), query="", answer=AsyncMock())
+
+    async with session_factory() as s:
+        u_repo = UserRepository(s)
+        await inline_query_handler(iq, inline_bot, s, u_repo, inline_remna, cache=cache)
+        await inline_query_handler(iq, inline_bot, s, u_repo, inline_remna, cache=cache)
+    assert inline_bot.get_me.await_count == 1
+    inline_remna.get_nodes.assert_not_awaited()
+
+    # 3. auto_renew uses bulk get_all_panel_users snapshot once instead of N per-user calls
+    future_iso = (datetime.now(timezone.utc) + timedelta(days=20)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    bulk_remna = AsyncMock()
+    bulk_remna.get_all_panel_users = AsyncMock(
+        return_value=[
+            {"id": 1, "telegramId": 62001, "status": "ACTIVE", "expireAt": future_iso, "trafficLimitBytes": 0},
+            {"id": 2, "telegramId": 62002, "status": "ACTIVE", "expireAt": future_iso, "trafficLimitBytes": 0},
+        ]
+    )
+    bulk_remna.get_users_by_telegram_id = AsyncMock(return_value=[])
+    await process_auto_renewals(None, session_factory, bulk_remna, cache=FastCache(redis_client=None))
+    assert bulk_remna.get_all_panel_users.await_count == 1
+    bulk_remna.get_users_by_telegram_id.assert_not_awaited()
+
+    # 4. shared_http_session pools ClientSession across active loop and closes cleanly
+    async with shared_http_session() as s1:
+        async with shared_http_session() as s2:
+            assert s1 is s2 and not s1.closed
+    await close_http_sessions()
+    assert s1.closed
+
+    # 5. Production HTML uses pre-built CSS/JS bundles, deferred TG SDK, and LRU blob eviction
+    app_prod = create_web_app(
+        bot=MagicMock(),
+        session_factory=session_factory,
+        remnawave=MagicMock(),
+        settings=MagicMock(BOT_TOKEN="123:abc", ADMIN_IDS=[99999]),
+        is_dev=False,
+    )
+    resp_user = await serve_app_html(make_mocked_request("GET", "/app", app=app_prod))
+    resp_adm = await serve_admin_html(make_mocked_request("GET", "/admin", app=app_prod))
+    assert "/static/js/dist/bundle.min.css?v=" in resp_user.text
+    assert "/static/js/dist/user.bundle.min.js?v=" in resp_user.text
+    assert "/static/js/dist/admin.bundle.min.js?v=" in resp_adm.text
+    assert 'src="https://telegram.org/js/telegram-web-app.js" defer></script>' in resp_user.text
+    assert 'src="https://telegram.org/js/telegram-web-app.js" defer></script>' in resp_adm.text
+
+    utils_js = Path("bot/web/static/js/utils.js").read_text(encoding="utf-8")
+    assert "MAX_AVATAR_BLOB_CACHE" in utils_js
+    assert "_revokeIfUnusedBlobUrl" in utils_js
+
+    admin_js = Path("bot/web/static/js/admin.js").read_text(encoding="utf-8")
+    assert "Background Pre-fetching" not in admin_js

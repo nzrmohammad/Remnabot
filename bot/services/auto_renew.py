@@ -37,10 +37,45 @@ async def process_auto_renewals(
         res = await session.execute(user_stmt)
         user_ids = list(res.scalars().all())
 
+    bulk_by_tid: dict[int, list[dict]] = {}
+    if len(user_ids) > 1:
+        raw_bulk: list[dict] | None = None
+        if cache and hasattr(cache, "get"):
+            try:
+                cached_users = await cache.get("tma:all_panel_users")
+                if isinstance(cached_users, list) and cached_users:
+                    raw_bulk = cached_users
+                else:
+                    snap = await cache.get("snapshot:remnawave:cluster")
+                    if isinstance(snap, dict) and isinstance(snap.get("panel_users"), list) and snap["panel_users"]:
+                        raw_bulk = snap["panel_users"]
+            except Exception:
+                pass
+        if raw_bulk is None and hasattr(remnawave, "get_all_panel_users"):
+            try:
+                fetched = await remnawave.get_all_panel_users(size=1000)
+                if isinstance(fetched, list) and fetched:
+                    raw_bulk = fetched
+                    if cache and hasattr(cache, "set"):
+                        await cache.set("tma:all_panel_users", fetched, ttl_seconds=120)
+            except Exception:
+                raw_bulk = None
+        if isinstance(raw_bulk, list):
+            for pu in raw_bulk:
+                if not isinstance(pu, dict):
+                    continue
+                raw_tid = pu.get("telegramId") or pu.get("telegram_id")
+                if not raw_tid:
+                    uname = str(pu.get("username") or "").lower()
+                    if uname.startswith("tg_") and uname[3:].isdigit():
+                        raw_tid = uname[3:]
+                if raw_tid and str(raw_tid).isdigit():
+                    bulk_by_tid.setdefault(int(raw_tid), []).append(pu)
+
     now_utc = datetime.now(timezone.utc)
     for tid in user_ids:
         try:
-            panel_users = await remnawave.get_users_by_telegram_id(tid) or []
+            panel_users = bulk_by_tid.get(tid) if tid in bulk_by_tid else (await remnawave.get_users_by_telegram_id(tid) or [])
             if not panel_users:
                 continue
 

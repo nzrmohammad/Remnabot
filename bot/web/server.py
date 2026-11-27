@@ -317,6 +317,10 @@ async def cors_and_security_middleware(request: web.Request, handler):
                     response.enable_compression()
                     response.headers["Vary"] = "Accept-Encoding"
 
+    # Static asset immutable caching for content-hashed ?v= requests in production
+    if request.path.startswith("/static/") and request.query.get("v") and not request.app.get("is_dev", False):
+        response.headers.setdefault("Cache-Control", "public, max-age=31536000, immutable")
+
     return response
 
 
@@ -333,13 +337,14 @@ _HTML_NO_CACHE_HEADERS = {
 }
 
 
-def get_static_asset_version() -> str:
-    """Calculate asset version token from hash of CSS/JS/HTML files (cached for 5s)."""
+def get_static_asset_version(*, force: bool = False, is_dev: bool | None = None) -> str:
+    """Calculate asset version token from hash of CSS/JS/HTML files (pinned in prod, 5s TTL in dev)."""
     global _STATIC_VERSION_CACHE
     now = time.time()
     cached_ver, last_checked = _STATIC_VERSION_CACHE
-    if cached_ver and (now - last_checked < 5.0):
-        return cached_ver
+    if not force and cached_ver:
+        if is_dev is False or (now - last_checked < 5.0):
+            return cached_ver
 
     try:
         key_files: list[Path] = []
@@ -357,8 +362,9 @@ def get_static_asset_version() -> str:
             import hashlib
             hasher = hashlib.sha256()
             for kf in sorted(key_files):
-                hasher.update(str(kf.stat().st_mtime).encode())
-                hasher.update(str(kf.stat().st_size).encode())
+                st = kf.stat()
+                hasher.update(str(st.st_mtime).encode())
+                hasher.update(str(st.st_size).encode())
             version = hasher.hexdigest()[:10]
         else:
             version = "hashv100"
@@ -381,22 +387,41 @@ def build_versioned_tma_url(base_url: str, path: str = "/admin") -> str:
 
 
 def get_versioned_html(html_path: Path, is_dev: bool = False) -> str:
-    """Read HTML template and ensure static CSS/JS have current cache-busting token."""
-    version = get_static_asset_version()
-    cache_key = str(html_path)
+    """Read HTML template, inject cache-busting tokens, and serve bundled CSS/JS in production."""
+    version = get_static_asset_version(is_dev=is_dev)
+    cache_key = f"{html_path}:{'dev' if is_dev else 'prod'}"
 
     if not is_dev and cache_key in _VERSIONED_HTML_CACHE:
-        cached_entry = _VERSIONED_HTML_CACHE[cache_key]
-        cached_content = cached_entry[0]
-        mtime = cached_entry[1]
-        cached_version = cached_entry[2] if len(cached_entry) > 2 else ""
-        try:
-            if html_path.stat().st_mtime <= mtime and (not cached_version or cached_version == version):
-                return cached_content
-        except OSError:
-            pass
+        cached_content, _, cached_version = _VERSIONED_HTML_CACHE[cache_key]
+        if cached_version == version:
+            return cached_content
 
     content = html_path.read_text(encoding="utf-8")
+
+    # In production, collapse multiple CSS & JS tags into single pre-built bundles if present
+    if not is_dev:
+        css_bundle = STATIC_DIR / "js" / "dist" / "bundle.min.css"
+        if css_bundle.is_file():
+            content = re.sub(
+                r'<link rel="stylesheet" href="/static/css/tokens\.css">\s*'
+                r'<link rel="stylesheet" href="/static/css/base\.css">\s*'
+                r'<link rel="stylesheet" href="/static/css/tailwind\.min\.css">\s*'
+                r'<link rel="stylesheet" href="/static/css/components\.css">',
+                '<link rel="stylesheet" href="/static/js/dist/bundle.min.css">',
+                content,
+            )
+            content = content.replace('  <link rel="stylesheet" href="/static/css/app.css">\n', "")
+            content = content.replace('<link rel="stylesheet" href="/static/css/app.css">', "")
+
+        is_admin = html_path.name == "admin.html"
+        js_bundle_name = "admin.bundle.min.js" if is_admin else "user.bundle.min.js"
+        js_bundle = STATIC_DIR / "js" / "dist" / js_bundle_name
+        if js_bundle.is_file():
+            content = re.sub(
+                r'(?:[ \t]*<script src="/static/js/[a-zA-Z0-9_.-]+\.js" defer></script>\s*)+',
+                f'  <script src="/static/js/dist/{js_bundle_name}" defer></script>\n',
+                content,
+            )
 
     def _rewrite_asset(match: re.Match[str]) -> str:
         raw_path = match.group(1)
@@ -896,6 +921,14 @@ def create_web_app(
     app.router.add_post("/api/admin/tools/check-host", routes_admin.get_admin_tools_check_host)
     app.router.add_get("/api/admin/tools/asn-prefixes", routes_admin.get_admin_tools_asn_prefixes)
 
+    # Pre-warm static asset version hash once at startup & close shared HTTP pool on shutdown
+    get_static_asset_version(is_dev=is_dev)
+
+    async def _cleanup_shared_http(_app: web.Application) -> None:
+        from bot.services.http_client import close_http_sessions
+        await close_http_sessions()
+
+    app.on_cleanup.append(_cleanup_shared_http)
     return app
 
 

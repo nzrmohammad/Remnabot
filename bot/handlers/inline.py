@@ -7,6 +7,7 @@ Provides rich interactive inline query results:
 4. Free trial invitation card
 """
 import logging
+import weakref
 from html import escape
 
 from aiogram import Bot, Router
@@ -34,6 +35,7 @@ from bot.services.remnawave import RemnawaveClient
 
 logger = logging.getLogger(__name__)
 router = Router(name="inline")
+_BOT_USERNAME_CACHE: weakref.WeakKeyDictionary[object, str] = weakref.WeakKeyDictionary()
 
 
 def _format_traffic_compact(used: int, limit: int) -> str:
@@ -62,16 +64,32 @@ async def inline_query_handler(
     session: AsyncSession,
     user_repo: UserRepository,
     remnawave: RemnawaveClient,
+    cache=None,
 ) -> None:
     user_id = query.from_user.id
     settings = get_settings()
     tz_name = getattr(settings, "TIMEZONE", "Asia/Tehran")
 
     try:
-        bot_info = await bot.get_me()
-        bot_username = bot_info.username or "bot"
-    except Exception:
-        bot_username = "bot"
+        bot_username = _BOT_USERNAME_CACHE.get(bot)
+    except TypeError:
+        bot_username = None
+    if not bot_username:
+        me_uname = getattr(getattr(bot, "_me", None), "username", None)
+        if isinstance(me_uname, str) and me_uname:
+            bot_username = me_uname
+        else:
+            try:
+                bot_info = await bot.get_me()
+                raw_uname = getattr(bot_info, "username", None)
+                bot_username = raw_uname if isinstance(raw_uname, str) and raw_uname else "bot"
+                if bot_username != "bot":
+                    try:
+                        _BOT_USERNAME_CACHE[bot] = bot_username
+                    except TypeError:
+                        pass
+            except Exception:
+                bot_username = "bot"
 
     user = await user_repo.get_by_telegram_id(user_id)
     if user and user.is_banned:
@@ -205,9 +223,17 @@ async def inline_query_handler(
         )
     )
 
-    # 3. Live Server Status Card (Zero fake data)
+    # 3. Live Server Status Card (Zero fake data; reuse warm snapshot when available)
     nodes = []
-    if remnawave:
+    c = cache or getattr(bot, "cache", None)
+    if c and hasattr(c, "get"):
+        try:
+            snap = await c.get("snapshot:remnawave:cluster")
+            if isinstance(snap, dict) and isinstance(snap.get("nodes"), list):
+                nodes = snap["nodes"]
+        except Exception:
+            pass
+    if not nodes and remnawave:
         try:
             nodes = await remnawave.get_nodes() or []
         except Exception as exc:

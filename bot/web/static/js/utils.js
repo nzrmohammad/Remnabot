@@ -453,13 +453,38 @@ function hapticFeedback(type = 'success') {
     } catch (e) {}
   }
 }
+const MAX_AVATAR_BLOB_CACHE = 50;
+const MAX_QR_BLOB_CACHE = 30;
 const _avatarBlobPromiseCache = new Map();
+
+function _revokeIfUnusedBlobUrl(url) {
+  if (!url || typeof url !== 'string' || !url.startsWith('blob:')) return;
+  try {
+    const stillUsed = Array.from(document.querySelectorAll('img')).some(img => img.src === url);
+    if (!stillUsed) URL.revokeObjectURL(url);
+  } catch (_) {}
+}
+
+function _evictOldestBlobCacheEntry(cacheMap, maxEntries) {
+  while (cacheMap.size >= maxEntries) {
+    const oldestKey = cacheMap.keys().next().value;
+    const oldPromise = cacheMap.get(oldestKey);
+    cacheMap.delete(oldestKey);
+    if (oldPromise && typeof oldPromise.then === 'function') {
+      oldPromise.then(_revokeIfUnusedBlobUrl).catch(() => {});
+    }
+  }
+}
 
 async function _resolveProxyAvatarBlobUrl(proxyUrl) {
   if (!proxyUrl || !window.api || typeof window.api.getBlob !== 'function') return '';
   if (_avatarBlobPromiseCache.has(proxyUrl)) {
-    return _avatarBlobPromiseCache.get(proxyUrl);
+    const existing = _avatarBlobPromiseCache.get(proxyUrl);
+    _avatarBlobPromiseCache.delete(proxyUrl);
+    _avatarBlobPromiseCache.set(proxyUrl, existing);
+    return existing;
   }
+  _evictOldestBlobCacheEntry(_avatarBlobPromiseCache, MAX_AVATAR_BLOB_CACHE);
   const promise = (async () => {
     try {
       const blob = await window.api.getBlob(proxyUrl);
@@ -561,11 +586,11 @@ function setAuthQrImage(imgEl, text) {
   }
 
   let promise = _qrBlobPromiseCache.get(qrUrl);
-  if (!promise) {
-    if (_qrBlobPromiseCache.size >= 40) {
-      const oldest = _qrBlobPromiseCache.keys().next().value;
-      _qrBlobPromiseCache.delete(oldest);
-    }
+  if (promise) {
+    _qrBlobPromiseCache.delete(qrUrl);
+    _qrBlobPromiseCache.set(qrUrl, promise);
+  } else {
+    _evictOldestBlobCacheEntry(_qrBlobPromiseCache, MAX_QR_BLOB_CACHE);
     promise = window.api.getBlob(qrUrl).then(blob => (blob && blob.size > 0 ? URL.createObjectURL(blob) : '')).catch(() => '');
     _qrBlobPromiseCache.set(qrUrl, promise);
   }

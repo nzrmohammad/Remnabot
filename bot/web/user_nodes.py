@@ -331,13 +331,21 @@ async def get_user_avatar(request: web.Request) -> web.Response:
         from urllib.parse import urljoin
         try:
             import aiohttp
+
+            from bot.services.http_client import shared_http_session
             custom_headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             }
-            async with aiohttp.ClientSession(headers=custom_headers) as client:
+            async with shared_http_session(headers=custom_headers) as client:
                 cur_url = fallback_url
                 for _ in range(3):
-                    async with client.get(cur_url, timeout=aiohttp.ClientTimeout(total=5, connect=2.0), proxy=proxy, allow_redirects=False) as resp:
+                    async with client.get(
+                        cur_url,
+                        headers=custom_headers,
+                        timeout=aiohttp.ClientTimeout(total=5, connect=2.0),
+                        proxy=proxy,
+                        allow_redirects=False,
+                    ) as resp:
                         if resp.status in (301, 302, 303, 307, 308):
                             loc = resp.headers.get("Location", "")
                             next_url = urljoin(cur_url, loc) if loc else ""

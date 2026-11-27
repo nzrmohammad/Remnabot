@@ -5,6 +5,7 @@ import logging
 import aiohttp
 
 from bot.config import get_settings
+from bot.services.http_client import shared_http_session
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +38,17 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
     global_ton_usd: float | None = None
     global_ton_source: str = ""
 
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with shared_http_session(timeout=timeout) as session:
+        def _http_get(url: str, **kwargs):
+            kwargs.setdefault("headers", headers)
+            kwargs.setdefault("timeout", timeout)
+            return session.get(url, **kwargs)
+
         # 1. Nobitex
         async def _fetch_nobitex():
             # First fetch stats to verify market active/closed status
             try:
-                async with session.get("https://apiv2.nobitex.ir/market/stats", headers=headers, proxy=proxy) as resp:
+                async with _http_get("https://apiv2.nobitex.ir/market/stats", proxy=proxy) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         st = data.get("stats", {})
@@ -93,7 +99,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             if not closed_status.get("نوبیتکس_ton") and "نوبیتکس" not in ton_prices:
                 for symbol in ("GRAMIRT", "TONIRT"):
                     try:
-                        async with session.get(f"https://apiv2.nobitex.ir/v2/orderbook/{symbol}", headers=headers, proxy=proxy) as resp:
+                        async with _http_get(f"https://apiv2.nobitex.ir/v2/orderbook/{symbol}", proxy=proxy) as resp:
                             if resp.status == 200:
                                 data = await resp.json()
                                 if not data.get("isClosed") and data.get("status") != "closed":
@@ -108,7 +114,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         async def _fetch_bitpin():
             for bitpin_domain in ("api.bitpin.org", "api.bitpin.ir"):
                 try:
-                    async with session.get(f"https://{bitpin_domain}/v1/mkt/markets/", headers=headers, proxy=proxy) as resp:
+                    async with _http_get(f"https://{bitpin_domain}/v1/mkt/markets/", proxy=proxy) as resp:
                         if resp.status == 200:
                             data = await resp.json()
                             results = data.get("results") or (data if isinstance(data, list) else [])
@@ -154,7 +160,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         # 3. Wallex
         async def _fetch_wallex():
             try:
-                async with session.get("https://api.wallex.ir/v1/markets", headers=headers, proxy=proxy) as resp:
+                async with _http_get("https://api.wallex.ir/v1/markets", proxy=proxy) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         symbols = (data.get("result") or {}).get("symbols") or {}
@@ -188,7 +194,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         # 4. TetherLand (تترلند)
         async def _fetch_tetherland():
             try:
-                async with session.get("https://api.tetherland.com/currencies", headers=headers, proxy=proxy) as resp:
+                async with _http_get("https://api.tetherland.com/currencies", proxy=proxy) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         p = (data.get("data", {}).get("currencies", {}).get("USDT", {})).get("price")
@@ -200,7 +206,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
         # 5. Ramzinex (رمزینکس)
         async def _fetch_ramzinex():
             try:
-                async with session.get("https://publicapi.ramzinex.com/exchange/api/v1.0/exchange/pairs/11", headers=headers, proxy=proxy) as resp:
+                async with _http_get("https://publicapi.ramzinex.com/exchange/api/v1.0/exchange/pairs/11", proxy=proxy) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         sell = (data.get("data") or {}).get("sell")
@@ -210,7 +216,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                 logger.debug("Ramzinex USDT failed: %s", e)
 
             try:
-                async with session.get("https://publicapi.ramzinex.com/exchange/api/v1.0/exchange/pairs/272", headers=headers, proxy=proxy) as resp:
+                async with _http_get("https://publicapi.ramzinex.com/exchange/api/v1.0/exchange/pairs/272", proxy=proxy) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         sell = (data.get("data") or {}).get("sell")
@@ -224,7 +230,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             nonlocal binance_ton_usd, binance_eur_usd, global_ton_usd, global_ton_source
             # 1. Binance spot: Toncoin spot trades under active symbol GRAMUSDT
             try:
-                async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=GRAMUSDT", headers=headers) as resp:
+                async with _http_get("https://api.binance.com/api/v3/ticker/price?symbol=GRAMUSDT") as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         p = float(data.get("price", "0"))
@@ -238,7 +244,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             # 2. TonAPI official fallback if Binance did not return a valid price
             if not global_ton_usd:
                 try:
-                    async with session.get("https://tonapi.io/v2/rates?tokens=ton&currencies=usd", headers=headers) as resp:
+                    async with _http_get("https://tonapi.io/v2/rates?tokens=ton&currencies=usd") as resp:
                         if resp.status == 200:
                             data = await resp.json()
                             p = float((data.get("rates", {}).get("TON", {}).get("prices", {})).get("USD", 0))
@@ -252,7 +258,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             # 3. CoinGecko fallback
             if not global_ton_usd:
                 try:
-                    async with session.get("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd", headers=headers) as resp:
+                    async with _http_get("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd") as resp:
                         if resp.status == 200:
                             data = await resp.json()
                             p = float(data.get("the-open-network", {}).get("usd", 0))
@@ -267,7 +273,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
                 logger.warning("All global TON price sources (Binance, TonAPI, CoinGecko) failed!")
 
             try:
-                async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT", headers=headers) as resp:
+                async with _http_get("https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT") as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         p = float(data.get("price", "0"))
@@ -278,7 +284,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
 
             try:
                 nonlocal binance_trx_usd
-                async with session.get("https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT", headers=headers) as resp:
+                async with _http_get("https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT") as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         p = float(data.get("price", "0"))
@@ -290,7 +296,7 @@ async def fetch_all_exchange_prices(usdt_rate: int | None = None) -> dict:
             try:
                 nonlocal binance_pol_usd
                 for sym in ("POLUSDT", "MATICUSDT"):
-                    async with session.get(f"https://api.binance.com/api/v3/ticker/price?symbol={sym}", headers=headers) as resp:
+                    async with _http_get(f"https://api.binance.com/api/v3/ticker/price?symbol={sym}") as resp:
                         if resp.status == 200:
                             data = await resp.json()
                             p = float(data.get("price", "0"))

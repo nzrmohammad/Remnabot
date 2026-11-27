@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="referrer" content="no-referrer">
   <title>Remnabot Admin WebApp - Pro Management Suite</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
   <link rel="stylesheet" href="/static/css/tokens.css">
   <link rel="stylesheet" href="/static/css/base.css">
   <link rel="stylesheet" href="/static/css/tailwind.min.css">
@@ -60,9 +60,9 @@
         if (s && !s.classList.contains('hidden')) {
           s.style.opacity = '0';
           s.style.pointerEvents = 'none';
-          setTimeout(function() { s.classList.add('hidden'); }, 300);
+          setTimeout(function() { s.classList.add('hidden'); }, 220);
         }
-      }, 950);
+      }, 650);
     </script>
 
     <!-- ======================================================== -->

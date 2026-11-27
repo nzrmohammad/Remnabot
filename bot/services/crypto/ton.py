@@ -14,6 +14,7 @@ from bot.db.repositories.user_repo import UserRepository
 from bot.db.repositories.wallet_repo import WalletRepository
 from bot.locales.texts import t
 from bot.services.app_settings import get_store_settings
+from bot.services.http_client import shared_http_session
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ async def fetch_ton_transactions(address: str, limit: int = 100) -> list[dict]:
     timeout = aiohttp.ClientTimeout(total=10)
 
     try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with shared_http_session(timeout=timeout) as session:
             async with session.get(url, headers=headers) as resp:
                 if resp.status == 200:
                     data = await resp.json()

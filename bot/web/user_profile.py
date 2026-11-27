@@ -767,14 +767,24 @@ async def get_user_me(request: web.Request) -> web.Response:
             ):
                 periodic_bw = cached_bw
             else:
-                cached_all_panel = await cache.get("tma:all_panel_users")
-                if cached_all_panel:
-                    all_panel = cached_all_panel
-                else:
-                    all_panel = await remnawave.get_all_panel_users(size=1000) or []
+                all_panel = None
+                for key_cand, extract in (
+                    ("tma:all_panel_users", lambda v: v if isinstance(v, list) else None),
+                    ("snapshot:remnawave:cluster", lambda v: v.get("panel_users") if isinstance(v, dict) else None),
+                ):
+                    raw_cached = await cache.get(key_cand)
+                    extracted = extract(raw_cached)
+                    if extracted:
+                        all_panel = extracted
+                        break
+                if all_panel is None:
+                    all_panel = await asyncio.wait_for(remnawave.get_all_panel_users(size=1000), timeout=2.5) or []
                     if all_panel:
-                        await cache.set("tma:all_panel_users", all_panel, ttl_seconds=60)
-                periodic_bw = await get_periodic_users_bandwidth(remnawave, cache, all_panel, now_utc)
+                        await cache.set("tma:all_panel_users", all_panel, ttl_seconds=120)
+                periodic_bw = await asyncio.wait_for(
+                    get_periodic_users_bandwidth(remnawave, cache, all_panel, now_utc),
+                    timeout=2.5,
+                )
 
             my_user_ids = {str(p["id"]) for p in panel_users if isinstance(p, dict) and p.get("id")}
 

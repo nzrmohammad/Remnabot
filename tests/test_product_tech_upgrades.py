@@ -190,7 +190,8 @@ async def test_mobile_perf_lazy_chart_minifier_and_401_close_ux():
     req = make_mocked_request("GET", "/app", app=app)
     resp = await serve_app_html(req)
     assert resp.status == 200
-    assert "/static/js/dist/app.min.js?v=" in resp.text
+    assert "/static/js/dist/user.bundle.min.js?v=" in resp.text
+    assert "/static/js/dist/bundle.min.css?v=" in resp.text
 
 
 @pytest.mark.anyio

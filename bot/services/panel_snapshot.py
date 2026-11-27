@@ -102,6 +102,8 @@ async def refresh_panel_snapshot(
                 # Only cache cluster data if at least one upstream list succeeded
                 if healthy:
                     await cache.set(SNAPSHOT_CLUSTER_KEY, snapshot, ttl_seconds=SNAPSHOT_TTL_SECONDS)
+                if users_ok and panel_users:
+                    await cache.set("tma:all_panel_users", panel_users, ttl_seconds=SNAPSHOT_TTL_SECONDS)
                 await cache.set(
                     SNAPSHOT_HEALTH_KEY,
                     {

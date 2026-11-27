@@ -797,12 +797,13 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
     """Fetch version tag and platform download URLs for one GitHub or App Store app."""
     import asyncio
 
+    gh_headers = {"User-Agent": "Remnabot-App-Monitor/1.0"}
     # Case 1: App Store lookup for iOS-only apps
     if app_id in APPSTORE_IDS:
         track_id = APPSTORE_IDS[app_id]
         itunes_url = f"https://itunes.apple.com/lookup?id={track_id}"
         try:
-            async with session.get(itunes_url, timeout=8) as resp:
+            async with session.get(itunes_url, headers=gh_headers, timeout=8) as resp:
                 if resp.status == 200:
                     payload = await resp.json(content_type=None)
                     results = payload.get("results") or []
@@ -822,7 +823,7 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
     candidates = [url, f"https://api.github.com/repos/{repo}/releases?per_page=10"]
     for idx, endpoint in enumerate(candidates):
         try:
-            async with session.get(endpoint, timeout=8) as resp:
+            async with session.get(endpoint, headers=gh_headers, timeout=8) as resp:
                 if resp.status == 403:
                     break
                 if resp.status != 200:
@@ -854,7 +855,11 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                         dl_map.setdefault("windows", {})["version"] = clean_ver
                         dl_map.setdefault("macos", {})["version"] = clean_ver
                         try:
-                            async with session.get("https://api.github.com/repos/Happ-proxy/happ-android/releases/latest", timeout=6) as a_resp:
+                            async with session.get(
+                                "https://api.github.com/repos/Happ-proxy/happ-android/releases/latest",
+                                headers=gh_headers,
+                                timeout=6,
+                            ) as a_resp:
                                 if a_resp.status == 200:
                                     a_data = await a_resp.json()
                                     a_tag = str(a_data.get("tag_name") or "").strip().lstrip("vV")
@@ -885,7 +890,7 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
     # Case 3: HTML redirect fallback (zero rate limit)
     try:
         redirect_url = f"https://github.com/{repo}/releases/latest"
-        async with session.get(redirect_url, allow_redirects=False, timeout=8) as r:
+        async with session.get(redirect_url, headers=gh_headers, allow_redirects=False, timeout=8) as r:
             loc = r.headers.get("Location") or ""
             if "/releases/tag/" in loc:
                 raw_tag = loc.rstrip("/").split("/")[-1].strip()
@@ -900,7 +905,12 @@ async def _fetch_single_github_release(session: Any, app_id: str, repo: str) -> 
                         dl_map.setdefault("windows", {})["version"] = clean_ver
                         dl_map.setdefault("macos", {})["version"] = clean_ver
                         try:
-                            async with session.get("https://github.com/Happ-proxy/happ-android/releases/latest", allow_redirects=False, timeout=8) as ar:
+                            async with session.get(
+                                "https://github.com/Happ-proxy/happ-android/releases/latest",
+                                headers=gh_headers,
+                                allow_redirects=False,
+                                timeout=8,
+                            ) as ar:
                                 aloc = ar.headers.get("Location") or ""
                                 if "/releases/tag/" in aloc:
                                     a_tag = aloc.rstrip("/").split("/")[-1].strip().lstrip("vV")
@@ -931,9 +941,11 @@ async def get_admin_github_releases(request: web.Request) -> web.Response:
     all_targets: dict[str, str] = {**GITHUB_REPOS, **{k: "" for k in APPSTORE_IDS}}
     items_to_check = {target_app: all_targets[target_app]} if target_app in all_targets else all_targets
 
+    from bot.services.http_client import shared_http_session
+
     versions: dict[str, str] = {}
     downloads: dict[str, dict[str, dict[str, str]]] = {}
-    async with aiohttp.ClientSession(headers={"User-Agent": "Remnabot-App-Monitor/1.0"}) as session:
+    async with shared_http_session(headers={"User-Agent": "Remnabot-App-Monitor/1.0"}) as session:
         results = await asyncio.gather(
             *(_fetch_single_github_release(session, app_id, repo) for app_id, repo in items_to_check.items()),
             return_exceptions=False,
@@ -1128,14 +1140,16 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
         headers = {"Accept": "application/json", "User-Agent": "Remnabot-Monitor/1.0"}
 
         import aiohttp
-        async with aiohttp.ClientSession(headers=headers) as session:
+
+        from bot.services.http_client import shared_http_session
+        async with shared_http_session(headers=headers) as session:
             picked_nodes = await _pick_checkhost_nodes(session, max_nodes)
             if picked_nodes:
                 nodes_qs = "&".join(f"node={quote(n)}" for n in picked_nodes)
                 init_url = f"{base_init}&{nodes_qs}"
             else:
                 init_url = f"{base_init}&max_nodes={max_nodes}"
-            async with session.get(init_url, timeout=aiohttp.ClientTimeout(total=6)) as init_resp:
+            async with session.get(init_url, headers=headers, timeout=aiohttp.ClientTimeout(total=6)) as init_resp:
                 if init_resp.status == 200:
                     init_data = await init_resp.json()
                     req_id = init_data.get("request_id")
@@ -1145,7 +1159,7 @@ async def get_admin_tools_check_host(request: web.Request) -> web.Response:
                         res_data: dict[str, Any] = {}
                         for wait_s in (2.5, 1.5):
                             await asyncio.sleep(wait_s)
-                            async with session.get(res_url, timeout=aiohttp.ClientTimeout(total=7)) as res_resp:
+                            async with session.get(res_url, headers=headers, timeout=aiohttp.ClientTimeout(total=7)) as res_resp:
                                 if res_resp.status != 200:
                                     break
                                 res_data = await res_resp.json() or {}
@@ -1323,9 +1337,11 @@ async def get_admin_tools_asn_prefixes(request: web.Request) -> web.Response:
     if not clean_asn.isdigit():
         return web.json_response({"ok": False, "error": "فرمت ASN نامعتبر است. فقط از عدد یا پیشوند AS استفاده کنید."}, status=400)
 
+    from bot.services.http_client import shared_http_session
+
     url = f"https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS{clean_asn}"
     try:
-        async with aiohttp.ClientSession() as s:
+        async with shared_http_session() as s:
             async with s.get(url, timeout=aiohttp.ClientTimeout(total=8)) as resp:
                 if resp.status != 200:
                     return web.json_response({"ok": False, "error": f"خطا در دریافت اطلاعات از پایگاه داده RIPE (کد {resp.status})."}, status=502)

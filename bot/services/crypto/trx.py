@@ -8,6 +8,7 @@ import aiohttp
 
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.wallet_repo import WalletRepository
+from bot.services.http_client import shared_http_session
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ async def fetch_trx_rate(store_rate: int = 0) -> int:
     # Fetch live TRX price from Nobitex directly
     try:
         timeout = aiohttp.ClientTimeout(total=4)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with shared_http_session(timeout=timeout) as session:
             async with session.get("https://apiv2.nobitex.ir/market/stats", headers={"User-Agent": "Remnabot/1.0"}) as resp:
                 if resp.status == 200:
                     data = await resp.json()
@@ -108,7 +109,7 @@ async def verify_tron_transaction(
     try:
         url = "https://api.trongrid.io/wallet/gettransactionbyid"
         headers = {"Content-Type": "application/json", "User-Agent": "Remnabot/1.0"}
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with shared_http_session(timeout=timeout) as session:
             async with session.post(url, json={"value": clean_tx}, headers=headers) as resp:
                 if resp.status == 200:
                     tx_data = await resp.json()
@@ -153,7 +154,7 @@ async def verify_tron_transaction(
     try:
         scan_url = f"https://apilist.tronscanapi.com/api/transaction-info?hash={clean_tx}"
         headers = {"User-Agent": "Remnabot/1.0"}
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with shared_http_session(timeout=timeout) as session:
             async with session.get(scan_url, headers=headers) as resp:
                 if resp.status == 200:
                     scan_data = await resp.json()

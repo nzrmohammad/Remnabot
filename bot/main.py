@@ -190,6 +190,11 @@ async def main() -> None:
                 pass
         await remnawave.close()
         await bot.session.close()
+        try:
+            from bot.services.http_client import close_http_sessions
+            await close_http_sessions()
+        except Exception:
+            pass
         await engine.dispose()
         sys.exit(1)
 
@@ -399,6 +404,11 @@ async def main() -> None:
             await web_runner.cleanup()
         await remnawave.close()
         await bot.session.close()
+        try:
+            from bot.services.http_client import close_http_sessions
+            await close_http_sessions()
+        except Exception:
+            pass
         await engine.dispose()
 
 

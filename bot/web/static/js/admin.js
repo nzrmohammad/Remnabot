@@ -107,17 +107,15 @@
     if (!splash || splash.classList.contains('hidden')) return;
 
     if (splashBar) splashBar.style.width = '100%';
+    splash.style.opacity = '0';
+    splash.style.pointerEvents = 'none';
     setTimeout(() => {
-      splash.style.opacity = '0';
-      splash.style.pointerEvents = 'none';
-      setTimeout(() => {
-        splash.classList.add('hidden');
-      }, 350);
-    }, 250);
+      splash.classList.add('hidden');
+    }, 220);
   }
 
-  // Fail-safe auto-dismiss after 950ms
-  setTimeout(dismissSplash, 950);
+  // Fail-safe auto-dismiss
+  setTimeout(dismissSplash, 600);
 
 
   // --- 1. Helper Utilities ---
@@ -552,25 +550,19 @@
     }
   });
 
-  // Application bootstrap on startup
+  // Application bootstrap on startup (load active tab immediately; remaining tabs load lazily on click)
+  const bootTasks = [];
   if (typeof fetchAdminSettings === 'function') {
-    fetchAdminSettings();
+    bootTasks.push(Promise.resolve(fetchAdminSettings()).catch(() => {}));
   } else if (window.fetchAdminSettings) {
-    window.fetchAdminSettings();
+    bootTasks.push(Promise.resolve(window.fetchAdminSettings()).catch(() => {}));
   }
   if (typeof syncAdminOverview === 'function') {
-    syncAdminOverview();
+    bootTasks.push(Promise.resolve(syncAdminOverview()).catch(() => {}));
   } else if (window.syncAdminOverview) {
-    window.syncAdminOverview();
+    bootTasks.push(Promise.resolve(window.syncAdminOverview()).catch(() => {}));
   }
-
-  // Background Pre-fetching for instant tab transitions
-  setTimeout(() => {
-    if (window.fetchAdminPlans) window.fetchAdminPlans();
-    if (window.fetchAdminCoupons) window.fetchAdminCoupons();
-    if (window.fetchAdminTopups) window.fetchAdminTopups();
-    if (window.fetchAdminUsers) window.fetchAdminUsers(1);
-  }, 250);
+  Promise.all(bootTasks).finally(dismissSplash);
 
   // Preserved Test Contract Signatures & Delegates
   // refreshLiveCryptoRates(force = true)

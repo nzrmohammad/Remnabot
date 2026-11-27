@@ -9,6 +9,7 @@ import time
 import aiohttp
 from aiohttp import web
 
+from bot.services.http_client import shared_http_session
 from bot.web.user_common import get_client_ip, require_user
 
 logger = logging.getLogger(__name__)
@@ -122,10 +123,11 @@ async def _lookup_isp(client_ip: str) -> str:
         return _ISP_CACHE[norm_ip]
 
     isp_name = ""
+    timeout = aiohttp.ClientTimeout(total=1.5)
     try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1.5)) as session:
+        async with shared_http_session(timeout=timeout) as session:
             try:
-                async with session.get(f"https://ipwho.is/{norm_ip}?fields=success,connection") as resp:
+                async with session.get(f"https://ipwho.is/{norm_ip}?fields=success,connection", timeout=timeout) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         if data.get("success"):
@@ -136,7 +138,7 @@ async def _lookup_isp(client_ip: str) -> str:
 
             if not isp_name:
                 # ip-api.com free tier serves HTTP only (HTTPS fails on free plan)
-                async with session.get(f"http://ip-api.com/json/{norm_ip}?fields=status,isp,org") as resp:
+                async with session.get(f"http://ip-api.com/json/{norm_ip}?fields=status,isp,org", timeout=timeout) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         if data.get("status") == "success":

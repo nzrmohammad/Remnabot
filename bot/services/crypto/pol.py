@@ -7,6 +7,7 @@ import aiohttp
 
 from bot.db.repositories.crypto_repo import CryptoRepository
 from bot.db.repositories.wallet_repo import WalletRepository
+from bot.services.http_client import shared_http_session
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ async def fetch_pol_rate(store_rate: int = 0) -> int:
     # 1. Fetch live POL price from Nobitex directly
     try:
         timeout = aiohttp.ClientTimeout(total=4)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with shared_http_session(timeout=timeout) as session:
             async with session.get("https://apiv2.nobitex.ir/market/stats", headers={"User-Agent": "Remnabot/1.0"}) as resp:
                 if resp.status == 200:
                     data = await resp.json()
@@ -48,7 +49,7 @@ async def fetch_pol_rate(store_rate: int = 0) -> int:
         best_usdt = next((v for v in usdt_prices.values() if v > 0), 0)
 
         timeout = aiohttp.ClientTimeout(total=3)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with shared_http_session(timeout=timeout) as session:
             for symbol in ("POLUSDT", "MATICUSDT"):
                 try:
                     async with session.get(f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}") as b_resp:
@@ -106,7 +107,7 @@ async def verify_polygon_transaction(
 
     for rpc_url in POLYGON_RPCS:
         try:
-            async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with shared_http_session(timeout=timeout) as session:
                 async with session.post(rpc_url, json=payload_tx, headers=headers) as resp:
                     if resp.status != 200:
                         continue

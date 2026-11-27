@@ -17,7 +17,17 @@ const $ = id => {
 };
 // toPersianDigits is provided globally by utils.js
 
-// 1. Splash Screen Logic
+// 1. Splash Screen Logic (zero artificial delay when cache/API is ready)
+function dismissSplash() {
+  const splashScreen = $('splashScreen');
+  const splashBar = $('splashBar');
+  if (!splashScreen || splashScreen.classList.contains('hidden')) return;
+  if (splashBar) splashBar.style.width = '100%';
+  splashScreen.style.opacity = '0';
+  splashScreen.style.pointerEvents = 'none';
+  setTimeout(() => splashScreen.classList.add('hidden'), 220);
+}
+
 function runSplash() {
   const splashScreen = $('splashScreen');
   const splashBar = $('splashBar');
@@ -27,19 +37,10 @@ function runSplash() {
   splashScreen.style.opacity = '1';
   splashScreen.style.pointerEvents = 'auto';
   splashBar.style.width = '0%';
-  setTimeout(() => { splashBar.style.width = '100%'; }, 50);
-  setTimeout(() => {
-    splashScreen.style.opacity = '0';
-    splashScreen.style.pointerEvents = 'none';
-    setTimeout(() => splashScreen.classList.add('hidden'), 500);
-  }, 750);
+  setTimeout(() => { splashBar.style.width = '100%'; }, 25);
+  setTimeout(dismissSplash, 260);
 }
 
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  setTimeout(runSplash, 50);
-} else {
-  window.addEventListener('DOMContentLoaded', runSplash);
-}
 $('reloadBtn')?.addEventListener('click', runSplash);
 
 // Accordion Toggle for Settings Boxes
@@ -5637,6 +5638,7 @@ async function syncUserDataWithApi(accountId, options = {}) {
         _lastLiveWalletBalance = nextBal;
       }
       applySyncedUserData(res.data);
+      dismissSplash();
 
       if (res.data.partial) {
         if (typeof showBanner === 'function') {
@@ -5818,6 +5820,7 @@ function initApp() {
       if (cachedData) {
         window.lastUserData = cachedData;
         hydrateUserInterface(cachedData);
+        dismissSplash();
       }
     } catch(e) {
       console.warn('[initApp] hydrateFromCache error:', e);
@@ -5882,6 +5885,7 @@ async function checkJoinGateMembership() {
       if (!res.data.is_join_gate) {
         if (window.showToast) window.showToast('عضویت شما با موفقیت تأیید شد. خوش آمدید! 🎉');
         applySyncedUserData(res.data);
+      dismissSplash();
       } else {
         if (window.showToast) window.showToast('⚠️ هنوز در کانال عضو نشده‌اید. لطفاً ابتدا در کانال عضو شوید.');
       }

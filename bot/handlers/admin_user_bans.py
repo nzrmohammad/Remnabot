@@ -1,5 +1,6 @@
 """Admin Telegram User Details, Ban, Unban, and Banned List."""
 import logging
+from typing import Any
 
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
@@ -99,6 +100,7 @@ async def telegram_user_detail(
 async def admin_ban_user(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient,
+    cache: Any = None,
 ):
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
@@ -106,6 +108,10 @@ async def admin_ban_user(
 
     telegram_id = int(call.data.rsplit(":", 1)[1])
     await user_repo.set_banned(telegram_id, True)
+    c = cache or getattr(bot, "cache", None)
+    if c and hasattr(c, "delete"):
+        await c.delete(f"user:ban:{telegram_id}")
+        await c.delete(f"tma:ban:{telegram_id}")
     await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"ban_user={telegram_id}"
     )
@@ -117,6 +123,7 @@ async def admin_ban_user(
 async def admin_unban_user(
     call: CallbackQuery, bot: Bot, user_repo: UserRepository,
     session: AsyncSession, remnawave: RemnawaveClient,
+    cache: Any = None,
 ):
     if not _is_admin(call.from_user.id):
         await call.answer(t("fa", "not_authorized"), show_alert=True)
@@ -124,6 +131,10 @@ async def admin_unban_user(
 
     telegram_id = int(call.data.rsplit(":", 1)[1])
     await user_repo.set_banned(telegram_id, False)
+    c = cache or getattr(bot, "cache", None)
+    if c and hasattr(c, "delete"):
+        await c.delete(f"user:ban:{telegram_id}")
+        await c.delete(f"tma:ban:{telegram_id}")
     await AdminLogRepository(session).log(
         call.from_user.id, "setting", detail=f"unban_user={telegram_id}"
     )
