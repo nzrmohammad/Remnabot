@@ -1256,20 +1256,22 @@
             </div>
           </div>
 
-          <!-- Quick Action Buttons: Charge, Transfer & Gift -->
-          <div class="grid grid-cols-3 gap-1.5">
-            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
-              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-              <span class="inline-block truncate">شارژ کیف پول</span>
+          <!-- Quick Action Buttons: Charge (Full Row), Transfer & Gift -->
+          <div class="space-y-2">
+            <button id="chargeWalletBtn" onclick="window.openTopupModal && window.openTopupModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-[0.99] flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span class="whitespace-nowrap">شارژ کیف پول</span>
             </button>
-            <button id="transferWalletBtn" type="button" onclick="window.openWalletTransferModal && window.openWalletTransferModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
-              <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-              <span class="inline-block truncate">انتقال</span>
-            </button>
-            <button id="walletSendGiftBtn" type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
-              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-              <span class="inline-block truncate">ارسال هدیه</span>
-            </button>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="transferWalletBtn" type="button" onclick="window.openWalletTransferModal && window.openWalletTransferModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+                <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                <span class="whitespace-nowrap">انتقال موجودی</span>
+              </button>
+              <button id="walletSendGiftBtn" type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+                <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                <span class="whitespace-nowrap">ارسال هدیه</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1292,19 +1294,21 @@
             <span class="text-[11px] t-muted block mt-1">قابل استفاده برای خرید، تمدید اشتراک و بسته‌های حجمی و زمانی</span>
           </div>
 
-          <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-card-border">
-            <button onclick="window.openTopupModal && window.openTopupModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
-              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-              <span class="inline-block truncate">شارژ کیف پول</span>
+          <div class="space-y-2 pt-2 border-t border-card-border">
+            <button onclick="window.openTopupModal && window.openTopupModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-[0.99] flex items-center justify-center gap-1.5">
+              <img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+              <span data-i18n="charge_wallet_btn" class="whitespace-nowrap">شارژ کیف پول</span>
             </button>
-            <button type="button" onclick="window.openWalletTransferModal && window.openWalletTransferModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
-              <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-              <span class="inline-block truncate">انتقال</span>
-            </button>
-            <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-[11px] py-2.5 px-2 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1">
-              <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
-              <span class="inline-block truncate">ارسال هدیه</span>
-            </button>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="window.openWalletTransferModal && window.openWalletTransferModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+                <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                <span data-i18n="transfer_wallet_btn" class="whitespace-nowrap">انتقال موجودی</span>
+              </button>
+              <button type="button" onclick="window.openGiftModal && window.openGiftModal()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow active:scale-95 flex items-center justify-center gap-1.5">
+                <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
+                <span data-i18n="send_gift_btn" class="whitespace-nowrap">ارسال هدیه</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1588,16 +1592,16 @@
                 <span id="profileReferralsCount" class="text-sm font-black t-accent font-sans"><span class="font-sans">0</span> نفر</span>
               </div>
               <div class="ref-stat-box card-inset rounded-xl p-2.5">
-                <span class="text-[11px] t-muted block mb-0.5">پاداش ترافیک دریافتی</span>
+                <span class="text-[11px] t-muted block mb-0.5">ترافیک</span>
                 <div class="flex items-center justify-center gap-1 text-sm font-black font-sans t-success num-bidi" dir="ltr">
                   <span id="profileReferralRewardTotal">0</span>
                   <span class="text-xs font-bold font-sans leading-none">GB</span>
                 </div>
               </div>
               <div id="profileReferralCommissionStatBox" class="hidden ref-stat-box card-inset rounded-xl p-2.5">
-                <span class="text-[11px] t-muted block mb-0.5">پورسانت دریافتی</span>
-                <div class="flex items-center justify-center gap-1 text-sm font-black font-sans t-warn num-bidi" dir="rtl">
-                  <span id="profileReferralCommissionTotal">0</span>
+                <span class="text-[11px] t-muted block mb-0.5">پورسانت</span>
+                <div class="flex items-center justify-center gap-1 text-sm font-black font-sans t-warn" dir="rtl">
+                  <span id="profileReferralCommissionTotal" dir="ltr" class="num-bidi">0</span>
                   <span class="text-[10px] font-bold font-sans leading-none">تومان</span>
                 </div>
               </div>
@@ -1880,12 +1884,12 @@
             </div>
 
             <!-- Card Color Swatches (رنگ کارت سه‌بعدی کیف پول) -->
-            <div id="userWalletColorRow" class="flex items-center justify-between py-1 border-t border-card-border pt-2">
-              <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />رنگ کارت کیف پول</span>
-                <span id="userWalletColorSubtext" class="text-[11px] t-muted">طرح فعال: آبی رویال</span>
+            <div id="userWalletColorRow" class="flex flex-col gap-2.5 py-1 border-t border-card-border pt-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="t-main font-medium flex items-center"><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" />رنگ کارت کیف پول</span>
+                <span id="userWalletColorSubtext" class="text-[11px] t-muted font-medium">طرح فعال: آبی رویال</span>
               </div>
-              <div class="flex items-center gap-2" dir="ltr">
+              <div class="flex items-center justify-between gap-2 pt-0.5" dir="ltr">
                 <button type="button" data-color="blue" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('blue')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #1e88e5, #0d47a1);" title="آبی رویال" aria-label="آبی رویال"></button>
                 <button type="button" data-color="black" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('black')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #3f3f46, #09090b);" title="مشکی کربن" aria-label="مشکی کربن"></button>
                 <button type="button" data-color="green" onclick="window.setUserWalletCardColor && window.setUserWalletCardColor('green')" class="wallet-card-color-swatch w-7 h-7 rounded-full border border-white/40 shadow-xs transition active:scale-90" style="background: radial-gradient(circle, #00897b, #004d40);" title="سبز یشمی" aria-label="سبز یشمی"></button>

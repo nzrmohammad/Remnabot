@@ -308,7 +308,12 @@ function setupReportsSubtabs() {
       updateMonthlyReportView(currentMonthlyIndex);
     }
   });
-  repSubAnalytics?.addEventListener('click', () => setRepSub(repSubAnalytics, viewRepAnalytics));
+  repSubAnalytics?.addEventListener('click', () => {
+    setRepSub(repSubAnalytics, viewRepAnalytics);
+    if (typeof window.celebrateReadyQuestsIfAny === 'function') {
+      window.celebrateReadyQuestsIfAny();
+    }
+  });
 
   $('repMonthPrevBtn')?.addEventListener('click', () => {
     if (typeof updateMonthlyReportView === 'function') {
@@ -4432,19 +4437,21 @@ function hydrateUserInterface(data) {
 
     if (refRewardBadge) {
       if (refCommissionPct > 0 && refRewardGb > 0) {
-        refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگ + ${toEnglishDigits(refCommissionPct)}% پورسانت به ازای دعوت`;
+        refRewardBadge.innerHTML = `🎁 ${toEnglishDigits(refRewardGb)} گیگ + <span dir="ltr" class="inline-block font-sans num-bidi">${toEnglishDigits(refCommissionPct)}%</span> پورسانت به ازای دعوت`;
       } else if (refCommissionPct > 0) {
-        refRewardBadge.innerText = `💰 ${toEnglishDigits(refCommissionPct)}% پورسانت نقدی به ازای هر دعوت`;
+        refRewardBadge.innerHTML = `💰 <span dir="ltr" class="inline-block font-sans num-bidi">${toEnglishDigits(refCommissionPct)}%</span> پورسانت نقدی به ازای هر دعوت`;
       } else {
         refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
       }
     }
 
     if (refNoteEl) {
+      const safeScope = escapeHtml(commissionScopeText);
+      const pctHtml = `<span dir="ltr" class="inline-block font-sans num-bidi font-bold">${toEnglishDigits(refCommissionPct)}%</span>`;
       if (refCommissionPct > 0 && refRewardGb > 0) {
-        refNoteEl.innerText = `با دعوت هر دوست، پس از خرید موفق اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه و ${toEnglishDigits(refCommissionPct)}% پورسانت نقدی از ${commissionScopeText} به حساب شما واریز می‌شود.`;
+        refNoteEl.innerHTML = `با دعوت هر دوست، پس از خرید موفق اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه و ${pctHtml} پورسانت نقدی از ${safeScope} به حساب شما واریز می‌شود.`;
       } else if (refCommissionPct > 0) {
-        refNoteEl.innerText = `با دعوت هر دوست، ${toEnglishDigits(refCommissionPct)}% پورسانت نقدی از ${commissionScopeText} مستقیم به کیف پول شما واریز می‌شود.`;
+        refNoteEl.innerHTML = `با دعوت هر دوست، ${pctHtml} پورسانت نقدی از ${safeScope} مستقیم به کیف پول شما واریز می‌شود.`;
       } else {
         refNoteEl.innerText = `با دعوت هر دوست، پس از اولین خرید اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه به اکانت شما اضافه می‌شود.`;
       }
@@ -5821,6 +5828,11 @@ function initApp() {
   // DRY accordions
   safeRun('setupAccordions', () => {
     setupAccordion('toggleCountryBreakdownBtn', 'countryBreakdownBody', 'countryChevron');
+  $('toggleCountryBreakdownBtn')?.addEventListener('click', () => {
+    if (typeof window.recordWeeklyQuestEvent === 'function') {
+      window.recordWeeklyQuestEvent('nodes_check');
+    }
+  });
     setupAccordion('toggleSessionsAccordionBtn', 'sessionsAccordionBody', 'sessionsChevron');
     setupAccordion('toggleSubAccordionBtn', 'subAccordionBody', 'subChevron');
     setupAccordion('toggleProfileBadgesBtn', 'profileBadgesBody', 'profileBadgesChevron');
@@ -6009,7 +6021,6 @@ function renderGiftServiceSelectModalList() {
 
     return `
       <div onclick="window.selectGiftService(${p.id})" dir="rtl" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between gap-2.5 transition">
-        <span class="text-xs text-pink-500 font-bold px-2.5 py-1 rounded-lg card-inset border border-pink-500/30 shrink-0">انتخاب</span>
         <div class="flex items-center gap-1 shrink-0" dir="rtl">
           <span class="text-xs font-bold t-pink font-sans num-bidi">${priceStr}</span>
           <span class="text-[11px] t-muted">تومان</span>

@@ -261,37 +261,37 @@ def compute_renewal_advisor(
         )
     elif status == "exhausted":
         daily_base = avg_daily if avg_daily >= 0.5 else 1.5
-        rec_gb = _round_slider_gb(daily_base * 30 * 1.15)
+        rec_gb = _round_slider_gb(daily_base * 30 * 1.3 + 5)
         title = "Urgent Renewal Match" if is_en else "تمدید فوری پیشنهادی"
         summary = (
-            f"Based on your daily pace ({avg_daily:.2f} GB/day), a {rec_gb} GB / {rec_days}-day custom package keeps you covered."
+            f"Based on your average ({avg_daily:.2f} GB), a {rec_gb} GB and {rec_days}-day custom package keeps you safely covered."
             if is_en
-            else f"با توجه به مصرف روزانه ({daily_frag}/روز)، بسته {rec_gb} گیگابایت برای {rec_days} روز بهترین انتخاب شماست."
+            else f"با توجه به میانگین {daily_frag}، بسته {rec_gb} گیگابایت و {rec_days} روز بهترین انتخاب مطمئن شماست."
         )
     elif status == "fast":
-        shortfall = max(min_gb, (avg_daily * max(days_left, 30)) - max(0.0, remaining_gb))
-        rec_gb = _round_slider_gb(max(avg_daily * 30 * 1.1, shortfall))
+        shortfall = max(min_gb, (avg_daily * max(days_left, 30) * 1.2) - max(0.0, remaining_gb))
+        rec_gb = _round_slider_gb(max(avg_daily * 30 * 1.3 + 5, shortfall + 10))
         title = "Prevent Early Depletion" if is_en else "پیشگیری از اتمام زودهنگام"
         summary = (
-            f"At {avg_daily:.2f} GB/day your quota runs out early. We tuned {rec_gb} GB / {rec_days} days to cover your pace."
+            f"With {avg_daily:.2f} GB average usage, {rec_gb} GB and {rec_days} days gives extra buffer against early depletion."
             if is_en
-            else f"با الگوی مصرف {daily_frag}/روز، بسته {rec_gb} گیگابایت / {rec_days} روز مانع اتمام زودهنگام ترافیک می‌شود."
+            else f"با الگوی مصرف {daily_frag}، بسته {rec_gb} گیگابایت و {rec_days} روز با حاشیه اطمینان بیشتر مانع اتمام زودهنگام ترافیک می‌شود."
         )
     elif avg_daily > 0:
-        rec_gb = _round_slider_gb(avg_daily * 30 * 1.1)
+        rec_gb = _round_slider_gb(avg_daily * 30 * 1.28 + 5)
         title = "Balanced Custom Match" if is_en else "پیشنهاد متناسب با مصرف شما"
         summary = (
-            f"Your 3-day average is {avg_daily:.2f} GB/day; {rec_gb} GB for {rec_days} days optimizes cost without waste."
+            f"Based on your {avg_daily:.2f} GB average, {rec_gb} GB and {rec_days} days gives extra headroom without shortage."
             if is_en
-            else f"بر اساس میانگین {daily_frag}/روز، بسته {rec_gb} گیگابایت / {rec_days} روز بدون هزینه اضافه برایتان به‌صرفه‌تر است."
+            else f"بر اساس میانگین {daily_frag}، بسته {rec_gb} گیگابایت و {rec_days} روز با حجم اطمینان بیشتر برایتان به‌صرفه‌تر است."
         )
     else:
-        rec_gb = _round_slider_gb(25)
+        rec_gb = _round_slider_gb(30)
         title = "Starter Recommendation" if is_en else "بسته پیشنهادی پایه"
         summary = (
-            f"Low recent traffic detected; {rec_gb} GB for {rec_days} days is a clean baseline."
+            f"Low recent traffic detected; {rec_gb} GB and {rec_days} days is a comfortable baseline."
             if is_en
-            else f"مصرف اخیر پایین بوده است؛ بسته اقتصادی {rec_gb} گیگابایت برای {rec_days} روز برایتان آماده شد."
+            else f"مصرف اخیر پایین بوده است؛ بسته اقتصادی {rec_gb} گیگابایت و {rec_days} روز برایتان آماده شد."
         )
 
     return {

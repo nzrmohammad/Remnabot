@@ -943,80 +943,105 @@
 
           <!-- Pane 2: Internal Squads, External Squads & Global Subscription Settings -->
           <div id="panelCtrlPane_squads" class="space-y-3 hidden">
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">اسکوادهای داخلی (Internal Squads)</b>
-                <button type="button" onclick="window.panelCtrl.openIntSquadModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ اسکواد داخلی</button>
+            <div class="card rounded-2xl border border-card-border overflow-hidden">
+              <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelIntSquadsBody', 'panelIntSquadsChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelIntSquadsBody', 'panelIntSquadsChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img id="panelIntSquadsChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
+                  <b class="text-xs t-main truncate">اسکوادهای داخلی (Internal Squads)</b>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.panelCtrl.openIntSquadModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold shrink-0">+ اسکواد داخلی</button>
               </div>
-              <div id="panelInternalSquadsList" class="space-y-2">
-                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادهای داخلی...</div>
-              </div>
-            </div>
-
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">اسکوادهای خارجی (External Squads)</b>
-                <button type="button" onclick="window.panelCtrl.openExtSquadModal()" class="btn btn-secondary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ اسکواد خارجی</button>
-              </div>
-              <div id="panelExternalSquadsList" class="space-y-2">
-                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادها...</div>
+              <div id="panelIntSquadsBody" class="hidden p-3.5 pt-2.5 border-t border-card-border">
+                <div id="panelInternalSquadsList" class="space-y-2">
+                  <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادهای داخلی...</div>
+                </div>
               </div>
             </div>
 
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-3 text-xs">
-              <div class="flex items-center justify-between gap-2 border-b border-card-border pb-2">
-                <b class="t-main text-xs">تنظیمات سابسکریپشن پنل (Subscription Settings)</b>
+            <div class="card rounded-2xl border border-card-border overflow-hidden">
+              <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelExtSquadsBody', 'panelExtSquadsChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelExtSquadsBody', 'panelExtSquadsChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img id="panelExtSquadsChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
+                  <b class="text-xs t-main truncate">اسکوادهای خارجی (External Squads)</b>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.panelCtrl.openExtSquadModal()" class="btn btn-secondary px-3 py-1.5 text-[11px] rounded-xl font-bold shrink-0">+ اسکواد خارجی</button>
+              </div>
+              <div id="panelExtSquadsBody" class="hidden p-3.5 pt-2.5 border-t border-card-border">
+                <div id="panelExternalSquadsList" class="space-y-2">
+                  <div class="p-4 text-center text-xs t-muted">در حال دریافت اسکوادها...</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card rounded-2xl border border-card-border text-xs overflow-hidden">
+              <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelSubSettingsBody', 'panelSubSettingsChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelSubSettingsBody', 'panelSubSettingsChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img id="panelSubSettingsChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
+                  <b class="t-main text-xs truncate">تنظیمات سابسکریپشن پنل (Subscription Settings)</b>
+                </div>
                 <input type="hidden" id="panelSubSettingsUuid" value="" />
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div class="min-w-0">
-                  <label for="panelSubProfileTitle" class="text-[11px] t-muted block mb-1">عنوان پروفایل ساب:</label>
-                  <input type="text" id="panelSubProfileTitle" placeholder="مثلاً: RemnaStore" class="input-base h-9 px-3 rounded-xl text-xs w-full min-w-0" />
+              <div id="panelSubSettingsBody" class="hidden p-3.5 pt-2.5 border-t border-card-border space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div class="min-w-0">
+                    <label for="panelSubProfileTitle" class="text-[11px] t-muted block mb-1">عنوان پروفایل ساب:</label>
+                    <input type="text" id="panelSubProfileTitle" placeholder="مثلاً: RemnaStore" class="input-base h-9 px-3 rounded-xl text-xs w-full min-w-0" />
+                  </div>
+                  <div class="min-w-0">
+                    <label for="panelSubSupportLink" class="text-[11px] t-muted block mb-1">لینک پشتیبانی داخل کلاینت:</label>
+                    <input type="text" id="panelSubSupportLink" dir="ltr" placeholder="https://t.me/support" class="input-base h-9 px-3 rounded-xl text-xs w-full min-w-0 text-left" />
+                  </div>
                 </div>
-                <div class="min-w-0">
-                  <label for="panelSubSupportLink" class="text-[11px] t-muted block mb-1">لینک پشتیبانی داخل کلاینت:</label>
-                  <input type="text" id="panelSubSupportLink" dir="ltr" placeholder="https://t.me/support" class="input-base h-9 px-3 rounded-xl text-xs w-full min-w-0 text-left" />
+                <div class="space-y-2.5">
+                  <div class="min-w-0">
+                    <label for="panelSubUpdateInterval" class="text-[11px] t-muted block mb-1">بازه آپدیت (ساعت):</label>
+                    <input type="number" id="panelSubUpdateInterval" min="1" max="720" dir="ltr" placeholder="12" class="input-base h-9 px-3 rounded-xl text-xs num-bidi font-bold w-full min-w-0 text-left" />
+                  </div>
+                  <div class="grid grid-cols-2 gap-2.5 items-center">
+                    <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer min-w-0">
+                      <span class="text-[11px] t-main font-semibold truncate">صفحه وب ساب</span>
+                      <input type="checkbox" id="panelSubWebpageEnabled" class="accent-cyan-500 rounded shrink-0" />
+                    </label>
+                    <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer min-w-0">
+                      <span class="text-[11px] t-main font-semibold truncate">خروجی JSON پایه</span>
+                      <input type="checkbox" id="panelSubServeJson" class="accent-cyan-500 rounded shrink-0" />
+                    </label>
+                  </div>
                 </div>
+                <button type="button" onclick="window.panelCtrl.saveSubSettings()" class="w-full btn btn-primary py-2.5 rounded-xl text-xs font-bold">ذخیره تنظیمات ساب در پنل</button>
               </div>
-              <div class="space-y-2.5">
-                <div class="min-w-0">
-                  <label for="panelSubUpdateInterval" class="text-[11px] t-muted block mb-1">بازه آپدیت (ساعت):</label>
-                  <input type="number" id="panelSubUpdateInterval" min="1" max="720" dir="ltr" placeholder="12" class="input-base h-9 px-3 rounded-xl text-xs num-bidi font-bold w-full min-w-0 text-left" />
-                </div>
-                <div class="grid grid-cols-2 gap-2.5 items-center">
-                  <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer min-w-0">
-                    <span class="text-[11px] t-main font-semibold truncate">صفحه وب ساب</span>
-                    <input type="checkbox" id="panelSubWebpageEnabled" class="accent-cyan-500 rounded shrink-0" />
-                  </label>
-                  <label class="card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 cursor-pointer min-w-0">
-                    <span class="text-[11px] t-main font-semibold truncate">خروجی JSON پایه</span>
-                    <input type="checkbox" id="panelSubServeJson" class="accent-cyan-500 rounded shrink-0" />
-                  </label>
-                </div>
-              </div>
-              <button type="button" onclick="window.panelCtrl.saveSubSettings()" class="w-full btn btn-primary py-2.5 rounded-xl text-xs font-bold">ذخیره تنظیمات ساب در پنل</button>
             </div>
           </div>
 
           <!-- Pane 3: Config Profiles & Snippets -->
           <div id="panelCtrlPane_configs" class="space-y-3 hidden">
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">پروفایل‌های کانفیگ Xray</b>
-                <button type="button" onclick="window.panelCtrl.openConfigProfileModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ پروفایل جدید</button>
+            <div class="card rounded-2xl border border-card-border overflow-hidden">
+              <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelConfigProfilesBody', 'panelConfigProfilesChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelConfigProfilesBody', 'panelConfigProfilesChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img id="panelConfigProfilesChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
+                  <b class="text-xs t-main truncate">پروفایل‌های کانفیگ Xray</b>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.panelCtrl.openConfigProfileModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold shrink-0">+ پروفایل جدید</button>
               </div>
-              <div id="panelConfigProfilesList" class="space-y-2">
-                <div class="p-4 text-center text-xs t-muted">در حال دریافت پروفایل‌ها...</div>
+              <div id="panelConfigProfilesBody" class="hidden p-3.5 pt-2.5 border-t border-card-border">
+                <div id="panelConfigProfilesList" class="space-y-2">
+                  <div class="p-4 text-center text-xs t-muted">در حال دریافت پروفایل‌ها...</div>
+                </div>
               </div>
             </div>
 
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">اسنیپت‌های کانفیگ (Snippets)</b>
-                <button type="button" onclick="window.panelCtrl.openSnippetModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ اسنیپت جدید</button>
+            <div class="card rounded-2xl border border-card-border overflow-hidden">
+              <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelSnippetsBody', 'panelSnippetsChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelSnippetsBody', 'panelSnippetsChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img id="panelSnippetsChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
+                  <b class="text-xs t-main truncate">اسنیپت‌های کانفیگ (Snippets)</b>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.panelCtrl.openSnippetModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold shrink-0">+ اسنیپت جدید</button>
               </div>
-              <div id="panelSnippetsList" class="space-y-2">
-                <div class="p-4 text-center text-xs t-muted">در حال دریافت اسنیپت‌ها...</div>
+              <div id="panelSnippetsBody" class="hidden p-3.5 pt-2.5 border-t border-card-border">
+                <div id="panelSnippetsList" class="space-y-2">
+                  <div class="p-4 text-center text-xs t-muted">در حال دریافت اسنیپت‌ها...</div>
+                </div>
               </div>
             </div>
           </div>

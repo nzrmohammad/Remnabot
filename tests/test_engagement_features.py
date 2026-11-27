@@ -50,14 +50,16 @@ def _make_remnawave_mock():
 def test_smart_renewal_advisor_recommendations():
     cs = SimpleNamespace(enabled=True, min_gb=10, max_gb=300, min_days=10, max_days=180)
     fast = compute_renewal_advisor(
-        {"avg_daily_gb": 2.4, "status": "fast", "days_left_plan": 20},
+        {"avg_daily_gb": 1.87, "status": "fast", "days_left_plan": 20},
         {"days_left": 20, "traffic_remaining_gb": 10.0},
         custom_settings=cs,
         lang="fa",
     )
-    assert fast["recommended_gb"] >= 75
+    assert fast["recommended_gb"] >= 80
     assert fast["recommended_gb"] % 5 == 0
     assert fast["recommended_days"] == 30
+    assert "/روز" not in fast["summary"]
+    assert " و 30 روز" in fast["summary"]
     assert fast["custom_plan_enabled"] is True
 
     idle_en = compute_renewal_advisor(
@@ -66,7 +68,7 @@ def test_smart_renewal_advisor_recommendations():
         custom_settings=cs,
         lang="en",
     )
-    assert idle_en["recommended_gb"] == 25
+    assert idle_en["recommended_gb"] == 30
     assert "Apply in Custom Plan" == idle_en["cta_label"]
 
 

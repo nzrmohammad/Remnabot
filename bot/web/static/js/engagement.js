@@ -123,8 +123,8 @@
             </b>
             <p class="text-[11px] t-muted leading-relaxed">${_esc(advisor.summary)}</p>
           </div>
-          <span class="px-2 py-0.5 rounded-lg card-inset border border-cyan-500/30 text-[11px] font-sans font-bold t-accent shrink-0 num-bidi" dir="ltr">
-            ${_esc(recGb)} GB / ${_esc(recDays)}d
+          <span class="px-2 py-0.5 rounded-lg card-inset border border-cyan-500/30 text-[11px] font-sans font-bold t-accent shrink-0" dir="rtl">
+            <span dir="ltr" class="num-bidi font-bold">${_esc(recGb)} GB</span> <span>و</span> <span dir="ltr" class="num-bidi font-bold">${_esc(recDays)}</span> <span>${_isEn() ? 'days' : 'روز'}</span>
           </span>
         </div>
         ${canCustom ? `
@@ -265,6 +265,43 @@
   // ------------------------------------------------------------------
   // 3. Weekly Interactive Quests (Strictly Spin Tickets + Badges ONLY)
   // ------------------------------------------------------------------
+  function navigateToQuest(eventType) {
+    if (typeof window.closeModal === 'function') window.closeModal('weeklyQuestsModal');
+    _haptic('selection');
+    if (eventType === 'speedtest') {
+      if (typeof window.openSpeedTestModal === 'function') window.openSpeedTestModal();
+    } else if (eventType === 'story_share') {
+      if (typeof window.openStoryCard === 'function') window.openStoryCard();
+    } else if (eventType === 'nodes_check') {
+      if (typeof window.switchTab === 'function') window.switchTab('tab-dashboard');
+      const breakdownBody = document.getElementById('countryBreakdownBody');
+      const toggleBtn = document.getElementById('toggleCountryBreakdownBtn');
+      const cardEl = document.getElementById('dashboardCountryBreakdownCard');
+      if (breakdownBody && breakdownBody.classList.contains('hidden') && toggleBtn) {
+        toggleBtn.click();
+      } else {
+        window.recordWeeklyQuestEvent?.('nodes_check');
+      }
+      if (window.api?.getNodes) window.api.getNodes().catch(() => {});
+      if (cardEl && typeof cardEl.scrollIntoView === 'function') {
+        setTimeout(() => cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      }
+    } else if (eventType === 'spin') {
+      if (typeof window.openLuckyWheel === 'function') window.openLuckyWheel();
+    }
+  }
+
+  function _bindQuestNavigation(container) {
+    if (!container) return;
+    container.querySelectorAll('.quest-nav-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        const ev = card.getAttribute('data-quest-event');
+        if (ev) navigateToQuest(ev);
+      });
+    });
+  }
+
   function buildQuestsListHtml(questsData) {
     const list = questsData?.quests;
     if (!Array.isArray(list) || !list.length) {
@@ -278,13 +315,13 @@
       if (q.is_claimed) {
         actionHtml = `<span class="px-2 py-1 rounded-lg s-success-soft border border-emerald-500/30 text-[10px] font-bold shrink-0">✓ ${_isEn() ? 'Claimed' : 'دریافت شد'}</span>`;
       } else if (q.can_claim) {
-        actionHtml = `<button type="button" onclick="window.claimWeeklyQuest('${_esc(q.id)}')" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] shadow-sm active:scale-95 transition shrink-0">+${_esc(q.reward_tickets)} 🎟</button>`;
+        actionHtml = `<button type="button" onclick="window.claimWeeklyQuest('${_esc(q.id)}')" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] shadow-sm active:scale-95 transition shrink-0 inline-flex items-center gap-1"><span dir="ltr" class="inline-block font-sans num-bidi font-black">+${_esc(q.reward_tickets)}</span><span>🎟</span></button>`;
       } else {
         actionHtml = `<span class="px-2 py-1 rounded-lg card-inset border border-card-border text-[10px] font-sans font-bold t-muted shrink-0 num-bidi" dir="ltr">${prog}/${target}</span>`;
       }
 
       return `
-        <div class="card-inset p-2.5 rounded-xl border border-card-border space-y-1.5">
+        <div role="button" tabindex="0" data-quest-event="${_esc(q.event)}" class="quest-nav-card cursor-pointer hover:border-cyan-500/40 active:scale-[0.99] card-inset p-2.5 rounded-xl border border-card-border space-y-1.5 transition">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <span class="w-7 h-7 rounded-lg s-accent-soft border flex items-center justify-center shrink-0">
@@ -322,8 +359,14 @@
         : (_isEn() ? 'Quests' : 'مأموریت‌ها');
     }
     const html = buildQuestsListHtml(quests);
-    if (inlineContainer) inlineContainer.innerHTML = html;
-    if (modalContainer) modalContainer.innerHTML = html;
+    if (inlineContainer) {
+      inlineContainer.innerHTML = html;
+      _bindQuestNavigation(inlineContainer);
+    }
+    if (modalContainer) {
+      modalContainer.innerHTML = html;
+      _bindQuestNavigation(modalContainer);
+    }
   }
 
   async function recordWeeklyQuestEvent(eventName) {
@@ -332,6 +375,11 @@
 
     // Avoid redundant network requests once the weekly quest is already fulfilled or claimed
     const existingQuests = window.lastUserData?.quests?.quests;
+    const prevReadyIds = new Set(
+      Array.isArray(existingQuests)
+        ? existingQuests.filter(q => q.can_claim || q.is_claimed).map(q => q.id)
+        : []
+    );
     if (Array.isArray(existingQuests)) {
       const matching = existingQuests.filter(q => q.event === clean);
       if (matching.length && matching.every(q => q.is_completed || q.is_claimed)) {
@@ -346,6 +394,14 @@
       if (res && res.ok && res.quests && window.lastUserData) {
         window.lastUserData.quests = res.quests;
         renderWeeklyQuests(window.lastUserData);
+        const newlyReady = (res.quests.quests || []).some(q => q.can_claim && !prevReadyIds.has(q.id));
+        if (newlyReady) {
+          _haptic('success');
+          if (typeof window.playSubtleSound === 'function') window.playSubtleSound('coin_success');
+          if (typeof showToast === 'function') {
+            showToast(_isEn() ? '🎉 Quest completed! Claim your wheel ticket.' : '🎉 مأموریت تکمیل شد! بلیت گردونه آماده دریافت است.', 'success');
+          }
+        }
       }
     } catch (e) {
       _recordedWeekEvents.delete(clean);
@@ -363,6 +419,7 @@
         return;
       }
       _haptic('success');
+      if (typeof window.playSubtleSound === 'function') window.playSubtleSound('coin_success');
       if (typeof window.launchCelebrationConfetti === 'function') window.launchCelebrationConfetti();
       if (window.lastUserData) {
         if (res.quests) window.lastUserData.quests = res.quests;
@@ -386,8 +443,21 @@
   }
   window.claimWeeklyQuest = claimWeeklyQuest;
 
+  const _celebratedQuestIds = new Set();
+  function celebrateReadyQuestsIfAny(data = window.lastUserData) {
+    const list = data?.quests?.quests;
+    if (!Array.isArray(list) || !list.length) return;
+    const freshReady = list.filter(q => q.can_claim && !_celebratedQuestIds.has(q.id));
+    if (!freshReady.length) return;
+    freshReady.forEach(q => _celebratedQuestIds.add(q.id));
+    _haptic('success');
+    if (typeof window.playSubtleSound === 'function') window.playSubtleSound('coin_success');
+  }
+  window.celebrateReadyQuestsIfAny = celebrateReadyQuestsIfAny;
+
   window.openWeeklyQuestsModal = function () {
     renderWeeklyQuests(window.lastUserData);
+    celebrateReadyQuestsIfAny(window.lastUserData);
     if (typeof openModal === 'function') openModal('weeklyQuestsModal');
     if (typeof syncTelegramBackButton === 'function') syncTelegramBackButton();
   };
