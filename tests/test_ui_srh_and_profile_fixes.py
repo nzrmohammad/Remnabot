@@ -1219,7 +1219,7 @@ async def test_family_dns_hosts_pagination_and_referral_ui_contracts(session_fac
     assert "user.referral_earned_gb" in app_js
     assert "user.referral_earned_commission" in app_js
     assert "فعالسازی پاداش ترافیک و پورسانت نقدی برای دعوت از دوستان" in admin_html
-    assert "حداکثر 50% مجاز است" in admin_html
+    assert '50%</span> مجاز است' in admin_html and "حداکثر " in admin_html
 
     cache = FastCache(redis_client=None)
     app = {

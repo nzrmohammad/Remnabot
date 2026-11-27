@@ -252,8 +252,13 @@ async def get_user_me(request: web.Request) -> web.Response:
         await cache.delete(cache_key)
 
     cached_data = await cache.get(cache_key)
+    req_explicit_lang = request.query.get("lang") or request.headers.get("X-App-Language")
     if cached_data:
-        return web.json_response({"ok": True, "data": cached_data, "cached": True})
+        cached_lang = ((cached_data.get("user") or {}).get("language")) if isinstance(cached_data, dict) else None
+        if req_explicit_lang and normalize_lang(req_explicit_lang) != normalize_lang(cached_lang):
+            cached_data = None
+        else:
+            return web.json_response({"ok": True, "data": cached_data, "cached": True})
 
     remnawave = request.app["remnawave"]
     settings = request.app["settings"]
@@ -659,7 +664,11 @@ async def get_user_me(request: web.Request) -> web.Response:
                         is_invite_only = True
             except Exception as e:
                 logger.debug("Failed checking invite-only status: %s", e)
-        user_lang = normalize_lang(getattr(db_user, "language", None) or user_auth.get("language_code"))
+        user_lang = normalize_lang(
+            request.query.get("lang")
+            or getattr(db_user, "language", None)
+            or request.headers.get("X-App-Language")
+        )
         transactions = await _fetch_transaction_history(session, telegram_id, tz_name, lang=user_lang)
         user_settings, active_won_coupons, wheel_status, total_gift_traffic, birthday_claimed = await _fetch_user_perks_and_settings(
             session, cache, telegram_id, has_active_sub, db_user

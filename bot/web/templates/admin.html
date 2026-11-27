@@ -947,7 +947,7 @@
               <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelIntSquadsBody', 'panelIntSquadsChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelIntSquadsBody', 'panelIntSquadsChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
                 <div class="flex items-center gap-2 min-w-0">
                   <img id="panelIntSquadsChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
-                  <b class="text-xs t-main truncate">اسکوادهای داخلی (Internal Squads)</b>
+                  <b class="text-xs t-main truncate">اسکوادهای داخلی</b>
                 </div>
                 <button type="button" onclick="event.stopPropagation(); window.panelCtrl.openIntSquadModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold shrink-0">+ اسکواد داخلی</button>
               </div>
@@ -962,7 +962,7 @@
               <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelExtSquadsBody', 'panelExtSquadsChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelExtSquadsBody', 'panelExtSquadsChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
                 <div class="flex items-center gap-2 min-w-0">
                   <img id="panelExtSquadsChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
-                  <b class="text-xs t-main truncate">اسکوادهای خارجی (External Squads)</b>
+                  <b class="text-xs t-main truncate">اسکوادهای خارجی</b>
                 </div>
                 <button type="button" onclick="event.stopPropagation(); window.panelCtrl.openExtSquadModal()" class="btn btn-secondary px-3 py-1.5 text-[11px] rounded-xl font-bold shrink-0">+ اسکواد خارجی</button>
               </div>
@@ -1048,25 +1048,35 @@
 
           <!-- Pane 4: Infra Providers CRUD & API Tokens -->
           <div id="panelCtrlPane_infra" class="space-y-3 hidden">
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">ارائه‌دهندگان زیرساخت</b>
-                <button type="button" onclick="window.panelCtrl.openProviderModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ ارائه‌دهنده جدید</button>
+            <div class="card rounded-2xl border border-card-border overflow-hidden">
+              <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelInfraProvidersBody', 'panelInfraProvidersChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelInfraProvidersBody', 'panelInfraProvidersChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img id="panelInfraProvidersChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
+                  <b class="text-xs t-main truncate">ارائه‌دهندگان زیرساخت</b>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.panelCtrl.openProviderModal()" class="btn btn-primary px-3 py-1.5 text-[11px] rounded-xl font-bold shrink-0">+ ارائه‌دهنده جدید</button>
               </div>
-              <div id="panelProvidersManageList" class="space-y-2">
-                <div class="p-4 text-center text-xs t-muted">در حال دریافت ارائه‌دهندگان...</div>
+              <div id="panelInfraProvidersBody" class="hidden p-3.5 pt-2.5 border-t border-card-border">
+                <div id="panelProvidersManageList" class="space-y-2">
+                  <div class="p-4 text-center text-xs t-muted">در حال دریافت ارائه‌دهندگان...</div>
+                </div>
               </div>
             </div>
 
-            <div class="card p-3.5 rounded-2xl border border-card-border space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
-                <b class="text-xs t-main">سوابق پرداخت (Bill Records)</b>
-                <button type="button" onclick="window.panelCtrl.openBillModal()" class="btn btn-secondary px-3 py-1.5 text-[11px] rounded-xl font-bold">+ ثبت پرداخت جدید</button>
+            <div class="card rounded-2xl border border-card-border overflow-hidden">
+              <div role="button" tabindex="0" onclick="window.panelCtrl.toggleAccordion('panelInfraBillsBody', 'panelInfraBillsChevron')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.panelCtrl.toggleAccordion('panelInfraBillsBody', 'panelInfraBillsChevron');}" class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none hover:bg-slate-500/5 transition">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img id="panelInfraBillsChevron" src="/static/img/icons/chevron-down.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
+                  <b class="text-xs t-main truncate">سوابق پرداخت</b>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.panelCtrl.openBillModal()" class="btn btn-secondary px-3 py-1.5 text-[11px] rounded-xl font-bold shrink-0">+ ثبت پرداخت جدید</button>
               </div>
-              <div id="panelBillsFilterBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[10.5px]"></div>
-              <div id="panelBillsSummaryBar" class="hidden card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 text-[11px]"></div>
-              <div id="panelBillsList" class="space-y-2">
-                <div class="p-4 text-center text-xs t-muted">در حال دریافت سوابق پرداخت...</div>
+              <div id="panelInfraBillsBody" class="hidden p-3.5 pt-2.5 border-t border-card-border space-y-2.5">
+                <div id="panelBillsFilterBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[10.5px]"></div>
+                <div id="panelBillsSummaryBar" class="hidden card-inset px-2.5 py-2 rounded-xl border border-card-border flex items-center justify-between gap-2 text-[11px]"></div>
+                <div id="panelBillsList" class="space-y-2">
+                  <div class="p-4 text-center text-xs t-muted">در حال دریافت سوابق پرداخت...</div>
+                </div>
               </div>
             </div>
 
@@ -1679,7 +1689,7 @@
                 <input type="number" id="settingRefCommissionPct" min="0" max="50" dir="ltr" placeholder="0" class="input-base text-xs font-sans num-bidi text-emerald-600 dark:text-emerald-300 font-bold" />
               </div>
             </div>
-            <span class="text-[11px] t-muted block -mt-1">حداکثر 50% مجاز است؛ به‌طور پیش‌فرض فقط روی خرید اول اعمال می‌شود و با فعال‌سازی گزینه زیر روی تمدیدها نیز محاسبه خواهد شد.</span>
+            <span class="text-[11px] t-muted block -mt-1">حداکثر <span dir="ltr" class="inline-block font-sans num-bidi">50%</span> مجاز است؛ به‌طور پیش‌فرض فقط روی خرید اول اعمال می‌شود و با فعال‌سازی گزینه زیر روی تمدیدها نیز محاسبه خواهد شد.</span>
 
             <!-- Affiliate Renewal Commission Switch -->
             <div class="flex items-center justify-between">
@@ -4489,7 +4499,7 @@
                   <div class="flex items-center justify-between gap-2 mb-2">
                     <label class="text-[11px] t-muted">ارائه‌دهنده سرور:</label>
                     <div class="flex items-center gap-1.5 shrink-0">
-                      <button type="button" onclick="window.adminActions.openBillFromNodeModal()" class="px-2 py-1 rounded-lg border border-emerald-500/35 bg-emerald-500/10 t-success text-[10.5px] font-bold hover:bg-emerald-500/15 transition active:scale-95" title="ثبت رکورد پرداخت (Bill Record) در پنل">+ ثبت پرداخت</button>
+                      <button type="button" onclick="window.adminActions.openBillFromNodeModal()" class="px-2 py-1 rounded-lg border border-emerald-500/35 bg-emerald-500/10 t-success text-[10.5px] font-bold hover:bg-emerald-500/15 transition active:scale-95" title="ثبت رکورد پرداخت در پنل">+ ثبت پرداخت</button>
                     </div>
                   </div>
                   <input type="hidden" id="nodeBillingProviderUuid" value="" />
@@ -4506,7 +4516,7 @@
               <!-- Card 3: Provider Bill Records History -->
               <div id="nodeBillingBillsCard" class="card-inset border border-card-border rounded-2xl p-3 space-y-2">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-[11px] font-bold t-main">سوابق پرداخت (Bill Records)</span>
+                  <span class="text-[11px] font-bold t-main">سوابق پرداخت</span>
                   <span id="nodeBillingBillsCount" class="text-[10.5px] font-sans t-muted" dir="rtl"></span>
                 </div>
                 <div id="nodeBillingBillsList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scroll scroll-right">

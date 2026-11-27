@@ -115,17 +115,12 @@
     if (analyticsBox) {
       analyticsBox.classList.remove('hidden');
       analyticsBox.innerHTML = `
-        <div class="flex items-start justify-between gap-2">
-          <div class="space-y-1 min-w-0">
-            <b class="text-xs t-main flex items-center gap-1.5">
-              ${typeof uiIcon === 'function' ? uiIcon('sparkles', 'w-3.5 h-3.5 text-cyan-500 shrink-0') : ''}
-              <span>${_esc(advisor.title)}</span>
-            </b>
-            <p class="text-[11px] t-muted leading-relaxed">${_esc(advisor.summary)}</p>
-          </div>
-          <span class="px-2 py-0.5 rounded-lg card-inset border border-cyan-500/30 text-[11px] font-sans font-bold t-accent shrink-0" dir="rtl">
-            <span dir="ltr" class="num-bidi font-bold">${_esc(recGb)} GB</span> <span>و</span> <span dir="ltr" class="num-bidi font-bold">${_esc(recDays)}</span> <span>${_isEn() ? 'days' : 'روز'}</span>
-          </span>
+        <div class="space-y-1 min-w-0">
+          <b class="text-xs t-main flex items-center gap-1.5">
+            ${typeof uiIcon === 'function' ? uiIcon('sparkles', 'w-3.5 h-3.5 text-cyan-500 shrink-0') : ''}
+            <span>${_esc(advisor.title)}</span>
+          </b>
+          <p class="text-[11px] t-muted leading-relaxed">${_esc(advisor.summary)}</p>
         </div>
         ${canCustom ? `
           <button type="button" onclick="window.applySmartRenewalAdvisor(${recGb}, ${recDays})" class="btn btn-primary w-full py-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition mt-2">
@@ -265,27 +260,43 @@
   // ------------------------------------------------------------------
   // 3. Weekly Interactive Quests (Strictly Spin Tickets + Badges ONLY)
   // ------------------------------------------------------------------
+  const QUEST_I18N_MAP = {
+    weekly_speedtest: {
+      fa: { title: 'تست سرعت شبکه', desc: 'یک تست سرعت کامل انجام دهید' },
+      en: { title: 'Network Speed Test', desc: 'Run one complete speed test' },
+    },
+    weekly_wallet_card: {
+      fa: { title: 'شخصی‌سازی کارت گرافیکی', desc: 'حالت گرافیکی کارت کیف پول را فعال و رنگ یا پشت کارت را بررسی کنید' },
+      en: { title: 'Graphic Wallet Card', desc: 'Enable the graphic wallet card and inspect its color or back' },
+    },
+    weekly_wallet_boost: {
+      fa: { title: 'انتقال یا شارژ رمزارز', desc: 'یک انتقال مستقیم پول انجام دهید یا کیف پول را با TON/TRX/POL شارژ کنید' },
+      en: { title: 'Transfer or Crypto Top-Up', desc: 'Make a direct transfer or top up with TON/TRX/POL' },
+    },
+    weekly_spin_3: {
+      fa: { title: 'چرخش سه‌گانه هفتگی', desc: '3 بار در این هفته گردونه شانس را بچرخانید' },
+      en: { title: 'Weekly Spin Trio', desc: 'Spin the Lucky Wheel 3 times this week' },
+    },
+  };
+
   function navigateToQuest(eventType) {
     if (typeof window.closeModal === 'function') window.closeModal('weeklyQuestsModal');
     _haptic('selection');
     if (eventType === 'speedtest') {
       if (typeof window.openSpeedTestModal === 'function') window.openSpeedTestModal();
-    } else if (eventType === 'story_share') {
-      if (typeof window.openStoryCard === 'function') window.openStoryCard();
-    } else if (eventType === 'nodes_check') {
-      if (typeof window.switchTab === 'function') window.switchTab('tab-dashboard');
-      const breakdownBody = document.getElementById('countryBreakdownBody');
-      const toggleBtn = document.getElementById('toggleCountryBreakdownBtn');
-      const cardEl = document.getElementById('dashboardCountryBreakdownCard');
-      if (breakdownBody && breakdownBody.classList.contains('hidden') && toggleBtn) {
-        toggleBtn.click();
-      } else {
-        window.recordWeeklyQuestEvent?.('nodes_check');
+    } else if (eventType === 'wallet_card_check') {
+      if (typeof window.switchTab === 'function') window.switchTab('tab-profile');
+      const walletBox = document.getElementById('userBoxWalletSettings');
+      if (walletBox && walletBox.classList.contains('hidden') && typeof window.toggleSettingsBox === 'function') {
+        window.toggleSettingsBox('userBoxWalletSettings');
       }
-      if (window.api?.getNodes) window.api.getNodes().catch(() => {});
-      if (cardEl && typeof cardEl.scrollIntoView === 'function') {
-        setTimeout(() => cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      const colorRow = document.getElementById('userWalletColorRow');
+      if (colorRow && typeof colorRow.scrollIntoView === 'function') {
+        setTimeout(() => colorRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
       }
+    } else if (eventType === 'wallet_boost') {
+      if (typeof window.switchTab === 'function') window.switchTab('tab-wallet');
+      if (typeof window.scrollTo === 'function') window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (eventType === 'spin') {
       if (typeof window.openLuckyWheel === 'function') window.openLuckyWheel();
     }
@@ -307,10 +318,14 @@
     if (!Array.isArray(list) || !list.length) {
       return `<div class="p-3 card-inset rounded-xl text-center text-xs t-muted">${_isEn() ? 'No quests active this week.' : 'مأموریت فعالی برای این هفته ثبت نشده است.'}</div>`;
     }
+    const langKey = _isEn() ? 'en' : 'fa';
     return list.map(q => {
       const prog = Number(q.progress || 0);
       const target = Math.max(1, Number(q.target || 1));
       const pct = Math.min(100, Math.round((prog / target) * 100));
+      const localized = QUEST_I18N_MAP[q.id]?.[langKey];
+      const titleText = localized?.title || q.title;
+      const descText = localized?.desc || q.description;
       let actionHtml = '';
       if (q.is_claimed) {
         actionHtml = `<span class="px-2 py-1 rounded-lg s-success-soft border border-emerald-500/30 text-[10px] font-bold shrink-0">✓ ${_isEn() ? 'Claimed' : 'دریافت شد'}</span>`;
@@ -328,8 +343,8 @@
                 ${typeof uiIcon === 'function' ? uiIcon(q.icon || 'sparkles', 'w-3.5 h-3.5') : ''}
               </span>
               <div class="min-w-0">
-                <b class="text-xs t-main block truncate">${_esc(q.title)}</b>
-                <span class="text-[11px] t-muted block truncate">${_esc(q.description)}</span>
+                <b class="text-xs t-main block truncate">${_esc(titleText)}</b>
+                <span class="text-[11px] t-muted block truncate">${_esc(descText)}</span>
               </div>
             </div>
             ${actionHtml}
@@ -352,11 +367,8 @@
     if (quests && countBadge) {
       countBadge.innerText = `${Number(quests.completed_count || 0)} / ${Number(quests.total_count || 4)}`;
     }
-    if (quests && wheelQuestsBadge) {
-      const claimable = Number(quests.claimable_count || 0);
-      wheelQuestsBadge.innerText = claimable > 0
-        ? (_isEn() ? `Quests (${claimable} Ready!)` : `مأموریت (${claimable} آماده!)`)
-        : (_isEn() ? 'Quests' : 'مأموریت‌ها');
+    if (wheelQuestsBadge) {
+      wheelQuestsBadge.innerText = _isEn() ? 'Quests' : 'مأموریت‌ها';
     }
     const html = buildQuestsListHtml(quests);
     if (inlineContainer) {

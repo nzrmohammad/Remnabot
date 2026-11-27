@@ -81,8 +81,12 @@ const api = {
   },
 
   async request(url, options = {}) {
+    const appLang = (typeof window !== 'undefined' && typeof window.getAppLanguage === 'function')
+      ? window.getAppLanguage()
+      : 'fa';
     const headers = {
       'X-Telegram-Init-Data': this.getInitData(),
+      'X-App-Language': appLang,
       ...(options.headers || {}),
     };
 
@@ -154,8 +158,12 @@ const api = {
   },
 
   async getBlob(url, options = {}) {
+    const appLang = (typeof window !== 'undefined' && typeof window.getAppLanguage === 'function')
+      ? window.getAppLanguage()
+      : 'fa';
     const headers = {
       'X-Telegram-Init-Data': this.getInitData(),
+      'X-App-Language': appLang,
       ...(options.headers || {}),
     };
     const response = await fetch(url, { ...options, headers });
@@ -412,16 +420,10 @@ const api = {
   },
 
   async getNodes() {
-    if (typeof window !== 'undefined' && typeof window.recordWeeklyQuestEvent === 'function') {
-      window.recordWeeklyQuestEvent('nodes_check');
-    }
     return this.get(`/api/user/nodes?t=${Date.now()}`);
   },
 
   async getIpInfo() {
-    if (typeof window !== 'undefined' && typeof window.recordWeeklyQuestEvent === 'function') {
-      window.recordWeeklyQuestEvent('nodes_check');
-    }
     return this.get('/api/user/ip_info');
   },
 

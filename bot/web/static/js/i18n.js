@@ -135,7 +135,7 @@
     transfer_wallet_btn: 'Transfer',
     weekly_quests_title: 'Weekly Quests',
     weekly_quests_subtitle: 'Complete quests to earn free Lucky Wheel spin tickets',
-    transfer_modal_title: 'Direct Wallet Transfer',
+    transfer_modal_title: 'Direct Money Transfer',
     transfer_modal_subtitle: 'Instant P2P Toman transfer to another user',
     story_theme_title: 'Card & Story Visual Theme:',
     red_packet_tab: 'Red Packet',

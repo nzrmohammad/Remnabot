@@ -4395,17 +4395,17 @@
             <img src="/static/img/icons/finance.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
           </div>
           <div>
-            <h3 id="walletTransferModalTitle" class="text-sm font-bold t-main">انتقال مستقیم کیف پول</h3>
+            <h3 id="walletTransferModalTitle" class="text-sm font-bold t-main">انتقال مستقیم پول</h3>
             <span id="walletTransferModalSubtitle" class="text-[11px] t-muted block mt-0.5">واریز آنی و بدون کارمزد به کیف پول کاربر دیگر</span>
           </div>
         </div>
         <div class="space-y-1">
           <label for="transferRecipientInput" class="text-[11px] t-muted block">آیدی یا شناسه عددی تلگرام گیرنده:</label>
-          <input type="text" id="transferRecipientInput" placeholder="@username یا 123456789" dir="ltr" class="input-base w-full p-2.5 rounded-xl text-xs outline-none font-sans text-left" />
+          <input type="text" id="transferRecipientInput" placeholder="@username &lrm;یا&lrm; 123456789" dir="ltr" class="input-base w-full p-2.5 rounded-xl text-xs outline-none font-sans text-left" />
         </div>
         <div class="space-y-1.5">
           <label for="transferAmountInput" class="text-[11px] t-muted block">مبلغ انتقال (حداقل 5,000 تومان):</label>
-          <input type="number" id="transferAmountInput" min="5000" max="50000000" step="5000" placeholder="50000" dir="ltr" class="input-base w-full p-2.5 rounded-xl text-xs outline-none font-sans num-bidi text-left" />
+          <input type="number" id="transferAmountInput" min="5000" max="50000000" step="5000" placeholder="50000" dir="ltr" class="input-base w-full p-2.5 rounded-xl text-xs outline-none font-sans ltr-input text-left" />
           <div class="grid grid-cols-4 gap-1 text-[11px] font-sans font-medium">
             <button type="button" onclick="window.setTransferAmountPreset(20000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-emerald-500 transition num-bidi">20K</button>
             <button type="button" onclick="window.setTransferAmountPreset(50000)" class="py-1 rounded-lg card-inset border border-card-border hover:border-emerald-500 transition num-bidi">50K</button>
@@ -4419,8 +4419,8 @@
         </div>
         <div class="card-inset p-2.5 rounded-2xl flex items-center justify-between text-[11px] t-muted">
           <span>موجودی فعلی شما:</span>
-          <div class="font-sans font-bold t-success num-bidi">
-            <span id="transferCurrentBalance">0</span> <span>تومان</span>
+          <div class="font-sans font-bold t-success flex items-center gap-1" dir="rtl">
+            <span id="transferCurrentBalance" dir="ltr" class="num-bidi">0</span><span>تومان</span>
           </div>
         </div>
         <button id="submitWalletTransferBtn" type="button" onclick="window.submitWalletTransfer && window.submitWalletTransfer()" class="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2">

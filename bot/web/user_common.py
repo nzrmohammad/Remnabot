@@ -16,6 +16,16 @@ def get_request_lang(request: web.Request, user: dict[str, Any] | None = None) -
     return normalize_lang(raw)
 
 
+def resolve_tma_lang(request: web.Request, db_user: Any = None) -> str:
+    """Resolve active Mini App UI language: explicit query/header > persisted user language > default 'fa'."""
+    raw = (
+        request.query.get("lang")
+        or request.headers.get("X-App-Language")
+        or (getattr(db_user, "language", None) if db_user is not None else None)
+    )
+    return normalize_lang(raw)
+
+
 async def parse_json_dict(request: web.Request) -> tuple[dict[str, Any] | None, web.Response | None]:
     """Safely parse request body as a JSON dict. Returns (data, None) or (None, 400 response)."""
     lang = get_request_lang(request, _check_user(request))

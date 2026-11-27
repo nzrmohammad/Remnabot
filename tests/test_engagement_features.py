@@ -316,15 +316,34 @@ async def test_web_engagement_endpoints_integration(session_factory):
         settings=SimpleNamespace(TIMEZONE="Asia/Tehran", WEB_TRUSTED_ORIGINS=[], ADMIN_IDS=[], BOT_TOKEN=bot_token),
         cache=cache,
     )
-    headers_alice = {"X-Telegram-Init-Data": generate_valid_init_data(bot_token, {"id": 770400, "first_name": "Alice", "username": "api_alice"})}
+    headers_alice = {
+        "X-Telegram-Init-Data": generate_valid_init_data(
+            bot_token,
+            {"id": 770400, "first_name": "Alice", "username": "api_alice", "language_code": "en"},
+        ),
+        "X-App-Language": "fa",
+    }
     headers_bob = {"X-Telegram-Init-Data": generate_valid_init_data(bot_token, {"id": 770401, "first_name": "Bob", "username": "api_bob"})}
 
     async with TestClient(TestServer(app)) as client:
-        # Reject invalid/internal spin event spoofing
+        # Reject invalid/internal spin or wallet_boost event spoofing
         bad_evt = await client.post("/api/user/quests/event", json={"event": "spin"}, headers=headers_alice)
         assert bad_evt.status == 400
+        bad_boost = await client.post("/api/user/quests/event", json={"event": "wallet_boost"}, headers=headers_alice)
+        assert bad_boost.status == 400
+        bad_old = await client.post("/api/user/quests/event", json={"event": "nodes_check"}, headers=headers_alice)
+        assert bad_old.status == 400
 
-        # Valid speedtest event -> claim +1 spin ticket
+        # Valid speedtest & wallet_card_check events stay Persian even if Telegram language_code is 'en'
+        card_evt = await client.post("/api/user/quests/event", json={"event": "wallet_card_check"}, headers=headers_alice)
+        assert card_evt.status == 200
+        card_payload = await card_evt.json()
+        quest_ids = [q["id"] for q in card_payload["quests"]["quests"]]
+        assert quest_ids == ["weekly_speedtest", "weekly_wallet_card", "weekly_wallet_boost", "weekly_spin_3"]
+        card_q = next(q for q in card_payload["quests"]["quests"] if q["id"] == "weekly_wallet_card")
+        assert card_q["can_claim"] is True
+        assert card_q["title"] == "شخصی‌سازی کارت گرافیکی"
+
         ok_evt = await client.post("/api/user/quests/event", json={"event": "speedtest"}, headers=headers_alice)
         assert ok_evt.status == 200
         claim_res = await client.post("/api/user/quests/claim", json={"quest_id": "weekly_speedtest"}, headers=headers_alice)
@@ -337,7 +356,7 @@ async def test_web_engagement_endpoints_integration(session_factory):
         bad_theme = await client.post("/api/user/theme", json={"theme_id": "obsidian_diamond"}, headers=headers_alice)
         assert bad_theme.status == 403
 
-        # P2P transfer
+        # P2P transfer automatically completes weekly_wallet_boost quest
         p2p_res = await client.post(
             "/api/user/wallet/transfer",
             json={"recipient": "@api_bob", "amount": 15_000, "note": "Lunch"},
@@ -368,5 +387,37 @@ async def test_web_engagement_endpoints_integration(session_factory):
         assert me_res.status == 200
         me_data = (await me_res.json())["data"]
         assert "quests" in me_data
+        boost_q = next(q for q in me_data["quests"]["quests"] if q["id"] == "weekly_wallet_boost")
+        assert boost_q["can_claim"] is True
+        assert boost_q["title"] == "انتقال یا شارژ رمزارز"
         assert "card_themes" in me_data
         assert me_data["user"]["card_theme"] == "ocean"
+
+
+def test_ui_engagement_and_admin_panel_polish_markup():
+    from pathlib import Path
+
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    admin_html = Path("bot/web/templates/admin.html").read_text(encoding="utf-8")
+    admin_panel_js = Path("bot/web/static/js/admin_panel.js").read_text(encoding="utf-8")
+    engagement_js = Path("bot/web/static/js/engagement.js").read_text(encoding="utf-8")
+
+    # P2P modal title, recipient placeholder, left-aligned amount input, RTL balance unit
+    assert "انتقال مستقیم پول</h3>" in app_html
+    assert 'placeholder="@username &lrm;یا&lrm; 123456789"' in app_html
+    assert 'id="transferAmountInput"' in app_html and "ltr-input text-left" in app_html
+    assert '<span id="transferCurrentBalance" dir="ltr" class="num-bidi">0</span><span>تومان</span>' in app_html
+
+    # Advisor without top-right GB/days chip & Lucky Wheel quest badge without ready counter
+    assert "آماده!)" not in engagement_js
+    assert "recGb} GB</span> <span>و</span>" not in engagement_js
+
+    # Admin Panel Polish: clean Persian headers, infra/bills accordions, centered arrow-only host pagination
+    assert "(Internal Squads)" not in admin_html
+    assert "(External Squads)" not in admin_html
+    assert "(Bill Records)" not in admin_html
+    assert 'panelCtrl.toggleAccordion(\'panelInfraProvidersBody\', \'panelInfraProvidersChevron\')' in admin_html
+    assert 'panelCtrl.toggleAccordion(\'panelInfraBillsBody\', \'panelInfraBillsChevron\')' in admin_html
+    assert "قبلی</button>" not in admin_panel_js and "بعدی</button>" not in admin_panel_js
+    assert "صفحه <span class=\"font-bold t-main num-bidi\">${hostsPage}</span> از <span class=\"num-bidi\">${totalPages}</span>" in admin_panel_js
+    assert "${startIdx + 1}-${endIdx}" not in admin_panel_js

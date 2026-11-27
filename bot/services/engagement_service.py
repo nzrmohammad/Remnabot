@@ -145,26 +145,26 @@ WEEKLY_QUESTS: tuple[dict[str, Any], ...] = (
         "desc_en": "Run one complete speed test",
     },
     {
-        "id": "weekly_story",
-        "event": "story_share",
+        "id": "weekly_wallet_card",
+        "event": "wallet_card_check",
         "target": 1,
         "reward_tickets": 1,
-        "icon": "sparkles",
-        "title_fa": "پوستر استوری VIP",
-        "title_en": "VIP Story Poster",
-        "desc_fa": "کارت استوری خود را بسازید یا به اشتراک بگذارید",
-        "desc_en": "Save or share your Story card once",
+        "icon": "credit-card",
+        "title_fa": "شخصی‌سازی کارت گرافیکی",
+        "title_en": "Graphic Wallet Card",
+        "desc_fa": "حالت گرافیکی کارت کیف پول را فعال و رنگ یا پشت کارت را بررسی کنید",
+        "desc_en": "Enable the graphic wallet card and inspect its color or back",
     },
     {
-        "id": "weekly_nodes",
-        "event": "nodes_check",
+        "id": "weekly_wallet_boost",
+        "event": "wallet_boost",
         "target": 1,
         "reward_tickets": 1,
-        "icon": "nodes",
-        "title_fa": "بررسی سرورها و پینگ",
-        "title_en": "Inspect Server Health",
-        "desc_fa": "وضعیت سرورها یا آی‌پی اتصال را بررسی کنید",
-        "desc_en": "Check active server nodes or connection IP",
+        "icon": "coins",
+        "title_fa": "انتقال یا شارژ رمزارز",
+        "title_en": "Transfer or Crypto Top-Up",
+        "desc_fa": "یک انتقال مستقیم پول انجام دهید یا کیف پول را با TON/TRX/POL شارژ کنید",
+        "desc_en": "Make a direct transfer or top up with TON/TRX/POL",
     },
     {
         "id": "weekly_spin_3",
@@ -183,7 +183,7 @@ _QUESTS_BY_EVENT: dict[str, list[dict[str, Any]]] = {}
 for _q in WEEKLY_QUESTS:
     _QUESTS_BY_EVENT.setdefault(_q["event"], []).append(_q)
 
-PUBLIC_QUEST_EVENTS: frozenset[str] = frozenset({"speedtest", "story_share", "nodes_check"})
+PUBLIC_QUEST_EVENTS: frozenset[str] = frozenset({"speedtest", "wallet_card_check"})
 
 
 def current_iso_week_key(tz_name: str = "Asia/Tehran", now_utc: datetime | None = None) -> str:
@@ -576,6 +576,28 @@ async def record_weekly_quest_event(
     else:
         await session.flush()
     return updated_ids
+
+
+async def safe_record_weekly_quest_event(
+    session: AsyncSession,
+    telegram_id: int,
+    event_name: str,
+    *,
+    tz_name: str = "Asia/Tehran",
+    increment: int = 1,
+) -> list[str]:
+    """Best-effort weekly quest progress hook safe to invoke inside financial commits."""
+    try:
+        return await record_weekly_quest_event(
+            session,
+            telegram_id,
+            event_name,
+            tz_name=tz_name,
+            increment=increment,
+            commit=False,
+        )
+    except Exception:
+        return []
 
 
 async def claim_weekly_quest_reward(
@@ -1224,6 +1246,7 @@ async def transfer_wallet_balance(
         note=clean_note,
     )
     session.add(transfer_rec)
+    await safe_record_weekly_quest_event(session, sender_telegram_id, "wallet_boost")
     await session.commit()
 
     await invalidate_user_cache(cache, sender_telegram_id)

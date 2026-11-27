@@ -296,6 +296,8 @@ async def verify_and_credit_pol_invoice(
         return False, 0, "امکان تغییر وضعیت فاکتور به پرداخت‌شده وجود ندارد."
 
     new_bal = await wallet_repo.add_balance_atomic(invoice.telegram_id, invoice.amount_toman)
+    from bot.services.engagement_service import safe_record_weekly_quest_event
+    await safe_record_weekly_quest_event(session, invoice.telegram_id, "wallet_boost")
     logger.info(
         "POL invoice paid and credited: invoice_id=%s tg_id=%s tx_hash=%s amount_toman=%s new_balance=%s confirmed_wei=%s",
         invoice.id, invoice.telegram_id, clean_tx, invoice.amount_toman, new_bal, confirmed_wei,

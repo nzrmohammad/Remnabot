@@ -5,7 +5,7 @@ import logging
 
 from aiohttp import web
 
-from bot.locales.texts import normalize_lang, t
+from bot.locales.texts import t
 from bot.services.engagement_service import (
     PUBLIC_QUEST_EVENTS,
     claim_red_packet,
@@ -19,7 +19,7 @@ from bot.services.engagement_service import (
     transfer_wallet_balance,
 )
 from bot.web.cache import FastCache, invalidate_user_cache, user_action_lock
-from bot.web.user_common import db_session, enforce_invite_only, require_user
+from bot.web.user_common import db_session, enforce_invite_only, require_user, resolve_tma_lang
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +33,11 @@ async def _parse_json_dict(request: web.Request) -> dict:
 
 
 async def post_user_quest_event(request: web.Request) -> web.Response:
-    """Record a verified interactive quest activity (speedtest, story_share, nodes_check)."""
+    """Record a verified interactive quest activity (speedtest, wallet_card_check)."""
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err
-    req_lang = normalize_lang(request.query.get("lang") or user_auth.get("language_code"))
+    req_lang = resolve_tma_lang(request)
     if user_auth.get("is_preview"):
         return web.json_response({"ok": True, "preview": True})
 
@@ -69,7 +69,7 @@ async def post_user_quest_claim(request: web.Request) -> web.Response:
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err
-    req_lang = normalize_lang(request.query.get("lang") or user_auth.get("language_code"))
+    req_lang = resolve_tma_lang(request)
     if user_auth.get("is_preview"):
         return web.json_response({"ok": False, "message": t(req_lang, "spin_preview_blocked")}, status=400)
 
@@ -105,7 +105,7 @@ async def post_user_set_theme(request: web.Request) -> web.Response:
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err
-    req_lang = normalize_lang(request.query.get("lang") or user_auth.get("language_code"))
+    req_lang = resolve_tma_lang(request)
     body = await _parse_json_dict(request)
     theme_id = str(body.get("theme_id") or "").strip()
     telegram_id = int(user_auth["id"])
@@ -126,7 +126,7 @@ async def post_user_wallet_transfer(request: web.Request) -> web.Response:
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err
-    req_lang = normalize_lang(request.query.get("lang") or user_auth.get("language_code"))
+    req_lang = resolve_tma_lang(request)
     if user_auth.get("is_preview"):
         return web.json_response(
             {"ok": False, "message": "Unavailable in preview mode." if req_lang == "en" else "در حالت پیش‌نمایش مجاز نیست."},
@@ -169,7 +169,7 @@ async def post_user_red_packet_create(request: web.Request) -> web.Response:
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err
-    req_lang = normalize_lang(request.query.get("lang") or user_auth.get("language_code"))
+    req_lang = resolve_tma_lang(request)
     if user_auth.get("is_preview"):
         return web.json_response(
             {"ok": False, "message": "Unavailable in preview mode." if req_lang == "en" else "در حالت پیش‌نمایش مجاز نیست."},
@@ -213,7 +213,7 @@ async def post_user_red_packet_claim(request: web.Request) -> web.Response:
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err
-    req_lang = normalize_lang(request.query.get("lang") or user_auth.get("language_code"))
+    req_lang = resolve_tma_lang(request)
     if user_auth.get("is_preview"):
         return web.json_response(
             {"ok": False, "message": "Unavailable in preview mode." if req_lang == "en" else "در حالت پیش‌نمایش مجاز نیست."},
@@ -250,7 +250,7 @@ async def post_user_red_packet_refund(request: web.Request) -> web.Response:
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err
-    req_lang = normalize_lang(request.query.get("lang") or user_auth.get("language_code"))
+    req_lang = resolve_tma_lang(request)
     body = await _parse_json_dict(request)
     packet_id = body.get("packet_id")
     if isinstance(packet_id, bool) or not str(packet_id or "").isdigit():

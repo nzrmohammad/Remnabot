@@ -158,6 +158,8 @@ async def verify_and_credit_ton_invoice(
 
         try:
             new_bal = await wallet_repo.add_balance_atomic(inv.telegram_id, inv.amount_toman)
+            from bot.services.engagement_service import safe_record_weekly_quest_event
+            await safe_record_weekly_quest_event(session, inv.telegram_id, "wallet_boost")
             logger.info(
                 "TON invoice paid and credited: invoice_id=%s tg_id=%s tx_hash=%s amount_toman=%s new_balance=%s",
                 inv.id, inv.telegram_id, tx_hash, inv.amount_toman, new_bal,

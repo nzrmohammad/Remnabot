@@ -3473,6 +3473,9 @@ function setupProfileHandlers() {
       const res = await window.api.changeLanguage(lang);
       if (res.ok) {
         const appliedLang = window.applyAppLocale ? window.applyAppLocale(res.language || lang) : lang;
+        if (typeof window.renderEngagementFeatures === 'function' && window.lastUserData) {
+          window.renderEngagementFeatures(window.lastUserData);
+        }
         showToast(appliedLang === 'en' ? '✅ Language changed to English.' : '✅ زبان به فارسی تغییر یافت.', 'success');
         await syncUserDataWithApi(window.currentAccountId);
         if (typeof renderReportsCharts === 'function') {
@@ -5828,11 +5831,6 @@ function initApp() {
   // DRY accordions
   safeRun('setupAccordions', () => {
     setupAccordion('toggleCountryBreakdownBtn', 'countryBreakdownBody', 'countryChevron');
-  $('toggleCountryBreakdownBtn')?.addEventListener('click', () => {
-    if (typeof window.recordWeeklyQuestEvent === 'function') {
-      window.recordWeeklyQuestEvent('nodes_check');
-    }
-  });
     setupAccordion('toggleSessionsAccordionBtn', 'sessionsAccordionBody', 'sessionsChevron');
     setupAccordion('toggleSubAccordionBtn', 'subAccordionBody', 'subChevron');
     setupAccordion('toggleProfileBadgesBtn', 'profileBadgesBody', 'profileBadgesChevron');

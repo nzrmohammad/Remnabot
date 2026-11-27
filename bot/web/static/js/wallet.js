@@ -59,6 +59,9 @@ window.flipUserWalletCard = function(el) {
   flipper.classList.toggle('is-flipped');
   if (window.hapticFeedback) window.hapticFeedback('impact');
   if (typeof window.playSubtleSound === 'function') window.playSubtleSound('flip');
+  if (typeof window.recordWeeklyQuestEvent === 'function' && localStorage.getItem('user_wallet_card_view') !== 'classic') {
+    window.recordWeeklyQuestEvent('wallet_card_check');
+  }
 };
 
 const WALLET_CURRENCY_OPTIONS = [
@@ -165,6 +168,9 @@ window.toggleWalletCardView = function(isGraphic, showToastMsg = true) {
   if (showToastMsg && window.hapticFeedback) {
     window.hapticFeedback('selection');
   }
+  if (enable && showToastMsg && typeof window.recordWeeklyQuestEvent === 'function') {
+    window.recordWeeklyQuestEvent('wallet_card_check');
+  }
 };
 
 window.toggleSoundFx = function(enabled) {
@@ -244,6 +250,9 @@ window.setUserWalletCardColor = function(colorKey) {
   }
   if (typeof window.playSubtleSound === 'function') {
     window.playSubtleSound('color_switch');
+  }
+  if (typeof window.recordWeeklyQuestEvent === 'function') {
+    window.recordWeeklyQuestEvent('wallet_card_check');
   }
 };
 

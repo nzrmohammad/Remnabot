@@ -31,9 +31,6 @@ function setupStoryCard() {
   };
 
   shareTelegramStoryBtn?.addEventListener('click', () => {
-    if (typeof window.recordWeeklyQuestEvent === 'function') {
-      window.recordWeeklyQuestEvent('story_share');
-    }
     (window.api?.haptic || window.hapticFeedback || hapticFeedback)('light');
     const botUser = window.lastUserData?.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
     const fallbackRef = window.buildRefLink(botUser, window.lastUserData?.user?.id);
@@ -75,9 +72,6 @@ function setupStoryCard() {
   });
 
   downloadStoryBtn?.addEventListener('click', () => {
-    if (typeof window.recordWeeklyQuestEvent === 'function') {
-      window.recordWeeklyQuestEvent('story_share');
-    }
     const canvas = document.createElement('canvas');
     canvas.width = 600;
     canvas.height = 780;
