@@ -109,14 +109,14 @@ async def _enforce_speedtest_limits(
     return None
 
 
-async def _lookup_isp(client_ip: str) -> str:
+async def _lookup_isp(client_ip: str, *, lang: str = "fa") -> str:
     """Resolve ISP / organization for a client IP using HTTPS ipwho.is with HTTP ip-api fallback."""
     try:
         ip_obj = ipaddress.ip_address(str(client_ip or "").strip())
     except ValueError:
         return ""
     if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved:
-        return "شبکه محلی (Local)"
+        return "Local Network" if lang == "en" else "شبکه محلی (Local)"
 
     norm_ip = str(ip_obj)
     if norm_ip in _ISP_CACHE:
@@ -159,6 +159,10 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
     if err:
         return err
 
+    from bot.web.user_common import resolve_tma_lang
+
+    req_lang = resolve_tma_lang(request)
+    is_en = req_lang == "en"
     user_id = user_auth.get("id")
     client_ip = get_client_ip(request)
 
@@ -169,15 +173,19 @@ async def get_user_speedtest_ping(request: web.Request) -> web.Response:
         client_ip=client_ip,
         max_requests=40,
         ttl_seconds=30,
-        err_message="محدودیت تعداد درخواست تست پینگ. لطفاً 30 ثانیه دیگر تلاش فرمایید.",
+        err_message=(
+            "Ping request limit reached. Please wait 30 seconds."
+            if is_en
+            else "محدودیت تعداد درخواست تست پینگ. لطفاً 30 ثانیه دیگر تلاش فرمایید."
+        ),
     )
     if rl_resp:
         return rl_resp
 
-    server_name = "سرور اختصاصی"
+    server_name = "Dedicated Server" if is_en else "سرور اختصاصی"
     server_ip = "Anycast Edge"
 
-    isp = await _lookup_isp(client_ip)
+    isp = await _lookup_isp(client_ip, lang=req_lang)
 
     return web.json_response(
         {
@@ -212,6 +220,9 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
 
     user_id = user_auth.get("id")
     client_ip = get_client_ip(request)
+    from bot.web.user_common import resolve_tma_lang
+
+    is_en = resolve_tma_lang(request) == "en"
     rl_resp = await _enforce_speedtest_limits(
         request,
         bucket="download",
@@ -219,7 +230,11 @@ async def get_user_speedtest_payload(request: web.Request) -> web.StreamResponse
         client_ip=client_ip,
         max_requests=24,
         ttl_seconds=60,
-        err_message="محدودیت تعداد یا حجم درخواست تست سرعت. لطفاً 1 دقیقه دیگر تلاش فرمایید.",
+        err_message=(
+            "Speed test download limit reached. Please wait 1 minute."
+            if is_en
+            else "محدودیت تعداد یا حجم درخواست تست سرعت. لطفاً 1 دقیقه دیگر تلاش فرمایید."
+        ),
         add_bytes=target_bytes,
         max_bytes=_DOWNLOAD_QUOTA_BYTES_PER_WINDOW,
     )
@@ -267,9 +282,12 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
     except (ValueError, TypeError):
         declared_len = 0
 
+    from bot.web.user_common import resolve_tma_lang
+
+    is_en = resolve_tma_lang(request) == "en"
     if declared_len > _MAX_UPLOAD_CHUNK_BYTES:
         return web.json_response(
-            {"ok": False, "error": "حجم بسته آپلود بیش از حد مجاز است."},
+            {"ok": False, "error": "Upload payload size exceeds allowed limit." if is_en else "حجم بسته آپلود بیش از حد مجاز است."},
             status=413,
         )
 
@@ -280,7 +298,11 @@ async def post_user_speedtest_upload(request: web.Request) -> web.Response:
         client_ip=client_ip,
         max_requests=60,
         ttl_seconds=60,
-        err_message="محدودیت تعداد یا حجم درخواست تست آپلود. لطفاً 1 دقیقه دیگر تلاش فرمایید.",
+        err_message=(
+            "Upload test rate limit reached. Please wait 1 minute."
+            if is_en
+            else "محدودیت تعداد یا حجم درخواست تست آپلود. لطفاً 1 دقیقه دیگر تلاش فرمایید."
+        ),
         add_bytes=declared_len or (512 * 1024),
         max_bytes=_UPLOAD_QUOTA_BYTES_PER_WINDOW,
     )

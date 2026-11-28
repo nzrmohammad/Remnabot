@@ -6,6 +6,15 @@
 window.activeCoupon = null;
 let currentPendingPlan = null;
 
+function _shopIsEn() {
+  return typeof window !== 'undefined' && (Boolean(window.isAppEn?.()) || window.getAppLanguage?.() === 'en');
+}
+function _shopTr(fa, en) {
+  return (typeof window !== 'undefined' && typeof window.trText === 'function')
+    ? window.trText(fa, en)
+    : (_shopIsEn() ? en : fa);
+}
+
 function setupCouponInput() {
   const applyCouponBtn = document.getElementById('applyCouponBtn');
   const couponInput = document.getElementById('couponInput');
@@ -16,10 +25,10 @@ function setupCouponInput() {
     couponInput.value = '';
     couponInput.disabled = false;
     applyCouponBtn.disabled = false;
-    applyCouponBtn.innerText = '⚡️ اعمال';
+    applyCouponBtn.innerText = _shopTr('⚡️ اعمال', '⚡️ Apply');
     applyCouponBtn.className = 'btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0';
     if (showFeedback) {
-      showToast('ℹ️ کد تخفیف حذف گردید.');
+      showToast(_shopTr('ℹ️ کد تخفیف حذف گردید.', 'ℹ️ Coupon removed.'));
       hapticFeedback('selection');
     }
     if (window.lastUserData) {
@@ -29,7 +38,7 @@ function setupCouponInput() {
   };
 
   applyCouponBtn.addEventListener('click', async () => {
-    // If coupon is already applied, button acts as "✕ حذف"
+    // If coupon is already applied, button acts as remove
     if (window.activeCoupon) {
       resetCouponState(true);
       return;
@@ -37,11 +46,11 @@ function setupCouponInput() {
 
     const code = couponInput.value.trim().toUpperCase();
     if (!code) {
-      showToast('⚠️ لطفاً کد تخفیف را وارد فرمایید.');
+      showToast(_shopTr('⚠️ لطفاً کد تخفیف را وارد فرمایید.', '⚠️ Please enter a promo code.'));
       return;
     }
     applyCouponBtn.disabled = true;
-    applyCouponBtn.innerText = 'بررسی...';
+    applyCouponBtn.innerText = _shopTr('بررسی...', 'Checking...');
 
     try {
       const res = await window.api.validateCoupon(code);
@@ -49,13 +58,13 @@ function setupCouponInput() {
         window.activeCoupon = res.data;
         let discMsg = '';
         if (res.data.discount_percent > 0) discMsg = `${toEnglishDigits(res.data.discount_percent)}%`;
-        else if (res.data.discount_amount > 0) discMsg = `${Number(res.data.discount_amount).toLocaleString('en-US')} تومان`;
-        showToast(`🎉 کد تخفیف اعمال شد!\n(${discMsg} تخفیف)`);
+        else if (res.data.discount_amount > 0) discMsg = fmtMoney(res.data.discount_amount);
+        showToast(_shopTr(`🎉 کد تخفیف اعمال شد!\n(${discMsg} تخفیف)`, `🎉 Promo code applied!\n(${discMsg} OFF)`));
         hapticFeedback('success');
         if (typeof window.playSubtleSound === 'function') {
           window.playSubtleSound('slash');
         }
-        applyCouponBtn.innerText = '✕ حذف';
+        applyCouponBtn.innerText = _shopTr('✕ حذف', '✕ Remove');
         applyCouponBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
         couponInput.disabled = true;
         if (window.lastUserData) {
@@ -64,16 +73,16 @@ function setupCouponInput() {
         }
       } else {
         window.activeCoupon = null;
-        showToast(`❌ ${res.message || 'کد تخفیف نامعتبر است.'}`);
+        showToast(`❌ ${res.message || _shopTr('کد تخفیف نامعتبر است.', 'Invalid promo code.')}`);
         hapticFeedback('error');
-        applyCouponBtn.innerText = '⚡️ اعمال';
+        applyCouponBtn.innerText = _shopTr('⚡️ اعمال', '⚡️ Apply');
         applyCouponBtn.className = 'btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0';
         couponInput.disabled = false;
         if (window.lastUserData) renderShopPlans(window.lastUserData);
       }
     } catch (err) {
-      showToast('❌ خطا در بررسی کد تخفیف.');
-      applyCouponBtn.innerText = 'اعمال';
+      showToast(_shopTr('❌ خطا در بررسی کد تخفیف.', '❌ Error validating promo code.'));
+      applyCouponBtn.innerText = _shopTr('اعمال', 'Apply');
       applyCouponBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition active:scale-95 shadow shrink-0';
       couponInput.disabled = false;
     } finally {
@@ -134,11 +143,12 @@ function renderWonCoupons(data) {
   container.classList.remove('hidden');
 
   const activeCode = (window.activeCoupon?.code || '').toUpperCase();
+  const isEn = _shopIsEn();
   list.innerHTML = coupons.map(c => {
     const isApplied = Boolean(activeCode && c.code && activeCode === String(c.code).toUpperCase());
     const btnInner = isApplied
-      ? `<span class="inline-flex items-center gap-1" dir="rtl"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>فعال شد</span></span>`
-      : `<span class="inline-flex items-center gap-1" dir="rtl"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>استفاده</span></span>`;
+      ? `<span class="inline-flex items-center gap-1" dir="${isEn ? 'ltr' : 'rtl'}"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>${_shopTr('فعال شد', 'Applied')}</span></span>`
+      : `<span class="inline-flex items-center gap-1" dir="${isEn ? 'ltr' : 'rtl'}"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>${_shopTr('استفاده', 'Apply')}</span></span>`;
     const btnClass = isApplied
       ? 'won-coupon-apply-btn bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition active:scale-95 shrink-0 shadow-sm'
       : 'won-coupon-apply-btn btn btn-primary text-xs font-semibold px-3 py-1.5 rounded-lg shadow shrink-0';
@@ -149,7 +159,7 @@ function renderWonCoupons(data) {
             <span class="text-xs">🎟</span>
             <span class="font-bold font-sans tracking-wider t-main text-xs select-all">${escapeHtml(c.code)}</span>
           </div>
-          <span class="text-[11px] t-success font-sans block mt-0.5">تخفیف <span class="font-sans font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span></span>
+          <span class="text-[11px] t-success font-sans block mt-0.5">${_shopTr('تخفیف', 'Discount')} <span class="font-sans font-bold inline-block">${toEnglishDigits(c.discount_percent || 10)}%</span></span>
         </div>
         <button type="button" class="${btnClass}" data-code="${escapeHtml(c.code)}">
           ${btnInner}
@@ -336,7 +346,8 @@ async function updateCustomPlanCalculation() {
     const localDisc = Math.floor((localBase * loyaltyPct) / 100);
     const localFinal = Math.max(0, localBase - localDisc);
 
-    if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${Number(rawSubtotal).toLocaleString('en-US')}</span> تومان`;
+    const moneyUnit = _shopTr('تومان', 'Toman');
+    if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${Number(rawSubtotal).toLocaleString('en-US')}</span> ${moneyUnit}`;
 
     const hwidRow = document.getElementById('customPlanHwidCostRow');
     const hwidCostDisplay = document.getElementById('customPlanHwidCostDisplay');
@@ -344,7 +355,7 @@ async function updateCustomPlanCalculation() {
     if (hwid > 1 && localHwidCost > 0) {
       if (hwidRow) hwidRow.classList.remove('hidden');
       if (hwidCountDisplay) hwidCountDisplay.innerText = hwid;
-      if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">+${Number(localHwidCost).toLocaleString('en-US')}</span> تومان`;
+      if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">+${Number(localHwidCost).toLocaleString('en-US')}</span> ${moneyUnit}`;
     } else {
       if (hwidRow) hwidRow.classList.add('hidden');
     }
@@ -358,7 +369,7 @@ async function updateCustomPlanCalculation() {
     if (volPct > 0) {
       if (volRow) volRow.classList.remove('hidden');
       if (volTierPct) volTierPct.innerText = volPct;
-      if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(localVolDiscAmt).toLocaleString('en-US')}</span> تومان`;
+      if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(localVolDiscAmt).toLocaleString('en-US')}</span> ${moneyUnit}`;
       if (volBadge) volBadge.classList.remove('hidden');
       if (volPctVal) volPctVal.innerText = volPct;
     } else {
@@ -370,7 +381,7 @@ async function updateCustomPlanCalculation() {
       if (discRow) discRow.classList.remove('hidden');
       const discPctEl = document.getElementById('customPlanDiscountPct');
       if (discPctEl) discPctEl.innerText = loyaltyPct;
-      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(localDisc).toLocaleString('en-US')}</span> تومان`;
+      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(localDisc).toLocaleString('en-US')}</span> ${moneyUnit}`;
     } else {
       if (discRow) discRow.classList.add('hidden');
     }
@@ -384,13 +395,15 @@ async function updateCustomPlanCalculation() {
     if (submitBtn) {
       submitBtn.disabled = false;
       submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-      submitBtn.innerText = `خرید بسته دلخواه (${Number(localFinal).toLocaleString('en-US')} تومان)`;
+      submitBtn.innerText = _shopIsEn()
+        ? `Buy Custom Plan (${Number(localFinal).toLocaleString('en-US')} ${moneyUnit})`
+        : `خرید بسته دلخواه (${Number(localFinal).toLocaleString('en-US')} تومان)`;
     }
   } else {
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-      submitBtn.innerText = 'تعرفه بسته دلخواه هنوز تعریف نشده است';
+      submitBtn.innerText = _shopTr('تعرفه بسته دلخواه هنوز تعریف نشده است', 'Custom plan pricing is not configured yet');
     }
   }
 
@@ -401,7 +414,8 @@ async function updateCustomPlanCalculation() {
       const res = await window.api.calculateCustomPlan(gb, days, hwid);
       if (res && res.ok && res.data) {
         const d = res.data;
-        if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${Number(d.base_subtotal != null ? (d.base_subtotal + (d.volume_discount_amount || 0)) : (d.raw_base_price || d.base_price)).toLocaleString('en-US')}</span> تومان`;
+        const moneyUnit = _shopTr('تومان', 'Toman');
+        if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${Number(d.base_subtotal != null ? (d.base_subtotal + (d.volume_discount_amount || 0)) : (d.raw_base_price || d.base_price)).toLocaleString('en-US')}</span> ${moneyUnit}`;
 
         const hwidRow = document.getElementById('customPlanHwidCostRow');
         const hwidCostDisplay = document.getElementById('customPlanHwidCostDisplay');
@@ -410,7 +424,7 @@ async function updateCustomPlanCalculation() {
         if (d.hwid_limit > 1 && hwidCost > 0) {
           if (hwidRow) hwidRow.classList.remove('hidden');
           if (hwidCountDisplay) hwidCountDisplay.innerText = d.hwid_limit;
-          if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">+${Number(hwidCost).toLocaleString('en-US')}</span> تومان`;
+          if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">+${Number(hwidCost).toLocaleString('en-US')}</span> ${moneyUnit}`;
         } else {
           if (hwidRow) hwidRow.classList.add('hidden');
         }
@@ -424,7 +438,7 @@ async function updateCustomPlanCalculation() {
         if (d.volume_discount_percent > 0) {
           if (volRow) volRow.classList.remove('hidden');
           if (volTierPct) volTierPct.innerText = d.volume_discount_percent;
-          if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(d.volume_discount_amount).toLocaleString('en-US')}</span> تومان`;
+          if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(d.volume_discount_amount).toLocaleString('en-US')}</span> ${moneyUnit}`;
           if (volBadge) volBadge.classList.remove('hidden');
           if (volPctVal) volPctVal.innerText = d.volume_discount_percent;
         } else {
@@ -434,7 +448,7 @@ async function updateCustomPlanCalculation() {
 
         if (d.loyalty_discount_amount > 0) {
           if (discRow) discRow.classList.remove('hidden');
-          if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(d.loyalty_discount_amount).toLocaleString('en-US')}</span> تومان <span dir="ltr" class="font-sans font-bold num-bidi">(${d.loyalty_discount_percent}%)</span>`;
+          if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(d.loyalty_discount_amount).toLocaleString('en-US')}</span> ${moneyUnit} <span dir="ltr" class="font-sans font-bold num-bidi">(${d.loyalty_discount_percent}%)</span>`;
         } else {
           if (discRow) discRow.classList.add('hidden');
         }
@@ -452,9 +466,11 @@ async function updateCustomPlanCalculation() {
           submitBtn.classList.toggle('opacity-50', !isPricingValid);
           submitBtn.classList.toggle('cursor-not-allowed', !isPricingValid);
           if (!isPricingValid) {
-            submitBtn.innerText = 'تعرفه بسته دلخواه هنوز تعریف نشده است';
+            submitBtn.innerText = _shopTr('تعرفه بسته دلخواه هنوز تعریف نشده است', 'Custom plan pricing is not configured yet');
           } else {
-            submitBtn.innerText = `خرید بسته دلخواه (${Number(d.final_price).toLocaleString('en-US')} تومان)`;
+            submitBtn.innerText = _shopIsEn()
+              ? `Buy Custom Plan (${Number(d.final_price).toLocaleString('en-US')} ${moneyUnit})`
+              : `خرید بسته دلخواه (${Number(d.final_price).toLocaleString('en-US')} تومان)`;
           }
         }
       }
@@ -475,7 +491,7 @@ function purchaseCustomPlan() {
   const customPlanObj = {
     id: 'custom',
     isCustom: true,
-    name: 'بسته دلخواه',
+    name: _shopTr('بسته دلخواه', 'Custom Plan'),
     price: finalPrice,
     traffic: gb,
     days: days,
@@ -517,14 +533,18 @@ function renderShopPlans(data) {
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'full';
     } else if (daysLeft > 3 && pctRemaining <= 25) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-accent-soft border';
-      noticeEl.innerHTML = `<span>⚡️</span><span>شما هنوز <b>${daysLeft} روز</b> اشتراک فعال دارید؛ خرید <b>بسته افزایش حجم</b> مانع از سوختن روزهای باقیمانده شما می‌شود.</span>`;
+      noticeEl.innerHTML = _shopIsEn()
+        ? `<span>⚡️</span><span>You still have <b>${daysLeft} days</b> left on your plan; buying a <b>Data Add-on</b> preserves your remaining days.</span>`
+        : `<span>⚡️</span><span>شما هنوز <b>${daysLeft} روز</b> اشتراک فعال دارید؛ خرید <b>بسته افزایش حجم</b> مانع از سوختن روزهای باقیمانده شما می‌شود.</span>`;
       noticeEl.dataset.shouldShow = 'true';
       if (currentShopCategory === 'traffic') noticeEl.classList.remove('hidden');
       else noticeEl.classList.add('hidden');
       if (!window._shopCategoryManuallyChanged) currentShopCategory = 'traffic';
     } else if (daysLeft <= 3) {
       noticeEl.className = 'p-2.5 rounded-2xl text-[11px] leading-relaxed mb-1 transition flex items-center gap-2 s-warn-soft border';
-      noticeEl.innerHTML = `<span>${uiIcon('clock', 'w-4 h-4 shrink-0 text-amber-500 inline-block align-middle')}</span><span>تنها <b>${daysLeft} روز</b> از اشتراک شما باقیمانده است؛ جهت جلوگیری از قطعی، <b>خرید یا تمدید دوره کامل</b> پیشنهاد می‌شود.</span>`;
+      noticeEl.innerHTML = _shopIsEn()
+        ? `<span>${uiIcon('clock', 'w-4 h-4 shrink-0 text-amber-500 inline-block align-middle')}</span><span>Only <b>${daysLeft} days</b> remain on your subscription; we recommend <b>buying or renewing a Full Plan</b> to stay connected.</span>`
+        : `<span>${uiIcon('clock', 'w-4 h-4 shrink-0 text-amber-500 inline-block align-middle')}</span><span>تنها <b>${daysLeft} روز</b> از اشتراک شما باقیمانده است؛ جهت جلوگیری از قطعی، <b>خرید یا تمدید دوره کامل</b> پیشنهاد می‌شود.</span>`;
       noticeEl.dataset.shouldShow = 'true';
       if (currentShopCategory === 'full') noticeEl.classList.remove('hidden');
       else noticeEl.classList.add('hidden');
@@ -549,8 +569,8 @@ function renderFilteredShopPlans() {
     shopContainer.innerHTML = `
       <div class="empty-state">
         <img src="/static/img/icons/package.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
-        <span class="empty-state-title">در حال حاضر بسته‌ای برای خرید موجود نیست</span>
-        <span class="empty-state-desc">لطفاً بعداً مراجعه فرمایید یا با پشتیبانی در ارتباط باشید.</span>
+        <span class="empty-state-title">${_shopTr('در حال حاضر بسته‌ای برای خرید موجود نیست', 'No plans are currently available')}</span>
+        <span class="empty-state-desc">${_shopTr('لطفاً بعداً مراجعه فرمایید یا با پشتیبانی در ارتباط باشید.', 'Please check back later or contact support.')}</span>
       </div>
     `;
     if (couponSection) couponSection.classList.add('hidden');
@@ -569,20 +589,25 @@ function renderFilteredShopPlans() {
   });
 
   if (plans.length === 0) {
-    const catLabels = { traffic: 'افزایش حجم', time: 'افزایش زمان', full: 'سرویس‌های کامل' };
-    const curLabel = catLabels[currentShopCategory] || 'این دسته‌بندی';
+    const catLabels = _shopIsEn()
+      ? { traffic: 'Data Add-on', time: 'Time Extension', full: 'Full Plans' }
+      : { traffic: 'افزایش حجم', time: 'افزایش زمان', full: 'سرویس‌های کامل' };
+    const curLabel = catLabels[currentShopCategory] || _shopTr('این دسته‌بندی', 'this category');
     shopContainer.innerHTML = `
       <div class="empty-state">
         <img src="/static/img/icons/search.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
-        <span class="empty-state-title">بسته‌ای در بخش «${escapeHtml(curLabel)}» یافت نشد</span>
-        <span class="empty-state-desc">می‌توانید سایر سرویس‌های فعال را بررسی نمایید.</span>
+        <span class="empty-state-title">${_shopIsEn() ? `No plans found in "${escapeHtml(curLabel)}"` : `بسته‌ای در بخش «${escapeHtml(curLabel)}» یافت نشد`}</span>
+        <span class="empty-state-desc">${_shopTr('می‌توانید سایر سرویس‌های فعال را بررسی نمایید.', 'You can browse other available categories.')}</span>
         <button type="button" onclick="window.switchShopCategory('full')" class="btn btn-primary text-xs py-2 px-4 rounded-xl mt-2">
-          مشاهده سرویس‌های کامل
+          ${_shopTr('مشاهده سرویس‌های کامل', 'View Full Plans')}
         </button>
       </div>
     `;
     return;
   }
+
+  const isEn = _shopIsEn();
+  const moneyUnit = _shopTr('تومان', 'Toman');
 
   shopContainer.innerHTML = plans.map(p => {
     const planText = `${p.name || ''} ${p.description || ''}`.toLowerCase();
@@ -600,55 +625,55 @@ function renderFilteredShopPlans() {
       : '🇮🇷';
 
     if (isExtraTraffic) {
-      planBadge = `<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">${badgeIcon('zap')}<span>بسته افزایش حجم</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">${badgeIcon('zap')}<span>${_shopTr('بسته افزایش حجم', 'Extra Data')}</span></div>`;
       badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
       btnClass = 'btn-plan-traffic';
     } else if (isTimeOnly) {
-      planBadge = `<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">${badgeIcon('clock')}<span>بسته افزایش زمان</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-traffic absolute top-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl shadow flex items-center gap-1">${badgeIcon('clock')}<span>${_shopTr('بسته افزایش زمان', 'Extra Time')}</span></div>`;
       badgeBorderClass = 'border-cyan-500/50 shadow-lg shadow-cyan-500/10';
       btnClass = 'btn-plan-traffic';
     } else if (planBadgeKey === 'vip' || (!planBadgeKey && (planText.includes('پیشنهاد ویژه') || planText.includes('vip')))) {
-      planBadge = `<div class="shop-plan-badge badge-vip absolute top-0 left-0 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-rose-300/70 shadow-lg shadow-rose-500/30 flex items-center gap-1">${badgeIcon('crown')}<span>پیشنهاد ویژه</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-vip absolute top-0 left-0 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-rose-300/70 shadow-lg shadow-rose-500/30 flex items-center gap-1">${badgeIcon('crown')}<span>${_shopTr('پیشنهاد ویژه', 'Special Offer')}</span></div>`;
       badgeBorderClass = 'border-rose-500/70 shadow-lg shadow-rose-500/20';
       btnClass = 'btn-plan-vip';
     } else if (planBadgeKey === 'bestseller' || planBadgeKey.includes('پرفروش') || (!planBadgeKey && (planText.includes('پرفروش') || planText.includes('bestseller')))) {
-      planBadge = `<div class="shop-plan-badge badge-bestseller absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/80 shadow-lg shadow-amber-500/30 flex items-center gap-1">${badgeIcon('flame')}<span>پرفروش‌ترین</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-bestseller absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/80 shadow-lg shadow-amber-500/30 flex items-center gap-1">${badgeIcon('flame')}<span>${_shopTr('پرفروش‌ترین', 'Bestseller')}</span></div>`;
       badgeBorderClass = 'border-amber-400/80 shadow-lg shadow-amber-500/25';
       btnClass = 'btn-plan-bestseller';
     } else if (planBadgeKey === 'popular' || (!planBadgeKey && (planText.includes('محبوب') || planText.includes('popular')))) {
-      planBadge = `<div class="shop-plan-badge badge-popular absolute top-0 left-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/40 shadow-md flex items-center gap-1">${badgeIcon('star')}<span>محبوب‌ترین</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-popular absolute top-0 left-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/40 shadow-md flex items-center gap-1">${badgeIcon('star')}<span>${_shopTr('محبوب‌ترین', 'Popular')}</span></div>`;
       badgeBorderClass = 'border-purple-500/70 shadow-lg shadow-purple-500/15';
       btnClass = 'btn-plan-popular';
     } else if (planBadgeKey === 'economic' || (!planBadgeKey && (planText.includes('اقتصادی') || planText.includes('economic') || planText.includes('به‌صرفه') || planText.includes('بصرفه') || planText.includes('ارزان')))) {
-      planBadge = `<div class="shop-plan-badge badge-economic absolute top-0 left-0 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-emerald-400/40 shadow-md flex items-center gap-1">${badgeIcon('coins')}<span>اقتصادی‌ترین</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-economic absolute top-0 left-0 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-emerald-400/40 shadow-md flex items-center gap-1">${badgeIcon('coins')}<span>${_shopTr('اقتصادی‌ترین', 'Best Value')}</span></div>`;
       badgeBorderClass = 'border-emerald-500/70 shadow-lg shadow-emerald-500/15';
       btnClass = 'btn-plan-economic';
     } else if (planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')))) {
-      planBadge = `<div class="shop-plan-badge badge-tunnel absolute top-0 left-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-cyan-400/50 shadow-md flex items-center gap-1">${badgeIcon('route')}<span>تانل اختصاصی</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-tunnel absolute top-0 left-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-cyan-400/50 shadow-md flex items-center gap-1">${badgeIcon('route')}<span>${_shopTr('تانل اختصاصی', 'Dedicated Tunnel')}</span></div>`;
       badgeBorderClass = 'border-cyan-500/70 shadow-lg shadow-cyan-500/20';
       btnClass = 'bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 hover:from-teal-500 hover:to-sky-500 text-white font-bold shadow-md shadow-cyan-600/25';
     } else if (planBadgeKey === 'gaming' || (!planBadgeKey && (planText.includes('گیم') || planText.includes('gaming')))) {
-      planBadge = `<div class="shop-plan-badge badge-gaming absolute top-0 left-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/50 shadow-md flex items-center gap-1">${badgeIcon('gamepad')}<span>ویژه گیمینگ</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-gaming absolute top-0 left-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-indigo-400/50 shadow-md flex items-center gap-1">${badgeIcon('gamepad')}<span>${_shopTr('ویژه گیمینگ', 'Gaming')}</span></div>`;
       badgeBorderClass = 'border-indigo-500/70 shadow-lg shadow-indigo-500/20';
       btnClass = 'btn-plan-gaming';
     } else if (planBadgeKey === 'antifilter' || (!planBadgeKey && (planText.includes('ضد فیلتر') || planText.includes('ضدفیلتر')))) {
-      planBadge = `<div class="shop-plan-badge badge-antifilter absolute top-0 left-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-teal-400/50 shadow-md flex items-center gap-1">${badgeIcon('shield')}<span>ضد فیلتر</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-antifilter absolute top-0 left-0 bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-teal-400/50 shadow-md flex items-center gap-1">${badgeIcon('shield')}<span>${_shopTr('ضد فیلتر', 'Anti-Filter')}</span></div>`;
       badgeBorderClass = 'border-teal-500/70 shadow-lg shadow-teal-500/20';
       btnClass = 'bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold shadow-md shadow-teal-600/20';
     } else if (planBadgeKey === 'speed' || (!planBadgeKey && (planText.includes('فوق سریع') || planText.includes('گیگابیت')))) {
-      planBadge = `<div class="shop-plan-badge badge-speed absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/60 shadow-md flex items-center gap-1">${badgeIcon('zap')}<span>فوق سریع</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-speed absolute top-0 left-0 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-amber-300/60 shadow-md flex items-center gap-1">${badgeIcon('zap')}<span>${_shopTr('فوق سریع', 'High Speed')}</span></div>`;
       badgeBorderClass = 'border-amber-500/70 shadow-lg shadow-amber-500/20';
       btnClass = 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold shadow-md shadow-amber-600/20';
     } else if (planBadgeKey === 'stream' || (!planBadgeKey && (planText.includes('استریم') || planText.includes('یوتیوب')))) {
-      planBadge = `<div class="shop-plan-badge badge-stream absolute top-0 left-0 bg-gradient-to-r from-red-600 to-rose-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-red-400/50 shadow-md flex items-center gap-1">${badgeIcon('play')}<span>ویژه استریم</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-stream absolute top-0 left-0 bg-gradient-to-r from-red-600 to-rose-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-red-400/50 shadow-md flex items-center gap-1">${badgeIcon('play')}<span>${_shopTr('ویژه استریم', 'Streaming')}</span></div>`;
       badgeBorderClass = 'border-red-500/70 shadow-lg shadow-red-500/20';
       btnClass = 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold shadow-md shadow-red-600/20';
     } else if (planBadgeKey === 'family' || (!planBadgeKey && (planText.includes('خانوادگی') || planText.includes('چند کاربر')))) {
-      planBadge = `<div class="shop-plan-badge badge-family absolute top-0 left-0 bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-sky-400/50 shadow-md flex items-center gap-1">${badgeIcon('users')}<span>چند کاربره</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-family absolute top-0 left-0 bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl border-b border-r border-sky-400/50 shadow-md flex items-center gap-1">${badgeIcon('users')}<span>${_shopTr('چند کاربره', 'Family')}</span></div>`;
       badgeBorderClass = 'border-sky-500/70 shadow-lg shadow-sky-500/20';
       btnClass = 'btn-plan-family';
     } else if (planBadgeKey === 'iran' || (!planBadgeKey && planText.includes('سرور ایران'))) {
-      planBadge = `<div class="shop-plan-badge badge-iran absolute top-0 left-0 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl flex items-center gap-1">${iranFlagBadge}<span>سرور ایران</span></div>`;
+      planBadge = `<div class="shop-plan-badge badge-iran absolute top-0 left-0 text-white text-[11px] font-semibold px-3 py-0.5 rounded-br-xl flex items-center gap-1">${iranFlagBadge}<span>${_shopTr('سرور ایران', 'Iran Server')}</span></div>`;
       badgeBorderClass = 'border-emerald-500/70 shadow-lg shadow-red-500/15';
       btnClass = 'btn-plan-iran';
     }
@@ -668,25 +693,34 @@ function renderFilteredShopPlans() {
     const hasAnyDiscount = hasLoyaltyDiscount || (discountVal > 0);
     const formattedFinal = Number(finalPrice).toLocaleString('en-US');
     const formattedOriginal = Number(originalPriceToDisplay || 0).toLocaleString('en-US');
-    const devLimitText = (p.hwid_limit && p.hwid_limit > 0) ? `${p.hwid_limit} کاربر` : 'کاربر نامحدود';
+    const devLimitText = (p.hwid_limit && p.hwid_limit > 0)
+      ? _shopTr(`${p.hwid_limit} کاربر`, `${p.hwid_limit} user${Number(p.hwid_limit) === 1 ? '' : 's'}`)
+      : _shopTr('کاربر نامحدود', 'Unlimited users');
 
     const durationText = isExtraTraffic
-      ? '<span class="flex items-center gap-1">📅 <b class="text-emerald-700 dark:text-emerald-400 font-bold">بدون تغییر زمان انقضا</b></span>'
+      ? `<span class="flex items-center gap-1">📅 <b class="text-emerald-700 dark:text-emerald-400 font-bold">${_shopTr('بدون تغییر زمان انقضا', 'Keep current expiry')}</b></span>`
       : (isTimeOnly
-          ? `<span class="flex items-center gap-1">📅 <b class="t-accent font-bold">${p.duration_days} روز اضافه</b></span>`
+          ? `<span class="flex items-center gap-1">📅 <b class="t-accent font-bold">${_shopTr(`${p.duration_days} روز اضافه`, `+${p.duration_days} days`)}</b></span>`
           : (Number(p.duration_days) > 0
-              ? `<span class="flex items-center gap-1">📅 <b class="t-main">${p.duration_days} روز</b></span>`
-              : '<span class="flex items-center gap-1">📅 <b class="t-main">نامحدود روز</b></span>'));
+              ? `<span class="flex items-center gap-1">📅 <b class="t-main">${_shopTr(`${p.duration_days} روز`, `${p.duration_days} days`)}</b></span>`
+              : `<span class="flex items-center gap-1">📅 <b class="t-main">${_shopTr('نامحدود روز', 'Unlimited')}</b></span>`));
     const trafficText = isTimeOnly
-      ? '<span class="t-accent font-bold">بدون تغییر حجم</span>'
-      : (Number(p.traffic_gb) > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود');
+      ? `<span class="t-accent font-bold">${_shopTr('بدون تغییر حجم', 'No data change')}</span>`
+      : (Number(p.traffic_gb) > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : _shopTr('نامحدود', 'Unlimited'));
 
-    let buttonLabel = 'خرید / تمدید آنی';
-    if (isExtraTraffic) buttonLabel = 'خرید بسته ترافیک';
-    else if (isTimeOnly) buttonLabel = 'تمدید مدت زمان';
+    let buttonLabel = _shopTr('خرید / تمدید آنی', 'Buy / Renew Now');
+    if (isExtraTraffic) buttonLabel = _shopTr('خرید بسته ترافیک', 'Buy Data Add-on');
+    else if (isTimeOnly) buttonLabel = _shopTr('تمدید مدت زمان', 'Extend Duration');
 
     const isTunnel = planBadgeKey === 'tunnel' || (!planBadgeKey && (planText.includes('تانل') || planText.includes('tunnel')));
-    const rawDesc = p.description || (isExtraTraffic ? 'افزایش حجم بدون تغییر در تاریخ انقضای سرویس فعلی' : (isTimeOnly ? 'افزایش مدت زمان اعتبار بدون تغییر در میزان ترافیک' : (isTunnel ? 'ترافیک پایدار روی سرورها + تانل اختصاصی' : 'ترافیک پایدار روی سرورها')));
+    const defaultDesc = isExtraTraffic
+      ? _shopTr('افزایش حجم بدون تغییر در تاریخ انقضای سرویس فعلی', 'Adds data without altering your current expiry date')
+      : (isTimeOnly
+          ? _shopTr('افزایش مدت زمان اعتبار بدون تغییر در میزان ترافیک', 'Extends validity duration without changing your data quota')
+          : (isTunnel
+              ? _shopTr('ترافیک پایدار روی سرورها + تانل اختصاصی', 'Stable server traffic + Dedicated Tunnel')
+              : _shopTr('ترافیک پایدار روی سرورها', 'Reliable high-speed server traffic')));
+    const rawDesc = p.description || defaultDesc;
     const safeDesc = escapeHtml(rawDesc)
       .replace(/تانل\s+اختصاصی/g, 'تانل&nbsp;اختصاصی')
       .replace(/\+\s*تانل/g, '+&nbsp;تانل');
@@ -701,7 +735,7 @@ function renderFilteredShopPlans() {
           : clusterFlags);
     const flagsList = activeFlags.length > 0
       ? activeFlags.map(f => (typeof renderFlagHtml === 'function' ? renderFlagHtml(f, 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : `<span class="text-xs inline-block" title="${f}">${f}</span>`)).join(' ')
-      : '<span class="text-xs inline-block" title="سرور اختصاصی">🌐</span>';
+      : `<span class="text-xs inline-block" title="${_shopTr('سرور اختصاصی', 'Dedicated Server')}">🌐</span>`;
 
     const userLoyalty = cachedPlansData?.loyalty || window.lastUserData?.loyalty;
     const userTierIcon = userLoyalty?.icon || '🥈';
@@ -747,8 +781,8 @@ function renderFilteredShopPlans() {
     const limitedStockBlock = hasMaxLimit ? `
       <div class="rounded-xl px-2.5 py-1.5 my-2 ${capToneCls} space-y-1">
         <div class="flex items-center justify-between text-[10.5px] font-bold">
-          <span class="flex items-center gap-1">${badgeIcon('flame')}<span>ظرفیت محدود فروش</span></span>
-          <span class="font-sans num-bidi" dir="ltr">${toEnglishDigits(remCap)} / ${toEnglishDigits(maxCap)} باقی‌مانده</span>
+          <span class="flex items-center gap-1">${badgeIcon('flame')}<span>${_shopTr('ظرفیت محدود فروش', 'Limited Stock')}</span></span>
+          <span class="font-sans num-bidi" dir="ltr">${isEn ? `${toEnglishDigits(remCap)} / ${toEnglishDigits(maxCap)} left` : `${toEnglishDigits(remCap)} / ${toEnglishDigits(maxCap)} باقی‌مانده`}</span>
         </div>
         <div class="w-full h-1 rounded-full bg-slate-500/20 overflow-hidden">
           <div class="h-full rounded-full ${capBarCls} transition-all duration-300" style="width:${capPct}%"></div>
@@ -757,37 +791,37 @@ function renderFilteredShopPlans() {
     ` : '';
 
     const hasDiscountBadges = Boolean(discountVal > 0 || hasLoyaltyDiscount);
-    const buttonPriceText = hasAnyDiscount ? ` (${formattedFinal} تومان)` : '';
+    const buttonPriceText = hasAnyDiscount ? ` (${formattedFinal} ${moneyUnit})` : '';
     return `
       <div class="shop-plan-card card p-3 border ${badgeBorderClass} relative overflow-hidden group">
         ${planBadge}
         <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0 flex-1 text-right">
-            <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl">
+          <div class="min-w-0 flex-1 ${isEn ? 'text-left' : 'text-right'}">
+            <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="${isEn ? 'ltr' : 'rtl'}">
               ${hasAnyDiscount ? `
                 <span class="price-slash-strike t-main text-base font-black leading-tight num-bidi" dir="ltr">${formattedOriginal}</span>
-                <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
+                <span class="text-[11px] t-muted font-sans leading-none">${moneyUnit}</span>
                 ${hasDiscountBadges ? `
-                  <button type="button" class="plan-discount-toggle-btn inline-flex items-center justify-center text-xs transition active:scale-90 cursor-pointer p-0.5 mr-0.5 shrink-0 bg-transparent border-0" title="مشاهده جزئیات تخفیف" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
+                  <button type="button" class="plan-discount-toggle-btn inline-flex items-center justify-center text-xs transition active:scale-90 cursor-pointer p-0.5 mr-0.5 shrink-0 bg-transparent border-0" title="${_shopTr('مشاهده جزئیات تخفیف', 'View discount breakdown')}" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
                     <span>🏷️</span>
                   </button>
                 ` : ''}
               ` : `
                 <span class="text-base font-black t-main leading-tight num-bidi" dir="ltr">${formattedOriginal}</span>
-                <span class="text-[11px] t-muted font-sans leading-none">تومان</span>
+                <span class="text-[11px] t-muted font-sans leading-none">${moneyUnit}</span>
               `}
             </div>
-            <p class="shop-plan-desc text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1.5">${safeDesc}</p>
+            <p class="shop-plan-desc text-[10.5px] leading-snug t-muted ${isEn ? 'text-left' : 'text-right'} line-clamp-2 tracking-tight mt-1.5">${safeDesc}</p>
           </div>
-          <div class="flex flex-col items-start min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
-            <h4 class="font-bold text-xs sm:text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
+          <div class="flex flex-col ${isEn ? 'items-end' : 'items-start'} min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
+            <h4 class="font-bold text-xs sm:text-sm t-main truncate ${isEn ? 'text-right' : 'text-left'}">${formatPlanTitle(p.name)}</h4>
           </div>
         </div>
         ${limitedStockBlock}
         ${hasDiscountBadges ? `
           <div class="plan-discounts-box hidden flex items-center justify-start gap-1.5 flex-wrap my-2 -ml-2" dir="ltr">
-            ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="تخفیف وفاداری"><span>${userTierIcon}</span><span>Loyalty (-${loyaltyPctEnglish}%)</span></span>` : ''}
-            ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : 'کوپن'} (-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
+            ${hasLoyaltyDiscount ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi" title="${_shopTr('تخفیف وفاداری', 'Loyalty Discount')}"><span>${userTierIcon}</span><span>Loyalty (-${loyaltyPctEnglish}%)</span></span>` : ''}
+            ${discountVal > 0 ? `<span class="badge ${tagThemeClass} text-[11px] font-sans num-bidi"><span>🏷</span><span>${window.activeCoupon?.code ? escapeHtml(window.activeCoupon.code) : _shopTr('کوپن', 'Coupon')} (-${toEnglishDigits(window.activeCoupon?.discount_percent || 0)}%)</span></span>` : ''}
           </div>
         ` : ''}
         <div class="shop-plan-specs flex items-center justify-between my-2 text-[11px] px-2.5 py-1.5 whitespace-nowrap overflow-hidden">
@@ -800,7 +834,7 @@ function renderFilteredShopPlans() {
         <div class="flex items-center justify-between mb-2 px-1 text-[11px] t-muted">
           <span class="flex items-center gap-1">
             <span>🌍</span>
-            <span>کشورها:</span>
+            <span>${_shopTr('کشورها:', 'Countries:')}</span>
           </span>
           <span class="inline-flex items-center gap-1 text-xs tracking-wider" dir="ltr">${flagsList}</span>
         </div>
@@ -839,10 +873,13 @@ function openCheckoutConfirmModal(plan) {
   const isExtraTraffic = (Number(plan.days) === 0 && Number(plan.traffic) > 0) || (plan.badge || '').toLowerCase() === 'traffic';
   const isTimeOnly = (Number(plan.traffic) === 0 && Number(plan.days) > 0) || (plan.badge || '').toLowerCase() === 'time';
 
+  const moneyUnit = _shopTr('تومان', 'Toman');
+  const isEn = _shopIsEn();
+
   if (nameEl) nameEl.innerHTML = formatPlanTitle(plan.name, { iconPosition: 'left' });
   if (trafEl) {
     if (isTimeOnly) {
-      trafEl.innerText = 'بدون تغییر حجم فعلی';
+      trafEl.innerText = _shopTr('بدون تغییر حجم فعلی', 'Keep current data');
     } else {
       trafEl.innerText = fmtTraffic(plan.traffic, { html: false });
     }
@@ -852,33 +889,34 @@ function openCheckoutConfirmModal(plan) {
       const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
       const daysLeft = Number(activeSub?.days_left ?? 0);
       if (daysLeft > 0) {
-        daysEl.innerText = `هم‌گام با سرویس فعلی (${daysLeft} روز مانده)`;
+        daysEl.innerText = isEn ? `Synced with current plan (${daysLeft}d left)` : `هم‌گام با سرویس فعلی (${daysLeft} روز مانده)`;
       } else {
-        daysEl.innerText = 'بدون تغییر زمان انقضا';
+        daysEl.innerText = _shopTr('بدون تغییر زمان انقضا', 'Keep current expiry');
       }
     } else if (isTimeOnly) {
-      daysEl.innerText = `${plan.days} روز اضافه به سرویس`;
+      daysEl.innerText = isEn ? `+${plan.days} extra days` : `${plan.days} روز اضافه به سرویس`;
     } else if (Number(plan.days) > 0) {
-      daysEl.innerText = `${plan.days} روز`;
+      daysEl.innerText = isEn ? `${plan.days} days` : `${plan.days} روز`;
     } else {
-      daysEl.innerText = 'نامحدود روز';
+      daysEl.innerText = _shopTr('نامحدود روز', 'Unlimited days');
     }
   }
   if (priceEl) {
     if (plan.originalPrice && plan.originalPrice > planPrice) {
-      priceEl.innerHTML = `<span class="price-slash-strike text-slate-400 dark:text-slate-500 font-sans text-xs ml-1.5" dir="ltr">${Number(plan.originalPrice).toLocaleString('en-US')}</span> <span class="text-emerald-400 font-extrabold price-discount-glow" dir="ltr">${Number(planPrice).toLocaleString('en-US')} تومان</span>`;
+      priceEl.innerHTML = `<span class="price-slash-strike text-slate-400 dark:text-slate-500 font-sans text-xs ml-1.5" dir="ltr">${Number(plan.originalPrice).toLocaleString('en-US')}</span> <span class="text-emerald-400 font-extrabold price-discount-glow" dir="ltr">${Number(planPrice).toLocaleString('en-US')} ${moneyUnit}</span>`;
     } else {
-      priceEl.innerText = `${Number(planPrice).toLocaleString('en-US')} تومان`;
+      priceEl.innerText = `${Number(planPrice).toLocaleString('en-US')} ${moneyUnit}`;
     }
   }
-  if (balEl) balEl.innerText = `${Number(userBalance).toLocaleString('en-US')} تومان`;
+  if (balEl) balEl.innerText = `${Number(userBalance).toLocaleString('en-US')} ${moneyUnit}`;
 
   const hwidEl = document.getElementById('checkoutPlanHwid');
   const hwidRow = document.getElementById('checkoutPlanHwidRow');
   if (hwidEl && hwidRow) {
     if (plan.hwid_limit || plan.isCustom) {
       hwidRow.classList.remove('hidden');
-      hwidEl.innerText = `${plan.hwid_limit || 2} کاربر`;
+      const hVal = plan.hwid_limit || 2;
+      hwidEl.innerText = isEn ? `${hVal} user${Number(hVal) === 1 ? '' : 's'}` : `${hVal} کاربر`;
     } else {
       hwidRow.classList.add('hidden');
     }
@@ -927,8 +965,8 @@ function openCheckoutConfirmModal(plan) {
       updateCustomUsernameVisibility(wantsNew);
       if (confirmBtn) {
         confirmBtn.innerText = wantsNew
-          ? '✅ تایید و خرید اشتراک جدید'
-          : (isSwitch ? '✅ تایید و ارتقای سرور' : '✅ تایید و خرید آنی');
+          ? _shopTr('✅ تایید و خرید اشتراک جدید', '✅ Confirm & Create Subscription')
+          : (isSwitch ? _shopTr('✅ تایید و ارتقای سرور', '✅ Confirm & Switch Server') : _shopTr('✅ تایید و خرید آنی', '✅ Confirm & Purchase Now'));
       }
     };
   }
@@ -946,7 +984,7 @@ function openCheckoutConfirmModal(plan) {
   if (isShortage) {
     if (remRow) remRow.classList.add('hidden');
     if (shortageBox) shortageBox.classList.remove('hidden');
-    if (shortageAmtEl) shortageAmtEl.innerText = `${Number(shortageAmount).toLocaleString('en-US')} تومان`;
+    if (shortageAmtEl) shortageAmtEl.innerText = `${Number(shortageAmount).toLocaleString('en-US')} ${moneyUnit}`;
     if (topupBtn) {
       topupBtn.classList.remove('hidden');
       topupBtn.onclick = () => {
@@ -959,11 +997,13 @@ function openCheckoutConfirmModal(plan) {
     if (shortageBox) shortageBox.classList.add('hidden');
     if (topupBtn) topupBtn.classList.add('hidden');
     if (remRow) remRow.classList.remove('hidden');
-    if (remBalEl) remBalEl.innerText = `${Number(userBalance - planPrice).toLocaleString('en-US')} تومان`;
+    if (remBalEl) remBalEl.innerText = `${Number(userBalance - planPrice).toLocaleString('en-US')} ${moneyUnit}`;
     if (confirmBtn) {
       confirmBtn.classList.remove('hidden');
       confirmBtn.disabled = false;
-      confirmBtn.innerText = isSwitch ? '✅ تایید و ارتقای سرور' : '✅ تایید و خرید آنی';
+      confirmBtn.innerText = isSwitch
+        ? _shopTr('✅ تایید و ارتقای سرور', '✅ Confirm & Switch Server')
+        : _shopTr('✅ تایید و خرید آنی', '✅ Confirm & Purchase Now');
       confirmBtn.onclick = executePurchase;
     }
   }
@@ -971,7 +1011,7 @@ function openCheckoutConfirmModal(plan) {
   openModal('checkoutConfirmModal');
 }
 
-function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionText, onAction, secondaryText = 'انصراف', onSecondary = null, allowHtml = false }) {
+function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionText, onAction, secondaryText = _shopTr('انصراف', 'Cancel'), onSecondary = null, allowHtml = false }) {
   const modal = document.getElementById('shopGuidanceModal');
   if (!modal) return;
 
@@ -993,12 +1033,12 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
     return escapeHtml(clean || text);
   };
 
-  if (tEl) tEl.innerText = title || 'راهنمای انتخاب بسته';
+  if (tEl) tEl.innerText = title || _shopTr('راهنمای انتخاب بسته', 'Plan Guide');
   if (bEl) {
     const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation}|\uFE0F)/gu;
-    const rawBadge = badgeText || 'پیشنهاد هوشمند';
+    const rawBadge = badgeText || _shopTr('پیشنهاد هوشمند', 'Smart Tip');
     const match = rawBadge.match(emojiRegex);
-    const badgeIcon = match ? match[0] : (rawBadge.includes('تغییر') ? 'warning' : 'zap');
+    const badgeIcon = match ? match[0] : ((rawBadge.includes('تغییر') || rawBadge.toLowerCase().includes('switch')) ? 'warning' : 'zap');
     const cleanBadge = rawBadge.replace(emojiRegex, '').replace(/^[\s\uFE0F]+|[\s\uFE0F]+$/g, '').trim();
     bEl.innerHTML = `${uiEmojiIcon(badgeIcon, 'w-3.5 h-3.5 shrink-0')}<span>${escapeHtml(cleanBadge)}</span>`;
     bEl.className = `${badgeClass || 'px-2 py-0.5 rounded-full text-[11px] font-bold s-accent-soft border border-cyan-500/30'} inline-flex items-center gap-1 w-fit leading-none`;
@@ -1009,7 +1049,7 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
   }
 
   if (actBtn) {
-    actBtn.innerHTML = renderLabelWithIcon(actionText || 'تایید و ادامه', 'check');
+    actBtn.innerHTML = renderLabelWithIcon(actionText || _shopTr('تایید و ادامه', 'Continue'), 'check');
     actBtn.onclick = () => {
       const modal = document.getElementById('shopGuidanceModal');
       const card = modal?.querySelector('.modal-card');
@@ -1032,7 +1072,8 @@ function openShopGuidanceModal({ title, badgeText, badgeClass, message, actionTe
   }
 
   if (secBtn) {
-    secBtn.innerHTML = renderLabelWithIcon(secondaryText, secondaryText === 'انصراف' ? 'cross' : null);
+    const isCancelBtn = secondaryText === 'انصراف' || secondaryText === 'Cancel';
+    secBtn.innerHTML = renderLabelWithIcon(secondaryText, isCancelBtn ? 'cross' : null);
     secBtn.onclick = () => {
       closeModal('shopGuidanceModal');
       if (typeof onSecondary === 'function') onSecondary();
@@ -1047,7 +1088,7 @@ async function executePurchase() {
   if (!currentPendingPlan) return;
   const { id: planId, price: planPrice, name: planName, isCustom, gb, days } = currentPendingPlan;
   const confirmBtn = document.getElementById('confirmPurchaseBtn');
-  const origConfirmText = confirmBtn?.innerText || '✅ تایید و خرید آنی';
+  const origConfirmText = confirmBtn?.innerText || _shopTr('✅ تایید و خرید آنی', '✅ Confirm & Purchase Now');
 
   const createNewWrap = document.getElementById('checkoutCreateNewWrap');
   const createNewCheck = document.getElementById('checkoutCreateNewCheck');
@@ -1059,7 +1100,7 @@ async function executePurchase() {
   const isUsernameVisible = Boolean(customUsernameWrap && !customUsernameWrap.classList.contains('hidden'));
   const customUsername = isUsernameVisible ? (customUsernameInput?.value || '').trim() : '';
   if (isUsernameVisible && customUsername && !/^[a-zA-Z0-9_]{3,32}$/.test(customUsername)) {
-    showToast('⚠️ نام کاربری باید بین 3 تا 32 کاراکتر (فقط حروف انگلیسی، اعداد و _) باشد.');
+    showToast(_shopTr('⚠️ نام کاربری باید بین 3 تا 32 کاراکتر (فقط حروف انگلیسی، اعداد و _) باشد.', '⚠️ Username must be 3-32 characters (letters, numbers, and _ only).'));
     hapticFeedback('error');
     customUsernameInput?.focus();
     return;
@@ -1067,7 +1108,7 @@ async function executePurchase() {
 
   if (confirmBtn) {
     confirmBtn.disabled = true;
-    confirmBtn.innerText = 'در حال ثبت خرید...';
+    confirmBtn.innerText = _shopTr('در حال ثبت خرید...', 'Processing purchase...');
   }
 
   const targetAccountId = createNew ? null : (window.currentAccountId || null);
@@ -1101,7 +1142,7 @@ async function executePurchase() {
         syncUserDataWithApi(window.currentAccountId);
       }
     } else {
-      const errMsg = res?.data?.message || res?.message || 'خطا در ثبت خرید';
+      const errMsg = res?.data?.message || res?.message || _shopTr('خطا در ثبت خرید', 'Purchase failed');
       const errCode = res?.data?.error || res?.error;
       showToast(`❌ ${errMsg}`);
       hapticFeedback('error');
@@ -1122,7 +1163,7 @@ async function executePurchase() {
       }
     }
   } catch (err) {
-    showToast('❌ خطا در برقراری ارتباط با سرور.');
+    showToast(_shopTr('❌ خطا در برقراری ارتباط با سرور.', '❌ Server connection error.'));
   } finally {
     if (confirmBtn) {
       confirmBtn.disabled = false;
@@ -1169,11 +1210,14 @@ function setupBuyButtons() {
       // Rule 1: User has NO active subscription, but tries to buy traffic addon or time extension
       if (!hasActiveSub && (isExtraTraffic || isTimeOnly)) {
         openShopGuidanceModal({
-          title: 'اشتراک فعالی یافت نشد',
-          badgeText: 'نیازمند سرویس فعال',
+          title: _shopTr('اشتراک فعالی یافت نشد', 'No Active Subscription'),
+          badgeText: _shopTr('نیازمند سرویس فعال', 'Active Plan Required'),
           badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold s-danger-soft border border-rose-500/30',
-          message: 'بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند. لطفاً ابتدا از تب «سرویس‌های کامل» یک اشتراک جدید تهیه فرمایید.',
-          actionText: 'مشاهده سرویس‌های کامل',
+          message: _shopTr(
+            'بسته‌های افزایش حجم و افزایش زمان صرفاً به سرویس‌های فعال اضافه می‌شوند. لطفاً ابتدا از تب «سرویس‌های کامل» یک اشتراک جدید تهیه فرمایید.',
+            'Data add-ons and time extensions can only be applied to an active subscription. Please purchase a Full Plan first.'
+          ),
+          actionText: _shopTr('مشاهده سرویس‌های کامل', 'View Full Plans'),
           onAction: () => switchShopCategory('full'),
           allowHtml: true,
         });
@@ -1182,6 +1226,7 @@ function setupBuyButtons() {
 
       // Squad Switch & Category guidance step (triggered after any Iran-only notice)
       const proceedPurchaseFlow = () => {
+        const isEn = _shopIsEn();
         const activeSub = window.lastUserData?.active_sub || window.lastUserData?.active_subscription;
         const activeSquad = (activeSub?.squad_uuid || '').trim().toLowerCase();
         const planSquadNorm = (planObj.squad_uuid || '').trim().toLowerCase();
@@ -1195,20 +1240,29 @@ function setupBuyButtons() {
         );
 
         if (isSwitch) {
+          const cleanPlanTitle = escapeHtml(formatPlanTitle(planObj.name, { plainText: true, iconPosition: 'left' }));
           openShopGuidanceModal({
-            title: 'هشدار مهم تغییر دسته سرور',
-            badgeText: '⚠️ تغییر دسته سرور',
+            title: _shopTr('هشدار مهم تغییر دسته سرور', 'Important Server Category Switch'),
+            badgeText: _shopTr('⚠️ تغییر دسته سرور', '⚠️ Server Category Switch'),
             badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
-            message: `شما در حال تغییر سرویس اشتراک فعلی خود به بسته «<b>${escapeHtml(formatPlanTitle(planObj.name, { plainText: true, iconPosition: 'left' }))}</b>» هستید.<br><br>
+            message: isEn
+              ? `You are switching your current subscription server group to <b>"${cleanPlanTitle}"</b>.<br><br>
+<b>Key points before viewing the preview:</b><br>
+1. Switching server groups <b>replaces any remaining data and days</b> from your previous plan (the new plan's quota and duration start fresh).<br>
+2. <b>Your subscription link stays the same</b> — just tap <b>Update Subscription</b> in your VPN app after purchase.<br>
+3. The full price of the new plan applies.<br><br>
+If you do not want to switch server groups, pick a renewal plan from your current category or use a Data/Time Add-on.<br><br>
+Proceed to checkout preview?`
+              : `شما در حال تغییر سرویس اشتراک فعلی خود به بسته «<b>${cleanPlanTitle}</b>» هستید.<br><br>
 <b>نکات بسیار مهم پیش از مشاهده پیش‌فاکتور:</b><br>
 1. با تغییر سرویس، <b>حجم و روزهای باقیمانده بسته قبلی شما جایگزین می‌شوند</b> (سقف حجم و روزها از نو برای این بسته آغاز می‌گردند).<br>
 2. <b>لینک اتصال اشتراک شما تغییری نمی‌کند</b> و تنها کافیست پس از پرداخت، گزینه <b>Update Subscription (بروزرسانی اشتراک)</b> را در برنامه بزنید.<br>
 3. هزینه کامل بسته جدید دریافت خواهد شد.<br><br>
 چنانچه قصد تغییر دسته سرور اشتراک خود را ندارید، می‌توانید از بسته‌های مربوط به دسته سرور فعلی جهت تمدید استفاده کرده و یا بسته افزایش حجم یا زمان را تهیه فرمایید.<br><br>
 آیا برای مشاهده پیش‌فاکتور و خرید این بسته موافقید؟`,
-            actionText: 'متوجه شدم، مشاهده پیش‌فاکتور',
+            actionText: _shopTr('متوجه شدم، مشاهده پیش‌فاکتور', 'Understood, View Checkout'),
             onAction: () => openCheckoutConfirmModal(planObj),
-            secondaryText: 'انصراف',
+            secondaryText: _shopTr('انصراف', 'Cancel'),
             onSecondary: () => closeModal('shopGuidanceModal'),
             allowHtml: true,
           });
@@ -1220,25 +1274,29 @@ function setupBuyButtons() {
           const safeDaysLeft = Number(daysLeft) || 0;
           if (pctRemaining <= 25) {
             openShopGuidanceModal({
-              title: 'پیشنهاد هوشمند خرید حجم',
-              badgeText: '⚡ صرفه‌جویی در هزینه',
+              title: _shopTr('پیشنهاد هوشمند خرید حجم', 'Smart Data Add-on Tip'),
+              badgeText: _shopTr('⚡ صرفه‌جویی در هزینه', '⚡ Save Money'),
               badgeClass: 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40',
-              message: `شما هنوز <b>${safeDaysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
-              actionText: '⚡ رفتن به بسته‌های افزایش حجم',
+              message: isEn
+                ? `You still have <b>${safeDaysLeft} days</b> left on your current plan! Buying a <b>Data Add-on</b> saves money and keeps your remaining validity days.`
+                : `شما هنوز <b>${safeDaysLeft} روز</b> از اشتراک فعلی‌تان اعتبار دارید! با خرید «بسته افزایش حجم»، نیازی به پرداخت هزینه سرویس کامل نیست و روزهای باقیمانده شما حفظ می‌شود.`,
+              actionText: _shopTr('⚡ رفتن به بسته‌های افزایش حجم', '⚡ Go to Data Add-ons'),
               onAction: () => switchShopCategory('traffic'),
-              secondaryText: 'انصراف',
+              secondaryText: _shopTr('انصراف', 'Cancel'),
               onSecondary: () => closeModal('shopGuidanceModal'),
               allowHtml: true,
             });
           } else {
             openShopGuidanceModal({
-              title: 'اشتراک شما فعال است',
-              badgeText: 'سرویس فعال دارید',
+              title: _shopTr('اشتراک شما فعال است', 'Your Subscription Is Active'),
+              badgeText: _shopTr('سرویس فعال دارید', 'Active Plan'),
               badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/40',
-              message: `شما در حال حاضر دارای اشتراک فعال با <b>${safeDaysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در 3 روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
-              actionText: 'بسته‌های افزایش حجم',
+              message: isEn
+                ? `You currently have an active subscription with <b>${safeDaysLeft} days</b> remaining. Full plan renewals open in the final 3 days. Meanwhile, you can use <b>Data Add-ons</b> or <b>Time Extensions</b>.`
+                : `شما در حال حاضر دارای اشتراک فعال با <b>${safeDaysLeft} روز</b> اعتبار باقیمانده هستید. خرید سرویس کامل جدید صرفاً در 3 روز پایانی اعتبار امکان‌پذیر است. در صورت نیاز به حجم یا زمان بیشتر، لطفاً از بسته‌های افزایش حجم یا افزایش زمان استفاده فرمایید.`,
+              actionText: _shopTr('بسته‌های افزایش حجم', 'Data Add-ons'),
               onAction: () => switchShopCategory('traffic'),
-              secondaryText: 'بسته‌های افزایش زمان',
+              secondaryText: _shopTr('بسته‌های افزایش زمان', 'Time Extensions'),
               onSecondary: () => switchShopCategory('time'),
               allowHtml: true,
             });
@@ -1250,13 +1308,15 @@ function setupBuyButtons() {
         if (hasActiveSub && daysLeft <= 3 && isExtraTraffic) {
           const safeDaysLeft = Number(daysLeft) || 0;
           openShopGuidanceModal({
-            title: 'هشدار پایان اعتبار زمانی',
-            badgeText: 'تمدید سرویس کامل',
+            title: _shopTr('هشدار پایان اعتبار زمانی', 'Low Remaining Validity'),
+            badgeText: _shopTr('تمدید سرویس کامل', 'Renew Full Plan'),
             badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40',
-            message: `تنها <b>${safeDaysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
-            actionText: 'تمدید دوره کامل',
+            message: isEn
+              ? `Only <b>${safeDaysLeft} days</b> remain on your subscription! A Data Add-on does not extend expiry time, and unused data expires when time runs out. We recommend a <b>Full Plan renewal</b>.`
+              : `تنها <b>${safeDaysLeft} روز</b> از اعتبار زمانی اشتراک شما باقی مانده است! خرید بسته افزایش حجم، زمان سرویس شما را تمدید نمی‌کند و پس از پایان زمان، حجم باقی‌مانده غیرقابل استفاده می‌شود. پیشنهاد ما <b>تمدید دوره کامل</b> است.`,
+            actionText: _shopTr('تمدید دوره کامل', 'Renew Full Plan'),
             onAction: () => switchShopCategory('full'),
-            secondaryText: 'ادامه خرید بسته حجم',
+            secondaryText: _shopTr('ادامه خرید بسته حجم', 'Continue Data Add-on'),
             onSecondary: () => openCheckoutConfirmModal(planObj),
             allowHtml: true,
           });
@@ -1270,11 +1330,22 @@ function setupBuyButtons() {
       // Special pre-warning for Iran-only server badge BEFORE any server switch warning
       const isIranServerPlan = planBadge === 'iran' || (planName || '').includes('سرور ایران');
       if (isIranServerPlan) {
+        const isEn = _shopIsEn();
         openShopGuidanceModal({
-          title: '🇮🇷 راهنمای سرویس سرور ایران',
-          badgeText: '🌍 ویژه هم‌وطنان خارج از کشور',
+          title: _shopTr('🇮🇷 راهنمای سرویس سرور ایران', '🇮🇷 Iran Server Plan Guide'),
+          badgeText: _shopTr('🌍 ویژه هم‌وطنان خارج از کشور', '🌍 For Users Abroad'),
           badgeClass: 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40',
-          message: `<div class="text-justify leading-relaxed space-y-2 text-xs">
+          message: isEn
+            ? `<div class="text-left leading-relaxed space-y-2 text-xs">
+<p>This plan connects <b>exclusively to servers inside Iran (🇮🇷)</b> and provides only an Iranian IP address.</p>
+<p class="font-bold">📌 Important notes before purchase:</p>
+<ul class="list-disc pl-4 space-y-1.5 leading-relaxed">
+  <li>Designed for <b>users living outside Iran</b> to access Iranian banking portals, government services, and local websites.</li>
+  <li>Only <b>Iran IP access</b> is included; this plan is <u>not</u> suitable for bypassing internet restrictions inside Iran.</li>
+</ul>
+<p class="pt-1 font-semibold">Have you reviewed these terms and wish to continue?</p>
+</div>`
+            : `<div class="text-justify leading-relaxed space-y-2 text-xs">
 <p>این بسته <b>منحصراً متصل به سرورهای داخل ایران (🇮🇷)</b> بوده و تنها آی‌پی کشور ایران را در اختیار شما قرار می‌دهد.</p>
 <p class="font-bold">📌 نکات مهم پیش از خرید:</p>
 <ul class="list-disc pr-4 space-y-1.5 leading-relaxed">
@@ -1283,9 +1354,9 @@ function setupBuyButtons() {
 </ul>
 <p class="pt-1 font-semibold">آیا شرایط این سرویس را مطالعه کرده و مایل به ادامه هستید؟</p>
 </div>`,
-          actionText: '✅ متوجه شدم، ادامه',
+          actionText: _shopTr('✅ متوجه شدم، ادامه', '✅ Understood, Continue'),
           onAction: proceedPurchaseFlow,
-          secondaryText: '❌ انصراف',
+          secondaryText: _shopTr('❌ انصراف', '❌ Cancel'),
           onSecondary: () => closeModal('shopGuidanceModal'),
           allowHtml: true,
         });
@@ -1299,9 +1370,11 @@ function setupBuyButtons() {
 
 function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
   window.lastPurchaseOrderId = res?.order_id || null;
+  const isEn = _shopIsEn();
+  const moneyUnit = _shopTr('تومان', 'Toman');
   const pModal = document.getElementById('purchaseSuccessModal');
   if (!pModal) {
-    showToast('🎉 خرید شما با موفقیت انجام شد!');
+    showToast(_shopTr('🎉 خرید شما با موفقیت انجام شد!', '🎉 Your purchase succeeded!'));
     return;
   }
 
@@ -1316,7 +1389,7 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
 
   let rawName = (res.service_name || fallbackPlanName || '').trim();
   if (rawName.includes('بسته دلخواه')) {
-    rawName = 'بسته دلخواه';
+    rawName = _shopTr('بسته دلخواه', 'Custom Plan');
   }
   const emojiMatch = rawName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Emoji_Presentation}|\p{Extended_Pictographic})/u);
   if (emojiMatch) {
@@ -1339,7 +1412,7 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
 
   if (sTrafEl) {
     if (isResExtraTime) {
-      sTrafEl.innerText = 'بدون تغییر حجم فعلی';
+      sTrafEl.innerText = _shopTr('بدون تغییر حجم فعلی', 'Keep current data');
     } else {
       sTrafEl.innerText = fmtTraffic(res.traffic_gb, { html: false });
     }
@@ -1347,19 +1420,19 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
 
   if (sDaysEl) {
     if (isResExtraTraffic) {
-      sDaysEl.innerText = 'هم‌گام با انقضای فعلی';
+      sDaysEl.innerText = _shopTr('هم‌گام با انقضای فعلی', 'Synced with current expiry');
     } else if (Number(res.duration_days) > 0) {
-      sDaysEl.innerText = `${res.duration_days} روز`;
+      sDaysEl.innerText = isEn ? `${res.duration_days} days` : `${res.duration_days} روز`;
     } else {
-      sDaysEl.innerText = 'نامحدود روز';
+      sDaysEl.innerText = _shopTr('نامحدود روز', 'Unlimited days');
     }
   }
-  if (sUserEl) sUserEl.innerText = res.panel_username || (window.lastUserData?.active_sub?.username || 'کاربر');
-  if (sPriceEl) sPriceEl.innerText = `${Number(res.effective_price ?? fallbackPlanPrice).toLocaleString('en-US')} تومان`;
-  if (sBalEl) sBalEl.innerText = `${Number(res.new_balance || 0).toLocaleString('en-US')} تومان`;
+  if (sUserEl) sUserEl.innerText = res.panel_username || (window.lastUserData?.active_sub?.username || _shopTr('کاربر', 'User'));
+  if (sPriceEl) sPriceEl.innerText = `${Number(res.effective_price ?? fallbackPlanPrice).toLocaleString('en-US')} ${moneyUnit}`;
+  if (sBalEl) sBalEl.innerText = `${Number(res.new_balance || 0).toLocaleString('en-US')} ${moneyUnit}`;
 
   const subUrl = res.subscription_url || window.lastUserData?.active_sub?.subscription_url || '';
-  if (sSubEl) sSubEl.innerText = subUrl || 'لینک اشتراک در داشبورد ثبت گردید.';
+  if (sSubEl) sSubEl.innerText = subUrl || _shopTr('لینک اشتراک در داشبورد ثبت گردید.', 'Subscription link is available in Dashboard.');
 
   const squadNoticeBox = document.getElementById('psvcSquadNoticeBox');
   if (squadNoticeBox) {
@@ -1373,7 +1446,7 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
   const copyBtn = document.getElementById('psvcCopyBtn');
   if (copyBtn) {
     copyBtn.onclick = () => {
-      if (subUrl) copyToClipboard(subUrl, '📋 لینک اشتراک در کلیپ‌بورد کپی شد.');
+      if (subUrl) copyToClipboard(subUrl, _shopTr('📋 لینک اشتراک در کلیپ‌بورد کپی شد.', '📋 Subscription link copied.'));
     };
   }
 
@@ -1398,7 +1471,7 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
     const cBtn = document.getElementById('applyCouponBtn');
     if (cBtn) {
       cBtn.disabled = false;
-      cBtn.innerText = 'اعمال';
+      cBtn.innerText = _shopTr('اعمال', 'Apply');
       cBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition';
     }
     if (window.lastUserData) renderShopPlans(window.lastUserData);
@@ -1419,7 +1492,7 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
       if (orderId && window.openInvoiceModal) {
         window.openInvoiceModal(orderId, 'order');
       } else {
-        showToast('فاکتور این سفارش در بخش کیف پول ثبت گردید.');
+        showToast(_shopTr('فاکتور این سفارش در بخش کیف پول ثبت گردید.', 'Invoice saved in your Wallet history.'));
       }
     };
   }
@@ -1439,7 +1512,14 @@ function showShopGuidanceToast() {
   if (now - _lastShopToastTime < 3500) return;
   _lastShopToastTime = now;
   if (typeof showToast === 'function') {
-    showToast('💡 جهت شروع، یکی از سرویس‌های کامل را انتخاب فرمایید.\n(در صورت کندی اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود)', 'info', 4500);
+    showToast(
+      _shopTr(
+        '💡 جهت شروع، یکی از سرویس‌های کامل را انتخاب فرمایید.\n(در صورت کندی اینترنت، بسته‌های تانل اختصاصی پیشنهاد می‌شود)',
+        '💡 Start by choosing one of our Full Plans.\n(If your network is slow, try our Dedicated Tunnel plans.)'
+      ),
+      'info',
+      4500
+    );
   }
 }
 window.showShopGuidanceToast = showShopGuidanceToast;

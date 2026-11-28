@@ -16,6 +16,8 @@ const {
 const {
   normalizeAppLang,
   getAppLanguage,
+  isAppEn,
+  trText,
   applyAppLocale,
   translateUiPhrase,
   t: i18nT,
@@ -201,6 +203,75 @@ test('i18n runtime normalizes locale codes, translates strings, and switches RTL
     assert.strictEqual(document.documentElement.dir, 'rtl');
     assert.strictEqual(navDash.textContent, 'داشبورد');
     assert.strictEqual(fmtMoney(25000), '25,000 تومان');
+  } finally {
+    delete global.window;
+    delete global.document;
+    delete global.localStorage;
+  }
+});
+
+test('i18n round-trip restores data-i18n* attributes and partial compound labels cleanly', () => {
+  const mkEl = (attrs = {}, textContent = '', innerHTML = '') => {
+    const attrMap = { ...attrs };
+    return {
+      dataset: {},
+      textContent,
+      innerHTML,
+      getAttribute: (k) => (k in attrMap ? attrMap[k] : null),
+      setAttribute: (k, v) => { attrMap[k] = String(v); },
+    };
+  };
+  const textEl = mkEl({ 'data-i18n': 'settings_wallet_title' }, 'تنظیمات و ظاهر کیف پول');
+  const htmlEl = mkEl({ 'data-i18n-html': 'prof_ref_note_default' }, '', 'متن فارسی');
+  const phEl = mkEl({ 'data-i18n-placeholder': 'voucher_placeholder', placeholder: 'کد هدیه' });
+  const titleEl = mkEl({ 'data-i18n-title': 'refresh_title', title: 'به‌روزرسانی' });
+  const ariaEl = mkEl({ 'data-i18n-aria': 'nav_shop_aria', 'aria-label': 'تب فروشگاه' });
+  const partialRow = {
+    dataset: {},
+    firstChild: { nodeType: 3, nodeValue: 'تخفیف باشگاه مشتریان (' },
+    lastChild: { nodeType: 3, nodeValue: '):' },
+  };
+  const store = {};
+  global.localStorage = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v); },
+  };
+  const selectorMap = {
+    '[data-i18n]': [textEl],
+    '[data-i18n-html]': [htmlEl],
+    '[data-i18n-placeholder]': [phEl],
+    '[data-i18n-title]': [titleEl],
+    '[data-i18n-aria]': [ariaEl],
+  };
+  global.document = {
+    documentElement: { lang: 'fa', dir: 'rtl' },
+    getElementById: () => null,
+    querySelector: (sel) => (sel === '#customPlanDiscountRow > span:first-child' ? partialRow : null),
+    querySelectorAll: (sel) => selectorMap[sel] || [],
+  };
+  global.window = { getAppLanguage };
+  try {
+    applyAppLocale('en');
+    assert.strictEqual(isAppEn(), true);
+    assert.strictEqual(trText('سلام', 'Hello'), 'Hello');
+    assert.strictEqual(textEl.textContent, 'Wallet Style & Appearance');
+    assert.notStrictEqual(htmlEl.innerHTML, 'متن فارسی');
+    assert.strictEqual(phEl.getAttribute('placeholder'), 'Enter gift or voucher code...');
+    assert.strictEqual(titleEl.getAttribute('title'), 'Refresh');
+    assert.strictEqual(ariaEl.getAttribute('aria-label'), 'Shop tab');
+    assert.strictEqual(partialRow.firstChild.nodeValue, 'Loyalty Club Discount (');
+    assert.strictEqual(partialRow.lastChild.nodeValue, '):');
+
+    applyAppLocale('fa');
+    assert.strictEqual(isAppEn(), false);
+    assert.strictEqual(trText('سلام', 'Hello'), 'سلام');
+    assert.strictEqual(textEl.textContent, 'تنظیمات و ظاهر کیف پول');
+    assert.strictEqual(htmlEl.innerHTML, 'متن فارسی');
+    assert.strictEqual(phEl.getAttribute('placeholder'), 'کد هدیه');
+    assert.strictEqual(titleEl.getAttribute('title'), 'به‌روزرسانی');
+    assert.strictEqual(ariaEl.getAttribute('aria-label'), 'تب فروشگاه');
+    assert.strictEqual(partialRow.firstChild.nodeValue, 'تخفیف باشگاه مشتریان (');
+    assert.strictEqual(partialRow.lastChild.nodeValue, '):');
   } finally {
     delete global.window;
     delete global.document;

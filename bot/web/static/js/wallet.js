@@ -64,13 +64,22 @@ window.flipUserWalletCard = function(el) {
   }
 };
 
+function _wIsEn() {
+  return typeof window !== 'undefined' && (Boolean(window.isAppEn?.()) || window.getAppLanguage?.() === 'en');
+}
+function _wTr(fa, en) {
+  return (typeof window !== 'undefined' && typeof window.trText === 'function')
+    ? window.trText(fa, en)
+    : (_wIsEn() ? en : fa);
+}
+
 const WALLET_CURRENCY_OPTIONS = [
-  { id: 'toman', name: 'تومان (IRT)', desc: 'واحد پایه پولی ایران (پیش‌فرض سامانه ⭐)', icon: '/static/img/icons/coins.svg?v=fl2' },
-  { id: 'ton', name: 'تون (TON)', desc: 'شبکه بلاکچین تلگرام The Open Network', icon: '/static/img/icons/ton.svg?v=fl2' },
-  { id: 'usdt', name: 'تتر (USDT)', desc: 'استیبل‌کوین دلاری تتر معادل دلار آمریکا', icon: '/static/img/icons/credit-card.svg?v=fl2' },
-  { id: 'trx', name: 'ترون (TRX)', desc: 'ارز دیجیتال شبکه پرسرعت TRON', icon: '/static/img/icons/tron.svg?v=fl2' },
-  { id: 'pol', name: 'پالیگان (POL / MATIC)', desc: 'ارز دیجیتال اکوسیستم و شبکه Polygon', icon: '/static/img/icons/polygon.svg?v=fl2' },
-  { id: 'stars', name: 'ستاره تلگرام (Stars ⭐️)', desc: 'اعتبار رسمی ستاره‌های درون‌برنامه‌ای تلگرام', icon: '/static/img/icons/star.svg?v=fl2' },
+  { id: 'toman', name: 'تومان (IRT)', nameEn: 'Toman (IRT)', desc: 'واحد پایه پولی ایران (پیش‌فرض سامانه ⭐)', descEn: 'Iranian Toman base currency (System Default ⭐)', icon: '/static/img/icons/coins.svg?v=fl2' },
+  { id: 'ton', name: 'تون (TON)', nameEn: 'Toncoin (TON)', desc: 'شبکه بلاکچین تلگرام The Open Network', descEn: 'Telegram The Open Network blockchain', icon: '/static/img/icons/ton.svg?v=fl2' },
+  { id: 'usdt', name: 'تتر (USDT)', nameEn: 'Tether (USDT)', desc: 'استیبل‌کوین دلاری تتر معادل دلار آمریکا', descEn: 'USD-pegged Tether stablecoin equivalent', icon: '/static/img/icons/credit-card.svg?v=fl2' },
+  { id: 'trx', name: 'ترون (TRX)', nameEn: 'TRON (TRX)', desc: 'ارز دیجیتال شبکه پرسرعت TRON', descEn: 'Fast & low-fee TRON network token', icon: '/static/img/icons/tron.svg?v=fl2' },
+  { id: 'pol', name: 'پالیگان (POL / MATIC)', nameEn: 'Polygon (POL / MATIC)', desc: 'ارز دیجیتال اکوسیستم و شبکه Polygon', descEn: 'Polygon network ecosystem token', icon: '/static/img/icons/polygon.svg?v=fl2' },
+  { id: 'stars', name: 'ستاره تلگرام (Stars ⭐️)', nameEn: 'Telegram Stars ⭐️', desc: 'اعتبار رسمی ستاره‌های درون‌برنامه‌ای تلگرام', descEn: 'Official Telegram in-app Stars balance', icon: '/static/img/icons/star.svg?v=fl2' },
 ];
 
 window.openWalletCurrencyModal = function() {
@@ -79,9 +88,12 @@ window.openWalletCurrencyModal = function() {
   if (!modal || !listEl) return;
 
   const currentVal = localStorage.getItem('user_wallet_currency') || 'toman';
+  const isEn = _wIsEn();
 
   listEl.innerHTML = WALLET_CURRENCY_OPTIONS.map(opt => {
     const isAct = opt.id === currentVal;
+    const oName = isEn ? opt.nameEn : opt.name;
+    const oDesc = isEn ? opt.descEn : opt.desc;
     return `
       <div onclick="window.selectWalletCurrency && window.selectWalletCurrency('${opt.id}')" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${isAct ? 'active-alert-opt s-accent-soft' : 'card-inset t-main hover:border-slate-500'}">
         <div class="flex items-center gap-2.5">
@@ -89,8 +101,8 @@ window.openWalletCurrencyModal = function() {
             <img src="${opt.icon}" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
           </div>
           <div>
-            <b class="text-xs block ${isAct ? 't-accent' : 't-main'}">${opt.name}</b>
-            <span class="text-[11px] t-muted block mt-0.5">${opt.desc}</span>
+            <b class="text-xs block ${isAct ? 't-accent' : 't-main'}">${oName}</b>
+            <span class="text-[11px] t-muted block mt-0.5">${oDesc}</span>
           </div>
         </div>
         <div class="w-6 h-6 rounded-full flex items-center justify-center border transition-all ${isAct ? 'bg-cyan-500 border-cyan-500 text-white shadow-xs' : 'border-card-border bg-slate-500/5'}">
@@ -134,8 +146,9 @@ window.setWalletCurrency = function(curr) {
   const matched = WALLET_CURRENCY_OPTIONS.find(o => o.id === target);
 
   if (inputEl) inputEl.value = target;
-  if (dispEl && matched) dispEl.innerText = matched.name.split('—')[0].split('(')[0].trim();
-  if (subEl && matched) subEl.innerText = `واحد اصلی: ${matched.name}`;
+  const matchedName = matched ? (_wIsEn() ? matched.nameEn : matched.name) : '';
+  if (dispEl && matched) dispEl.innerText = matchedName.split('—')[0].split('(')[0].trim();
+  if (subEl && matched) subEl.innerText = _wIsEn() ? `Primary currency: ${matchedName}` : `واحد اصلی: ${matchedName}`;
 
   window.renderUserWalletCard();
 };
@@ -163,7 +176,12 @@ window.toggleWalletCardView = function(isGraphic, showToastMsg = true) {
   }
 
   if (showToastMsg && typeof showToast === 'function') {
-    showToast(enable ? '✨ حالت نمایش کارت گرافیکی فعال شد.' : '📋 حالت نمایش کادر ساده فعال شد.', 'info');
+    showToast(
+      enable
+        ? _wTr('✨ حالت نمایش کارت گرافیکی فعال شد.', '✨ Graphic wallet card enabled.')
+        : _wTr('📋 حالت نمایش کادر ساده فعال شد.', '📋 Simple wallet card view enabled.'),
+      'info'
+    );
   }
   if (showToastMsg && window.hapticFeedback) {
     window.hapticFeedback('selection');
@@ -177,10 +195,10 @@ window.toggleSoundFx = function(enabled) {
   if (enabled) {
     localStorage.removeItem('user_sound_fx_disabled');
     if (typeof window.playSubtleSound === 'function') window.playSubtleSound('selection');
-    if (typeof showToast === 'function') showToast('🔊 افکت‌های صوتی لمسی فعال شد.', 'info');
+    if (typeof showToast === 'function') showToast(_wTr('🔊 افکت‌های صوتی لمسی فعال شد.', '🔊 Touch sound effects enabled.'), 'info');
   } else {
     localStorage.setItem('user_sound_fx_disabled', '1');
-    if (typeof showToast === 'function') showToast('🔇 افکت‌های صوتی لمسی غیرفعال شد.', 'info');
+    if (typeof showToast === 'function') showToast(_wTr('🔇 افکت‌های صوتی لمسی غیرفعال شد.', '🔇 Touch sound effects disabled.'), 'info');
   }
   if (window.hapticFeedback) {
     window.hapticFeedback('selection');
@@ -191,6 +209,7 @@ const USER_WALLET_PALETTES = {
   blue: {
     id: 'blue',
     name: 'آبی رویال',
+    nameEn: 'Royal Blue',
     front: 'radial-gradient(circle at 45% 40%, #1e88e5 0%, #1565c0 45%, #0d47a1 80%, #0a256e 100%)',
     back: 'radial-gradient(circle at 50% 50%, #1565c0 0%, #0d47a1 50%, #081d52 100%)',
     accent: '#bfdbfe',
@@ -199,6 +218,7 @@ const USER_WALLET_PALETTES = {
   black: {
     id: 'black',
     name: 'مشکی کربن',
+    nameEn: 'Carbon Black',
     front: 'radial-gradient(circle at 45% 40%, #3f3f46 0%, #27272a 45%, #18181b 80%, #09090b 100%)',
     back: 'radial-gradient(circle at 50% 50%, #27272a 0%, #18181b 50%, #09090b 100%)',
     accent: '#cbd5e1',
@@ -207,6 +227,7 @@ const USER_WALLET_PALETTES = {
   green: {
     id: 'green',
     name: 'سبز یشمی',
+    nameEn: 'Emerald Green',
     front: 'radial-gradient(circle at 45% 40%, #00897b 0%, #00695c 45%, #004d40 80%, #00251a 100%)',
     back: 'radial-gradient(circle at 50% 50%, #00695c 0%, #004d40 50%, #00251a 100%)',
     accent: '#a7f3d0',
@@ -215,6 +236,7 @@ const USER_WALLET_PALETTES = {
   red: {
     id: 'red',
     name: 'قرمز یاقوتی',
+    nameEn: 'Ruby Red',
     front: 'radial-gradient(circle at 45% 40%, #e53935 0%, #c62828 45%, #b71c1c 80%, #5f0909 100%)',
     back: 'radial-gradient(circle at 50% 50%, #c62828 0%, #b71c1c 50%, #5f0909 100%)',
     accent: '#fecaca',
@@ -223,6 +245,7 @@ const USER_WALLET_PALETTES = {
   purple: {
     id: 'purple',
     name: 'بنفش نئونی',
+    nameEn: 'Neon Purple',
     front: 'radial-gradient(circle at 45% 40%, #8e24aa 0%, #6a1b9a 45%, #4a148c 80%, #26054f 100%)',
     back: 'radial-gradient(circle at 50% 50%, #6a1b9a 0%, #4a148c 50%, #26054f 100%)',
     accent: '#e9d5ff',
@@ -231,6 +254,7 @@ const USER_WALLET_PALETTES = {
   yellow: {
     id: 'yellow',
     name: 'طلایی متالیک',
+    nameEn: 'Metallic Gold',
     front: 'radial-gradient(circle at 45% 40%, #fb8c00 0%, #e65100 45%, #bf360c 80%, #5d1700 100%)',
     back: 'radial-gradient(circle at 50% 50%, #e65100 0%, #bf360c 50%, #5d1700 100%)',
     accent: '#fed7aa',
@@ -242,8 +266,9 @@ window.setUserWalletCardColor = function(colorKey) {
   const pal = USER_WALLET_PALETTES[colorKey] || USER_WALLET_PALETTES.blue;
   localStorage.setItem('user_wallet_card_color', pal.id);
   window.applyUserWalletCardColor(pal.id);
+  const pName = _wIsEn() ? pal.nameEn : pal.name;
   if (typeof showToast === 'function') {
-    showToast(`🎨 رنگ کارت به ${pal.name} تغییر یافت.`, 'info');
+    showToast(_wIsEn() ? `🎨 Wallet card theme changed to ${pName}.` : `🎨 رنگ کارت به ${pal.name} تغییر یافت.`, 'info');
   }
   if (window.hapticFeedback) {
     window.hapticFeedback('selection');
@@ -271,7 +296,8 @@ window.applyUserWalletCardColor = function(colorKey) {
   }
   const subEl = document.getElementById('userWalletColorSubtext');
   if (subEl) {
-    subEl.innerText = `طرح فعال: ${pal.name}`;
+    const pName = _wIsEn() ? pal.nameEn : pal.name;
+    subEl.innerText = _wIsEn() ? `Active theme: ${pName}` : `طرح فعال: ${pal.name}`;
   }
   document.querySelectorAll('.wallet-card-color-swatch').forEach(btn => {
     const isAct = btn.getAttribute('data-color') === pal.id;
@@ -285,10 +311,12 @@ window.renderUserWalletCard = function(userData) {
   const user = userData || window.lastUserData?.user;
   const rawBal = Number(user?.wallet_balance || 0);
 
+  const moneyUnit = _wTr('تومان', 'Toman');
+
   // Sync legacy hidden element
   const walletTabBal = document.getElementById('walletTabBalance');
   if (walletTabBal) {
-    walletTabBal.innerText = `${rawBal.toLocaleString('en-US')} تومان`;
+    walletTabBal.innerText = `${rawBal.toLocaleString('en-US')} ${moneyUnit}`;
   }
 
   const balEl = document.getElementById('userWalletCardBalance');
@@ -304,8 +332,8 @@ window.renderUserWalletCard = function(userData) {
 
   const currentCurrency = localStorage.getItem('user_wallet_currency') || 'toman';
 
-  let formattedBalStr = `${rawBal.toLocaleString('en-US')} تومان`;
-  let currencyShortName = 'تومان';
+  let formattedBalStr = `${rawBal.toLocaleString('en-US')} ${moneyUnit}`;
+  let currencyShortName = moneyUnit;
 
   if (currentCurrency === 'ton') {
     const tonVal = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
@@ -332,8 +360,8 @@ window.renderUserWalletCard = function(userData) {
   const prevVal = Number(balEl?.dataset?.prevRawBal || 0);
   if (balEl) balEl.dataset.prevRawBal = String(rawBal);
   if (prevVal !== rawBal && typeof window.animateNumber === 'function' && currentCurrency === 'toman') {
-    window.animateNumber(balEl, prevVal, rawBal, 700, (n) => `${n.toLocaleString('en-US')} تومان`);
-    if (classicBal) window.animateNumber(classicBal, prevVal, rawBal, 700, (n) => `${n.toLocaleString('en-US')} تومان`);
+    window.animateNumber(balEl, prevVal, rawBal, 700, (n) => `${n.toLocaleString('en-US')} ${moneyUnit}`);
+    if (classicBal) window.animateNumber(classicBal, prevVal, rawBal, 700, (n) => `${n.toLocaleString('en-US')} ${moneyUnit}`);
   } else {
     if (balEl) balEl.innerText = formattedBalStr;
     if (classicBal) classicBal.innerText = formattedBalStr;
@@ -357,11 +385,11 @@ window.renderUserWalletCard = function(userData) {
 
   window.copyUserCardId = function() {
     if (!tgId) {
-      if (typeof showToast === 'function') showToast('شناسه تلگرام یافت نشد.');
+      if (typeof showToast === 'function') showToast(_wTr('شناسه تلگرام یافت نشد.', 'Telegram ID not found.'));
       return;
     }
     if (typeof copyToClipboard === 'function') {
-      copyToClipboard(tgId, `📋 شناسه تلگرام جهت دریافت هدیه کپی شد:\n${tgId}`);
+      copyToClipboard(tgId, _wTr(`📋 شناسه تلگرام جهت دریافت هدیه کپی شد:\n${tgId}`, `📋 Telegram ID copied for receiving gifts:\n${tgId}`));
     }
   };
 
@@ -518,33 +546,35 @@ function getTxPerPage() {
 }
 
 function getTxPurchaseInfo(tx) {
-  if (!tx) return { typeRowText: 'خرید بسته', planHtml: '' };
+  const isEn = _wIsEn();
+  if (!tx) return { typeRowText: _wTr('خرید بسته', 'Plan Purchase'), planHtml: '' };
   const rawPlan = (tx.service_name || tx.title?.replace(/^خرید\s+/, '') || '').trim();
   const isCustom = Boolean(tx.is_custom || tx.badge === 'custom' || rawPlan.includes('دلخواه') || tx.title?.includes('دلخواه'));
 
-  let typeRowText = 'خرید بسته';
+  let typeRowText = _wTr('خرید بسته', 'Plan Purchase');
   let planHtml = '';
 
   if (isCustom) {
-    typeRowText = 'خرید بسته دلخواه';
+    typeRowText = _wTr('خرید بسته دلخواه', 'Custom Plan Purchase');
     const traf = Number(tx.traffic_gb || 0);
     const days = Number(tx.duration_days || 0);
-    const trafStr = traf > 0 ? (typeof fmtTraffic === 'function' ? fmtTraffic(traf, { html: false }) : `${traf} گیگابایت`) : '';
-    const specsStr = (traf > 0 && days > 0) ? `${trafStr} - ${days} روز` : (traf > 0 ? trafStr : (days > 0 ? `${days} روز` : 'بسته اختصاصی'));
+    const trafStr = traf > 0 ? (typeof fmtTraffic === 'function' ? fmtTraffic(traf, { html: false }) : (isEn ? `${traf} GiB` : `${traf} گیگابایت`)) : '';
+    const daysTxt = isEn ? `${days} days` : `${days} روز`;
+    const specsStr = (traf > 0 && days > 0) ? `${trafStr} - ${daysTxt}` : (traf > 0 ? trafStr : (days > 0 ? daysTxt : _wTr('بسته اختصاصی', 'Custom Package')));
     planHtml = `<bdi class="font-bold select-all font-sans">${escapeHtml(specsStr)}</bdi>`;
   } else {
     const traf = Number(tx.traffic_gb || 0);
     const days = Number(tx.duration_days || 0);
     if (traf > 0 && days > 0) {
-      typeRowText = 'خرید بسته کامل';
+      typeRowText = _wTr('خرید بسته کامل', 'Full Plan Purchase');
     } else if (traf > 0 && days === 0) {
-      typeRowText = 'خرید بسته حجم';
+      typeRowText = _wTr('خرید بسته حجم', 'Data Add-on Purchase');
     } else if (traf === 0 && days > 0) {
-      typeRowText = 'خرید بسته زمان';
+      typeRowText = _wTr('خرید بسته زمان', 'Time Extension Purchase');
     } else {
-      if (rawPlan.includes('حجم')) typeRowText = 'خرید بسته حجم';
-      else if (rawPlan.includes('زمان') || rawPlan.includes('روز')) typeRowText = 'خرید بسته زمان';
-      else typeRowText = 'خرید بسته کامل';
+      if (rawPlan.includes('حجم')) typeRowText = _wTr('خرید بسته حجم', 'Data Add-on Purchase');
+      else if (rawPlan.includes('زمان') || rawPlan.includes('روز')) typeRowText = _wTr('خرید بسته زمان', 'Time Extension Purchase');
+      else typeRowText = _wTr('خرید بسته کامل', 'Full Plan Purchase');
     }
 
     const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
@@ -554,7 +584,9 @@ function getTxPurchaseInfo(tx) {
     // Strip duplicate 'بسته' prefix since row 1 already shows 'خرید بسته ...'
     cleanOnly = cleanOnly.replace(/^بسته\s+/, '').trim();
     if (!cleanOnly || cleanOnly === 'بسته') {
-      cleanOnly = 'سرویس اشتراکی';
+      cleanOnly = _wTr('سرویس اشتراکی', 'VPN Plan');
+    } else if (cleanOnly.includes('دلخواه') && isEn) {
+      cleanOnly = 'Custom Plan';
     }
 
     let emojiStr = (emojis && emojis.length > 0) ? emojis.join('') : '';
@@ -567,8 +599,8 @@ function getTxPurchaseInfo(tx) {
       else if (lowerName.includes('ویژه') || lowerName.includes('vip')) emojiStr = 'crown';
       else if (lowerName.includes('گیم') || lowerName.includes('game')) emojiStr = 'gamepad';
       else if (lowerName.includes('خانواده') || lowerName.includes('family')) emojiStr = 'users';
-      else if (typeRowText === 'خرید بسته حجم') emojiStr = 'zap';
-      else if (typeRowText === 'خرید بسته زمان') emojiStr = 'clock';
+      else if (traf > 0 && days === 0) emojiStr = 'zap';
+      else if (traf === 0 && days > 0) emojiStr = 'clock';
       else emojiStr = 'package';
     }
 
@@ -584,12 +616,12 @@ function formatTxPlan(tx) {
 }
 
 function formatTxTitle(tx) {
-  if (!tx) return 'تراکنش';
+  if (!tx) return _wTr('تراکنش', 'Transaction');
   if (tx.type === 'order' || (tx.title && tx.title.startsWith('خرید '))) {
     const { typeRowText } = getTxPurchaseInfo(tx);
     return typeRowText;
   }
-  return escapeHtml(tx.title || 'تراکنش');
+  return escapeHtml(tx.title || _wTr('تراکنش', 'Transaction'));
 }
 
 function renderWalletTransactions(transactions) {
@@ -606,8 +638,8 @@ function renderWalletTransactions(transactions) {
     txContainer.innerHTML = `
       <div class="empty-state">
         <img src="/static/img/icons/receipt.svg?v=fl2" class="empty-state-icon" width="40" height="40" alt="" />
-        <span class="empty-state-title">تاریخچه تراکنش‌ها خالی است</span>
-        <span class="empty-state-desc">هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.</span>
+        <span class="empty-state-title">${_wTr('تاریخچه تراکنش‌ها خالی است', 'No transactions yet')}</span>
+        <span class="empty-state-desc">${_wTr('هنوز تراکنش یا سفارشی برای این حساب ثبت نشده است.', 'No payments or orders have been recorded for this account yet.')}</span>
       </div>
     `;
     const oldPag = document.getElementById('walletTxPagination');
@@ -622,6 +654,7 @@ function renderWalletTransactions(transactions) {
 
   const startIdx = (currentWalletPage - 1) * pageSize;
   const pageItems = txList.slice(startIdx, startIdx + pageSize);
+  const isEnLang = _wIsEn();
 
   txContainer.innerHTML = pageItems.map(tx => {
     const statusColor = (tx.status_color === 'amber' || tx.status_color === 'yellow')
@@ -643,19 +676,25 @@ function renderWalletTransactions(transactions) {
         <div class="font-bold t-main text-xs sm:text-sm leading-snug break-words">${planHtml}</div>
       `;
     } else {
-      titleBlock = `<div class="font-bold t-main text-xs sm:text-sm leading-snug break-words">${escapeHtml(tx.title || 'تراکنش')}</div>`;
+      const rawTitle = (typeof window.translateUiPhrase === 'function' && isEnLang)
+        ? window.translateUiPhrase(tx.title || 'تراکنش')
+        : (tx.title || _wTr('تراکنش', 'Transaction'));
+      titleBlock = `<div class="font-bold t-main text-xs sm:text-sm leading-snug break-words">${escapeHtml(rawTitle)}</div>`;
     }
 
     const invoiceBtn = isOrder ? `
-      <button type="button" onclick="event.stopPropagation(); window.openInvoiceModal && window.openInvoiceModal(${tx.id}, '${tx.type || 'order'}');" class="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-0.5 font-bold" title="مشاهده و دانلود فاکتور رسمی">
-        <span>🧾</span> <span>فاکتور</span>
+      <button type="button" onclick="event.stopPropagation(); window.openInvoiceModal && window.openInvoiceModal(${tx.id}, '${tx.type || 'order'}');" class="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-0.5 font-bold" title="${_wTr('مشاهده و دانلود فاکتور رسمی', 'View and download official invoice')}">
+        <span>🧾</span> <span>${_wTr('فاکتور', 'Invoice')}</span>
       </button>
     ` : '';
 
     const txIcon = ({ topup: '💳', card_auto: '💳', crypto: '💎', admin_adjust: '⚡️' })[tx.type] || '🛒';
-    const isEnLang = typeof window.getAppLanguage === 'function' && window.getAppLanguage() === 'en';
     const txUnitLabel = isEnLang ? 'Toman' : 'تومان';
     const txDateDisplay = toEnglishDigits(isEnLang ? (tx.date_formatted || tx.date_jalali || '') : (tx.date_jalali || ''));
+    const rawStatus = tx.status || 'موفق';
+    const displayStatus = (isEnLang && typeof window.translateUiPhrase === 'function')
+      ? window.translateUiPhrase(rawStatus)
+      : rawStatus;
     return `
     <div class="card-inset rounded-2xl p-4 sm:p-4.5 flex items-center justify-between text-xs sm:text-[13px] gap-3 min-h-[72px] ${isOrder ? 'cursor-pointer hover:border-cyan-500/40 transition active:scale-[0.99]' : ''}" ${isOrder ? `onclick="window.openInvoiceModal && window.openInvoiceModal(${tx.id}, '${tx.type || 'order'}');"` : ''}>
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
@@ -665,14 +704,14 @@ function renderWalletTransactions(transactions) {
           <span class="text-[10px] t-muted font-sans num-bidi block" dir="ltr">${txDateDisplay}</span>
         </div>
       </div>
-      <div class="text-left shrink-0 space-y-0.5">
+      <div class="${isEnLang ? 'text-right' : 'text-left'} shrink-0 space-y-0.5">
         <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 't-success' : 't-main'}" dir="${isEnLang ? 'ltr' : 'rtl'}">
           <span class="font-sans num-bidi text-xs sm:text-sm" dir="ltr">${tx.is_positive ? "+" : "-"}${Number(tx.amount != null ? tx.amount : 0).toLocaleString("en-US")}</span>
           <span class="font-sans text-[10px] t-muted font-normal">${txUnitLabel}</span>
         </div>
         <div class="flex items-center justify-end gap-1.5">
           <span class="text-[10px] ${statusColor} font-sans block">
-            ${escapeHtml(tx.status || 'موفق')}
+            ${escapeHtml(displayStatus)}
           </span>
           ${invoiceBtn}
         </div>
@@ -695,14 +734,14 @@ function renderWalletTransactions(transactions) {
   } else {
     pagEl.classList.remove('hidden');
     pagEl.innerHTML = `
-      <button type="button" id="walletPrevPageBtn" class="p-1.5 rounded-lg border border-[var(--card-border)] bg-transparent t-muted hover:t-main transition active:scale-95 flex items-center justify-center ${currentWalletPage === 1 ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه قبل">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <button type="button" id="walletPrevPageBtn" class="p-1.5 rounded-lg border border-[var(--card-border)] bg-transparent t-muted hover:t-main transition active:scale-95 flex items-center justify-center ${currentWalletPage === 1 ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="${_wTr('صفحه قبل', 'Previous Page')}">
+        <svg class="w-4 h-4 ${isEnLang ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
       <span class="text-[11px] text-slate-400 font-sans num-bidi">
-        صفحه <b class="t-main">${currentWalletPage}</b> از <b class="t-main">${totalPages}</b>
+        ${isEnLang ? `Page <b class="t-main">${currentWalletPage}</b> of <b class="t-main">${totalPages}</b>` : `صفحه <b class="t-main">${currentWalletPage}</b> از <b class="t-main">${totalPages}</b>`}
       </span>
-      <button type="button" id="walletNextPageBtn" class="p-1.5 rounded-lg border border-[var(--card-border)] bg-transparent t-muted hover:t-main transition active:scale-95 flex items-center justify-center ${currentWalletPage === totalPages ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="صفحه بعد">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      <button type="button" id="walletNextPageBtn" class="p-1.5 rounded-lg border border-[var(--card-border)] bg-transparent t-muted hover:t-main transition active:scale-95 flex items-center justify-center ${currentWalletPage === totalPages ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}" title="${_wTr('صفحه بعد', 'Next Page')}">
+        <svg class="w-4 h-4 ${isEnLang ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
     `;
 
@@ -731,21 +770,28 @@ window.getTopupLimits = getTopupLimits;
 
 function validateTopupAmount(amt) {
   const { minAmt, maxAmt } = getTopupLimits();
+  const moneyUnit = _wTr('تومان', 'Toman');
   if (!amt || isNaN(amt) || amt <= 0) {
     if (window.showToast) {
-      window.showToast('لطفاً ابتدا مبلغ شارژ مورد نظر خود را وارد یا انتخاب نمایید.', 'warning');
+      window.showToast(_wTr('لطفاً ابتدا مبلغ شارژ مورد نظر خود را وارد یا انتخاب نمایید.', 'Please enter or select a top-up amount first.'), 'warning');
     }
     return false;
   }
   if (amt < minAmt) {
     if (window.showToast) {
-      window.showToast(`حداقل مبلغ شارژ ${minAmt.toLocaleString('en-US')} تومان است.`, 'warning');
+      window.showToast(
+        _wIsEn() ? `Minimum top-up amount is ${minAmt.toLocaleString('en-US')} ${moneyUnit}.` : `حداقل مبلغ شارژ ${minAmt.toLocaleString('en-US')} تومان است.`,
+        'warning'
+      );
     }
     return false;
   }
   if (maxAmt > 0 && amt > maxAmt) {
     if (window.showToast) {
-      window.showToast(`حداکثر مبلغ شارژ ${maxAmt.toLocaleString('en-US')} تومان است.`, 'warning');
+      window.showToast(
+        _wIsEn() ? `Maximum top-up amount is ${maxAmt.toLocaleString('en-US')} ${moneyUnit}.` : `حداکثر مبلغ شارژ ${maxAmt.toLocaleString('en-US')} تومان است.`,
+        'warning'
+      );
     }
     return false;
   }
@@ -754,10 +800,11 @@ function validateTopupAmount(amt) {
 window.validateTopupAmount = validateTopupAmount;
 
 function updateTopupDisplays(amt) {
+  const moneyUnit = _wTr('تومان', 'Toman');
   const cardAmountDisplay = document.getElementById('topupCardAmountDisplay');
   if (cardAmountDisplay) {
     const formattedAmt = Number(amt || 0).toLocaleString('en-US');
-    cardAmountDisplay.innerHTML = `<span class="font-sans font-bold">${formattedAmt}</span> <span class="text-xs font-medium">تومان</span>`;
+    cardAmountDisplay.innerHTML = `<span class="font-sans font-bold">${formattedAmt}</span> <span class="text-xs font-medium">${moneyUnit}</span>`;
   }
   if (window.storeSettings?.ton_rate_toman && window.storeSettings.ton_rate_toman > 0) {
     const tonAmt = ((amt || 0) / window.storeSettings.ton_rate_toman).toFixed(4);
@@ -780,7 +827,7 @@ function updateTopupDisplays(amt) {
   if (starsReqEl) starsReqEl.innerText = `${starsCount} ⭐️`;
   const starsRateEl = document.getElementById('starsRateDisplay');
   if (starsRateEl) {
-    starsRateEl.innerHTML = `<span class="font-sans font-bold" dir="ltr">${Number(starsRate).toLocaleString('en-US')}</span> <span>تومان</span>`;
+    starsRateEl.innerHTML = `<span class="font-sans font-bold" dir="ltr">${Number(starsRate).toLocaleString('en-US')}</span> <span>${moneyUnit}</span>`;
   }
   if (typeof window.updateCardTopupSubmitState === 'function') {
     window.updateCardTopupSubmitState();
@@ -930,25 +977,28 @@ window.updateCardTopupSubmitState = function () {
   };
 
   if (_cardTopupGuardState.phoneLocked) {
-    submitCardBtn.innerText = '🔒 نیاز به تأیید شماره تماس';
+    submitCardBtn.innerText = _wTr('🔒 نیاز به تأیید شماره تماس', '🔒 Phone Verification Required');
     setDisabled(true, '');
     return;
   }
 
   if (_cardTopupGuardState.manualBlockUntilMs > Date.now()) {
-    submitCardBtn.innerText = `🔒 ارسال دستی تا ${MANUAL_CARD_LOCK_HOURS} ساعت مسدود است`;
-    setDisabled(true, `🔒 به دلیل وجود فاکتور کارت‌به‌کارت خودکار، تا ${MANUAL_CARD_LOCK_HOURS} ساعت امکان ثبت دستی فیش وجود ندارد.`);
+    submitCardBtn.innerText = _wTr(`🔒 ارسال دستی تا ${MANUAL_CARD_LOCK_HOURS} ساعت مسدود است`, `🔒 Manual receipts locked for ${MANUAL_CARD_LOCK_HOURS}h`);
+    setDisabled(true, _wTr(
+      `🔒 به دلیل وجود فاکتور کارت‌به‌کارت خودکار، تا ${MANUAL_CARD_LOCK_HOURS} ساعت امکان ثبت دستی فیش وجود ندارد.`,
+      `🔒 Due to an auto card-to-card invoice, manual receipt uploads are locked for ${MANUAL_CARD_LOCK_HOURS} hours.`
+    ));
     return;
   }
 
-  submitCardBtn.innerText = '📤 ثبت و ارسال رسید پرداخت';
+  submitCardBtn.innerText = _wTr('📤 ثبت و ارسال رسید پرداخت', '📤 Submit Payment Receipt');
 
   const amt = parseInt(document.getElementById('topupAmountInput')?.value || '0', 10) || 0;
   const minAmt = window.storeSettings?.topup_min_amount || 10000;
   const maxAmt = window.storeSettings?.topup_max_amount || 50000000;
 
   if (amt > 0 && _cardTopupGuardState.recentPaidAutoAmounts.has(amt)) {
-    setDisabled(true, '⚠️ این مبلغ پیش‌تر به‌صورت خودکار تأیید و شارژ شده است؛ نیازی به ارسال فیش نیست.');
+    setDisabled(true, _wTr('⚠️ این مبلغ پیش‌تر به‌صورت خودکار تأیید و شارژ شده است؛ نیازی به ارسال فیش نیست.', '⚠️ This amount was already credited automatically; no receipt upload needed.'));
     return;
   }
 
@@ -957,18 +1007,18 @@ window.updateCardTopupSubmitState = function () {
     || (_cardTopupGuardState.selectedFileKey && _cardTopupGuardState.knownDuplicateHashes.has(_cardTopupGuardState.selectedFileKey))
   );
   if (dupImg) {
-    setDisabled(true, '⚠️ این تصویر فیش قبلاً ثبت شده و تکراری است؛ لطفاً تصویر فیش جدید بارگذاری کنید.');
+    setDisabled(true, _wTr('⚠️ این تصویر فیش قبلاً ثبت شده و تکراری است؛ لطفاً تصویر فیش جدید بارگذاری کنید.', '⚠️ This receipt image was already submitted; please upload a new receipt.'));
     return;
   }
 
   if (_cardTopupGuardState.selectedTextHash && _cardTopupGuardState.knownDuplicateHashes.has(_cardTopupGuardState.selectedTextHash)) {
-    setDisabled(true, '⚠️ این کد پیگیری قبلاً ثبت شده و تکراری است؛ لطفاً کد جدید یا متن متفاوتی وارد کنید.');
+    setDisabled(true, _wTr('⚠️ این کد پیگیری قبلاً ثبت شده و تکراری است؛ لطفاً کد جدید یا متن متفاوتی وارد کنید.', '⚠️ This reference code was already submitted; please enter a new one.'));
     return;
   }
 
   const currentKey = `${amt}|${_cardTopupGuardState.selectedImageHash || ''}|${_cardTopupGuardState.selectedTextHash || ''}`;
   if (_cardTopupGuardState.serverRejectedKey && _cardTopupGuardState.serverRejectedKey === currentKey) {
-    setDisabled(true, _cardTopupGuardState.serverRejectedMsg || '⚠️ این درخواست قبلاً ثبت شده است.');
+    setDisabled(true, _cardTopupGuardState.serverRejectedMsg || _wTr('⚠️ این درخواست قبلاً ثبت شده است.', '⚠️ This request has already been submitted.'));
     return;
   }
 
@@ -1001,7 +1051,7 @@ async function loadTopupInfo(options = {}) {
       const graphicNum = document.getElementById('graphicCardNumberDisplay');
       const graphicHolder = document.getElementById('graphicCardHolderDisplay');
       const rawNum = res.card_number || '----';
-      const rawHolder = res.card_holder || 'مدیریت سرور';
+      const rawHolder = res.card_holder || _wTr('مدیریت سرور', 'Store Admin');
 
       if (cardNumEl) renderBluCardNumber(cardNumEl, rawNum);
       if (cardHolderEl) cardHolderEl.innerText = rawHolder;
@@ -1160,8 +1210,13 @@ function switchTopupTab(tab) {
     const requiredTab = activeType === 'CARD' ? 'card' : (activeType === 'TRX' ? 'trx' : (activeType === 'POL' ? 'pol' : 'crypto'));
     if (tab !== requiredTab) {
       if (window.showToast) {
-        const typeName = activeType === 'CARD' ? 'کارت‌به‌کارت' : (activeType === 'TRX' ? 'ترون (TRX)' : (activeType === 'POL' ? 'پلیگان (POL)' : 'تون (TON)'));
-        window.showToast(`شما یک فاکتور فعال در جریان (${typeName}) دارید. لطفاً ابتدا آن را پرداخت یا لغو نمایید.`, 'warning');
+        const typeName = activeType === 'CARD'
+          ? _wTr('کارت‌به‌کارت', 'Card-to-Card')
+          : (activeType === 'TRX' ? _wTr('ترون (TRX)', 'TRON (TRX)') : (activeType === 'POL' ? _wTr('پلیگان (POL)', 'Polygon (POL)') : _wTr('تون (TON)', 'TON')));
+        window.showToast(
+          _wTr(`شما یک فاکتور فعال در جریان (${typeName}) دارید. لطفاً ابتدا آن را پرداخت یا لغو نمایید.`, `You have an active pending invoice (${typeName}). Please pay or cancel it first.`),
+          'warning'
+        );
       }
       return;
     }
@@ -1257,15 +1312,15 @@ function renderCardAutoInvoice(inv) {
   const graphicNum = document.getElementById('graphicCardNumberDisplay');
   const graphicHolder = document.getElementById('graphicCardHolderDisplay');
   const numToDisplay = inv.card_number || window.storeSettings?.card_number || '----';
-  const holderToDisplay = inv.card_holder || window.storeSettings?.card_holder || 'مدیریت سرور';
+  const holderToDisplay = inv.card_holder || window.storeSettings?.card_holder || _wTr('مدیریت سرور', 'Store Admin');
 
   if (exactTomanEl) {
     const tomanVal = Number(inv.exact_amount || 0).toLocaleString('en-US');
-    exactTomanEl.innerHTML = `<span class="font-sans font-bold">${tomanVal}</span> <span class="text-xs font-medium">تومان</span>`;
+    exactTomanEl.innerHTML = `<span class="font-sans font-bold">${tomanVal}</span> <span class="text-xs font-medium">${_wTr('تومان', 'Toman')}</span>`;
   }
   if (exactRialEl) {
     const rialVal = Number(inv.exact_rial || (inv.exact_amount * 10) || 0).toLocaleString('en-US');
-    exactRialEl.innerHTML = `<span class="font-sans font-bold">${rialVal}</span> <span class="text-xs font-medium">ریال</span>`;
+    exactRialEl.innerHTML = `<span class="font-sans font-bold">${rialVal}</span> <span class="text-xs font-medium">${_wTr('ریال', 'Rial')}</span>`;
   }
   if (cardNumEl) renderBluCardNumber(cardNumEl, numToDisplay);
   if (cardHolderEl) cardHolderEl.innerText = holderToDisplay;
@@ -1295,10 +1350,10 @@ function startCardAutoCountdownTimer(seconds) {
     if (remaining <= 0) {
       clearInterval(cardAutoTimerInterval);
       cardAutoTimerInterval = null;
-      if (timerEl) timerEl.innerText = '00:00 (منقضی شد)';
+      if (timerEl) timerEl.innerText = _wTr('00:00 (منقضی شد)', '00:00 (Expired)');
       if (window.activePendingInvoiceType === 'CARD') {
         const pendingTimer = document.getElementById('activeCryptoPendingTimer');
-        if (pendingTimer) pendingTimer.innerText = '00:00 (منقضی شد)';
+        if (pendingTimer) pendingTimer.innerText = _wTr('00:00 (منقضی شد)', '00:00 (Expired)');
         updatePendingCardUI(null);
       }
       stopCardAutoPolling();
@@ -1333,7 +1388,7 @@ function startCardAutoPolling(uuid) {
             cardAutoTimerInterval = null;
           }
           if (window.showToast) {
-            window.showToast('✅ پرداخت شما با موفقیت تأیید شد و کیف پول شارژ گردید!', 'success');
+            window.showToast(_wTr('✅ پرداخت شما با موفقیت تأیید شد و کیف پول شارژ گردید!', '✅ Payment confirmed and wallet topped up!'), 'success');
           }
           window.hapticFeedback?.('success');
           resetCardAutoUI();
@@ -1376,7 +1431,7 @@ window.createCardAutoInvoice = async function () {
   const btn = document.getElementById('createCardAutoInvoiceBtn');
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<span class="inline-block animate-spin mr-1">⌛</span> در حال ایجاد فاکتور...';
+    btn.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> ${_wTr('در حال ایجاد فاکتور...', 'Creating invoice...')}`;
   }
   try {
     const res = await window.api.createCardAutoInvoice(amount);
@@ -1387,16 +1442,16 @@ window.createCardAutoInvoice = async function () {
         window.storeSettings.manual_card_block_remaining_seconds = res.manual_card_block_remaining_seconds || MANUAL_CARD_LOCK_SECONDS;
       }
       renderCardAutoInvoice(res);
-      if (window.showToast) window.showToast('فاکتور پرداخت هوشمند با موفقیت ایجاد شد.', 'success');
+      if (window.showToast) window.showToast(_wTr('فاکتور پرداخت هوشمند با موفقیت ایجاد شد.', 'Smart payment invoice created successfully.'), 'success');
     } else {
-      if (window.showToast) window.showToast(res?.message || 'خطا در ایجاد فاکتور', 'error');
+      if (window.showToast) window.showToast(res?.message || _wTr('خطا در ایجاد فاکتور', 'Error creating invoice'), 'error');
     }
   } catch (err) {
-    if (window.showToast) window.showToast('خطا در برقراری ارتباط با سرور', 'error');
+    if (window.showToast) window.showToast(_wTr('خطا در برقراری ارتباط با سرور', 'Server connection error'), 'error');
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block icon-white" width="16" height="16" alt="" /> <span class="text-white">ایجاد فاکتور پرداخت آنی کارت‌به‌کارت</span>';
+      btn.innerHTML = `<img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block icon-white" width="16" height="16" alt="" /> <span class="text-white">${_wTr('ایجاد فاکتور پرداخت آنی کارت‌به‌کارت', 'Create Instant Card Payment Invoice')}</span>`;
     }
   }
 };
@@ -1406,30 +1461,30 @@ window.checkCardAutoStatus = async function (isManual = false) {
   const chkBtn = document.getElementById('checkCardAutoStatus');
   if (isManual && chkBtn) {
     chkBtn.disabled = true;
-    chkBtn.innerHTML = '<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>در حال بررسی...</span>';
+    chkBtn.innerHTML = `<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>${_wTr('در حال بررسی...', 'Checking...')}</span>`;
   }
   try {
     const res = await window.api.getCardAutoStatus(activeCardAutoUuid);
     if (res && res.ok) {
       if (res.status === 'paid') {
         stopCardAutoPolling();
-        if (window.showToast) window.showToast('✅ پرداخت تایید شد و حساب شما شارژ گردید!', 'success');
+        if (window.showToast) window.showToast(_wTr('✅ پرداخت تایید شد و حساب شما شارژ گردید!', '✅ Payment confirmed and account topped up!'), 'success');
         resetCardAutoUI();
         applyManualCardLockState(res.manual_card_blocked ? res.manual_card_blocked_until : null, res.manual_card_block_remaining_seconds || 0);
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
         if (typeof closeModal === 'function') closeModal('topupModal');
       } else if (res.status === 'expired') {
-        if (window.showToast) window.showToast('مهلت پرداخت این فاکتور به پایان رسیده است.', 'warning');
+        if (window.showToast) window.showToast(_wTr('مهلت پرداخت این فاکتور به پایان رسیده است.', 'This invoice payment window has expired.'), 'warning');
         resetCardAutoUI();
         applyManualCardLockState(res.manual_card_blocked ? res.manual_card_blocked_until : null, res.manual_card_block_remaining_seconds || 0);
       } else if (isManual) {
-        if (window.showToast) window.showToast('هنوز پیامی مبنی بر واریز دریافت نشده است؛ لطفاً پس از واریز صبور باشید.', 'info');
+        if (window.showToast) window.showToast(_wTr('هنوز پیامی مبنی بر واریز دریافت نشده است؛ لطفاً پس از واریز صبور باشید.', 'No bank deposit notification received yet; please wait shortly after paying.'), 'info');
       }
     }
   } catch (e) {} finally {
     if (isManual && chkBtn) {
       chkBtn.disabled = false;
-      chkBtn.innerHTML = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>بررسی وضعیت</span>';
+      chkBtn.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>${_wTr('بررسی وضعیت', 'Check Status')}</span>`;
     }
   }
 };
@@ -1443,7 +1498,7 @@ window.cancelCardAutoInvoice = async function () {
   try {
     const cancelRes = await window.api.cancelCardAutoInvoice(activeCardAutoUuid);
     if (cancelRes && cancelRes.ok === false) {
-      if (window.showToast) window.showToast(cancelRes.message || 'امکان لغو این فاکتور وجود ندارد.', 'warning');
+      if (window.showToast) window.showToast(cancelRes.message || _wTr('امکان لغو این فاکتور وجود ندارد.', 'Cannot cancel this invoice.'), 'warning');
       await loadTopupInfo();
       return;
     }
@@ -1458,7 +1513,7 @@ window.cancelCardAutoInvoice = async function () {
       cancelRes?.manual_card_block_remaining_seconds || 0
     );
     await loadTopupInfo();
-    if (window.showToast) window.showToast('فاکتور پرداخت لغو گردید.', 'info');
+    if (window.showToast) window.showToast(_wTr('فاکتور پرداخت لغو گردید.', 'Payment invoice cancelled.'), 'info');
   } catch (e) {}
 };
 
@@ -1468,7 +1523,7 @@ window.copyCardNumber = function (btnEl) {
   if (card && !card.includes('----') && !card.includes('ثبت نشده')) {
     const cleanDigits = card.replace(/[^\d]/g, '');
     const copyFn = typeof copyToClipboard === 'function' ? copyToClipboard : window.copyToClipboard;
-    if (copyFn) copyFn(cleanDigits || card, '📋 شماره کارت در کلیپ‌بورد کپی شد.');
+    if (copyFn) copyFn(cleanDigits || card, _wTr('📋 شماره کارت در کلیپ‌بورد کپی شد.', '📋 Card number copied.'));
     if (typeof hapticFeedback === 'function') hapticFeedback('success');
     const targetBtn = btnEl || document.getElementById('copyCardAutoBtn') || document.getElementById('copyTopupCardBtn');
     if (targetBtn && targetBtn.tagName === 'BUTTON') {
@@ -1477,7 +1532,7 @@ window.copyCardNumber = function (btnEl) {
       setTimeout(() => { targetBtn.innerText = orig; }, 1500);
     }
   } else {
-    if (typeof showToast === 'function') showToast('⚠️ شماره کارتی برای کپی کردن یافت نشد.');
+    if (typeof showToast === 'function') showToast(_wTr('⚠️ شماره کارتی برای کپی کردن یافت نشد.', '⚠️ No card number found to copy.'));
   }
 };
 
@@ -1486,7 +1541,8 @@ window.copyCardAutoAmount = function (type) {
   const text = el?.innerText?.trim() || '';
   const digits = text.replace(/[^\d]/g, '');
   if (digits) {
-    copyToClipboard(digits, `📋 مبلغ (${type === 'rial' ? 'ریال' : 'تومان'}) در کلیپ‌بورد کپی شد.`);
+    const unitLabel = type === 'rial' ? _wTr('ریال', 'Rial') : _wTr('تومان', 'Toman');
+    copyToClipboard(digits, _wTr(`📋 مبلغ (${unitLabel}) در کلیپ‌بورد کپی شد.`, `📋 Amount (${unitLabel}) copied.`));
   }
 };
 
@@ -1496,7 +1552,13 @@ window.toggleManualReceiptUpload = function () {
     if (section) section.classList.add('hidden');
     if (window.showToast) {
       const rem = formatLockCountdownHHMMSS(Math.ceil((_cardTopupGuardState.manualBlockUntilMs - Date.now()) / 1000));
-      window.showToast(`🔒 تا ${MANUAL_CARD_LOCK_HOURS} ساعت پس از ایجاد یا استفاده از فاکتور کارت‌به‌کارت خودکار (${rem})، امکان ارسال دستی فیش وجود ندارد.`, 'warning');
+      window.showToast(
+        _wTr(
+          `🔒 تا ${MANUAL_CARD_LOCK_HOURS} ساعت پس از ایجاد یا استفاده از فاکتور کارت‌به‌کارت خودکار (${rem})، امکان ارسال دستی فیش وجود ندارد.`,
+          `🔒 Manual receipt uploads are locked for ${MANUAL_CARD_LOCK_HOURS}h after an auto card invoice (${rem}).`
+        ),
+        'warning'
+      );
     }
     return;
   }
@@ -1524,13 +1586,13 @@ function updatePendingCardUI(invoice, remainingSec, type = 'TON') {
   const titleEl = document.getElementById('activePendingCardTitle');
   if (titleEl) {
     if (type === 'TRX') {
-      titleEl.innerText = 'فاکتور ترون (TRX) در جریان';
+      titleEl.innerText = _wTr('فاکتور ترون (TRX) در جریان', 'Active TRON (TRX) Invoice');
     } else if (type === 'POL') {
-      titleEl.innerText = 'فاکتور پلیگان (POL) در جریان';
+      titleEl.innerText = _wTr('فاکتور پلیگان (POL) در جریان', 'Active Polygon (POL) Invoice');
     } else if (type === 'CARD') {
-      titleEl.innerText = 'فاکتور کارت‌به‌کارت در جریان';
+      titleEl.innerText = _wTr('فاکتور کارت‌به‌کارت در جریان', 'Active Card Payment Invoice');
     } else {
-      titleEl.innerText = 'فاکتور تون (TON) در جریان';
+      titleEl.innerText = _wTr('فاکتور تون (TON) در جریان', 'Active TON Invoice');
     }
   }
 
@@ -1542,7 +1604,7 @@ function updatePendingCardUI(invoice, remainingSec, type = 'TON') {
       amtEl.innerText = `${invoice.amount_pol || invoice.amount_ton} POL`;
     } else if (type === 'CARD') {
       const rial = invoice.exact_rial || (Number(invoice.exact_amount || 0) * 10);
-      amtEl.innerText = `${Number(rial).toLocaleString('en-US')} ریال`;
+      amtEl.innerText = `${Number(rial).toLocaleString('en-US')} ${_wTr('ریال', 'Rial')}`;
     } else {
       amtEl.innerText = `${invoice.amount_ton} TON`;
     }
@@ -1589,12 +1651,12 @@ function startCryptoCountdownTimer(seconds = 3600) {
 
     if (remaining <= 0) {
       if (timer) {
-        timer.innerText = '00:00 (منقضی شد)';
+        timer.innerText = _wTr('00:00 (منقضی شد)', '00:00 (Expired)');
         timer.classList.remove('t-warn', 'text-amber-400', 'bg-amber-500/10', 'border-amber-500/20');
         timer.classList.add('t-danger');
       }
       if (pendingTimer && window.activePendingInvoiceType === 'TON') {
-        pendingTimer.innerText = '00:00 (منقضی شد)';
+        pendingTimer.innerText = _wTr('00:00 (منقضی شد)', '00:00 (Expired)');
       }
       if (cryptoCountdownTimerInterval) {
         clearInterval(cryptoCountdownTimerInterval);
@@ -1657,7 +1719,7 @@ function clearActiveCryptoInvoice() {
   const genBtn = document.getElementById('generateTonInvoiceBtn');
   if (genBtn) {
     genBtn.disabled = false;
-    genBtn.innerText = '💎 ایجاد فاکتور پرداخت TON';
+    genBtn.innerText = _wTr('💎 ایجاد فاکتور پرداخت TON', '💎 Create TON Payment Invoice');
   }
 
   const timerEl = document.getElementById('cryptoCountdownTimer');
@@ -1682,7 +1744,7 @@ window.cancelCryptoInvoice = async function() {
   }
   clearActiveCryptoInvoice();
   updateTopupMutexUI();
-  showToast('✅ فاکتور لغو شد. می‌توانید فاکتور جدید صادر فرمایید.');
+  showToast(_wTr('✅ فاکتور لغو شد. می‌توانید فاکتور جدید صادر فرمایید.', '✅ Invoice cancelled. You can create a new one.'));
 };
 
 
@@ -1771,7 +1833,7 @@ function updateTronLinkButton(inv) {
   btn.onclick = (e) => {
     e.preventDefault();
     if (typeof copyToClipboard === 'function') {
-      copyToClipboard(inv.pay_address, `📋 آدرس ترون کپی شد (${trxAmount} TRX)`);
+      copyToClipboard(inv.pay_address, _wTr(`📋 آدرس ترون کپی شد (${trxAmount} TRX)`, `📋 TRON address copied (${trxAmount} TRX)`));
     }
 
     if (window.Telegram?.WebApp?.openLink) {
@@ -1808,8 +1870,8 @@ function startTrxCountdownTimer(seconds = 3600) {
     const pendingTimer = document.getElementById('activeCryptoPendingTimer');
 
     if (remaining <= 0) {
-      if (timer) timer.innerText = '00:00 (منقضی شد)';
-      if (pendingTimer && window.activePendingInvoiceType === 'TRX') pendingTimer.innerText = '00:00 (منقضی شد)';
+      if (timer) timer.innerText = _wTr('00:00 (منقضی شد)', '00:00 (Expired)');
+      if (pendingTimer && window.activePendingInvoiceType === 'TRX') pendingTimer.innerText = _wTr('00:00 (منقضی شد)', '00:00 (Expired)');
       if (trxCountdownTimerInterval) {
         clearInterval(trxCountdownTimerInterval);
         trxCountdownTimerInterval = null;
@@ -1919,8 +1981,8 @@ function startPolCountdownTimer(seconds = 3600) {
     const pendingTimer = document.getElementById('activeCryptoPendingTimer');
 
     if (remaining <= 0) {
-      if (timer) timer.innerText = '00:00 (منقضی شد)';
-      if (pendingTimer && window.activePendingInvoiceType === 'POL') pendingTimer.innerText = '00:00 (منقضی شد)';
+      if (timer) timer.innerText = _wTr('00:00 (منقضی شد)', '00:00 (Expired)');
+      if (pendingTimer && window.activePendingInvoiceType === 'POL') pendingTimer.innerText = _wTr('00:00 (منقضی شد)', '00:00 (Expired)');
       if (polCountdownTimerInterval) {
         clearInterval(polCountdownTimerInterval);
         polCountdownTimerInterval = null;
@@ -2014,7 +2076,7 @@ async function openTopupModal(defaultAmt, forceCrypto = false) {
   const inputEl = document.getElementById('topupAmountInput');
   if (inputEl) {
     inputEl.value = amt !== null ? amt : '';
-    inputEl.placeholder = 'مبلغ دلخواه را وارد کنید (تومان)';
+    inputEl.placeholder = _wTr('مبلغ دلخواه را وارد کنید (تومان)', 'Enter custom amount (Toman)');
   }
   updateTopupDisplays(amt || 0);
 
@@ -2187,9 +2249,9 @@ function setupWalletListeners() {
   const handleCopyCard = () => {
     const cardEl = document.getElementById('topupCardNumber');
     const card = cardEl?.innerText?.trim();
-    if (card && !card.includes('----') && !card.includes('ثبت نشده')) {
+    if (card && !card.includes('----') && !card.includes('ثبت نشده') && !card.includes('Not set')) {
       const cleanDigits = card.replace(/[^\d]/g, '');
-      copyToClipboard(cleanDigits || card, '📋 شماره کارت در کلیپ‌بورد کپی شد.');
+      copyToClipboard(cleanDigits || card, _wTr('📋 شماره کارت در کلیپ‌بورد کپی شد.', '📋 Card number copied to clipboard.'));
       hapticFeedback('success');
       const btn = document.getElementById('copyTopupCardBtn');
       if (btn) {
@@ -2197,7 +2259,7 @@ function setupWalletListeners() {
         setTimeout(() => { btn.innerText = '📋'; }, 1500);
       }
     } else {
-      showToast('⚠️ شماره کارتی برای کپی کردن یافت نشد.');
+      showToast(_wTr('⚠️ شماره کارتی برای کپی کردن یافت نشد.', '⚠️ No card number found to copy.'));
     }
   };
 
@@ -2209,7 +2271,7 @@ function setupWalletListeners() {
     const amtText = amtEl?.innerText?.trim();
     if (amtText && !amtText.includes('--')) {
       const cleanDigits = amtText.replace(/[^\d]/g, '');
-      copyToClipboard(cleanDigits || amtText, '📋 مبلغ در کلیپ‌بورد کپی شد.');
+      copyToClipboard(cleanDigits || amtText, _wTr('📋 مبلغ در کلیپ‌بورد کپی شد.', '📋 Amount copied to clipboard.'));
       hapticFeedback('success');
       const btn = document.getElementById('copyTopupCardAmountBtn');
       if (btn) {
@@ -2291,19 +2353,19 @@ function setupWalletListeners() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      showToast('⚠️ حداکثر حجم مجاز تصویر 10 مگابایت است.');
+      showToast(_wTr('⚠️ حداکثر حجم مجاز تصویر 10 مگابایت است.', '⚠️ Maximum allowed image size is 10 MB.'));
       return;
     }
     const compressedBase64 = await compressReceiptImage(file);
     if (!compressedBase64) {
-      showToast('⚠️ خطا در پردازش تصویر فیش.');
+      showToast(_wTr('⚠️ خطا در پردازش تصویر فیش.', '⚠️ Failed to process the receipt image.'));
       return;
     }
     _cardTopupGuardState.selectedImageBase64 = compressedBase64;
     _cardTopupGuardState.selectedFileKey = `file:${file.name}:${file.size}:${file.lastModified}`;
     _cardTopupGuardState.selectedImageHash = await computeReceiptImageFingerprint(compressedBase64);
     if (previewImg) previewImg.src = _cardTopupGuardState.selectedImageBase64;
-    if (previewName) previewName.innerText = file.name || 'تصویر رسید انتخاب شد';
+    if (previewName) previewName.innerText = file.name || _wTr('تصویر رسید انتخاب شد', 'Receipt image selected');
     previewContainer?.classList.remove('hidden');
     uploadImgBtn?.classList.add('hidden');
     window.updateCardTopupSubmitState();
@@ -2316,7 +2378,7 @@ function setupWalletListeners() {
     const receipt = document.getElementById('topupCardReceiptInput')?.value?.trim();
     if (!validateTopupAmount(amt)) return;
     if (!_cardTopupGuardState.selectedImageBase64) {
-      showToast('⚠️ لطفاً تصویر فیش واریزی را بارگذاری فرمایید.');
+      showToast(_wTr('⚠️ لطفاً تصویر فیش واریزی را بارگذاری فرمایید.', '⚠️ Please upload the payment receipt image.'));
       window.updateCardTopupSubmitState();
       return;
     }
@@ -2329,7 +2391,7 @@ function setupWalletListeners() {
 
     submitBtn.disabled = true;
     submitBtn.classList.add('opacity-40', 'cursor-not-allowed');
-    submitBtn.innerText = 'در حال ثبت...';
+    submitBtn.innerText = _wTr('در حال ثبت...', 'Submitting...');
     try {
       const res = await window.api.submitCardTopup(
         amt,
@@ -2346,13 +2408,13 @@ function setupWalletListeners() {
           receiptTextInput.value = '';
           _cardTopupGuardState.selectedTextHash = null;
         }
-        showToast('✅ رسید با موفقیت ثبت شد و پس از بررسی ادمین حساب شارژ می‌گردد.');
+        showToast(_wTr('✅ رسید با موفقیت ثبت شد و پس از بررسی ادمین حساب شارژ می‌گردد.', '✅ Receipt submitted and will be credited after admin review.'));
         resetSelectedReceiptImage();
         closeModal('topupModal');
         if (typeof window.markAwaitingTopupSync === 'function') window.markAwaitingTopupSync();
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId, { refresh: true });
       } else {
-        const msg = String(res.message || 'خطا در ثبت رسید');
+        const msg = String(res.message || _wTr('خطا در ثبت رسید', 'Failed to submit receipt'));
         if (res.error === 'duplicate_receipt' || (msg.includes('تکراری') && !msg.includes('خودکار')) || msg.includes('قبلاً ثبت')) {
           if (msg.includes('پیگیری')) {
             if (submittedTextHash) _cardTopupGuardState.knownDuplicateHashes.add(submittedTextHash);
@@ -2369,7 +2431,7 @@ function setupWalletListeners() {
         showToast(`❌ ${msg}`);
       }
     } catch (e) {
-      showToast('❌ خطا در ارسال درخواست.');
+      showToast(_wTr('❌ خطا در ارسال درخواست.', '❌ Request failed.'));
     } finally {
       window.updateCardTopupSubmitState();
     }
@@ -2381,7 +2443,7 @@ function setupWalletListeners() {
     const btn = document.getElementById('submitStarsTopupBtn');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 inline-block shrink-0 animate-spin')}<span>در حال ایجاد فاکتور استارز...</span></span>`;
+      btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('recycle', 'w-3.5 h-3.5 inline-block shrink-0 animate-spin')}<span>${_wTr('در حال ایجاد فاکتور استارز...', 'Creating Stars invoice...')}</span></span>`;
     }
     try {
       const res = await window.api.createStarsInvoice(amt);
@@ -2389,7 +2451,7 @@ function setupWalletListeners() {
         if (window.Telegram?.WebApp?.openInvoice) {
           window.Telegram.WebApp.openInvoice(res.invoice_link, (status) => {
             if (status === 'paid') {
-              showToast('🎉 پرداخت استارز با موفقیت تایید شد و کیف پول شارژ گردید!');
+              showToast(_wTr('🎉 پرداخت استارز با موفقیت تایید شد و کیف پول شارژ گردید!', '🎉 Stars payment confirmed and wallet credited!'));
               closeModal('topupModal');
               const sync = () => {
                 if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId, { refresh: true });
@@ -2397,23 +2459,23 @@ function setupWalletListeners() {
               sync();
               setTimeout(sync, 1500);
             } else if (status === 'cancelled') {
-              showToast('پرداخت استارز لغو شد.');
+              showToast(_wTr('پرداخت استارز لغو شد.', 'Stars payment cancelled.'));
             } else if (status === 'failed') {
-              showToast('❌ پرداخت استارز انجام نشد.');
+              showToast(_wTr('❌ پرداخت استارز انجام نشد.', '❌ Stars payment failed.'));
             }
           });
         } else {
           window.openExternalUrl ? window.openExternalUrl(res.invoice_link) : window.open(res.invoice_link, '_blank', 'noopener,noreferrer');
         }
       } else {
-        showToast(`❌ ${res?.error || res?.message || 'خطا در ایجاد فاکتور استارز'}`);
+        showToast(`❌ ${res?.error || res?.message || _wTr('خطا در ایجاد فاکتور استارز', 'Error creating Stars invoice')}`);
       }
     } catch (e) {
-      showToast('❌ خطا در ارتباط با سرور.');
+      showToast(_wTr('❌ خطا در ارتباط با سرور.', '❌ Server connection error.'));
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<span>⭐</span> پرداخت با استارز تلگرام';
+        btn.innerHTML = `<span>⭐</span> ${_wTr('پرداخت با استارز تلگرام', 'Pay with Telegram Stars')}`;
       }
     }
   });
@@ -2423,7 +2485,7 @@ function setupWalletListeners() {
     if (!validateTopupAmount(amt)) return;
     const genBtn = document.getElementById('generateTonInvoiceBtn');
     genBtn.disabled = true;
-    genBtn.innerText = 'ایجاد فاکتور...';
+    genBtn.innerText = _wTr('ایجاد فاکتور...', 'Creating invoice...');
     try {
       const res = await window.api.createCryptoInvoice(amt);
       if (res.ok && res.invoice) {
@@ -2441,13 +2503,13 @@ function setupWalletListeners() {
         startCryptoCountdownTimer(durationSec);
         updateTopupMutexUI();
       } else {
-        showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور کریپتو'}`);
+        showToast(`❌ ${res.message || _wTr('خطا در ایجاد فاکتور کریپتو', 'Error creating TON invoice')}`);
       }
     } catch (e) {
-      showToast('❌ خطا در برقراری ارتباط.');
+      showToast(_wTr('❌ خطا در برقراری ارتباط.', '❌ Connection failed.'));
     } finally {
       genBtn.disabled = false;
-      genBtn.innerText = '💎 ایجاد فاکتور پرداخت TON';
+      genBtn.innerText = _wTr('💎 ایجاد فاکتور پرداخت TON', '💎 Create TON Payment Invoice');
     }
   });
 
@@ -2469,19 +2531,19 @@ function setupWalletListeners() {
 
   document.getElementById('copyTonAmountBtn')?.addEventListener('click', () => {
     if (currentTopupInvoice?.amount_ton) {
-      copyToClipboard(String(currentTopupInvoice.amount_ton), '📋 مقدار TON کپی شد.');
+      copyToClipboard(String(currentTopupInvoice.amount_ton), _wTr('📋 مقدار TON کپی شد.', '📋 TON amount copied.'));
     }
   });
 
   document.getElementById('copyTonAddressBtn')?.addEventListener('click', () => {
     if (currentTopupInvoice?.pay_address) {
-      copyToClipboard(currentTopupInvoice.pay_address, '📋 آدرس ولت TON کپی شد.');
+      copyToClipboard(currentTopupInvoice.pay_address, _wTr('📋 آدرس ولت TON کپی شد.', '📋 TON wallet address copied.'));
     }
   });
 
   document.getElementById('copyTonCommentBtn')?.addEventListener('click', () => {
     if (currentTopupInvoice?.comment) {
-      copyToClipboard(currentTopupInvoice.comment, '📋 کامنت (Memo) کپی شد.');
+      copyToClipboard(currentTopupInvoice.comment, _wTr('📋 کامنت (Memo) کپی شد.', '📋 Comment (Memo) copied.'));
     }
   });
 
@@ -2495,26 +2557,26 @@ function setupWalletListeners() {
       }
     }
     clearActiveCryptoInvoice();
-    showToast('فاکتور قبلی لغو شد. می‌توانید فاکتور جدید صادر فرمایید.');
+    showToast(_wTr('فاکتور قبلی لغو شد. می‌توانید فاکتور جدید صادر فرمایید.', 'Previous invoice cancelled. You can create a new one.'));
   });
 
   document.getElementById('cryptoCheckStatusBtn')?.addEventListener('click', async () => {
     if (!currentTopupInvoice?.id) return;
     const chkBtn = document.getElementById('cryptoCheckStatusBtn');
     chkBtn.disabled = true;
-    chkBtn.innerHTML = '<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>در حال بررسی...</span>';
+    chkBtn.innerHTML = `<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>${_wTr('در حال بررسی...', 'Checking...')}</span>`;
     try {
       const res = await window.api.checkCryptoInvoice(currentTopupInvoice.id);
       if (res.ok && res.paid) {
-        showToast('🎉 پرداخت تایید شد و کیف پول شارژ گردید!');
+        showToast(_wTr('🎉 پرداخت تایید شد و کیف پول شارژ گردید!', '🎉 Payment confirmed and wallet credited!'));
         clearActiveCryptoInvoice();
         closeModal('topupModal');
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       } else {
-        showToast(res.message || 'تراکنش هنوز تایید نشده است.');
+        showToast(res.message || _wTr('تراکنش هنوز تایید نشده است.', 'Transaction not confirmed yet.'));
       }
     } catch (e) {
-      showToast('❌ خطا در استعلام پرداخت.');
+      showToast(_wTr('❌ خطا در استعلام پرداخت.', '❌ Failed to check payment status.'));
     } finally {
       chkBtn.disabled = false;
       chkBtn.innerHTML = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>بررسی وضعیت</span>';
@@ -2527,34 +2589,34 @@ function setupWalletListeners() {
     redeemBtn.addEventListener('click', async () => {
       const code = voucherInput.value.trim();
       if (!code) {
-        showToast('لطفاً کد شارژ را وارد نمایید.', 'warning');
+        showToast(_wTr('لطفاً کد شارژ را وارد نمایید.', 'Please enter a voucher code.'), 'warning');
         return;
       }
       redeemBtn.disabled = true;
-      redeemBtn.innerHTML = '<span>در حال بررسی...</span>';
+      redeemBtn.innerHTML = `<span>${_wTr('در حال بررسی...', 'Checking...')}</span>`;
       try {
         const res = await window.api.redeemVoucher(code);
         if (res.ok) {
-          showToast(res.message || 'کیف پول با موفقیت شارژ گردید!', 'success');
+          showToast(res.message || _wTr('کیف پول با موفقیت شارژ گردید!', 'Wallet credited successfully!'), 'success');
           voucherInput.value = '';
           const haptic = window.api?.haptic || window.hapticFeedback;
           if (haptic) haptic('success');
           if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
         } else {
-          showToast(res.message || 'کد شارژ نامعتبر است.', 'error');
+          showToast(res.message || _wTr('کد شارژ نامعتبر است.', 'Invalid voucher code.'), 'error');
         }
       } catch (err) {
-        showToast('خطا در برقراری ارتباط با سرور.', 'error');
+        showToast(_wTr('خطا در برقراری ارتباط با سرور.', 'Server connection error.'), 'error');
       } finally {
         redeemBtn.disabled = false;
-        redeemBtn.innerHTML = '<span class="inline-flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>اعمال</span></span>';
+        redeemBtn.innerHTML = `<span class="inline-flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>${_wTr('اعمال', 'Apply')}</span></span>`;
       }
     });
   }
 
   document.getElementById('tonConnectPayBtn')?.addEventListener('click', () => {
     if (!currentTopupInvoice?.pay_address) {
-      showToast('⚠️ ابتدا فاکتور پرداخت TON را ایجاد فرمایید.');
+      showToast(_wTr('⚠️ ابتدا فاکتور پرداخت TON را ایجاد فرمایید.', '⚠️ Please create a TON invoice first.'));
       return;
     }
     const address = currentTopupInvoice.pay_address;
@@ -2578,7 +2640,7 @@ function setupWalletListeners() {
     if (!validateTopupAmount(amt)) return;
     const btn = document.getElementById('generateTrxInvoiceBtn');
     btn.disabled = true;
-    btn.innerText = 'در حال ایجاد فاکتور ترون...';
+    btn.innerText = _wTr('در حال ایجاد فاکتور ترون...', 'Creating TRON invoice...');
     try {
       const res = await window.api.createTrxInvoice(amt);
       if (res.ok && res.invoice) {
@@ -2596,20 +2658,20 @@ function setupWalletListeners() {
         updatePendingCardUI(res.invoice, trxDurationSec, 'TRX');
         updateTopupMutexUI();
       } else {
-        showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور ترون'}`);
+        showToast(`❌ ${res.message || _wTr('خطا در ایجاد فاکتور ترون', 'Error creating TRON invoice')}`);
       }
     } catch (e) {
-      showToast('❌ خطا در برقراری ارتباط با سرور.');
+      showToast(_wTr('❌ خطا در برقراری ارتباط با سرور.', '❌ Server connection error.'));
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<span>🔴</span> ایجاد فاکتور ترون (TRX)';
+      btn.innerHTML = `<span>🔴</span> ${_wTr('ایجاد فاکتور ترون (TRX)', 'Create TRON Invoice (TRX)')}`;
     }
   });
 
   const handleCopyTrxAddress = () => {
     const addr = document.getElementById('trxPayAddress')?.innerText?.trim();
     if (addr && addr !== '--') {
-      copyToClipboard(addr, '📋 آدرس ولت ترون کپی شد.');
+      copyToClipboard(addr, _wTr('📋 آدرس ولت ترون کپی شد.', '📋 TRON wallet address copied.'));
       hapticFeedback('success');
     }
   };
@@ -2619,7 +2681,7 @@ function setupWalletListeners() {
   document.getElementById('copyTrxAmountBtn')?.addEventListener('click', () => {
     const amt = currentTrxInvoice?.amount_trx;
     if (amt) {
-      copyToClipboard(String(amt), '📋 مقدار TRX کپی شد.');
+      copyToClipboard(String(amt), _wTr('📋 مقدار TRX کپی شد.', '📋 TRX amount copied.'));
       hapticFeedback('success');
     }
   });
@@ -2630,38 +2692,38 @@ function setupWalletListeners() {
     }
     clearActiveTrxInvoice();
     updateTopupMutexUI();
-    showToast('فاکتور ترون لغو شد.');
+    showToast(_wTr('فاکتور ترون لغو شد.', 'TRON invoice cancelled.'));
   });
 
   document.getElementById('submitTrxTxIdBtn')?.addEventListener('click', async () => {
     if (!currentTrxInvoice?.id) {
-      showToast('⚠️ ابتدا فاکتور ترون را ایجاد فرمایید.');
+      showToast(_wTr('⚠️ ابتدا فاکتور ترون را ایجاد فرمایید.', '⚠️ Please create a TRON invoice first.'));
       return;
     }
     const txId = document.getElementById('trxTxIdInput')?.value?.trim();
     if (!txId) {
-      showToast('⚠️ لطفاً شناسه تراکنش (TxID) را وارد فرمایید.');
+      showToast(_wTr('⚠️ لطفاً شناسه تراکنش (TxID) را وارد فرمایید.', '⚠️ Please enter the Transaction ID (TxID).'));
       return;
     }
     const btn = document.getElementById('submitTrxTxIdBtn');
     btn.disabled = true;
-    btn.innerHTML = '<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>در حال بررسی...</span>';
+    btn.innerHTML = `<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>${_wTr('در حال بررسی...', 'Checking...')}</span>`;
     try {
       const res = await window.api.verifyTrxInvoice(currentTrxInvoice.id, txId);
       if (res.ok) {
-        showToast('🎉 واریز TRX در شبکه تأیید شد و کیف پول شارژ گردید!');
+        showToast(_wTr('🎉 واریز TRX در شبکه تأیید شد و کیف پول شارژ گردید!', '🎉 TRX deposit verified and wallet credited!'));
         clearActiveTrxInvoice();
         closeModal('topupModal');
         hapticFeedback('success');
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       } else {
-        showToast(`❌ ${res.message || 'تراکنش در شبکه ترون تأیید نشد'}`);
+        showToast(`❌ ${res.message || _wTr('تراکنش در شبکه ترون تأیید نشد', 'Transaction not confirmed on TRON network')}`);
       }
     } catch (e) {
-      showToast('❌ خطا در بررسی تراکنش.');
+      showToast(_wTr('❌ خطا در بررسی تراکنش.', '❌ Failed to verify transaction.'));
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>بررسی وضعیت</span>';
+      btn.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>${_wTr('بررسی وضعیت', 'Check Status')}</span>`;
     }
   });
 
@@ -2671,7 +2733,7 @@ function setupWalletListeners() {
     if (!validateTopupAmount(amt)) return;
     const btn = document.getElementById('generatePolInvoiceBtn');
     btn.disabled = true;
-    btn.innerText = 'در حال ایجاد فاکتور پلیگان...';
+    btn.innerText = _wTr('در حال ایجاد فاکتور پلیگان...', 'Creating Polygon invoice...');
     try {
       const res = await window.api.createPolInvoice(amt);
       if (res.ok && res.invoice) {
@@ -2688,20 +2750,20 @@ function setupWalletListeners() {
         updatePendingCardUI(res.invoice, polDurationSec, 'POL');
         updateTopupMutexUI();
       } else {
-        showToast(`❌ ${res.message || 'خطا در ایجاد فاکتور پلیگان'}`);
+        showToast(`❌ ${res.message || _wTr('خطا در ایجاد فاکتور پلیگان', 'Error creating Polygon invoice')}`);
       }
     } catch (e) {
-      showToast('❌ خطا در برقراری ارتباط با سرور.');
+      showToast(_wTr('❌ خطا در برقراری ارتباط با سرور.', '❌ Server connection error.'));
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<span>🟣</span> ایجاد فاکتور پلیگان (POL)';
+      btn.innerHTML = `<span>🟣</span> ${_wTr('ایجاد فاکتور پلیگان (POL)', 'Create Polygon Invoice (POL)')}`;
     }
   });
 
   const handleCopyPolAddress = () => {
     const addr = document.getElementById('polPayAddress')?.innerText?.trim();
     if (addr && addr !== '--') {
-      copyToClipboard(addr, '📋 آدرس ولت پلیگان کپی شد.');
+      copyToClipboard(addr, _wTr('📋 آدرس ولت پلیگان کپی شد.', '📋 Polygon wallet address copied.'));
       hapticFeedback('success');
     }
   };
@@ -2711,7 +2773,7 @@ function setupWalletListeners() {
   document.getElementById('copyPolAmountBtn')?.addEventListener('click', () => {
     const amt = currentPolInvoice?.amount_pol;
     if (amt) {
-      copyToClipboard(String(amt), '📋 مقدار POL کپی شد.');
+      copyToClipboard(String(amt), _wTr('📋 مقدار POL کپی شد.', '📋 POL amount copied.'));
       hapticFeedback('success');
     }
   });
@@ -2722,12 +2784,12 @@ function setupWalletListeners() {
     }
     clearActivePolInvoice();
     updateTopupMutexUI();
-    showToast('فاکتور پلیگان لغو شد.');
+    showToast(_wTr('فاکتور پلیگان لغو شد.', 'Polygon invoice cancelled.'));
   });
 
   document.getElementById('openMetaMaskBtn')?.addEventListener('click', async () => {
     if (!currentPolInvoice || !currentPolInvoice.pay_address) {
-      showToast('⚠️ ابتدا فاکتور پلیگان را ایجاد فرمایید.');
+      showToast(_wTr('⚠️ ابتدا فاکتور پلیگان را ایجاد فرمایید.', '⚠️ Please create a Polygon invoice first.'));
       return;
     }
 
@@ -2741,7 +2803,7 @@ function setupWalletListeners() {
     }
 
     if (typeof copyToClipboard === 'function') {
-      copyToClipboard(toAddress, `📋 آدرس ولت کپی شد (${currentPolInvoice.amount_pol} POL)`);
+      copyToClipboard(toAddress, _wTr(`📋 آدرس ولت کپی شد (${currentPolInvoice.amount_pol} POL)`, `📋 Wallet address copied (${currentPolInvoice.amount_pol} POL)`));
     }
 
     // Direct Web3 MetaMask
@@ -2783,7 +2845,7 @@ function setupWalletListeners() {
           if (txHash) {
             const input = document.getElementById('polTxIdInput');
             if (input) input.value = txHash;
-            showToast('✅ تراکنش در متامسک ثبت شد! در حال تأیید خودکار...');
+            showToast(_wTr('✅ تراکنش در متامسک ثبت شد! در حال تأیید خودکار...', '✅ Transaction submitted in MetaMask! Verifying...'));
             setTimeout(() => {
               document.getElementById('submitPolTxIdBtn')?.click();
             }, 1200);
@@ -2793,7 +2855,7 @@ function setupWalletListeners() {
       } catch (ethErr) {
         console.warn('MetaMask error:', ethErr);
         if (ethErr.code === 4001) {
-          showToast('تراکنش در متامسک لغو شد.');
+          showToast(_wTr('تراکنش در متامسک لغو شد.', 'MetaMask transaction cancelled.'));
           return;
         }
       }
@@ -2810,33 +2872,33 @@ function setupWalletListeners() {
 
   document.getElementById('submitPolTxIdBtn')?.addEventListener('click', async () => {
     if (!currentPolInvoice?.id) {
-      showToast('⚠️ ابتدا فاکتور پلیگان را ایجاد فرمایید.');
+      showToast(_wTr('⚠️ ابتدا فاکتور پلیگان را ایجاد فرمایید.', '⚠️ Please create a Polygon invoice first.'));
       return;
     }
     const txId = document.getElementById('polTxIdInput')?.value?.trim();
     if (!txId) {
-      showToast('⚠️ لطفاً هش تراکنش (TxHash) را وارد فرمایید.');
+      showToast(_wTr('⚠️ لطفاً هش تراکنش (TxHash) را وارد فرمایید.', '⚠️ Please enter the transaction hash (TxHash).'));
       return;
     }
     const btn = document.getElementById('submitPolTxIdBtn');
     btn.disabled = true;
-    btn.innerHTML = '<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>در حال بررسی...</span>';
+    btn.innerHTML = `<svg class="w-4 h-4 shrink-0 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>${_wTr('در حال بررسی...', 'Checking...')}</span>`;
     try {
       const res = await window.api.verifyPolInvoice(currentPolInvoice.id, txId);
       if (res.ok) {
-        showToast('🎉 واریز POL در شبکه پلیگان تأیید شد و کیف پول شارژ گردید!');
+        showToast(_wTr('🎉 واریز POL در شبکه پلیگان تأیید شد و کیف پول شارژ گردید!', '🎉 POL deposit verified on Polygon and wallet credited!'));
         clearActivePolInvoice();
         closeModal('topupModal');
         hapticFeedback('success');
         if (typeof syncUserDataWithApi === 'function') syncUserDataWithApi(window.currentAccountId);
       } else {
-        showToast(`❌ ${res.message || 'تراکنش در شبکه پلیگان تأیید نشد'}`);
+        showToast(`❌ ${res.message || _wTr('تراکنش در شبکه پلیگان تأیید نشد', 'Transaction not confirmed on Polygon')}`);
       }
     } catch (e) {
-      showToast('❌ خطا در بررسی تراکنش.');
+      showToast(_wTr('❌ خطا در بررسی تراکنش.', '❌ Failed to verify transaction.'));
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>بررسی وضعیت</span>';
+      btn.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>${_wTr('بررسی وضعیت', 'Check Status')}</span>`;
     }
   });
 

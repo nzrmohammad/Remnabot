@@ -138,3 +138,72 @@ def test_frontend_i18n_runtime_and_bundle_integration():
     lang_en_btn = re.search(r'<button[^>]*id="langEnBtn"[^>]*>', app_html)
     assert lang_en_btn and "t-muted hover:t-main" in lang_en_btn.group(0)
     assert bundle_path.is_file() and "applyAppLocale" in bundle_path.read_text(encoding="utf-8")
+
+
+def test_app_html_i18n_attributes_and_boot_locale():
+    """Every app.html data-i18n* attribute must have an I18N_EN key and boot must not auto-switch via language_code."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    i18n_js = Path("bot/web/static/js/i18n.js").read_text(encoding="utf-8")
+
+    html_keys = set(
+        re.findall(r'data-i18n(?:-(?:html|placeholder|title|aria))?="([^"]+)"', app_html)
+    )
+    assert len(html_keys) >= 500
+
+    # Extract declared keys in I18N_EN block
+    en_match = re.search(r"const I18N_EN = \{(.*?)\n  \};", i18n_js, re.S)
+    assert en_match, "I18N_EN dictionary not found in i18n.js"
+    en_keys = set(re.findall(r"^\s*([A-Za-z0-9_]+)\s*:", en_match.group(1), re.M))
+
+    missing = sorted(html_keys - en_keys)
+    assert not missing, f"app.html references missing I18N_EN keys: {missing[:20]}"
+
+    # Selector map keys must also resolve in I18N_EN
+    sel_match = re.search(r"const SELECTOR_I18N_MAP = \[(.*?)\n  \];", i18n_js, re.S)
+    assert sel_match
+    sel_keys = set(re.findall(r",\s*'([^']+)'\]", sel_match.group(1)))
+    assert not (sel_keys - en_keys)
+
+    # Boot <head> inline script must preserve default 'fa' / explicit remna_user_lang without reading language_code
+    head_boot = app_html.split("</head>", 1)[0]
+    assert "language_code" not in head_boot
+
+
+def test_backend_en_localization_helpers():
+    """Loyalty and Smart Renewal Advisor helpers must localize cleanly when lang='en'."""
+    from bot.services.engagement_service import compute_renewal_advisor
+    from bot.services.loyalty import localize_loyalty_data
+
+    fa_loyalty = {
+        "enabled": True,
+        "tier_id": "gold",
+        "name": "طلایی",
+        "discount_percent": 10,
+        "next_tier": {"id": "platinum", "name": "پلاتینیوم", "discount_percent": 15},
+        "all_tiers": [
+            {"id": "bronze", "name": "برنزی", "discount_percent": 0},
+            {"id": "diamond", "name": "الماس", "discount_percent": 25},
+        ],
+    }
+    en_loyalty = localize_loyalty_data(fa_loyalty, lang="en-US")
+    assert en_loyalty["name"] == "Gold"
+    assert en_loyalty["description"] == "10% discount"
+    assert en_loyalty["next_tier"]["name"] == "Platinum"
+    assert en_loyalty["all_tiers"][1]["description"] == "25% discount + Priority Support"
+    assert localize_loyalty_data(fa_loyalty, lang="fa")["name"] == "طلایی"
+
+    en_advisor = compute_renewal_advisor(
+        {"avg_daily_gb": 2.0, "status": "fast", "days_left_plan": 5},
+        {"traffic_remaining_gb": 4.0},
+        lang="en",
+    )
+    assert "Prevent Early Depletion" in en_advisor["title"]
+    assert "GB" in en_advisor["summary"]
+    assert not re.search(r"[\u0600-\u06FF]", en_advisor["summary"])
+
+    fa_advisor = compute_renewal_advisor(
+        {"avg_daily_gb": 2.0, "status": "fast", "days_left_plan": 5},
+        {"traffic_remaining_gb": 4.0},
+        lang="fa",
+    )
+    assert re.search(r"[\u0600-\u06FF]", fa_advisor["summary"])

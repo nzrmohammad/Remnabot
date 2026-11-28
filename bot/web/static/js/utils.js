@@ -2,6 +2,16 @@
  * RemnaStore Pro - Core DRY Utilities
  */
 
+function _utilsIsEn() {
+  return typeof window !== 'undefined' && (Boolean(window.isAppEn?.()) || window.getAppLanguage?.() === 'en');
+}
+function _utilsTr(fa, en) {
+  if (typeof window !== 'undefined' && typeof window.trText === 'function') {
+    return window.trText(fa, en);
+  }
+  return _utilsIsEn() ? en : fa;
+}
+
 // Robust HTML escaping to prevent XSS injection
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -76,7 +86,7 @@ function showToast(msg, typeOrDuration = 3200, duration = 3200) {
     text = window.translateUiPhrase(text);
   }
   if (toast) {
-    toast.dir = (typeof window !== 'undefined' && window.getAppLanguage?.() === 'en') ? 'ltr' : 'rtl';
+    toast.dir = _utilsIsEn() ? 'ltr' : 'rtl';
   }
 
   const iconNameMap = {
@@ -145,38 +155,38 @@ if (typeof window !== 'undefined') {
 
 // Centralized Single Source of Truth (SSOT) for User Subscription Status Badges
 function renderUserStatusBadge(u) {
-  if (!u) return '<span class="badge badge-neutral">بدون اکانت</span>';
+  if (!u) return `<span class="badge badge-neutral">${_utilsTr('بدون اکانت', 'No Account')}</span>`;
   const p = u.panel_account;
   const pStatus = (p && p.exists && p.status) ? String(p.status).toUpperCase() : '';
   const isLimited = u.is_limited || (p && p.exists && (pStatus === 'LIMITED' || (p.remaining_traffic_gb === 0 && p.limit_traffic_gb > 0)));
   const isExpired = u.is_expired || (p && p.exists && pStatus === 'EXPIRED');
 
   if (u.is_banned) {
-    return `<span class="badge badge-danger">${uiIcon('ban', 'w-3 h-3')}<span>مسدود</span></span>`;
+    return `<span class="badge badge-danger">${uiIcon('ban', 'w-3 h-3')}<span>${_utilsTr('مسدود', 'Banned')}</span></span>`;
   }
   if (isLimited) {
-    return `<span class="badge badge-warn">${uiIcon('warning', 'w-3 h-3')}<span>اتمام حجم</span></span>`;
+    return `<span class="badge badge-warn">${uiIcon('warning', 'w-3 h-3')}<span>${_utilsTr('اتمام حجم', 'Data Exhausted')}</span></span>`;
   }
   if (isExpired) {
-    return `<span class="badge badge-danger">${uiIcon('cross', 'w-3 h-3')}<span>منقضی</span></span>`;
+    return `<span class="badge badge-danger">${uiIcon('cross', 'w-3 h-3')}<span>${_utilsTr('منقضی', 'Expired')}</span></span>`;
   }
   const rawStatus = (pStatus || String(u.raw_status || '')).toUpperCase();
   if (rawStatus === 'ACTIVE') {
-    return `<span class="badge badge-success">${uiIcon('check', 'w-3 h-3')}<span>فعال</span></span>`;
+    return `<span class="badge badge-success">${uiIcon('check', 'w-3 h-3')}<span>${_utilsTr('فعال', 'Active')}</span></span>`;
   }
   if (rawStatus === 'DISABLED') {
-    return `<span class="badge badge-warn">${uiIcon('pause', 'w-3 h-3')}<span>غیرفعال</span></span>`;
+    return `<span class="badge badge-warn">${uiIcon('pause', 'w-3 h-3')}<span>${_utilsTr('غیرفعال', 'Disabled')}</span></span>`;
   }
   if (rawStatus) {
     return `<span class="badge badge-info"><span>${escapeHtml(rawStatus)}</span></span>`;
   }
-  return '<span class="badge badge-neutral">بدون اکانت</span>';
+  return `<span class="badge badge-neutral">${_utilsTr('بدون اکانت', 'No Account')}</span>`;
 }
 // Centralized Single Source of Truth (SSOT) for Node Online/Offline Status Badges
 function renderNodeStatusBadge(isOnline) {
   return isOnline
-    ? '<span class="relative flex items-center justify-center w-3 h-3" title="آنلاین"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>'
-    : '<span class="badge badge-danger font-sans flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>آفلاین</span></span>';
+    ? `<span class="relative flex items-center justify-center w-3 h-3" title="${_utilsTr('آنلاین', 'Online')}"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>`
+    : `<span class="badge badge-danger font-sans flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>${_utilsTr('آفلاین', 'Offline')}</span></span>`;
 }
 if (typeof window !== 'undefined') {
   window.renderUserStatusBadge = renderUserStatusBadge;
@@ -224,7 +234,7 @@ function showBanner(msg, type = 'warning', options = {}) {
 
   let closeBtnHtml = '';
   if (options.dismissible !== false && !options.actionText) {
-    closeBtnHtml = `<button type="button" class="banner-close-btn flex-shrink-0 t-muted hover:t-main p-1 text-sm bg-transparent border-0 cursor-pointer" title="بستن">✕</button>`;
+    closeBtnHtml = `<button type="button" class="banner-close-btn flex-shrink-0 t-muted hover:t-main p-1 text-sm bg-transparent border-0 cursor-pointer" title="${_utilsTr('بستن', 'Close')}">✕</button>`;
   }
 
   banner.innerHTML = `
@@ -681,13 +691,13 @@ async function copyToClipboard(text, successToast = null, toastType = 'success')
       showToast(successToast, toastType);
     }
   } else {
-    showToast('خطا در کپی خودکار؛ لطفاً متن را دستی انتخاب و کپی فرمایید.', 'error');
+    showToast(_utilsTr('خطا در کپی خودکار؛ لطفاً متن را دستی انتخاب و کپی فرمایید.', 'Auto-copy failed; please select and copy the text manually.'), 'error');
   }
   return copied;
 }
 
 // Interactive Scratch-Off Foil Card Engine
-function initScratchCard({ canvas, coverText = '✨ لمس و کشیدن انگشت ✨', threshold = 0.40, onReveal }) {
+function initScratchCard({ canvas, coverText = _utilsTr('✨ لمس و کشیدن انگشت ✨', '✨ Touch & Scratch Here ✨'), threshold = 0.40, onReveal }) {
   if (!canvas) return null;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return null;
@@ -1354,7 +1364,7 @@ function dismissSplash() {
 
 // Plan Title Formatter (places icon on the visual left of the plan name)
 function formatPlanTitle(name, options = {}) {
-  if (!name) return options.plainText ? '💎 پلن' : '';
+  if (!name) return options.plainText ? _utilsTr('💎 پلن', '💎 Plan') : '';
   const emojiRegex = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
   const str = String(name).trim();
   const emojis = str.match(emojiRegex);
@@ -1510,7 +1520,7 @@ function fmtTraffic(val, options = {}) {
   }
 
   let displayUnit = parsed.unit;
-  if (persianUnit) {
+  if (persianUnit && !_utilsIsEn()) {
     if (displayUnit === 'TB') displayUnit = 'ترابایت';
     else if (displayUnit === 'GB') displayUnit = 'گیگابایت';
     else if (displayUnit === 'MB') displayUnit = 'مگابایت';
@@ -1624,7 +1634,7 @@ function getChartThemeTokens(isLight = false) {
 function fmtMoney(amount, currency) {
   const unit = currency !== undefined
     ? currency
-    : ((typeof window !== 'undefined' && typeof window.getAppLanguage === 'function' && window.getAppLanguage() === 'en') ? 'Toman' : 'تومان');
+    : (_utilsIsEn() ? 'Toman' : 'تومان');
   if (amount == null || isNaN(amount)) return `0 ${unit}`;
   return `${formatPrice(amount)} ${unit}`;
 }
@@ -1641,9 +1651,10 @@ function formatDeviceDate(isoStr) {
   try {
     const dateObj = new Date(isoStr);
     if (!isNaN(dateObj.getTime())) {
-      const dateFa = dateObj.toLocaleDateString('fa-IR');
-      const timeFa = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
-      return `${toEnglishDigits(timeFa)} - ${toEnglishDigits(dateFa)}`;
+      const loc = _utilsIsEn() ? 'en-US' : 'fa-IR';
+      const dateStr = dateObj.toLocaleDateString(loc);
+      const timeStr = dateObj.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit', hour12: false });
+      return `${toEnglishDigits(timeStr)} - ${toEnglishDigits(dateStr)}`;
     }
   } catch (e) {}
   return String(isoStr);
@@ -1688,7 +1699,7 @@ function parseDeviceMeta(d = {}) {
   else if (pCheck.includes('mac') || pCheck.includes('darwin')) icon = '🍏';
   else if (pCheck.includes('linux')) icon = '🐧';
 
-  const model = d.deviceModel || d.model || d.brand || rawPlatform || 'دستگاه متصل';
+  const model = d.deviceModel || d.model || d.brand || rawPlatform || _utilsTr('دستگاه متصل', 'Connected Device');
   const ip = d.requestIp || d.ip || d.lastIp || d.clientIp || '—';
   const hwid = d.hwid || d.id || '';
 
@@ -2025,12 +2036,12 @@ function openExternalUrl(rawUrl) {
 function renderCurrencyIcon(curr = 'USD') {
   const code = String(curr || 'USD').toUpperCase();
   if (code === 'EUR') {
-    return '<svg class="w-3.5 h-3.5 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-label="یورو"><path stroke-linecap="round" stroke-linejoin="round" d="M14.121 15.536c-1.171 1.952-3.07 1.952-4.242 0-1.172-1.953-1.172-5.119 0-7.072 1.171-1.952 3.07-1.952 4.242 0M8 10.5h4m-4 3h4m9-1.5a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+    return `<svg class="w-3.5 h-3.5 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-label="${_utilsTr('یورو', 'EUR')}"><path stroke-linecap="round" stroke-linejoin="round" d="M14.121 15.536c-1.171 1.952-3.07 1.952-4.242 0-1.172-1.953-1.172-5.119 0-7.072 1.171-1.952 3.07-1.952 4.242 0M8 10.5h4m-4 3h4m9-1.5a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
   }
   if (code === 'TOMAN' || code === 'IRT') {
-    return '<span class="text-[9.5px] font-bold">تومان</span>';
+    return `<span class="text-[9.5px] font-bold">${_utilsTr('تومان', 'Toman')}</span>`;
   }
-  return '<svg class="w-3.5 h-3.5 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-label="دلار"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+  return `<svg class="w-3.5 h-3.5 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-label="${_utilsTr('دلار', 'USD')}"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
 }
 
 const COUNTRY_CATALOG = [
@@ -2114,10 +2125,11 @@ async function _runQuickDiagnostic() {
   _syncQuickDiagModeUi();
   if (badgeEl) {
     badgeEl.className = 'badge badge-info';
-    badgeEl.innerText = 'در حال بررسی...';
+    badgeEl.innerText = _utilsTr('در حال بررسی...', 'Checking...');
   }
   if (listEl) {
-    listEl.innerHTML = `<div class="p-5 text-center t-muted text-xs">در حال تست ${isTcp ? `پورت TCP (${effectivePort})` : 'پینگ (ICMP)'} از نودهای Check-Host...</div>`;
+    const modeLabel = isTcp ? _utilsTr(`پورت TCP (${effectivePort})`, `TCP port (${effectivePort})`) : _utilsTr('پینگ (ICMP)', 'Ping (ICMP)');
+    listEl.innerHTML = `<div class="p-5 text-center t-muted text-xs">${_utilsIsEn() ? `Testing ${modeLabel} from Check-Host nodes...` : `در حال تست ${modeLabel} از نودهای Check-Host...`}</div>`;
   }
 
   try {
@@ -2127,23 +2139,24 @@ async function _runQuickDiagnostic() {
     if (!res || !res.ok || !Array.isArray(res.results) || !res.results.length) {
       if (badgeEl) {
         badgeEl.className = 'badge badge-danger';
-        badgeEl.innerText = 'ناموفق';
+        badgeEl.innerText = _utilsTr('ناموفق', 'Failed');
       }
-      if (listEl) listEl.innerHTML = `<div class="p-4 text-center t-danger text-xs font-bold">${escapeHtml(res?.error || res?.message || 'نتیجه‌ای دریافت نشد')}</div>`;
+      if (listEl) listEl.innerHTML = `<div class="p-4 text-center t-danger text-xs font-bold">${escapeHtml(res?.error || res?.message || _utilsTr('نتیجه‌ای دریافت نشد', 'No results received'))}</div>`;
       return;
     }
     const okCount = res.results.filter(r => r.ok).length;
     if (badgeEl) {
       badgeEl.className = okCount > 0 ? 'badge badge-success' : 'badge badge-danger';
-      badgeEl.innerText = `${okCount}/${res.results.length} موفق`;
+      badgeEl.innerText = _utilsTr(`${okCount}/${res.results.length} موفق`, `${okCount}/${res.results.length} OK`);
     }
     if (listEl) {
+      const isEn = _utilsIsEn();
       const icmpHint = (!isTcp && okCount === 0) ? `
-        <div class="card p-2.5 rounded-xl border border-amber-500/35 bg-amber-500/10 text-[10.5px] t-warn space-y-1.5" dir="rtl">
-          <div class="font-bold">احتمالاً پینگ ICMP روی فایروال این سرور بسته است.</div>
+        <div class="card p-2.5 rounded-xl border border-amber-500/35 bg-amber-500/10 text-[10.5px] t-warn space-y-1.5" dir="${isEn ? 'ltr' : 'rtl'}">
+          <div class="font-bold">${_utilsTr('احتمالاً پینگ ICMP روی فایروال این سرور بسته است.', 'ICMP ping is likely blocked by this server firewall.')}</div>
           <div class="flex items-center justify-between gap-2">
-            <span class="t-muted">پورت 443 یا پورت Xray سرور را با TCP تست کنید:</span>
-            <button type="button" onclick="window.setQuickDiagnosticMode('tcp')" class="px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold shrink-0">تست TCP :443</button>
+            <span class="t-muted">${_utilsTr('پورت 443 یا پورت Xray سرور را با TCP تست کنید:', 'Test port 443 or your Xray port using TCP:')}</span>
+            <button type="button" onclick="window.setQuickDiagnosticMode('tcp')" class="px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold shrink-0">${_utilsTr('تست TCP :443', 'Test TCP :443')}</button>
           </div>
         </div>
       ` : '';
@@ -2161,9 +2174,9 @@ async function _runQuickDiagnostic() {
   } catch (err) {
     if (badgeEl) {
       badgeEl.className = 'badge badge-danger';
-      badgeEl.innerText = 'خطا';
+      badgeEl.innerText = _utilsTr('خطا', 'Error');
     }
-    if (listEl) listEl.innerHTML = `<div class="p-4 text-center t-danger text-xs">${escapeHtml(err?.message || 'خطای شبکه')}</div>`;
+    if (listEl) listEl.innerHTML = `<div class="p-4 text-center t-danger text-xs">${escapeHtml(err?.message || _utilsTr('خطای شبکه', 'Network error'))}</div>`;
   }
 }
 
@@ -2178,7 +2191,7 @@ async function openQuickDiagnosticModal(rawHost, rawPort = null, label = '') {
   const cleanHost = String(rawHost || '').trim().replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].trim();
   const parsedPort = rawPort && Number(rawPort) > 0 ? Number(rawPort) : null;
   if (!cleanHost || cleanHost === '—') {
-    if (window.showToast) window.showToast('آدرس معتبری برای تست یافت نشد.', 'warning');
+    if (window.showToast) window.showToast(_utilsTr('آدرس معتبری برای تست یافت نشد.', 'No valid host address found to test.'), 'warning');
     return;
   }
   _quickDiagState = {

@@ -250,8 +250,8 @@ def test_ui_fixes_markup_and_js_contracts():
     # 7. Recommended & alternative app icons in app.js are gold/silver medals with no tinted circular background
     assert 'bg-amber-500/25' not in app_js
     assert 'bg-sky-500/20' not in app_js
-    assert 'title="پیشنهادی">🥇</span>' in app_js
-    assert 'title="جایگزین">🥈</span>' in app_js
+    assert """title="${_appTr('پیشنهادی', 'Recommended')}">🥇</span>""" in app_js
+    assert """title="${_appTr('جایگزین', 'Alternative')}">🥈</span>""" in app_js
 
     # 8. Admin devices modal: overflow guards, no IP copy icon in devices tab, create user squad mandatory & HWID placeholder
     assert "btn-copy-hwid-ip" in admin_users_js
@@ -392,7 +392,7 @@ async def test_payment_methods_chart_includes_all_gateways(session_factory):
     assert "border-bottom: 2px solid #ffffff" not in iran_badge_css
     assert "rgba(255, 255, 255, 0.65)" not in iran_badge_css
     assert "flex items-center justify-between gap-2" in shop_js
-    assert 'text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇' in app_js
+    assert """text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('پیشنهادی', 'Recommended')}">🥇""" in app_js
     for color_hex in ("#22c55e", "#3ddc84", "#f25022", "#38bdf8", "#f59e0b"):
         assert color_hex in app_html
         assert color_hex in admin_html
@@ -760,8 +760,8 @@ def test_shop_card_header_invoice_buyer_modals_and_banned_scroll_fixes():
     # 1. Shop card: corner badge top-left, Price & Title header, safeDesc & single-row discount badges with spacing
     assert "rounded-br-xl" in shop_js
     assert 'max-w-[46%] ${planBadge ? \'mt-4\' : \'\'}" dir="ltr"' in shop_js
-    assert 'flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="rtl"' in shop_js
-    assert 'shop-plan-desc text-[10.5px] leading-snug t-muted text-right line-clamp-2 tracking-tight mt-1.5' in shop_js
+    assert 'flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="${isEn ? \'ltr\' : \'rtl\'}"' in shop_js
+    assert "shop-plan-desc text-[10.5px] leading-snug t-muted ${isEn ? 'text-left' : 'text-right'} line-clamp-2 tracking-tight mt-1.5" in shop_js
     assert "border-bottom: 1.5px solid" in components_css[components_css.find("/* --- 16. Shop Plan Badges --- */"):]
 
     # 2. Invoice modal Buyer content full-width left-aligned in both HTML and JS (no inline-block .num-bidi override)

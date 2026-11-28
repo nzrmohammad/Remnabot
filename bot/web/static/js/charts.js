@@ -4,6 +4,15 @@
  * DRY reusable chart and breakdown generators using Chart.js.
  */
 
+function _chartIsEn() {
+  return typeof window !== 'undefined' && (Boolean(window.isAppEn?.()) || window.getAppLanguage?.() === 'en');
+}
+function _chartTr(fa, en) {
+  return (typeof window !== 'undefined' && typeof window.trText === 'function')
+    ? window.trText(fa, en)
+    : (_chartIsEn() ? en : fa);
+}
+
 window.chartInstances = window.chartInstances || {};
 
 let chartLoadPromise = null;
@@ -89,6 +98,7 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
     delete window.chartInstances[chartKey];
   }
 
+  const isEn = _chartIsEn();
   const ctx = canvas.getContext('2d');
   window.chartInstances[chartKey] = new Chart(ctx, {
     type: 'bar',
@@ -114,8 +124,8 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          rtl: true,
-          textDirection: 'rtl',
+          rtl: !isEn,
+          textDirection: isEn ? 'ltr' : 'rtl',
           displayColors: false,
           backgroundColor: tokens?.tooltipBg || (isLight ? '#ffffff' : '#111a2e'),
           titleColor: tokens?.tooltipTitle || (isLight ? '#0f172a' : '#e2e8f0'),
@@ -129,25 +139,47 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
           callbacks: {
             title: function(context) {
               const lbl = context[0]?.label || '';
-              if (isMonthly) return String(lbl).startsWith('هفته') ? toEnglishDigits(lbl) : `هفته ${toEnglishDigits(lbl)}`;
+              if (isMonthly) {
+                if (isEn) {
+                  const sLbl = toEnglishDigits(lbl).trim();
+                  if (/^W\d+$/i.test(sLbl) || sLbl.toLowerCase().startsWith('week')) return sLbl;
+                  if (sLbl.startsWith('هفته')) return `Week ${sLbl.replace('هفته', '').trim()}`;
+                  return `Week ${sLbl}`;
+                }
+                return String(lbl).startsWith('هفته') ? toEnglishDigits(lbl) : `هفته ${toEnglishDigits(lbl)}`;
+              }
               if (chartKey === 'repPeakHoursBarCanvas' || String(lbl).includes('-') || String(lbl).includes(':')) {
-                return String(lbl).includes('-') ? `بازه ساعتی: ${lbl}` : `ساعت: ${lbl}`;
+                return String(lbl).includes('-')
+                  ? `${_chartTr('بازه ساعتی:', 'Interval:')} ${lbl}`
+                  : `${_chartTr('ساعت:', 'Hour:')} ${lbl}`;
+              }
+              if (isEn) {
+                const enDaysMap = {
+                  'ش': 'Saturday', 'شنبه': 'Saturday', 'Sat': 'Saturday',
+                  'ی': 'Sunday', 'یکشنبه': 'Sunday', 'Sun': 'Sunday',
+                  'د': 'Monday', 'دوشنبه': 'Monday', 'Mon': 'Monday',
+                  'س': 'Tuesday', 'سه‌شنبه': 'Tuesday', 'Tue': 'Tuesday',
+                  'چ': 'Wednesday', 'چهارشنبه': 'Wednesday', 'Wed': 'Wednesday',
+                  'پ': 'Thursday', 'پنج‌شنبه': 'Thursday', 'Thu': 'Thursday',
+                  'ج': 'Friday', 'جمعه': 'Friday', 'Fri': 'Friday'
+                };
+                return enDaysMap[lbl] || lbl;
               }
               const faDaysMap = {
-                'ش': 'شنبه', 'شنبه': 'شنبه',
-                'ی': 'یکشنبه', 'یکشنبه': 'یکشنبه',
-                'د': 'دوشنبه', 'دوشنبه': 'دوشنبه',
-                'س': 'سه‌شنبه', 'سه‌شنبه': 'سه‌شنبه',
-                'چ': 'چهارشنبه', 'چهارشنبه': 'چهارشنبه',
-                'پ': 'پنج‌شنبه', 'پنج‌شنبه': 'پنج‌شنبه',
-                'ج': 'جمعه', 'جمعه': 'جمعه'
+                'ش': 'شنبه', 'شنبه': 'شنبه', 'Sat': 'شنبه',
+                'ی': 'یکشنبه', 'یکشنبه': 'یکشنبه', 'Sun': 'یکشنبه',
+                'د': 'دوشنبه', 'دوشنبه': 'دوشنبه', 'Mon': 'دوشنبه',
+                'س': 'سه‌شنبه', 'سه‌شنبه': 'سه‌شنبه', 'Tue': 'سه‌شنبه',
+                'چ': 'چهارشنبه', 'چهارشنبه': 'چهارشنبه', 'Wed': 'چهارشنبه',
+                'پ': 'پنج‌شنبه', 'پنج‌شنبه': 'پنج‌شنبه', 'Thu': 'پنج‌شنبه',
+                'ج': 'جمعه', 'جمعه': 'جمعه', 'Fri': 'جمعه'
               };
               const dayName = faDaysMap[lbl] || lbl;
               return `روز ${dayName}`;
             },
             label: function(context) {
               const val = context.raw != null ? context.raw : 0;
-              return `مصرف: ${fmtTraffic(val, { html: false, isolate: true })}`;
+              return `${_chartTr('مصرف:', 'Usage:')} ${fmtTraffic(val, { html: false, isolate: true })}`;
             }
           }
         }
@@ -193,14 +225,15 @@ async function renderBarChart(containerId, totals, labels, isMonthly = false) {
   });
 }
 
-function renderNodeBreakdown(containerId, nodes, emptyText = 'مصرفی ثبت نشده است.') {
+function renderNodeBreakdown(containerId, nodes, emptyText) {
   const container = document.getElementById(containerId);
   if (!container) return;
+  const resolvedEmpty = emptyText || _chartTr('مصرفی ثبت نشده است.', 'No traffic usage recorded.');
 
   if (!nodes || nodes.length === 0) {
     container.innerHTML = `
-      <div class="col-span-2 text-center py-2 t-muted text-[11px]" dir="rtl">
-        ${emptyText}
+      <div class="col-span-2 text-center py-2 t-muted text-[11px]" dir="${_chartIsEn() ? 'ltr' : 'rtl'}">
+        ${resolvedEmpty}
       </div>
     `;
     return;
@@ -252,7 +285,8 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
   const cleanLabels = (labels || []).map(l => toEnglishDigits(l));
 
   const hasData = cleanData.some(v => v > 0);
-  const chartLabels = hasData ? cleanLabels : [isDevice ? 'بدون دستگاه' : 'بدون مصرف'];
+  const isEn = _chartIsEn();
+  const chartLabels = hasData ? cleanLabels : [isDevice ? _chartTr('بدون دستگاه', 'No Devices') : _chartTr('بدون مصرف', 'No Usage')];
   const chartValues = hasData ? cleanData : [1];
   const chartColors = hasData
     ? cleanLabels.map((lbl, idx) => {
@@ -289,7 +323,7 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
         legend: {
           display: true,
           position: 'bottom',
-          rtl: true,
+          rtl: !isEn,
           labels: {
             boxWidth: 9,
             boxHeight: 9,
@@ -326,8 +360,8 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           }
         },
         tooltip: {
-          rtl: true,
-          textDirection: 'rtl',
+          rtl: !isEn,
+          textDirection: isEn ? 'ltr' : 'rtl',
           displayColors: true,
           backgroundColor: tokens?.tooltipBg || (isLight ? '#ffffff' : '#111a2e'),
           titleColor: tokens?.tooltipTitle || (isLight ? '#0f172a' : '#e2e8f0'),
@@ -340,10 +374,10 @@ async function renderDonutChart(containerId, labels, data, isDevice = false) {
           cornerRadius: 8,
           callbacks: {
             label: function(ctx) {
-              if (!hasData) return isDevice ? 'بدون دستگاه ثبت‌شده' : 'بدون مصرف ثبت‌شده';
+              if (!hasData) return isDevice ? _chartTr('بدون دستگاه ثبت‌شده', 'No registered devices') : _chartTr('بدون مصرف ثبت‌شده', 'No recorded usage');
               const val = ctx.raw;
               if (isDevice) {
-                return `${ctx.label}: ${toEnglishDigits(val)} دستگاه`;
+                return `${ctx.label}: ${toEnglishDigits(val)} ${_chartTr('دستگاه', Number(val) === 1 ? 'device' : 'devices')}`;
               }
               return `${ctx.label}: ${fmtTraffic(val, { html: false, isolate: true })}`;
             }
@@ -410,11 +444,12 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null, 
   gradient.addColorStop(0, isLight ? 'rgba(245, 158, 11, 0.35)' : 'rgba(245, 158, 11, 0.30)');
   gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
 
+  const isEn = _chartIsEn();
   const warnColor = tokens ? tokens.warn : (isLight ? '#d97706' : '#f59e0b');
   const yestColor = isLight ? 'rgba(14, 116, 144, 0.72)' : 'rgba(56, 189, 248, 0.75)';
   const todayPointBg = tokens ? tokens.warn : (isLight ? '#d97706' : '#fbbf24');
   const datasetCfg = {
-    label: 'مصرف ساعتی',
+    label: _chartTr('مصرف ساعتی', 'Hourly Usage'),
     data: cleanData,
     borderColor: warnColor,
     borderWidth: 2,
@@ -453,8 +488,8 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null, 
       plugins: {
         legend: { display: false },
         tooltip: {
-          rtl: true,
-          textDirection: 'rtl',
+          rtl: !isEn,
+          textDirection: isEn ? 'ltr' : 'rtl',
           displayColors: false,
           backgroundColor: tokens?.tooltipBg || (isLight ? '#ffffff' : '#0f172a'),
           titleColor: tokens?.tooltipTitle || (isLight ? '#0f172a' : '#ffffff'),
@@ -471,9 +506,9 @@ async function renderLineCurveChart(containerId, labels, data, peakHour = null, 
               if (tooltipTitles && idx !== undefined && tooltipTitles[idx]) {
                 return tooltipTitles[idx];
               }
-              return `ساعت ${items[0]?.label || ''}`;
+              return isEn ? `Hour ${items[0]?.label || ''}` : `ساعت ${items[0]?.label || ''}`;
             },
-            label: (ctx) => `مصرف: ${fmtTraffic(ctx.raw, { html: false, isolate: true })}`
+            label: (ctx) => `${_chartTr('مصرف:', 'Usage:')} ${fmtTraffic(ctx.raw, { html: false, isolate: true })}`
           }
         }
       },
@@ -525,9 +560,10 @@ function renderBurnRate(burnRate, sub) {
   const statusIconEl = document.getElementById('repBurnStatusIcon');
   const analysisBox = document.getElementById('repBurnAnalysisBox');
 
+  const isEn = _chartIsEn();
   const avgGb = burnRate.avg_daily_gb || 0;
   if (speedBadge) {
-    speedBadge.innerText = avgGb > 0 ? fmtTraffic(avgGb, { html: false, isolate: true }) : 'کم‌مصرف';
+    speedBadge.innerText = avgGb > 0 ? fmtTraffic(avgGb, { html: false, isolate: true }) : _chartTr('کم‌مصرف', 'Low');
   }
 
   if (avgDailyEl) {
@@ -537,18 +573,18 @@ function renderBurnRate(burnRate, sub) {
   const projDays = burnRate.projected_days;
   if (projectedDaysEl) {
     if (projDays != null && projDays > 0) {
-      projectedDaysEl.innerText = `حدود ${toEnglishDigits(projDays)} روز`;
-      projectedDaysEl.dir = 'rtl';
+      projectedDaysEl.innerText = isEn ? `~${toEnglishDigits(projDays)} days` : `حدود ${toEnglishDigits(projDays)} روز`;
+      projectedDaysEl.dir = isEn ? 'ltr' : 'rtl';
       if (burnRate.status === 'fast') {
         projectedDaysEl.className = 'font-sans text-amber-600 dark:text-amber-400 font-bold text-xs';
       } else {
         projectedDaysEl.className = 'font-sans text-emerald-600 dark:text-emerald-400 font-bold text-xs';
       }
     } else if (burnRate.status === 'unlimited') {
-      projectedDaysEl.innerText = 'نامحدود ♾️';
+      projectedDaysEl.innerText = _chartTr('نامحدود ♾️', 'Unlimited ♾️');
       projectedDaysEl.className = 'font-sans text-cyan-600 dark:text-cyan-400 font-bold text-xs';
     } else if (burnRate.status === 'exhausted') {
-      projectedDaysEl.innerText = 'پایان‌یافته';
+      projectedDaysEl.innerText = _chartTr('پایان‌یافته', 'Exhausted');
       projectedDaysEl.className = 'font-sans text-rose-600 dark:text-rose-400 font-bold text-xs';
     } else {
       projectedDaysEl.innerText = '—';

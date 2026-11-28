@@ -1,6 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 
-from bot.web.user_common import db_session, enforce_invite_only, require_user
+from bot.web.user_common import db_session, enforce_invite_only, require_user, resolve_tma_lang
 
 """TMA User Wallet and Top-up API endpoints."""
 import asyncio
@@ -889,16 +889,18 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
     if err:
         return err
 
+    req_lang = resolve_tma_lang(request)
+    is_en = req_lang == "en"
     try:
         body = await request.json()
     except Exception:
-        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid data format." if is_en else "فرمت داده نامعتبر است."}, status=400)
     if not isinstance(body, dict):
-        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid data format." if is_en else "فرمت داده نامعتبر است."}, status=400)
 
     code = str(body.get("code") or "").strip()
     if not code:
-        return web.json_response({"ok": False, "message": "لطفاً کد شارژ را وارد نمایید."}, status=400)
+        return web.json_response({"ok": False, "message": "Please enter a voucher or gift code." if is_en else "لطفاً کد شارژ را وارد نمایید."}, status=400)
 
     telegram_id = int(user_auth["id"])
     from bot.db.repositories.wallet_repo import WalletRepository
@@ -918,9 +920,10 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
             bot=request.app.get("bot"),
             session_factory=request.app.get("session_factory"),
             cache=request.app.get("cache"),
+            lang=req_lang,
         )
         if not res.get("ok"):
-            return web.json_response({"ok": False, "message": res.get("message", "کد نامعتبر است.")}, status=400)
+            return web.json_response({"ok": False, "message": res.get("message", "Invalid code." if is_en else "کد نامعتبر است.")}, status=400)
 
         wallet_repo = WalletRepository(session)
         wallet = await wallet_repo.get_wallet(telegram_id)
@@ -932,7 +935,7 @@ async def post_user_redeem_voucher(request: web.Request) -> web.Response:
             "ok": True,
             "amount": res.get("amount", 0),
             "new_balance": new_balance,
-            "message": res.get("message", "عملیات با موفقیت انجام شد."),
+            "message": res.get("message", "Operation completed successfully." if is_en else "عملیات با موفقیت انجام شد."),
         }
         if res.get("subscription_url"):
             resp_payload["subscription_url"] = res["subscription_url"]
@@ -945,12 +948,13 @@ async def post_user_auto_renew(request: web.Request) -> web.Response:
     if err:
         return err
 
+    is_en = resolve_tma_lang(request) == "en"
     try:
         body = await request.json()
     except Exception:
-        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid data format." if is_en else "فرمت داده نامعتبر است."}, status=400)
     if not isinstance(body, dict):
-        return web.json_response({"ok": False, "message": "فرمت داده نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid data format." if is_en else "فرمت داده نامعتبر است."}, status=400)
 
     auto_renew_val = bool(body.get("auto_renew", False))
     telegram_id = int(user_auth["id"])
@@ -966,7 +970,11 @@ async def post_user_auto_renew(request: web.Request) -> web.Response:
         return web.json_response({
             "ok": True,
             "auto_renew": res,
-            "message": "تمدید خودکار فعال شد." if res else "تمدید خودکار غیرفعال شد.",
+            "message": (
+                ("Auto-renewal enabled." if res else "Auto-renewal disabled.")
+                if is_en
+                else ("تمدید خودکار فعال شد." if res else "تمدید خودکار غیرفعال شد.")
+            ),
         })
 
 

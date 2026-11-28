@@ -100,7 +100,7 @@ def _extract_node_squad_and_inbound_tokens(node: dict[str, Any]) -> tuple[set[st
             squad_tokens |= _collect_token_values(ib.get("internalSquads") or ib.get("squads"), squad_keys)
     return squad_tokens, inbound_tokens
 from bot.web.cache import FastCache
-from bot.web.user_common import db_session, require_user
+from bot.web.user_common import db_session, require_user, resolve_tma_lang
 
 logger = logging.getLogger(__name__)
 
@@ -243,6 +243,8 @@ async def get_user_me(request: web.Request) -> web.Response:
     if err:
         return err
 
+    req_lang = resolve_tma_lang(request)
+    default_user_label = "User" if req_lang == "en" else "کاربر"
     telegram_id = int(user_auth["id"])
     req_account_id = request.query.get("account_id")
     cache: FastCache = request.app["cache"]
@@ -309,7 +311,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                             "support_link": support_link,
                             "user": {
                                 "id": telegram_id,
-                                "first_name": user_auth.get("first_name", "کاربر"),
+                                "first_name": user_auth.get("first_name") or default_user_label,
                                 "username": user_auth.get("username"),
                                 "is_admin": False,
                             },
@@ -354,7 +356,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                         "support_link": support_link,
                         "user": {
                             "id": telegram_id,
-                            "first_name": user_auth.get("first_name", "کاربر"),
+                            "first_name": user_auth.get("first_name") or default_user_label,
                             "username": user_auth.get("username"),
                             "is_admin": False,
                         },
@@ -371,6 +373,8 @@ async def get_user_me(request: web.Request) -> web.Response:
             commit_res = session.commit()
             if inspect.isawaitable(commit_res):
                 await commit_res
+
+        user_lang = resolve_tma_lang(request, db_user)
 
         wallet_res = await session.execute(select(Wallet).where(Wallet.telegram_id == telegram_id))
         wallet = wallet_res.scalar_one_or_none()
@@ -468,7 +472,7 @@ async def get_user_me(request: web.Request) -> web.Response:
                 _ = panel_users_task.exception() if not panel_users_task.cancelled() else None
 
         active_sub, has_active_sub, accounts_list = await _build_active_subscription(
-            remnawave, panel_users, req_account_id, telegram_id, user_auth, session, tz_name, now_dt
+            remnawave, panel_users, req_account_id, telegram_id, user_auth, session, tz_name, now_dt, lang=user_lang
         )
 
         active_primary = None
@@ -602,7 +606,7 @@ async def get_user_me(request: web.Request) -> web.Response:
             acc_results = await asyncio.gather(*(_fetch_squad_acc_flags(sk) for sk in unresolved_squads))
             squad_accessible_flags = dict(acc_results)
 
-        loyalty_data = await get_user_loyalty(session, telegram_id, cache=cache)
+        loyalty_data = await get_user_loyalty(session, telegram_id, cache=cache, lang=user_lang)
         loyalty_pct = loyalty_data.get("discount_percent", 0)
 
         plans_data = []
@@ -651,7 +655,11 @@ async def get_user_me(request: web.Request) -> web.Response:
                     else None
                 ),
                 "flags": plan_flags,
-                "flags_label": "اسکواد اختصاصی" if s.squad_uuid else "بدون اسکواد",
+                "flags_label": (
+                    ("Dedicated Squad" if s.squad_uuid else "Standard Cluster")
+                    if user_lang == "en"
+                    else ("اسکواد اختصاصی" if s.squad_uuid else "بدون اسکواد")
+                ),
             })
         is_invite_only = False
         is_adm = bool(user_auth.get("is_admin", False))
@@ -664,11 +672,6 @@ async def get_user_me(request: web.Request) -> web.Response:
                         is_invite_only = True
             except Exception as e:
                 logger.debug("Failed checking invite-only status: %s", e)
-        user_lang = normalize_lang(
-            request.query.get("lang")
-            or getattr(db_user, "language", None)
-            or request.headers.get("X-App-Language")
-        )
         transactions = await _fetch_transaction_history(session, telegram_id, tz_name, lang=user_lang)
         user_settings, active_won_coupons, wheel_status, total_gift_traffic, birthday_claimed = await _fetch_user_perks_and_settings(
             session, cache, telegram_id, has_active_sub, db_user
@@ -1006,6 +1009,7 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
     if err:
         return err
 
+    is_en = resolve_tma_lang(request) == "en"
     try:
         body = await request.json()
     except Exception:
@@ -1017,17 +1021,26 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
     clean_bdate = birth_date.replace("-", "/")
     parts = clean_bdate.split("/")
     if len(parts) != 3 or not all(p.isdigit() for p in parts):
-        return web.json_response({"ok": False, "error": "فرمت تاریخ نامعتبر است (مثال: 1375/07/22)."}, status=400)
+        return web.json_response(
+            {"ok": False, "error": "Invalid date format (e.g. 1375/07/22)." if is_en else "فرمت تاریخ نامعتبر است (مثال: 1375/07/22)."},
+            status=400,
+        )
 
     year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
     if year < 1300 or year > 1410 or month < 1 or month > 12 or day < 1 or day > 31:
-        return web.json_response({"ok": False, "error": "تاریخ وارد شده خارج از بازه مجاز است."}, status=400)
+        return web.json_response(
+            {"ok": False, "error": "Entered date is out of valid range." if is_en else "تاریخ وارد شده خارج از بازه مجاز است."},
+            status=400,
+        )
 
     try:
         if jdatetime:
             jdatetime.date(year, month, day)
     except (ValueError, TypeError):
-        return web.json_response({"ok": False, "error": "روز وارد شده برای این ماه در تقویم خورشیدی وجود ندارد."}, status=400)
+        return web.json_response(
+            {"ok": False, "error": "This day does not exist in the selected Solar month." if is_en else "روز وارد شده برای این ماه در تقویم خورشیدی وجود ندارد."},
+            status=400,
+        )
 
     formatted_date = f"{year:04d}/{month:02d}/{day:02d}"
     telegram_id = int(user_auth["id"])
@@ -1042,11 +1055,19 @@ async def post_user_set_birthday(request: web.Request) -> web.Response:
         user_repo = UserRepository(session)
         user = await user_repo.get_by_telegram_id(telegram_id)
         if not user:
-            return web.json_response({"ok": False, "error": "کاربر یافت نشد."}, status=404)
+            return web.json_response({"ok": False, "error": "User not found." if is_en else "کاربر یافت نشد."}, status=404)
 
+        is_en_user = resolve_tma_lang(request, user) == "en"
         if getattr(user, "birth_date", None):
             return web.json_response(
-                {"ok": False, "error": "تاریخ تولد شما قبلاً ثبت شده و برای جلوگیری از سوءاستفاده قابل تغییر مجدد نیست."},
+                {
+                    "ok": False,
+                    "error": (
+                        "Your birthday is already registered and cannot be modified."
+                        if is_en_user
+                        else "تاریخ تولد شما قبلاً ثبت شده و برای جلوگیری از سوءاستفاده قابل تغییر مجدد نیست."
+                    ),
+                },
                 status=400,
             )
 

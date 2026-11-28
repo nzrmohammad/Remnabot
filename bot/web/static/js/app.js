@@ -62,18 +62,28 @@ function toggleSettingsBox(targetId) {
 }
 window.toggleSettingsBox = toggleSettingsBox;
 
+function _appIsEn() {
+  return typeof window !== 'undefined' && (Boolean(window.isAppEn?.()) || window.getAppLanguage?.() === 'en');
+}
+function _appTr(fa, en) {
+  return (typeof window !== 'undefined' && typeof window.trText === 'function')
+    ? window.trText(fa, en)
+    : (_appIsEn() ? en : fa);
+}
+
 let currentMonthlyIndex = 0;
 
 function updateMonthlyReportView(index) {
   if (typeof index === 'number') currentMonthlyIndex = index;
   const sub = window.lastUserData?.active_sub || window.currentSub;
   if (!sub) return;
+  const isEn = _appIsEn();
 
   const history = (Array.isArray(sub.monthly_history) && sub.monthly_history.length > 0)
     ? sub.monthly_history
     : [{
-        month_name: sub.current_month_name || 'ماه جاری',
-        full_name: sub.current_month_name || 'ماه جاری',
+        month_name: sub.current_month_name || _appTr('ماه جاری', 'Current Month'),
+        full_name: sub.current_month_name || _appTr('ماه جاری', 'Current Month'),
         total_used_gb: sub.month_used_gb ?? '0.00',
         month_weeks_totals_gb: sub.month_weeks_totals_gb || [0, 0, 0, 0],
         nodes_breakdown: sub.week_breakdown || sub.today_breakdown || [],
@@ -87,15 +97,20 @@ function updateMonthlyReportView(index) {
   const repMonthlyTitle = $('repMonthlyTitle');
   if (repMonthlyTitle) {
     const iconHtml = typeof uiIcon === 'function' ? uiIcon('reports', 'w-4 h-4') : '';
-    repMonthlyTitle.innerHTML = `${iconHtml}<span>گزارش جامع ماه ${escapeHtml(mData.month_name || '')}</span>`;
+    const mName = escapeHtml(mData.month_name || '');
+    repMonthlyTitle.innerHTML = isEn
+      ? `${iconHtml}<span>Monthly Report — ${mName}</span>`
+      : `${iconHtml}<span>گزارش جامع ماه ${mName}</span>`;
   }
 
   const repMonthlyCurrentLabel = $('repMonthlyCurrentLabel');
-  if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = mData.full_name || mData.month_name || 'ماه جاری';
+  if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = mData.full_name || mData.month_name || _appTr('ماه جاری', 'Current Month');
 
   const repMonthlyPeriodBadge = $('repMonthlyPeriodBadge');
   if (repMonthlyPeriodBadge) {
-    repMonthlyPeriodBadge.innerText = (currentMonthlyIndex === 0) ? 'ماه جاری' : 'آرشیو گذشته';
+    repMonthlyPeriodBadge.innerText = (currentMonthlyIndex === 0)
+      ? _appTr('ماه جاری', 'Current Month')
+      : _appTr('آرشیو گذشته', 'Archive');
   }
 
   const repMonthlyTotal = $('repMonthlyTotal');
@@ -113,7 +128,7 @@ function updateMonthlyReportView(index) {
       renderBarChart(
         'repMonthlyChartCanvas',
         mData.month_weeks_totals_gb || [0, 0, 0, 0],
-        ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'],
+        isEn ? ['Week 1', 'Week 2', 'Week 3', 'Week 4'] : ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'],
         true
       );
     } catch (e) {
@@ -125,7 +140,9 @@ function updateMonthlyReportView(index) {
     renderNodeBreakdown(
       'repMonthlyNodesContainer',
       mData.nodes_breakdown || [],
-      `مصرفی در ماه ${mData.month_name || ''} ثبت نشده است.`
+      isEn
+        ? `No traffic recorded for ${mData.month_name || 'this month'}.`
+        : `مصرفی در ماه ${mData.month_name || ''} ثبت نشده است.`
     );
   }
 
@@ -143,7 +160,7 @@ function updateMonthlyReportView(index) {
     prevBtn.classList.toggle('cursor-not-allowed', !hasPrev);
   }
   if (prevLabel) {
-    prevLabel.innerText = hasPrev ? (history[currentMonthlyIndex + 1]?.month_name || 'ماه قبل') : 'ماه قبل';
+    prevLabel.innerText = hasPrev ? (history[currentMonthlyIndex + 1]?.month_name || _appTr('ماه قبل', 'Prev Month')) : _appTr('ماه قبل', 'Prev Month');
   }
 
   if (nextBtn) {
@@ -152,7 +169,7 @@ function updateMonthlyReportView(index) {
     nextBtn.classList.toggle('cursor-not-allowed', !hasNext);
   }
   if (nextLabel) {
-    nextLabel.innerText = hasNext ? (history[currentMonthlyIndex - 1]?.month_name || 'ماه بعد') : 'ماه بعد';
+    nextLabel.innerText = hasNext ? (history[currentMonthlyIndex - 1]?.month_name || _appTr('ماه بعد', 'Next Month')) : _appTr('ماه بعد', 'Next Month');
   }
 }
 window.updateMonthlyReportView = updateMonthlyReportView;
@@ -204,16 +221,27 @@ function renderReportsCharts(sub) {
   if (nightlyEmpty) nightlyEmpty.classList.toggle('hidden', hasYTraffic);
 
   if (typeof renderBarChart === 'function') {
+    const isEn = _appIsEn();
     renderBarChart('repDailyChartCanvas', hourlyData, hourlyLabels, false);
     if (hasYTraffic) {
       renderBarChart('repNightlyChartCanvas', yHourlyData, yHourlyLabels, false);
     }
-    renderBarChart('repWeeklyChartCanvas', currentSub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], currentSub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+    renderBarChart(
+      'repWeeklyChartCanvas',
+      currentSub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0],
+      currentSub.week_day_labels || (isEn ? ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'] : ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']),
+      false
+    );
   }
   if (typeof updateMonthlyReportView === 'function') {
     updateMonthlyReportView(currentMonthlyIndex);
   } else if (typeof renderBarChart === 'function') {
-    renderBarChart('repMonthlyChartCanvas', currentSub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'], true);
+    renderBarChart(
+      'repMonthlyChartCanvas',
+      currentSub.month_weeks_totals_gb || [0, 0, 0, 0],
+      _appIsEn() ? ['Week 1', 'Week 2', 'Week 3', 'Week 4'] : ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'],
+      true
+    );
   }
   if (typeof renderActiveSubAnalytics === 'function') {
     renderActiveSubAnalytics(currentSub);
@@ -329,17 +357,19 @@ function setupReportsSubtabs() {
   });
 }
 
+const _isUnsetSubPlaceholder = (v) => !v || v.includes('در حال') || v.includes('یافت نشد') || v.includes('Loading') || v.includes('No active');
+
 // 4. Copy Subscription Button & Box
 function setupSubscriptionActions() {
   const copySubBtn = $('copySubBtn');
 
   copySubBtn?.addEventListener('click', async () => {
     const urlToCopy = window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || $('subDisplayBox')?.innerText?.trim();
-    if (!urlToCopy || urlToCopy.includes('در حال') || urlToCopy.includes('یافت نشد')) {
-      showToast('⚠️ لینک اشتراکی برای کپی یافت نشد.');
+    if (_isUnsetSubPlaceholder(urlToCopy)) {
+      showToast(_appTr('⚠️ لینک اشتراکی برای کپی یافت نشد.', '⚠️ No subscription link found to copy.'));
       return;
     }
-    const ok = await copyToClipboard(urlToCopy, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
+    const ok = await copyToClipboard(urlToCopy, _appTr('📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.', '📋 Subscription link copied to clipboard.'));
     if (ok) {
       hapticFeedback('success');
       copySubBtn.classList.add('t-success', 'border-emerald-500');
@@ -353,8 +383,8 @@ function setupSubscriptionActions() {
 
   $('subBoxWrapper')?.addEventListener('click', () => {
     const url = ($('subInput')?.value || '').trim();
-    if (url && !url.includes('در حال') && !url.includes('یافت نشد')) {
-      copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
+    if (url && !_isUnsetSubPlaceholder(url)) {
+      copyToClipboard(url, _appTr('📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.', '📋 Subscription link copied to clipboard.'));
       hapticFeedback('success');
     }
   });
@@ -391,8 +421,8 @@ function setupQrToggle() {
 
   copySubFromQrModalBtn?.addEventListener('click', () => {
     const url = (window.currentModalQrUri || $('subInput')?.value || '').trim();
-    if (url && !url.includes('در حال') && !url.includes('یافت نشد')) {
-      copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
+    if (url && !_isUnsetSubPlaceholder(url)) {
+      copyToClipboard(url, _appTr('📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.', '📋 Subscription link copied to clipboard.'));
     }
   });
 
@@ -418,21 +448,24 @@ function setupConfigsModal() {
 
   const renderConfigsCards = (configs) => {
     currentConfigsList = configs;
-    if (configsModalCount) configsModalCount.innerText = `${currentConfigsList.length} کانفیگ`;
+    const isEn = _appIsEn();
+    if (configsModalCount) {
+      configsModalCount.innerText = isEn ? `${currentConfigsList.length} configs` : `${currentConfigsList.length} کانفیگ`;
+    }
 
     configsModalList.innerHTML = currentConfigsList.map(c => {
-      const safeName = escapeHtml(c.name || 'کانفیگ سرور');
+      const safeName = escapeHtml(c.name || _appTr('کانفیگ سرور', 'Server Config'));
       const protoBadge = escapeHtml((c.protocol || 'vpn').toUpperCase());
       const flag = c.flag || '🌐';
 
       return `
         <div class="config-row-item card-inset p-2.5 rounded-2xl flex items-center justify-between gap-2.5 transition hover:border-slate-500 border border-card-border">
           <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" class="copy-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" title="کپی کانفیگ">
-              <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />
+            <button type="button" class="copy-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" title="${_appTr('کپی کانفیگ', 'Copy config')}">
+              <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="${_appTr('کپی', 'Copy')}" />
             </button>
-            <button type="button" class="qr-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="نمایش کیوآرکد">
-              <img src="/static/img/icons/qr.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کیوآرکد" />
+            <button type="button" class="qr-single-cfg-btn w-8 h-8 rounded-xl card-inset border border-card-border flex items-center justify-center transition active:scale-90 hover:border-cyan-500/40 t-muted hover:t-accent" data-uri="${encodeURIComponent(c.uri)}" data-name="${encodeURIComponent(c.name)}" title="${_appTr('نمایش کیوآرکد', 'Show QR Code')}">
+              <img src="/static/img/icons/qr.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="QR" />
             </button>
           </div>
           <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0" dir="ltr">
@@ -453,11 +486,11 @@ function setupConfigsModal() {
       btn.addEventListener('click', () => {
         const uri = decodeURIComponent(btn.getAttribute('data-uri') || '');
         if (uri) {
-          copyToClipboard(uri, 'کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.');
+          copyToClipboard(uri, _appTr('کانفیگ اختصاصی با موفقیت در کلیپ‌بورد کپی شد.', 'Config copied to clipboard.'));
           hapticFeedback('success');
-          btn.innerHTML = '<img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی شد" />';
+          btn.innerHTML = `<img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="${_appTr('کپی شد', 'Copied')}" />`;
           setTimeout(() => {
-            btn.innerHTML = '<img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="کپی" />';
+            btn.innerHTML = `<img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="${_appTr('کپی', 'Copy')}" />`;
           }, 1800);
         }
       });
@@ -490,16 +523,16 @@ function setupConfigsModal() {
       configsModalList.innerHTML = `
         <div class="text-center py-6 text-slate-400 text-xs space-y-2">
           <img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-8 h-8 mx-auto" width="32" height="32" alt="" />
-          <div class="leading-relaxed">اشتراک فعالی برای نمایش کانفیگ‌ها وجود ندارد.</div>
+          <div class="leading-relaxed">${_appTr('اشتراک فعالی برای نمایش کانفیگ‌ها وجود ندارد.', 'No active subscription to show configs.')}</div>
         </div>
       `;
-      if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
+      if (configsModalCount) configsModalCount.innerText = _appTr('0 کانفیگ', '0 configs');
       return;
     }
     configsModalList.innerHTML = `
       <div class="text-center py-6 text-slate-400 text-xs space-y-2">
         <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-8 h-8 mx-auto animate-spin" width="32" height="32" alt="" />
-        <div>در حال دریافت کانفیگ‌ها از پنل...</div>
+        <div>${_appTr('در حال دریافت کانفیگ‌ها از پنل...', 'Fetching configs from panel...')}</div>
       </div>
     `;
 
@@ -513,8 +546,8 @@ function setupConfigsModal() {
         renderConfigsCards(configs);
       } else {
         currentConfigsList = [];
-        if (configsModalCount) configsModalCount.innerText = '0 کانفیگ';
-        const msg = resData?.message || res?.message || resData?.error || res?.error || 'کانفیگی در پنل رمنانو یافت نشد.';
+        if (configsModalCount) configsModalCount.innerText = _appTr('0 کانفیگ', '0 configs');
+        const msg = resData?.message || res?.message || resData?.error || res?.error || _appTr('کانفیگی در پنل رمنانو یافت نشد.', 'No configs found in panel.');
         configsModalList.innerHTML = `
           <div class="text-center py-6 t-muted text-xs space-y-2">
             <img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-8 h-8 mx-auto" width="32" height="32" alt="" />
@@ -522,7 +555,7 @@ function setupConfigsModal() {
             <div class="pt-2 flex items-center justify-center gap-2">
               <button type="button" id="retryConfigsBtn" class="px-3 py-1.5 rounded-xl s-accent-soft border text-[11px] font-bold transition active:scale-95 inline-flex items-center gap-1.5">
                 <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
-                <span>تلاش مجدد</span>
+                <span>${_appTr('تلاش مجدد', 'Retry')}</span>
               </button>
             </div>
           </div>
@@ -533,11 +566,11 @@ function setupConfigsModal() {
       configsModalList.innerHTML = `
         <div class="text-center py-6 t-danger text-xs space-y-2">
           <img src="/static/img/icons/cross.svg?v=fl2" class="ui-icon-img w-8 h-8 mx-auto" width="32" height="32" alt="" />
-          <div class="leading-relaxed">خطا در دریافت کانفیگ‌ها: ${escapeHtml(e?.message || 'ارتباط با سرور برقرار نشد')}</div>
+          <div class="leading-relaxed">${_appTr('خطا در دریافت کانفیگ‌ها:', 'Error loading configs:')} ${escapeHtml(e?.message || _appTr('ارتباط با سرور برقرار نشد', 'Could not reach server'))}</div>
           <div class="pt-2 flex items-center justify-center gap-2">
             <button type="button" id="retryConfigsBtnErr" class="px-3 py-1.5 rounded-xl s-accent-soft border text-[11px] font-bold transition active:scale-95 inline-flex items-center gap-1.5">
               <img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
-              <span>تلاش مجدد</span>
+              <span>${_appTr('تلاش مجدد', 'Retry')}</span>
             </button>
           </div>
         </div>
@@ -566,12 +599,18 @@ function setupConfigsModal() {
 
   copyAllConfigsBtn?.addEventListener('click', () => {
     if (!currentConfigsList || currentConfigsList.length === 0) {
-      showToast('⚠️ کانفیگی برای کپی یافت نشد.');
+      showToast(_appTr('⚠️ کانفیگی برای کپی یافت نشد.', '⚠️ No configs available to copy.'));
       return;
     }
     const allUris = currentConfigsList.map(c => c.uri).filter(Boolean).join('\n');
     if (allUris) {
-      copyToClipboard(allUris, `📋 مجموع ${currentConfigsList.length} کانفیگ با موفقیت در کلیپ‌بورد کپی شد.`);
+      copyToClipboard(
+        allUris,
+        _appTr(
+          `📋 مجموع ${currentConfigsList.length} کانفیگ با موفقیت در کلیپ‌بورد کپی شد.`,
+          `📋 All ${currentConfigsList.length} configs copied to clipboard.`
+        )
+      );
       hapticFeedback('success');
     }
   });
@@ -593,7 +632,11 @@ function setupRevokeAndKill() {
     if (!accObj && accounts.length > 0) accObj = accounts[0];
     if (targetEl) {
       if (accObj) {
-        targetEl.innerText = `اکانت هدف: ${accObj.username || accObj.id}`;
+        if (_appIsEn()) {
+          targetEl.innerText = `Target Account: ${accObj.username || accObj.id}`;
+        } else {
+          targetEl.innerText = `اکانت هدف: ${accObj.username || accObj.id}`;
+        }
         targetEl.classList.remove('hidden');
       } else {
         targetEl.classList.add('hidden');
@@ -608,22 +651,22 @@ function setupRevokeAndKill() {
 
   confirmRevokeBtn?.addEventListener('click', async () => {
     confirmRevokeBtn.disabled = true;
-    confirmRevokeBtn.innerText = 'در حال صدور لینک جدید...';
+    confirmRevokeBtn.innerText = _appTr('در حال صدور لینک جدید...', 'Issuing new link...');
     try {
       const res = await window.api.revokeSub(window.currentAccountId);
       if (res.ok && res.subscription_url) {
         if (subInput) subInput.value = res.subscription_url;
         closeModal('revokeModal');
-        showToast('🎉 لینک اشتراک قبلی ابطال و لینک جدید با موفقیت صادر شد.');
+        showToast(_appTr('🎉 لینک اشتراک قبلی ابطال و لینک جدید با موفقیت صادر شد.', '🎉 Previous link revoked and a new link has been issued.'));
         syncUserDataWithApi();
       } else {
-        showToast(res.error || 'خطا در تغییر لینک اشتراک.', 'error');
+        showToast(res.error || _appTr('خطا در تغییر لینک اشتراک.', 'Error changing subscription link.'), 'error');
       }
     } catch (err) {
-      showToast('خطا در برقراری ارتباط با سرور.', 'error');
+      showToast(_appTr('خطا در برقراری ارتباط با سرور.', 'Server connection error.'), 'error');
     } finally {
       confirmRevokeBtn.disabled = false;
-      confirmRevokeBtn.innerText = '✅ بله، لینک جدید صادر کن';
+      confirmRevokeBtn.innerText = _appTr('✅ بله، لینک جدید صادر کن', '✅ Yes, Issue New Link');
       closeModal('revokeModal');
     }
   });
@@ -636,8 +679,8 @@ function setupRevokeAndKill() {
 // 7. 1-Click Client Importers & Tutorial Guide System
 const getSubUrl = () => {
   const url = (window.lastUserData?.active_sub?.subscription_url || $('subInput')?.value || '').trim();
-  if (!url || url.includes('در حال') || url.includes('یافت نشد')) {
-    showToast('⚠️ اشتراک فعالی برای اتصال یافت نشد.');
+  if (_isUnsetSubPlaceholder(url)) {
+    showToast(_appTr('⚠️ اشتراک فعالی برای اتصال یافت نشد.', '⚠️ No active subscription found to connect.'));
     return null;
   }
   return url;
@@ -665,7 +708,7 @@ const copyAndLaunch = (makeUri, appName) => {
     } catch (e2) {}
   }
 
-  showToast(`🚀 در حال انتقال به ${appName} (لینک در کلیپ‌بورد کپی شد)`);
+  showToast(_appTr(`🚀 در حال انتقال به ${appName} (لینک در کلیپ‌بورد کپی شد)`, `🚀 Opening ${appName} (subscription link copied)`));
 };
 
 function setupClientImporters() {
@@ -1184,26 +1227,27 @@ const DL_ICON_DIRECT = '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="cu
 const DL_ICON_PORTABLE = '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>';
 const DL_ICON_GITHUB = '<svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>';
 
-function getDownloadButtonInfo(url, defaultLabel = 'دانلود مستقیم', defaultIcon = DL_ICON_DIRECT) {
-  if (!url) return { label: defaultLabel, icon: defaultIcon };
+function getDownloadButtonInfo(url, defaultLabel, defaultIcon = DL_ICON_DIRECT) {
+  const fallbackLbl = defaultLabel || _appTr('دانلود مستقیم', 'Direct Download');
+  if (!url) return { label: fallbackLbl, icon: defaultIcon };
   const lower = url.toLowerCase();
   const cleanPath = lower.split(/[?#]/)[0];
   if (lower.includes('play.google.com') || lower.includes('market://') || lower.includes('google.com/store')) {
-    return { label: 'گوگل‌پلی', icon: DL_ICON_PLAYSTORE };
+    return { label: _appTr('گوگل‌پلی', 'Google Play'), icon: DL_ICON_PLAYSTORE };
   }
   if (lower.includes('apps.apple.com') || lower.includes('itunes.apple.com')) {
-    return { label: 'اپ‌استور', icon: DL_ICON_APPSTORE };
+    return { label: _appTr('اپ‌استور', 'App Store'), icon: DL_ICON_APPSTORE };
   }
   if (
     lower.includes('/releases/download/') ||
     /\.(apk|exe|msi|dmg|pkg|appimage|deb|rpm|zip|7z|tar\.gz|tar\.xz)$/.test(cleanPath)
   ) {
-    return { label: 'دانلود مستقیم', icon: DL_ICON_DIRECT };
+    return { label: _appTr('دانلود مستقیم', 'Direct Download'), icon: DL_ICON_DIRECT };
   }
   if (lower.includes('github.com')) {
-    return { label: 'گیت‌هاب', icon: DL_ICON_GITHUB };
+    return { label: _appTr('گیت‌هاب', 'GitHub'), icon: DL_ICON_GITHUB };
   }
-  return { label: defaultLabel, icon: defaultIcon };
+  return { label: fallbackLbl, icon: defaultIcon };
 }
 
 const DEFAULT_TV_DNS_LIST = [
@@ -1262,6 +1306,7 @@ const PREREQUISITES_DATA = [
         version: '2026-10-14',
         arch: 'x86 / x64',
         desc: 'مجموعه جامع تمامی ران‌تایم‌های ویژوال سی‌پلاس‌پلاس (2005 تا 2026) جهت اجرای بدون خطای تمامی کلاینت‌ها و رفع ارورهای DLL',
+        descEn: 'Complete bundle of Microsoft Visual C++ runtimes (2005–2026) to fix DLL errors and run desktop VPN clients smoothly.',
         url: 'https://dl2.soft98.ir/soft/m/Microsoft.Visual.C.All.Package.2026-10-14.rar'
       }
     ]
@@ -1276,6 +1321,7 @@ const PREREQUISITES_DATA = [
         version: '10.0.14',
         arch: 'x64',
         desc: 'جدیدترین نسخه ران‌تایم دسکتاپ دات‌نت 10 مایکروسافت ویژه کلاینت‌ها و هسته‌های نسل جدید',
+        descEn: 'Latest Microsoft .NET 10 Desktop Runtime required for next-generation clients and cores.',
         url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.10.0.14.x64.rar'
       },
       {
@@ -1284,6 +1330,7 @@ const PREREQUISITES_DATA = [
         version: '9.0.22',
         arch: 'x64',
         desc: 'نسخه مدرن ران‌تایم دسکتاپ دات‌نت 9 مایکروسافت جهت پایداری ابزارهای شبکه',
+        descEn: 'Microsoft .NET 9 Desktop Runtime for modern Windows networking tools and stability.',
         url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.9.0.22.x64.rar'
       },
       {
@@ -1292,6 +1339,7 @@ const PREREQUISITES_DATA = [
         version: '8.0.33',
         arch: 'x64',
         desc: 'حیاتی‌ترین پیش‌نیاز موردنیاز برای v2rayN نسخه 7، کلاینت‌های sing-box و هسته‌های اصلی ویندوز',
+        descEn: 'Essential prerequisite for v2rayN v7+, sing-box clients, and core Windows builds.',
         url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.8.0.33.x64.rar'
       },
       {
@@ -1300,6 +1348,7 @@ const PREREQUISITES_DATA = [
         version: '6.0.10',
         arch: 'x64',
         desc: 'ران‌تایم پایدار (LTS) مایکروسافت جهت اجرای بدون خطای نرم‌افزارهای شبکه و کلاینت‌های دسکتاپ ویندوز',
+        descEn: 'Stable Microsoft .NET 6 LTS Desktop Runtime for Windows desktop VPN apps.',
         url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.6.0.10.rar'
       },
       {
@@ -1308,6 +1357,7 @@ const PREREQUISITES_DATA = [
         version: '5.0.11',
         arch: 'x64',
         desc: 'نسخه ران‌تایم دات‌نت 5 دسکتاپ برای ابزارها و کلاینت‌های کلاسیک',
+        descEn: '.NET 5 Desktop Runtime for legacy tools and classic Windows clients.',
         url: 'https://dl2.soft98.ir/soft/n/NET.Desktop.Runtime.5.0.11.rar?1777793025'
       }
     ]
@@ -1322,6 +1372,7 @@ const PREREQUISITES_DATA = [
         version: 'Evergreen',
         arch: 'x86 / x64',
         desc: 'پیش‌نیاز حیاتی باز شدن رابط گرافیکی کلاینت‌های مدرن ویندوز (مانند Hiddify، Karing و FlClash)',
+        descEn: 'Required UI runtime for rendering modern Windows client interfaces like Hiddify, Karing, and FlClash.',
         url: 'https://go.microsoft.com/fwlink/p/?LinkId=2124703'
       },
       {
@@ -1330,6 +1381,7 @@ const PREREQUISITES_DATA = [
         version: 'June 2010',
         arch: 'All Windows',
         desc: 'بسته‌های گرافیکی و سیستمی DirectX جهت رفع کامل ارورهای راه‌اندازی در انواع ویندوز',
+        descEn: 'DirectX End-User runtime libraries to resolve graphics and startup errors on Windows.',
         url: 'https://download.microsoft.com/download/1/7/1/1718CCC4-6316-4480-95AA-914D0E342C3D/directx_Jun2010_redist.exe'
       }
     ]
@@ -1342,7 +1394,9 @@ const DEFAULT_DNS_CHANGER_TOOLS = [
     name: 'DNS Jumper',
     version: '2.3',
     platform: 'ویندوز (پرتابل)',
+    platformEn: 'Windows (Portable)',
     desc: 'محبوب‌ترین و سبک‌ترین ابزار تغییر سریع DNS در ویندوز بدون نیاز به نصب و کاملاً رایگان',
+    descEn: 'Lightweight, portable free Windows utility to benchmark and switch DNS servers in one click.',
     icon: 'desktop',
     url: 'https://www.sordum.org/files/download/dns-jumper/dnsjumper.zip'
   },
@@ -1351,7 +1405,9 @@ const DEFAULT_DNS_CHANGER_TOOLS = [
     name: 'YogaDNS',
     version: '1.43',
     platform: 'ویندوز (DoH/DoT)',
+    platformEn: 'Windows (DoH/DoT)',
     desc: 'کلاینت پیشرفته DNS برای ویندوز با پشتیبانی از پروتکل‌های امن DoH، DoT و قوانین ترافیک',
+    descEn: 'Advanced Windows DNS client supporting encrypted DoH/DoT resolvers and custom routing rules.',
     icon: 'desktop',
     url: 'https://yogadns.com/download/'
   },
@@ -1360,7 +1416,9 @@ const DEFAULT_DNS_CHANGER_TOOLS = [
     name: 'Intra',
     version: 'Google Jigsaw',
     platform: 'اندروید',
+    platformEn: 'Android',
     desc: 'برنامه رسمی شرکت گوگل/Jigsaw جهت اتصال مستقیم به DNSهای رمزنگاری‌شده (DNS over HTTPS)',
+    descEn: 'Official Google/Jigsaw app for Android that encrypts DNS queries using DNS-over-HTTPS.',
     icon: 'phone',
     url: 'https://play.google.com/store/apps/details?id=app.intra'
   },
@@ -1369,7 +1427,9 @@ const DEFAULT_DNS_CHANGER_TOOLS = [
     name: 'DNS Changer (Lilly)',
     version: 'Android',
     platform: 'اندروید (بدون روت)',
+    platformEn: 'Android (No Root)',
     desc: 'نرم‌افزار سبک و بسیار محبوب تغییر و تنظیم انواع سرورهای DNS در اندروید بدون نیاز به روت',
+    descEn: 'Popular, lightweight Android app for switching Wi-Fi and mobile data DNS without root.',
     icon: 'phone',
     url: 'https://play.google.com/store/apps/details?id=com.frostnerd.dnschanger'
   }
@@ -1421,13 +1481,15 @@ function renderTutorialApps(osKey) {
 
   // Dedicated Prerequisites Tab Rendering
   if (currentTutorialOS === 'prerequisites') {
+    const isEn = _appIsEn();
     listContainer.innerHTML = PREREQUISITES_DATA.map(group => `
       <div class="space-y-2">
         <div class="flex items-center gap-1.5 px-1 pt-1">
           <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
           <b class="text-xs t-main font-bold">
-            <span>${escapeHtml(group.titleFa)}</span>
-            <span dir="ltr" class="inline-block text-[11px] t-muted font-sans font-medium">(${escapeHtml(group.titleEn)})</span>
+            ${isEn
+              ? `<span>${escapeHtml(group.titleEn)}</span>`
+              : `<span>${escapeHtml(group.titleFa)}</span> <span dir="ltr" class="inline-block text-[11px] t-muted font-sans font-medium">(${escapeHtml(group.titleEn)})</span>`}
           </b>
         </div>
         <div class="space-y-2">
@@ -1435,6 +1497,7 @@ function renderTutorialApps(osKey) {
             const itemCfg = overrides?.prerequisites?.[item.id];
             const itemUrl = itemCfg?.download_url?.trim() || item.url;
             const itemVer = itemCfg?.version?.trim() || item.version;
+            const itemDesc = isEn ? (item.descEn || item.desc) : item.desc;
             return `
             <div class="tutorial-app-card rounded-2xl p-2.5 card-inset border border-card-border space-y-2 transition" dir="ltr">
               <div class="flex items-center justify-between gap-2">
@@ -1450,11 +1513,11 @@ function renderTutorialApps(osKey) {
                     </div>
                   </div>
                 </div>
-                <button type="button" class="btn-download-prereq shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(itemUrl)}" title="دانلود">
-                  <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 brightness-0 invert" width="16" height="16" alt="دانلود" />
+                <button type="button" class="btn-download-prereq shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(itemUrl)}" title="${_appTr('دانلود', 'Download')}">
+                  <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 brightness-0 invert" width="16" height="16" alt="${_appTr('دانلود', 'Download')}" />
                 </button>
               </div>
-              <p class="text-[11px] t-muted leading-relaxed text-right font-medium" dir="rtl">${escapeHtml(item.desc)}</p>
+              <p class="text-[11px] t-muted leading-relaxed ${isEn ? 'text-left' : 'text-right'} font-medium" dir="${isEn ? 'ltr' : 'rtl'}">${escapeHtml(itemDesc)}</p>
             </div>
             `;
           }).join('')}
@@ -1603,7 +1666,7 @@ function renderTutorialApps(osKey) {
               </div>
             </div>
             ${hasPrimary ? `
-            <button type="button" class="btn-copy-dns-pair p-2 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 transition active:scale-95 shadow-sm" data-primary="${escapeHtml(dns.primary || '')}" data-secondary="${escapeHtml(dns.secondary || '')}" title="کپی هر دو DNS">
+            <button type="button" class="btn-copy-dns-pair p-2 rounded-xl card-inset border border-card-border hover:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 transition active:scale-95 shadow-sm" data-primary="${escapeHtml(dns.primary || '')}" data-secondary="${escapeHtml(dns.secondary || '')}" title="${_appTr('کپی هر دو DNS', 'Copy Both DNS')}">
               <img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="Copy Both" />
             </button>
             ` : ''}
@@ -1642,12 +1705,13 @@ function renderTutorialApps(osKey) {
       `;
     }).join('');
 
+    const isEn = _appIsEn();
     const dnsFilterTabsHtml = `
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scroll" dir="rtl">
-        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('all')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'all' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">همه (${totalCount})</button>
-        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('antisanction')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'antisanction' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">ضدتحریم 🇮🇷 (${iranCount})</button>
-        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('global')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'global' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">بین‌المللی 🌐 (${globalCount})</button>
-        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('family')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'family' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">خانواده 👨‍👩‍👧 (${familyCount})</button>
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scroll" dir="${isEn ? 'ltr' : 'rtl'}">
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('all')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'all' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">${_appTr('همه', 'All')} (${totalCount})</button>
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('antisanction')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'antisanction' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">${_appTr('ضدتحریم', 'Anti-Sanction')} 🇮🇷 (${iranCount})</button>
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('global')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'global' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">${_appTr('بین‌المللی', 'Global')} 🌐 (${globalCount})</button>
+        <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('family')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'family' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">${_appTr('خانواده', 'Family')} 👨‍👩‍👧 (${familyCount})</button>
         <button type="button" onclick="window.setDnsCategory && window.setDnsCategory('secure')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition active:scale-95 whitespace-nowrap ${_currentDnsCategory === 'secure' ? 'bg-cyan-600 text-white shadow-xs' : 'card-inset t-muted hover:t-main border border-card-border'}">DoH / DoT 🔒 (${secureCount})</button>
       </div>
     `;
@@ -1656,6 +1720,8 @@ function renderTutorialApps(osKey) {
       const toolCfg = overrides?.dns_tools?.[tool.id];
       const toolUrl = toolCfg?.download_url?.trim() || tool.url;
       const toolVer = toolCfg?.version?.trim() || tool.version;
+      const toolPlat = isEn ? (tool.platformEn || tool.platform) : tool.platform;
+      const toolDesc = isEn ? (tool.descEn || tool.desc) : tool.desc;
       return `
       <div class="tutorial-app-card rounded-2xl p-2.5 card-inset border border-card-border space-y-2 transition" dir="ltr">
         <div class="flex items-center justify-between gap-2">
@@ -1667,15 +1733,15 @@ function renderTutorialApps(osKey) {
               <div class="flex items-center gap-1.5 flex-wrap">
                 <b class="text-xs t-main font-bold font-sans truncate" dir="ltr">${escapeHtml(tool.name)}</b>
                 <span class="text-[10px] px-1.5 py-0.5 rounded-md s-accent-soft border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-mono font-bold">${escapeHtml(toolVer)}</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans font-bold" dir="rtl">${escapeHtml(tool.platform)}</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded-md card-inset border border-card-border t-muted font-sans font-bold" dir="${isEn ? 'ltr' : 'rtl'}">${escapeHtml(toolPlat)}</span>
               </div>
             </div>
           </div>
-          <button type="button" class="btn-download-dnstool shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(toolUrl)}" title="دریافت نرم‌افزار">
-            <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 brightness-0 invert" width="16" height="16" alt="دانلود" />
+          <button type="button" class="btn-download-dnstool shrink-0 w-8 h-8 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center active:scale-95 shadow-sm" data-url="${escapeHtml(toolUrl)}" title="${_appTr('دریافت نرم‌افزار', 'Download Tool')}">
+            <img src="/static/img/icons/download.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 brightness-0 invert" width="16" height="16" alt="${_appTr('دانلود', 'Download')}" />
           </button>
         </div>
-        <p class="text-[11px] t-muted leading-relaxed text-right font-medium" dir="rtl">${escapeHtml(tool.desc)}</p>
+        <p class="text-[11px] t-muted leading-relaxed ${isEn ? 'text-left' : 'text-right'} font-medium" dir="${isEn ? 'ltr' : 'rtl'}">${escapeHtml(toolDesc)}</p>
       </div>
     `;
     }).join('');
@@ -1685,19 +1751,19 @@ function renderTutorialApps(osKey) {
         <div class="flex items-center justify-between px-1 pt-1">
           <div class="flex items-center gap-1.5">
             <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
-            <b class="text-xs t-main font-bold">آدرس سرورهای DNS</b>
+            <b class="text-xs t-main font-bold">${_appTr('آدرس سرورهای DNS', 'DNS Server Addresses')}</b>
           </div>
         </div>
         ${dnsFilterTabsHtml}
         <div class="space-y-2">
-          ${dnsCardsHtml || '<div class="card-inset p-4 rounded-2xl text-center text-xs t-muted">هیچ سرور DNS در این دسته‌بندی یافت نشد.</div>'}
+          ${dnsCardsHtml || `<div class="card-inset p-4 rounded-2xl text-center text-xs t-muted">${_appTr('هیچ سرور DNS در این دسته‌بندی یافت نشد.', 'No DNS servers found in this category.')}</div>`}
         </div>
       </div>
 
       <div class="space-y-2 pt-2 border-t border-card-border mt-3">
         <div class="flex items-center gap-1.5 px-1 pt-1">
           <span class="w-1.5 h-3.5 rounded-full bg-cyan-500 shrink-0"></span>
-          <b class="text-xs t-main font-bold">نرم‌افزارهای پیشنهادی تنظیم DNS</b>
+          <b class="text-xs t-main font-bold">${_appTr('نرم‌افزارهای پیشنهادی تنظیم DNS', 'Recommended DNS Switcher Tools')}</b>
         </div>
         <div class="space-y-2">
           ${dnsToolsHtml}
@@ -1709,7 +1775,7 @@ function renderTutorialApps(osKey) {
       btn.addEventListener('click', () => {
         const ip = btn.getAttribute('data-ip');
         if (ip && ip !== '-') {
-          copyToClipboard(ip, `آدرس DNS (${ip}) با موفقیت کپی شد.`, 'success');
+          copyToClipboard(ip, _appTr(`آدرس DNS (${ip}) با موفقیت کپی شد.`, `DNS address (${ip}) copied.`), 'success');
           hapticFeedback('success');
         }
       });
@@ -1721,7 +1787,7 @@ function renderTutorialApps(osKey) {
         const s = btn.getAttribute('data-secondary');
         if (p || s) {
           const text = [p, s].filter(Boolean).join('\n');
-          copyToClipboard(text, 'هر دو آدرس DNS با موفقیت کپی شدند.', 'success');
+          copyToClipboard(text, _appTr('هر دو آدرس DNS با موفقیت کپی شدند.', 'Both DNS addresses copied.'), 'success');
           hapticFeedback('success');
         }
       });
@@ -1813,9 +1879,9 @@ function renderTutorialApps(osKey) {
         <div class="w-12 h-12 rounded-2xl card-inset mx-auto flex items-center justify-center text-2xl">
           📱
         </div>
-        <b class="text-xs t-main block">برنامه‌ای برای نمایش یافت نشد</b>
+        <b class="text-xs t-main block">${_appTr('برنامه‌ای برای نمایش یافت نشد', 'No apps available')}</b>
         <p class="text-[11px] t-muted max-w-[260px] mx-auto leading-relaxed">
-          هنوز لینک دانلودی برای برنامه‌های این سیستم‌عامل ثبت نشده است. لطفاً از طریق پشتیبانی پیگیری فرمایید.
+          ${_appTr('هنوز لینک دانلودی برای برنامه‌های این سیستم‌عامل ثبت نشده است. لطفاً از طریق پشتیبانی پیگیری فرمایید.', 'No download links are configured for this platform yet. Please contact support.')}
         </p>
       </div>
     `;
@@ -1827,18 +1893,18 @@ function renderTutorialApps(osKey) {
     const addedUrls = new Set();
 
     if (app.downloadUrl && !addedUrls.has(app.downloadUrl)) {
-      const d = getDownloadButtonInfo(app.downloadUrl, 'دانلود مستقیم', DL_ICON_DIRECT);
+      const d = getDownloadButtonInfo(app.downloadUrl, _appTr('دانلود مستقیم', 'Direct Download'), DL_ICON_DIRECT);
       dlButtons.push({ url: app.downloadUrl, label: d.label, icon: d.icon });
       addedUrls.add(app.downloadUrl);
     }
     if (app.downloadPortableUrl && !addedUrls.has(app.downloadPortableUrl)) {
-      dlButtons.push({ url: app.downloadPortableUrl, label: 'نسخه Portable', icon: DL_ICON_PORTABLE });
+      dlButtons.push({ url: app.downloadPortableUrl, label: _appTr('نسخه Portable', 'Portable'), icon: DL_ICON_PORTABLE });
       addedUrls.add(app.downloadPortableUrl);
     }
     if (app.downloadExtraUrl && !addedUrls.has(app.downloadExtraUrl)) {
-      let d = getDownloadButtonInfo(app.downloadExtraUrl, 'دانلود مستقیم', DL_ICON_DIRECT);
+      let d = getDownloadButtonInfo(app.downloadExtraUrl, _appTr('دانلود مستقیم', 'Direct Download'), DL_ICON_DIRECT);
       if (dlButtons.length > 0 && dlButtons[0].label === d.label) {
-        d = { label: 'لینک کمکی', icon: d.icon };
+        d = { label: _appTr('لینک کمکی', 'Mirror Link'), icon: d.icon };
       }
       dlButtons.push({ url: app.downloadExtraUrl, label: d.label, icon: d.icon });
       addedUrls.add(app.downloadExtraUrl);
@@ -1846,7 +1912,7 @@ function renderTutorialApps(osKey) {
 
     const tutorialBtnHtml = app.tutorialUrl ? `
       <button type="button" class="btn-tutorial-app s-info-soft border text-[11px] font-bold py-1 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-url="${escapeHtml(app.tutorialUrl)}">
-        <span>📖</span> آموزش
+        <span>📖</span> ${_appTr('آموزش', 'Guide')}
       </button>
     ` : '';
 
@@ -1860,7 +1926,7 @@ function renderTutorialApps(osKey) {
             <span>${d.icon}</span> <span class="truncate">${d.label}</span>
           </button>
           <button type="button" class="btn-autoconnect-app text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-            <span>⚡️</span> اتصال خودکار
+            <span>⚡️</span> ${_appTr('اتصال خودکار', 'Auto Connect')}
           </button>
         </div>
       `;
@@ -1877,7 +1943,7 @@ function renderTutorialApps(osKey) {
           </div>
           <div>
             <button type="button" class="btn-autoconnect-app w-full text-xs font-bold py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm" data-id="${app.id}" data-name="${escapeHtml(app.name)}">
-              <span>⚡️</span> اتصال خودکار
+              <span>⚡️</span> ${_appTr('اتصال خودکار', 'Auto Connect')}
             </button>
           </div>
         </div>
@@ -1915,9 +1981,9 @@ function renderTutorialApps(osKey) {
           </div>
           <!-- Right side: Recommended/Alternative/Third badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            ${app.isRecommended ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="پیشنهادی">🥇</span>' : ''}
-            ${app.isAlternative ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="جایگزین">🥈</span>' : ''}
-            ${app.isThird ? '<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="رتبه سوم">🥉</span>' : ''}
+            ${app.isRecommended ? `<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('پیشنهادی', 'Recommended')}">🥇</span>` : ''}
+            ${app.isAlternative ? `<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('جایگزین', 'Alternative')}">🥈</span>` : ''}
+            ${app.isThird ? `<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('رتبه سوم', '3rd Choice')}">🥉</span>` : ''}
             ${tutorialBtnHtml}
           </div>
         </div>
@@ -1972,7 +2038,13 @@ function renderTutorialApps(osKey) {
       if (appDef && appDef.scheme) {
         copyAndLaunch(appDef.scheme, appName || appDef.name);
       } else {
-        copyToClipboard(url, `📋 لینک اشتراک کپی شد. لطفاً آن را داخل نرم‌افزار ${appName || ''} وارد کنید.`);
+        copyToClipboard(
+          url,
+          _appTr(
+            `📋 لینک اشتراک کپی شد. لطفاً آن را داخل نرم‌افزار ${appName || ''} وارد کنید.`,
+            `📋 Subscription link copied. Please import it into ${appName || 'your app'}.`
+          )
+        );
         hapticFeedback('success');
       }
     });
@@ -2084,12 +2156,12 @@ function verifyPhoneNative() {
       tg.requestContact((granted) => {
         if (granted) {
           console.info('[PhoneAuth] Contact permission granted by user.');
-          showToast('✅ شماره تماس با موفقیت ثبت شد. در حال به‌روزرسانی...');
+          showToast(_appTr('✅ شماره تماس با موفقیت ثبت شد. در حال به‌روزرسانی...', '✅ Phone number verified. Refreshing...'));
           hapticFeedback('success');
           _schedulePhoneVerifySync(0);
         } else {
           console.warn('[PhoneAuth] User declined or cancelled contact sharing.');
-          showToast('اشتراک‌گذاری شماره تماس لغو گردید.');
+          showToast(_appTr('اشتراک‌گذاری شماره تماس لغو گردید.', 'Contact sharing cancelled.'));
         }
       });
       return;
@@ -2103,7 +2175,7 @@ function verifyPhoneNative() {
   // Graceful fallback for desktop browser dev/preview or clients without requestContact support
   const botUsername = window.lastUserData?.bot_username || '';
   if (!botUsername) {
-    showToast('نام کاربری ربات در دسترس نیست.');
+    showToast(_appTr('نام کاربری ربات در دسترس نیست.', 'Bot username is unavailable.'));
     return;
   }
   const verifyLink = `https://t.me/${botUsername}?start=verify_phone`;
@@ -2120,6 +2192,7 @@ function verifyPhoneNative() {
 window.verifyPhoneNative = verifyPhoneNative;
 
 const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+const JALALI_MONTHS_EN = ['Farvardin', 'Ordibehesht', 'Khordad', 'Tir', 'Mordad', 'Shahrivar', 'Mehr', 'Aban', 'Azar', 'Dey', 'Bahman', 'Esfand'];
 
 let currentBdayTab = 'day';
 
@@ -2253,17 +2326,23 @@ function initBirthdaySelects() {
     }
   }
 
-  if (monthGrid && monthGrid.children.length === 0) {
-    JALALI_MONTHS.forEach((mName, idx) => {
-      const mVal = idx + 1;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.setAttribute('data-val', mVal);
-      btn.className = 'bday-grid-btn py-2 px-1 text-center text-xs t-main card-inset hover:t-accent border border-card-border rounded-xl transition font-medium active:scale-95';
-      btn.textContent = mName;
-      btn.onclick = () => selectBdayItem('month', mVal, mName, false);
-      monthGrid.appendChild(btn);
-    });
+  if (monthGrid) {
+    const langKey = _appIsEn() ? 'en' : 'fa';
+    if (monthGrid.dataset.lang !== langKey || monthGrid.children.length === 0) {
+      monthGrid.innerHTML = '';
+      monthGrid.dataset.lang = langKey;
+      const monthNames = _appIsEn() ? JALALI_MONTHS_EN : JALALI_MONTHS;
+      monthNames.forEach((mName, idx) => {
+        const mVal = idx + 1;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('data-val', mVal);
+        btn.className = 'bday-grid-btn py-2 px-1 text-center text-xs t-main card-inset hover:t-accent border border-card-border rounded-xl transition font-medium active:scale-95';
+        btn.textContent = mName;
+        btn.onclick = () => selectBdayItem('month', mVal, mName, false);
+        monthGrid.appendChild(btn);
+      });
+    }
   }
 
   if (yearGrid && yearGrid.children.length === 0) {
@@ -2285,13 +2364,13 @@ function openBirthdayModal() {
     if (typeof window.openBirthdayCountdownModal === 'function') {
       window.openBirthdayCountdownModal();
     } else {
-      showToast('تاریخ تولد شما قبلاً ثبت شده و قابل تغییر نیست.');
+      showToast(_appTr('تاریخ تولد شما قبلاً ثبت شده و قابل تغییر نیست.', 'Your birth date is already saved and cannot be changed.'));
     }
     return;
   }
   initBirthdaySelects();
   selectBdayItem('year', 1375, '1375', false);
-  selectBdayItem('month', 1, 'فروردین', false);
+  selectBdayItem('month', 1, _appTr('فروردین', 'Farvardin'), false);
   selectBdayItem('day', 1, '1', false);
   updateBdayDaysGrid();
   switchBdayPickerTab('day');
@@ -2312,23 +2391,33 @@ function openAlertPickerModal(type) {
   const iconBox = $('alertThresholdIconBox');
   const listEl = $('alertThresholdOptionsList');
   if (!modal || !listEl) return;
+  const isEn = _appIsEn();
 
   if (type === 'traffic') {
-    if (titleEl) titleEl.innerText = 'تنظیم درصد هشدار مصرف ترافیک';
-    if (subEl) subEl.innerText = 'هنگامی که مصرف بسته به این درصد برسد، ربات پیام هشدار ارسال می‌کند.';
+    if (titleEl) titleEl.innerText = _appTr('تنظیم درصد هشدار مصرف ترافیک', 'Data Usage Alert Threshold');
+    if (subEl) subEl.innerText = _appTr('هنگامی که مصرف بسته به این درصد برسد، ربات پیام هشدار ارسال می‌کند.', 'Receive a bot alert when your data usage reaches this percentage.');
     if (iconBox) {
       iconBox.className = 'w-10 h-10 rounded-2xl bg-cyan-500/20 t-accent border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0';
       iconBox.innerHTML = '<img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />';
     }
     const currentVal = parseInt($('settingTrafficPercentSelect')?.value || '80', 10);
-    const options = [
-      { val: 70, label: '70% — هشدار زودهنگام', desc: 'ارسال هشدار هنگام مصرف 70% حجم بسته' },
-      { val: 75, label: '75% — سه‌چهارم حجم', desc: 'ارسال هشدار هنگام مصرف سه‌چهارم ترافیک' },
-      { val: 80, label: '80% — حد استاندارد (پیشنهادی ⭐)', desc: 'بهترین تعادل برای خرید یا تمدید به‌موقع' },
-      { val: 85, label: '85% — مصرف بالا', desc: 'ارسال هشدار در آستانه اتمام حجم' },
-      { val: 90, label: '90% — نزدیک به پایان کامل', desc: 'هشدار فوری هنگام باقی‌ماندن 10% حجم' },
-      { val: 95, label: '95% — هشدار اضطراری', desc: 'آخرین فرصت پیش از قطع دسترسی اینترنت' },
-    ];
+    const options = isEn
+      ? [
+          { val: 70, label: '70% — Early Alert', desc: 'Send alert when 70% of data quota is used' },
+          { val: 75, label: '75% — Three-Quarters Used', desc: 'Send alert at 75% data consumption' },
+          { val: 80, label: '80% — Standard (Recommended ⭐)', desc: 'Best balance to renew or add data on time' },
+          { val: 85, label: '85% — High Usage', desc: 'Warn when approaching your traffic cap' },
+          { val: 90, label: '90% — Almost Exhausted', desc: 'Immediate warning when 10% data remains' },
+          { val: 95, label: '95% — Urgent Alert', desc: 'Last warning before service disconnects' },
+        ]
+      : [
+          { val: 70, label: '70% — هشدار زودهنگام', desc: 'ارسال هشدار هنگام مصرف 70% حجم بسته' },
+          { val: 75, label: '75% — سه‌چهارم حجم', desc: 'ارسال هشدار هنگام مصرف سه‌چهارم ترافیک' },
+          { val: 80, label: '80% — حد استاندارد (پیشنهادی ⭐)', desc: 'بهترین تعادل برای خرید یا تمدید به‌موقع' },
+          { val: 85, label: '85% — مصرف بالا', desc: 'ارسال هشدار در آستانه اتمام حجم' },
+          { val: 90, label: '90% — نزدیک به پایان کامل', desc: 'هشدار فوری هنگام باقی‌ماندن 10% حجم' },
+          { val: 95, label: '95% — هشدار اضطراری', desc: 'آخرین فرصت پیش از قطع دسترسی اینترنت' },
+        ];
     listEl.innerHTML = options.map(opt => `
       <div onclick="window.selectAlertSetting('traffic', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt s-accent-soft' : 'card-inset t-main hover:border-slate-500'}">
         <div>
@@ -2341,20 +2430,28 @@ function openAlertPickerModal(type) {
       </div>
     `).join('');
   } else if (type === 'expire') {
-    if (titleEl) titleEl.innerText = 'تنظیم زمان هشدار پایان اعتبار سرویس';
-    if (subEl) subEl.innerText = 'چند روز مانده به پایان مدت اشتراک پیام یادآوری تمدید ارسال شود؟';
+    if (titleEl) titleEl.innerText = _appTr('تنظیم زمان هشدار پایان اعتبار سرویس', 'Expiry Reminder Timing');
+    if (subEl) subEl.innerText = _appTr('چند روز مانده به پایان مدت اشتراک پیام یادآوری تمدید ارسال شود؟', 'How many days before expiration should the bot remind you?');
     if (iconBox) {
       iconBox.className = 'w-10 h-10 rounded-2xl s-warn-soft border flex items-center justify-center text-lg flex-shrink-0';
       iconBox.innerHTML = '<img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />';
     }
     const currentVal = parseInt($('settingExpireDaysSelect')?.value || '3', 10);
-    const options = [
-      { val: 1, label: '1 روز قبل از پایان', desc: 'ارسال پیام یادآوری در روز پایانی اعتبار' },
-      { val: 2, label: '2 روز قبل از پایان', desc: 'ارسال پیام دو روز مانده به انقضای اشتراک' },
-      { val: 3, label: '3 روز قبل از پایان (پیشنهادی ⭐)', desc: 'زمان استاندارد جهت جلوگیری از قطعی اتصال' },
-      { val: 5, label: '5 روز قبل از پایان', desc: 'اطلاع‌رسانی زودهنگام 5 روز مانده به انقضا' },
-      { val: 7, label: '7 روز قبل از پایان', desc: 'اطلاع‌رسانی یک هفته قبل از اتمام زمان سرویس' },
-    ];
+    const options = isEn
+      ? [
+          { val: 1, label: '1 day before expiry', desc: 'Send reminder on your final day of validity' },
+          { val: 2, label: '2 days before expiry', desc: 'Notify 2 days before subscription ends' },
+          { val: 3, label: '3 days before expiry (Recommended ⭐)', desc: 'Ideal timing to avoid any interruption' },
+          { val: 5, label: '5 days before expiry', desc: 'Early reminder 5 days before expiry' },
+          { val: 7, label: '7 days before expiry', desc: 'One week notice before plan expiration' },
+        ]
+      : [
+          { val: 1, label: '1 روز قبل از پایان', desc: 'ارسال پیام یادآوری در روز پایانی اعتبار' },
+          { val: 2, label: '2 روز قبل از پایان', desc: 'ارسال پیام دو روز مانده به انقضای اشتراک' },
+          { val: 3, label: '3 روز قبل از پایان (پیشنهادی ⭐)', desc: 'زمان استاندارد جهت جلوگیری از قطعی اتصال' },
+          { val: 5, label: '5 روز قبل از پایان', desc: 'اطلاع‌رسانی زودهنگام 5 روز مانده به انقضا' },
+          { val: 7, label: '7 روز قبل از پایان', desc: 'اطلاع‌رسانی یک هفته قبل از اتمام زمان سرویس' },
+        ];
     listEl.innerHTML = options.map(opt => `
       <div onclick="window.selectAlertSetting('expire', ${opt.val})" class="alert-picker-option cursor-pointer p-2.5 rounded-2xl border transition flex items-center justify-between ${opt.val === currentVal ? 'active-alert-opt s-warn-soft' : 'card-inset t-main hover:border-slate-500'}">
         <div>
@@ -2380,6 +2477,7 @@ window.closeAlertThresholdModal = closeAlertThresholdModal;
 
 async function selectAlertSetting(type, val) {
   closeAlertThresholdModal();
+  const isEn = _appIsEn();
 
   if (type === 'traffic') {
     const hiddenInp = $('settingTrafficPercentSelect');
@@ -2387,37 +2485,45 @@ async function selectAlertSetting(type, val) {
     const disp = $('trafficPercentDisplay');
     if (disp) disp.innerText = `${val}%`;
     const trafSub = $('settingTrafficSubtext');
-    if (trafSub) trafSub.innerText = `هشدار قبل از پایان ترافیک (${toEnglishDigits(val)}%)`;
+    if (trafSub) {
+      trafSub.innerText = isEn
+        ? `Alert before data limit (${toEnglishDigits(val)}%)`
+        : `هشدار قبل از پایان ترافیک (${toEnglishDigits(val)}%)`;
+    }
 
     try {
       const res = await window.api.saveSetting('traffic_percent', val);
       if (res && res.ok) {
-        showToast(`✅ درصد هشدار مصرف روی ${val}% تنظیم شد.`);
+        showToast(isEn ? `✅ Usage alert threshold set to ${val}%.` : `✅ درصد هشدار مصرف روی ${val}% تنظیم شد.`);
         hapticFeedback('success');
       } else {
-        showToast('❌ خطا در ذخیره تنظیمات');
+        showToast(_appTr('❌ خطا در ذخیره تنظیمات', '❌ Failed to save settings'));
       }
     } catch (e) {
-      showToast('خطا در برقراری ارتباط با سرور.');
+      showToast(_appTr('خطا در برقراری ارتباط با سرور.', 'Server connection error.'));
     }
   } else if (type === 'expire') {
     const hiddenInp = $('settingExpireDaysSelect');
     if (hiddenInp) hiddenInp.value = String(val);
     const disp = $('expireDaysDisplay');
-    if (disp) disp.innerText = `${val} روز`;
+    if (disp) disp.innerText = isEn ? `${val} days` : `${val} روز`;
     const expSub = $('settingExpireSubtext');
-    if (expSub) expSub.innerText = `اطلاع‌رسانی ${toEnglishDigits(val)} روز مانده به انقضا`;
+    if (expSub) {
+      expSub.innerText = isEn
+        ? `Notify ${toEnglishDigits(val)} day${Number(val) === 1 ? '' : 's'} before expiry`
+        : `اطلاع‌رسانی ${toEnglishDigits(val)} روز مانده به انقضا`;
+    }
 
     try {
       const res = await window.api.saveSetting('expire_days', val);
       if (res && res.ok) {
-        showToast(`✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
+        showToast(isEn ? `✅ Expiry alert set to ${val} day${Number(val) === 1 ? '' : 's'} before.` : `✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
         hapticFeedback('success');
       } else {
-        showToast('❌ خطا در ذخیره تنظیمات');
+        showToast(_appTr('❌ خطا در ذخیره تنظیمات', '❌ Failed to save settings'));
       }
     } catch (e) {
-      showToast('خطا در برقراری ارتباط با سرور.');
+      showToast(_appTr('خطا در برقراری ارتباط با سرور.', 'Server connection error.'));
     }
   }
 }
@@ -2432,14 +2538,14 @@ async function saveBirthday() {
   const saveBtn = $('saveBirthdayBtn');
   if (saveBtn) {
     saveBtn.disabled = true;
-    saveBtn.innerText = 'در حال ذخیره...';
+    saveBtn.innerText = _appTr('در حال ذخیره...', 'Saving...');
   }
 
   try {
     const res = await window.api.setBirthday(formattedDate);
     const isOk = res.ok && (res.data ? res.data.ok !== false : true);
     if (isOk) {
-      showToast('🎉 تاریخ زادروز شما با موفقیت ثبت گردید.');
+      showToast(_appTr('🎉 تاریخ زادروز شما با موفقیت ثبت گردید.', '🎉 Your birth date has been saved!'));
       hapticFeedback('success');
       closeBirthdayModal();
 
@@ -2458,16 +2564,16 @@ async function saveBirthday() {
         syncUserDataWithApi(window.currentAccountId);
       }
     } else {
-      const errMsg = res.data?.error || res.data?.message || 'خطا در ثبت تاریخ تولد';
+      const errMsg = res.data?.error || res.data?.message || _appTr('خطا در ثبت تاریخ تولد', 'Error saving birth date');
       showToast(`⚠️ ${errMsg}`);
       hapticFeedback('error');
     }
   } catch (err) {
-    showToast('خطای شبکه در ذخیره تاریخ زادروز');
+    showToast(_appTr('خطای شبکه در ذخیره تاریخ زادروز', 'Network error while saving birth date'));
   } finally {
     if (saveBtn) {
       saveBtn.disabled = false;
-      saveBtn.innerText = 'ثبت تاریخ تولد 🎉';
+      saveBtn.innerText = _appTr('ثبت تاریخ تولد 🎉', 'Save Birth Date 🎉');
     }
   }
 }
@@ -2479,63 +2585,99 @@ window.saveBirthday = saveBirthday;
 const PERSIAN_MONTH_TRAITS = {
   1: {
     name: 'فروردین',
+    nameEn: 'Farvardin',
     symbol: 'قوچ ♈️',
-    description: 'پرانرژی، پیشرو، شجاع و بااراده آهنین. متولدین فروردین ماجراجو، باانگیزه و رهبرانی پرشور و مثبت‌اندیش هستند.'
+    symbolEn: 'Aries ♈️',
+    description: 'پرانرژی، پیشرو، شجاع و بااراده آهنین. متولدین فروردین ماجراجو، باانگیزه و رهبرانی پرشور و مثبت‌اندیش هستند.',
+    descriptionEn: 'Energetic, bold, determined, and a natural pioneer. Born under the spring equinox with an adventurous and inspiring spirit.'
   },
   2: {
     name: 'اردیبهشت',
+    nameEn: 'Ordibehesht',
     symbol: 'گاو ♉️',
-    description: 'صبور، وفادار، پرمحبت، آرام و قابل اعتماد. متولدین اردیبهشت اهل عمل، زیبایی‌دوست و تکیه‌گاهی امن و استوارند.'
+    symbolEn: 'Taurus ♉️',
+    description: 'صبور، وفادار، پرمحبت، آرام و قابل اعتماد. متولدین اردیبهشت اهل عمل، زیبایی‌دوست و تکیه‌گاهی امن و استوارند.',
+    descriptionEn: 'Patient, loyal, warm-hearted, calm, and dependable. Appreciates harmony, craftsmanship, and steady dedication.'
   },
   3: {
     name: 'خرداد',
+    nameEn: 'Khordad',
     symbol: 'دوقلو ♊️',
-    description: 'باهوش، خلاق، کنجکاو، اجتماعی و خوش‌بیان. متولدین خرداد سازگار با تغییرات، شوخ‌طبع و سرشار از ایده‌های تازه و نوآورانه‌اند.'
+    symbolEn: 'Gemini ♊️',
+    description: 'باهوش، خلاق، کنجکاو، اجتماعی و خوش‌بیان. متولدین خرداد سازگار با تغییرات، شوخ‌طبع و سرشار از ایده‌های تازه و نوآورانه‌اند.',
+    descriptionEn: 'Bright, creative, curious, witty, and adaptable. Quick thinkers brimming with fresh ideas and lively conversation.'
   },
   4: {
     name: 'تیر',
+    nameEn: 'Tir',
     symbol: 'خرچنگ ♋️',
-    description: 'مهربان، فداکار، بااحساس و دارای حس ششم قوی. متولدین تیر خانواده‌دوست، حامی، دل‌رحم و صاحب قلبی بسیار زلال و باوفا هستند.'
+    symbolEn: 'Cancer ♋️',
+    description: 'مهربان، فداکار، بااحساس و دارای حس ششم قوی. متولدین تیر خانواده‌دوست، حامی، دل‌رحم و صاحب قلبی بسیار زلال و باوفا هستند.',
+    descriptionEn: 'Caring, intuitive, devoted, and deeply empathetic. Protects loved ones with genuine warmth and quiet strength.'
   },
   5: {
     name: 'مرداد',
+    nameEn: 'Mordad',
     symbol: 'شیر ♌️',
-    description: 'شجاع، سخاوتمند، جذاب، باوقار و پرتو‌افشان. متولدین مرداد پرصلابت، وفادار، الهام‌بخش و مدیرانی کاردان و حامی اطرافیانند.'
+    symbolEn: 'Leo ♌️',
+    description: 'شجاع، سخاوتمند، جذاب، باوقار و پرتو‌افشان. متولدین مرداد پرصلابت، وفادار، الهام‌بخش و مدیرانی کاردان و حامی اطرافیانند.',
+    descriptionEn: 'Courageous, generous, charismatic, and dignified. Radiates confidence and uplifts everyone around them.'
   },
   6: {
     name: 'شهریور',
+    nameEn: 'Shahrivar',
     symbol: 'خوشه ♍️',
-    description: 'دقیق، منظم، متفکر، تحلیل‌گر و یاری‌رسان. متولدین شهریور با تدبیر و هوش سرشار خویش همواره راه‌حل‌های بی‌نقص می‌آفرینند.'
+    symbolEn: 'Virgo ♍️',
+    description: 'دقیق، منظم، متفکر، تحلیل‌گر و یاری‌رسان. متولدین شهریور با تدبیر و هوش سرشار خویش همواره راه‌حل‌های بی‌نقص می‌آفرینند.',
+    descriptionEn: 'Precise, organized, thoughtful, and analytical. Always spots details others miss and delivers smart solutions.'
   },
   7: {
     name: 'مهر',
+    nameEn: 'Mehr',
     symbol: 'ترازو ♎️',
-    description: 'باانصاف، صلح‌طلب، جذاب، خوش‌سلیقه و اهل دوستی. متولدین مهر مظهر تعادل، عدالت، مهربانی و درک عمیق دیگران هستند.'
+    symbolEn: 'Libra ♎️',
+    description: 'باانصاف، صلح‌طلب، جذاب، خوش‌سلیقه و اهل دوستی. متولدین مهر مظهر تعادل، عدالت، مهربانی و درک عمیق دیگران هستند.',
+    descriptionEn: 'Fair-minded, graceful, diplomatic, and friendly. Values balance, kindness, and deep mutual understanding.'
   },
   8: {
     name: 'آبان',
+    nameEn: 'Aban',
     symbol: 'عقرب ♏️',
-    description: 'وفادار، رازدار، بااراده، پرشور و پرجاذبه. متولدین آبان مصمم، تیزبین و دارای قدرتی درونی برای فائق آمدن بر هر چالشی هستند.'
+    symbolEn: 'Scorpio ♏️',
+    description: 'وفادار، رازدار، بااراده، پرشور و پرجاذبه. متولدین آبان مصمم، تیزبین و دارای قدرتی درونی برای فائق آمدن بر هر چالشی هستند.',
+    descriptionEn: 'Loyal, perceptive, passionate, and resilient. Possesses quiet inner strength capable of overcoming any challenge.'
   },
   9: {
     name: 'آذر',
+    nameEn: 'Azar',
     symbol: 'کماندار ♐️',
-    description: 'آزادی‌خواه، خوش‌بین، پرانرژی، صادق و ماجراجو. متولدین آذر گشاده‌رو، روشن‌بین، اهل سفر و یادگیری و سرشار از امیدند.'
+    symbolEn: 'Sagittarius ♐️',
+    description: 'آزادی‌خواه، خوش‌بین، پرانرژی، صادق و ماجراجو. متولدین آذر گشاده‌رو، روشن‌بین، اهل سفر و یادگیری و سرشار از امیدند.',
+    descriptionEn: 'Optimistic, sincere, adventurous, and free-spirited. Loves exploration, continuous learning, and big horizons.'
   },
   10: {
     name: 'دی',
+    nameEn: 'Dey',
     symbol: 'بز ♑️',
-    description: 'هدفمند، صبور، مستقل، باانضباط و خستگی‌ناپذیر. متولدین دی با پشتکار بی‌نظیر، پختگی و دوراندیشی قله‌های موفقیت را فتح می‌کنند.'
+    symbolEn: 'Capricorn ♑️',
+    description: 'هدفمند، صبور، مستقل، باانضباط و خستگی‌ناپذیر. متولدین دی با پشتکار بی‌نظیر، پختگی و دوراندیشی قله‌های موفقیت را فتح می‌کنند.',
+    descriptionEn: 'Ambitious, disciplined, wise, and tireless. Climbs steadily toward every goal with patience and foresight.'
   },
   11: {
     name: 'بهمن',
+    nameEn: 'Bahman',
     symbol: 'دلو ♒️',
-    description: 'نوآور، آینده‌نگر، مستقل، پیشرو و انسان‌دوست. متولدین بهمن مبتکر، خلاق، بدون تعصب و پرچمدار تغییرات مثبت و بنیادین هستند.'
+    symbolEn: 'Aquarius ♒️',
+    description: 'نوآور، آینده‌نگر، مستقل، پیشرو و انسان‌دوست. متولدین بهمن مبتکر، خلاق، بدون تعصب و پرچمدار تغییرات مثبت و بنیادین هستند.',
+    descriptionEn: 'Innovative, forward-thinking, independent, and humanitarian. Champions creative breakthroughs and positive change.'
   },
   12: {
     name: 'اسفند',
+    nameEn: 'Esfand',
     symbol: 'ماهی ♓️',
-    description: 'خلاق، خیال‌پرداز، مهربان، دل‌نازک و سرشار از شهود معنوی. متولدین اسفند زلال، باگذشت، عاطفی و الهام‌بخش اطرافیان خود هستند.'
+    symbolEn: 'Pisces ♓️',
+    description: 'خلاق، خیال‌پرداز، مهربان، دل‌نازک و سرشار از شهود معنوی. متولدین اسفند زلال، باگذشت، عاطفی و الهام‌بخش اطرافیان خود هستند.',
+    descriptionEn: 'Imaginative, compassionate, artistic, and intuitive. Pure-hearted dreamers who inspire empathy everywhere.'
   }
 };
 
@@ -2548,23 +2690,30 @@ function openBirthdayCountdownModal() {
     return;
   }
 
+  const isEn = _appIsEn();
   const parts = user.birth_date.replace(/-/g, '/').split('/').map(Number);
   const monthNum = parts.length >= 2 ? parts[1] : 1;
   const trait = PERSIAN_MONTH_TRAITS[monthNum] || PERSIAN_MONTH_TRAITS[1];
 
   const monthEl = $('bdayTraitMonthName');
-  if (monthEl) monthEl.innerText = `${trait.name} (${trait.symbol})`;
+  if (monthEl) {
+    monthEl.innerText = isEn ? `${trait.nameEn} (${trait.symbolEn})` : `${trait.name} (${trait.symbol})`;
+  }
   const descEl = $('bdayTraitDescription');
-  if (descEl) descEl.innerText = trait.description;
+  if (descEl) descEl.innerText = isEn ? trait.descriptionEn : trait.description;
 
   const daysLeft = Number(user.days_until_birthday ?? 0);
   const isToday = Boolean(user.is_birthday_today || daysLeft === 0);
 
   const titleEl = $('bdayModalUserTitle');
   if (isToday) {
-    if (titleEl) titleEl.innerText = '🎉 امروز روز زادروز شماست! مبارک باد 🎂';
+    if (titleEl) titleEl.innerText = _appTr('🎉 امروز روز زادروز شماست! مبارک باد 🎂', '🎉 Happy Birthday! Enjoy Your Special Day 🎂');
   } else {
-    if (titleEl) titleEl.innerText = `تنها ${toEnglishDigits(daysLeft)} روز تا روز زادروز شما باقی است`;
+    if (titleEl) {
+      titleEl.innerText = isEn
+        ? `Only ${toEnglishDigits(daysLeft)} day${Number(daysLeft) === 1 ? '' : 's'} left until your birthday`
+        : `تنها ${toEnglishDigits(daysLeft)} روز تا روز زادروز شما باقی است`;
+    }
   }
 
   const now = new Date();
@@ -2626,9 +2775,11 @@ function openMembershipModal() {
   const nameEl = $('membershipUserName');
   const titleEl = $('membershipUserTitle');
 
-  const displayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
+  const isEn = _appIsEn();
+  const moneyUnit = _appTr('تومان', 'Toman');
+  const displayName = sub?.username || user.first_name || user.username || _appTr('کاربر گرامی', 'Valued User');
   if (nameEl) nameEl.innerText = displayName;
-  if (titleEl) titleEl.innerText = 'همسفر همیشگی رمنا';
+  if (titleEl) titleEl.innerText = _appTr('همسفر همیشگی رمنا', 'Remna Companion Member');
 
   let daysPassed = 1;
   if (user.created_at) {
@@ -2639,8 +2790,12 @@ function openMembershipModal() {
   }
   if (joinEl) joinEl.innerText = toEnglishDigits(daysPassed);
   if (sinceEl) {
-    const jalaliDate = user.created_at_jalali || (user.created_at && window.formatDateToJalali ? window.formatDateToJalali(user.created_at) : '');
-    sinceEl.innerText = jalaliDate ? `از تاریخ ${toEnglishDigits(jalaliDate)}` : `عضویت از روز نخست`;
+    const joinedDateStr = isEn
+      ? (user.created_at ? new Date(user.created_at).toLocaleDateString('en-US') : '')
+      : (user.created_at_jalali || (user.created_at && window.formatDateToJalali ? window.formatDateToJalali(user.created_at) : ''));
+    sinceEl.innerText = joinedDateStr
+      ? (isEn ? `Since ${toEnglishDigits(joinedDateStr)}` : `از تاریخ ${toEnglishDigits(joinedDateStr)}`)
+      : _appTr('عضویت از روز نخست', 'Member since day one');
   }
 
   let totalSpentVal = Number(window.lastUserData?.loyalty?.total_spent ?? 0);
@@ -2649,11 +2804,11 @@ function openMembershipModal() {
   }
   if (totalSpentVal <= 0 && Array.isArray(window.lastUserData?.transactions)) {
     totalSpentVal = window.lastUserData.transactions
-      .filter(tx => tx.type === 'order' || (tx.status && (tx.status === 'موفق' || tx.status === 'تایید شده')))
+      .filter(tx => tx.type === 'order' || (tx.status && (tx.status === 'موفق' || tx.status === 'تایید شده' || tx.status === 'Paid' || tx.status === 'Approved')))
       .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
   }
   if (spentEl) {
-    spentEl.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${totalSpentVal.toLocaleString('en-US')}</span> <span>تومان</span>`;
+    spentEl.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${totalSpentVal.toLocaleString('en-US')}</span> <span>${moneyUnit}</span>`;
   }
 
   let usedGb = Number(sub?.lifetime_used_traffic_gb ?? sub?.traffic_used_gb ?? sub?.used_traffic_gb ?? 0);
@@ -2668,7 +2823,7 @@ function openMembershipModal() {
     trafEl.innerHTML = fmtTraffic(usedGb.toFixed(2), { html: false });
   }
 
-  const tierName = window.lastUserData?.loyalty?.name || window.lastUserData?.loyalty?.current_tier?.name || user.loyalty_tier_name || 'کاربر همراه';
+  const tierName = window.lastUserData?.loyalty?.name || window.lastUserData?.loyalty?.current_tier?.name || user.loyalty_tier_name || _appTr('کاربر همراه', 'Member');
   if (tierEl) tierEl.innerText = tierName;
 
   openModal('membershipModal');
@@ -2696,9 +2851,9 @@ function renderDashboardBirthdayCountdown(user) {
   const badgeEl = $('birthdayCardBadge');
 
   if (!birthDate || !birthDate.trim()) {
-    if (titleEl) titleEl.innerText = '🎂 ثبت تاریخ زادروز و دریافت هدیه';
-    if (subEl) subEl.innerText = 'با ثبت روز تولدتان، بسته ترافیک پرسرعت هدیه بگیرید';
-    if (badgeEl) badgeEl.innerHTML = '<span class="text-xs">ثبت کنید ✨</span>';
+    if (titleEl) titleEl.innerText = _appTr('🎂 ثبت تاریخ زادروز و دریافت هدیه', '🎂 Set Birthday & Get a Gift');
+    if (subEl) subEl.innerText = _appTr('با ثبت روز تولدتان، بسته ترافیک پرسرعت هدیه بگیرید', 'Add your birth date to receive a free birthday traffic gift');
+    if (badgeEl) badgeEl.innerHTML = `<span class="text-xs">${_appTr('ثبت کنید ✨', 'Set Now ✨')}</span>`;
   }
 
   const profBadge = $('profileBirthdayCountdownBadge');
@@ -2708,11 +2863,11 @@ function renderDashboardBirthdayCountdown(user) {
       profBadge.classList.add('hidden');
     } else if (isToday || daysLeft === 0) {
       profBadge.classList.remove('hidden');
-      profBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('cake', 'w-3 h-3 text-pink-400 shrink-0')} امروز (مبارک!)</span>`;
+      profBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('cake', 'w-3 h-3 text-pink-400 shrink-0')} ${_appTr('امروز (مبارک!)', 'Today (Happy B-Day!)')}</span>`;
       profBadge.className = 'px-2 py-0.5 rounded-lg bg-pink-500/15 border border-pink-500/30 text-[11px] t-pink font-bold cursor-pointer transition';
     } else if (daysLeft !== null && daysLeft !== undefined) {
       profBadge.classList.remove('hidden');
-      profBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${toEnglishDigits(daysLeft)} روز</span>`;
+      profBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${toEnglishDigits(daysLeft)} ${_appTr('روز', 'days')}</span>`;
       profBadge.className = 'px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-bold cursor-pointer hover:border-accent transition';
     } else {
       profBadge.classList.add('hidden');
@@ -2753,7 +2908,7 @@ function renderProfileBadges(data) {
   _renderedBadgesList = [
     {
       id: 'veteran',
-      title: 'عضو قدیمی',
+      title: _appTr('عضو قدیمی', 'Veteran Member'),
       icon: 'clock',
       unlocked: membershipDays >= 30,
       desc: '',
@@ -2761,7 +2916,7 @@ function renderProfileBadges(data) {
     },
     {
       id: 'vip_easter',
-      title: 'کاشف VIP',
+      title: _appTr('کاشف VIP', 'VIP Explorer'),
       icon: 'sparkles',
       unlocked: easterClaimed,
       desc: '',
@@ -2769,7 +2924,7 @@ function renderProfileBadges(data) {
     },
     {
       id: 'wheel_streak',
-      title: 'استریک 7 روز گردونه',
+      title: _appTr('استریک 7 روز گردونه', '7-Day Wheel Streak'),
       icon: 'wheel',
       unlocked: wheelStreak >= 7,
       desc: '',
@@ -2777,7 +2932,7 @@ function renderProfileBadges(data) {
     },
     {
       id: 'ambassador',
-      title: 'سفیر معرفی دوستان',
+      title: _appTr('سفیر معرفی دوستان', 'Referral Ambassador'),
       icon: 'users',
       unlocked: refCount >= 3,
       desc: '',
@@ -2785,7 +2940,7 @@ function renderProfileBadges(data) {
     },
     {
       id: 'verified_phone',
-      title: 'امنیت و شماره تاییدشده',
+      title: _appTr('امنیت و شماره تاییدشده', 'Verified Phone Security'),
       icon: 'shield',
       unlocked: Boolean(user.is_phone_verified || user.phone_number),
       desc: '',
@@ -2793,7 +2948,7 @@ function renderProfileBadges(data) {
     },
     {
       id: 'first_purchase',
-      title: 'خریدار ویژه',
+      title: _appTr('خریدار ویژه', 'Premium Buyer'),
       icon: 'trophy',
       unlocked: totalSpent > 0,
       desc: '',
@@ -2854,10 +3009,10 @@ window.showProfileBadgeDetail = function(badgeId, silent = false) {
   }
   if (statusEl) {
     if (badge.unlocked) {
-      statusEl.innerText = 'کسب‌شده';
+      statusEl.innerText = _appTr('کسب‌شده', 'Unlocked');
       statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
     } else {
-      statusEl.innerText = 'قفل';
+      statusEl.innerText = _appTr('قفل', 'Locked');
       statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 card-inset t-muted border border-card-border';
     }
   }
@@ -2885,17 +3040,21 @@ function openExpiryCountdownModal() {
   const expireJalali = sub?.expire_jalali;
   const trafficRemainingGb = sub?.traffic_remaining_gb ?? 0;
 
+  const isEn = _appIsEn();
   const modalAccountName = $('modalExpiryAccountName');
   if (modalAccountName) {
     const cleanUsername = sub?.username ? String(sub.username).replace(/^@+/, '') : '';
     modalAccountName.innerHTML = cleanUsername
-      ? `سرویس <bdi dir="ltr" class="font-sans font-bold select-all">${escapeHtml(cleanUsername)}</bdi>`
-      : 'اشتراک فعال شما';
+      ? `${_appTr('سرویس', 'Plan')} <bdi dir="ltr" class="font-sans font-bold select-all">${escapeHtml(cleanUsername)}</bdi>`
+      : _appTr('اشتراک فعال شما', 'Your active subscription');
   }
 
   const exactDateEl = $('modalExpiryExactDate');
   if (exactDateEl) {
-    exactDateEl.innerText = expireJalali ? expireJalali : 'نامحدود / بدون انقضا';
+    const expDate = isEn && expireAt
+      ? new Date(expireAt).toLocaleDateString('en-US')
+      : expireJalali;
+    exactDateEl.innerText = expDate ? expDate : _appTr('نامحدود / بدون انقضا', 'Unlimited / Never expires');
   }
 
   const allowanceEl = $('modalExpiryDailyAllowance');
@@ -2904,7 +3063,7 @@ function openExpiryCountdownModal() {
       const dailyGb = (trafficRemainingGb / daysLeft).toFixed(2);
       allowanceEl.innerHTML = fmtTraffic(dailyGb, { html: true });
     } else {
-      allowanceEl.innerText = 'نامحدود';
+      allowanceEl.innerText = _appTr('نامحدود', 'Unlimited');
     }
   }
 
@@ -2912,13 +3071,13 @@ function openExpiryCountdownModal() {
   if (paceStatusEl) {
     if (daysLeft <= 3 && daysLeft > 0) {
       paceStatusEl.className = 'font-bold text-[11px] t-warn';
-      paceStatusEl.innerText = 'مهلت رو به پایان است';
+      paceStatusEl.innerText = _appTr('مهلت رو به پایان است', 'Expiring soon');
     } else if (daysLeft === 0) {
       paceStatusEl.className = 'font-bold text-[11px] t-danger';
-      paceStatusEl.innerText = 'منقضی شده';
+      paceStatusEl.innerText = _appTr('منقضی شده', 'Expired');
     } else {
       paceStatusEl.className = 'font-bold text-[11px] t-success';
-      paceStatusEl.innerText = 'بهینه';
+      paceStatusEl.innerText = _appTr('بهینه', 'Healthy');
     }
   }
 
@@ -3011,7 +3170,7 @@ function setupTutorialModal() {
   $('tutorialCopySubBtn')?.addEventListener('click', async () => {
     const url = getSubUrl();
     if (!url) return;
-    await copyToClipboard(url, '📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.');
+    await copyToClipboard(url, _appTr('📋 لینک اشتراک با موفقیت در کلیپ‌بورد کپی شد.', '📋 Subscription link copied to clipboard.'));
     hapticFeedback('success');
   });
 
@@ -3047,11 +3206,11 @@ function setupThemeToggle() {
     if (isDark) {
       document.documentElement.classList.remove('theme-light');
       document.documentElement.classList.add('dark');
-      if (themeIcon) themeIcon.innerHTML = `<img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 transition" alt="تم روشن" width="16" height="16" />`;
+      if (themeIcon) themeIcon.innerHTML = `<img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 transition" alt="${_appTr('تم روشن', 'Light theme')}" width="16" height="16" />`;
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('theme-light');
-      if (themeIcon) themeIcon.innerHTML = `<img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 transition" alt="تم تاریک" width="16" height="16" />`;
+      if (themeIcon) themeIcon.innerHTML = `<img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 transition" alt="${_appTr('تم تاریک', 'Dark theme')}" width="16" height="16" />`;
     }
     if (typeof window.syncTelegramChromeColors === 'function') {
       window.syncTelegramChromeColors(!isDark);
@@ -3258,12 +3417,12 @@ function setupSupportChat() {
     try {
       const res = await window.api.sendSupportMessage(cleanText);
       if (!res.ok) {
-        showToast(`❌ ${res.error || 'خطا در ارسال پیام'}`);
+        showToast(`❌ ${res.error || _appTr('خطا در ارسال پیام', 'Failed to send message')}`);
       } else {
         hapticFeedback('success');
       }
     } catch (e) {
-      showToast('خطا در ارسال پیام به سرور.');
+      showToast(_appTr('خطا در ارسال پیام به سرور.', 'Failed to send message to server.'));
     }
   }
 
@@ -3414,7 +3573,7 @@ function setupTelegramSDK() {
 
     $('closeBtn')?.addEventListener('click', () => {
       if (tg) tg.close();
-      else showToast('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.');
+      else showToast(_appTr('این دکمه در تلگرام واقعی، پنجره مینی‌اپ را می‌بندد.', 'This button closes the Mini App inside Telegram.'));
     });
   } else {
     applyUserTopPadding();
@@ -3438,10 +3597,10 @@ function setupAccountSwitcher() {
             <span>👤</span> ${escapeHtml(acc.username || '')}
           </div>
           <span class="text-[11px] t-muted mt-0.5 block font-sans num-bidi" dir="ltr">
-            ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : 'نامحدود'}
+            ${fmtTraffic(acc.used_gb, { html: false })} / ${acc.total_gb > 0 ? fmtTraffic(acc.total_gb, { html: false }) : _appTr('نامحدود', 'Unlimited')}
           </span>
         </div>
-        ${acc.is_active ? '<span class="text-xs text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/30 inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /><span>فعال</span></span>' : '<span class="text-xs t-muted bg-transparent border border-card-border px-2 py-0.5 rounded-full">انتخاب</span>'}
+        ${acc.is_active ? `<span class="text-xs text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/30 inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" width="14" height="14" alt="" /><span>${_appTr('فعال', 'Active')}</span></span>` : `<span class="text-xs t-muted bg-transparent border border-card-border px-2 py-0.5 rounded-full">${_appTr('انتخاب', 'Select')}</span>`}
       </button>
     `).join('');
 
@@ -3451,7 +3610,7 @@ function setupAccountSwitcher() {
         window.currentAccountId = accId;
         closeModal('switchAccountModal');
         syncUserDataWithApi(accId);
-        showToast('🔄 اکانت فعال تغییر یافت.');
+        showToast(_appTr('🔄 اکانت فعال تغییر یافت.', '🔄 Active account switched.'));
       });
     });
 
@@ -3473,11 +3632,29 @@ function setupProfileHandlers() {
       const res = await window.api.changeLanguage(lang);
       if (res.ok) {
         const appliedLang = window.applyAppLocale ? window.applyAppLocale(res.language || lang) : lang;
+        if (window.lastUserData && typeof hydrateUserInterface === 'function') {
+          try { hydrateUserInterface(window.lastUserData); } catch (_) {}
+        }
+        if (typeof window.applyUserWalletCardColor === 'function') {
+          try { window.applyUserWalletCardColor(); } catch (_) {}
+        }
+        if (typeof window.renderUserWalletCard === 'function') {
+          try { window.renderUserWalletCard(); } catch (_) {}
+        }
+        if (typeof window.renderWalletTransactions === 'function') {
+          try { window.renderWalletTransactions(); } catch (_) {}
+        }
+        if (typeof window.renderShopPlans === 'function' && window.lastUserData) {
+          try { window.renderShopPlans(window.lastUserData); } catch (_) {}
+        }
         if (typeof window.renderEngagementFeatures === 'function' && window.lastUserData) {
           window.renderEngagementFeatures(window.lastUserData);
         }
         showToast(appliedLang === 'en' ? '✅ Language changed to English.' : '✅ زبان به فارسی تغییر یافت.', 'success');
         await syncUserDataWithApi(window.currentAccountId);
+        if (typeof cachedPeakHoursSub !== 'undefined' && cachedPeakHoursSub && typeof updateUserPeakHoursView === 'function') {
+          try { updateUserPeakHoursView(cachedPeakHoursSub); } catch (_) {}
+        }
         if (typeof renderReportsCharts === 'function') {
           try { renderReportsCharts(); } catch (_) {}
         }
@@ -3492,14 +3669,14 @@ function setupProfileHandlers() {
   $('copyProfileIdBtn')?.addEventListener('click', () => {
     const idVal = $('profileTelegramId')?.innerText;
     if (idVal && idVal !== '--') {
-      copyToClipboard(idVal, '📋 شناسه عددی تلگرام در کلیپ‌بورد کپی شد.');
+      copyToClipboard(idVal, _appTr('📋 شناسه عددی تلگرام در کلیپ‌بورد کپی شد.', '📋 Telegram ID copied to clipboard.'));
     }
   });
 
   $('copyProfileRefBtn')?.addEventListener('click', () => {
     const refVal = $('profileRefCode')?.innerText;
     if (refVal && refVal !== '--') {
-      copyToClipboard(refVal, '📋 کد معرف در کلیپ‌بورد کپی شد.');
+      copyToClipboard(refVal, _appTr('📋 کد معرف در کلیپ‌بورد کپی شد.', '📋 Referral code copied to clipboard.'));
     }
   });
 
@@ -3511,8 +3688,8 @@ function setupProfileHandlers() {
   // Referral Link Copy & Share Actions
   $('copyReferralLinkBtn')?.addEventListener('click', async () => {
     const link = $('profileReferralLinkInput')?.value || '';
-    if (link && !link.includes('در حال')) {
-      await copyToClipboard(link, '📋 لینک اختصاصی دعوت با موفقیت کپی شد.');
+    if (link && !link.includes('در حال') && !link.includes('Loading')) {
+      await copyToClipboard(link, _appTr('📋 لینک اختصاصی دعوت با موفقیت کپی شد.', '📋 Referral link copied to clipboard.'));
       hapticFeedback('success');
     }
   });
@@ -3523,10 +3700,14 @@ function setupProfileHandlers() {
     const botName = lastData.bot_username ? `@${lastData.bot_username}` : '';
     const hasTrial = Boolean(lastData.trial_enabled);
     const hasRewardOrComm = Number(lastData.referral_reward_gb ?? 0) > 0 || Number(lastData.referral_commission_percent ?? 0) > 0;
-    const secondLine = hasTrial
-      ? 'ثبت‌نام کنید و اکانت تست رایگان دریافت کنید!'
-      : (hasRewardOrComm ? 'با این لینک اختصاصی عضو شوید و اشتراک پرسرعت تهیه کنید!' : 'برای مشاهده تعرفه‌ها و خرید اشتراک وارد ربات شوید!');
-    const shareText = `🚀 اتصال پرسرعت و پایدار ${botName}\n${secondLine}`.trim();
+    const secondLine = _appIsEn()
+      ? (hasTrial
+          ? 'Sign up and claim your free trial account!'
+          : (hasRewardOrComm ? 'Join with this invite link for high-speed VPN access!' : 'Open the bot to view plans and get your subscription!'))
+      : (hasTrial
+          ? 'ثبت‌نام کنید و اکانت تست رایگان دریافت کنید!'
+          : (hasRewardOrComm ? 'با این لینک اختصاصی عضو شوید و اشتراک پرسرعت تهیه کنید!' : 'برای مشاهده تعرفه‌ها و خرید اشتراک وارد ربات شوید!'));
+    const shareText = `${_appTr('🚀 اتصال پرسرعت و پایدار', '🚀 Fast & reliable VPN')} ${botName}\n${secondLine}`.trim();
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
     try {
       if (window.Telegram?.WebApp?.openTelegramLink) {
@@ -3581,7 +3762,7 @@ function resetActiveSubAnalytics() {
   }
   if (barContainer) barContainer.classList.add('hidden');
   if (emptyStateEl) emptyStateEl.classList.remove('hidden');
-  if (peakBadge) peakBadge.innerText = 'بدون داده';
+  if (peakBadge) peakBadge.innerText = _appTr('بدون داده', 'No data');
   if (window.chartInstances) {
     if (window.chartInstances['repPeakHoursChartCanvas']) {
       try { window.chartInstances['repPeakHoursChartCanvas'].destroy(); } catch (e) {}
@@ -3594,13 +3775,13 @@ function resetActiveSubAnalytics() {
   }
 
   const repSessionsBadge = $('reportsSessionsBadge');
-  if (repSessionsBadge) repSessionsBadge.innerText = '0 دستگاه';
+  if (repSessionsBadge) repSessionsBadge.innerText = _appTr('0 دستگاه', '0 devices');
 
   const devContainer = $('activeDevicesContainer');
   if (devContainer) {
     devContainer.innerHTML = `
       <div class="card-inset p-4 rounded-2xl border border-card-border text-center text-xs t-muted">
-        <span>📱 در حال حاضر هیچ اشتراک یا دستگاه فعالی روی حساب شما وجود ندارد.</span>
+        <span>${_appTr('📱 در حال حاضر هیچ اشتراک یا دستگاه فعالی روی حساب شما وجود ندارد.', '📱 No active subscription or online device found on your account.')}</span>
       </div>
     `;
   }
@@ -3609,7 +3790,7 @@ function resetActiveSubAnalytics() {
   ['repNightlyNodesContainer', 'repWeeklyNodesContainer', 'repMonthlyNodesContainer'].forEach(id => {
     const el = $(id);
     if (el) {
-      el.innerHTML = '<div class="col-span-2 text-center py-3 t-muted text-xs">اشتراک فعالی برای نمایش آمار وجود ندارد.</div>';
+      el.innerHTML = `<div class="col-span-2 text-center py-3 t-muted text-xs">${_appTr('اشتراک فعالی برای نمایش آمار وجود ندارد.', 'No active subscription to display statistics.')}</div>`;
     }
   });
 
@@ -3622,7 +3803,7 @@ function resetActiveSubAnalytics() {
   const repNightlyYesterday = $('repNightlyYesterday');
   if (repNightlyYesterday) repNightlyYesterday.innerText = '0 GB';
   const repNightlyExpire = $('repNightlyExpire');
-  if (repNightlyExpire) repNightlyExpire.innerText = 'غیرفعال';
+  if (repNightlyExpire) repNightlyExpire.innerText = _appTr('غیرفعال', 'Inactive');
   const repWeeklyTotal = $('repWeeklyTotal');
   if (repWeeklyTotal) repWeeklyTotal.innerText = '0 GB';
   const repWeeklyBusiest = $('repWeeklyBusiest');
@@ -3633,7 +3814,7 @@ function resetActiveSubAnalytics() {
   const repMonthlyCurrentLabel = $('repMonthlyCurrentLabel');
   if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = '—';
   const repMonthlyPeriodBadge = $('repMonthlyPeriodBadge');
-  if (repMonthlyPeriodBadge) repMonthlyPeriodBadge.innerText = 'ماه جاری';
+  if (repMonthlyPeriodBadge) repMonthlyPeriodBadge.innerText = _appTr('ماه جاری', 'Current month');
   const prevMonthBtn = $('repMonthPrevBtn');
   const nextMonthBtn = $('repMonthNextBtn');
   if (prevMonthBtn) {
@@ -3647,7 +3828,7 @@ function resetActiveSubAnalytics() {
 
   // 3. Reset Burn Rate & Analytics
   const speedBadge = document.getElementById('repBurnSpeedBadge');
-  if (speedBadge) speedBadge.innerText = 'غیرفعال';
+  if (speedBadge) speedBadge.innerText = _appTr('غیرفعال', 'Inactive');
   const avgDailyEl = document.getElementById('repBurnAvgDaily');
   if (avgDailyEl) avgDailyEl.innerText = '0 GB';
   const projectedDaysEl = document.getElementById('repBurnProjectedDays');
@@ -3656,7 +3837,7 @@ function resetActiveSubAnalytics() {
     projectedDaysEl.className = 'font-sans text-slate-400 text-xs';
   }
   const analysisTextEl = document.getElementById('repBurnAnalysisText');
-  if (analysisTextEl) analysisTextEl.innerText = 'اشتراک فعالی برای تحلیل الگوی مصرف ثبت نشده است.';
+  if (analysisTextEl) analysisTextEl.innerText = _appTr('اشتراک فعالی برای تحلیل الگوی مصرف ثبت نشده است.', 'No active subscription found to analyze usage patterns.');
   const statusIconEl = document.getElementById('repBurnStatusIcon');
   if (statusIconEl) statusIconEl.innerText = 'ℹ️';
   const analysisBox = document.getElementById('repBurnAnalysisBox');
@@ -3762,17 +3943,17 @@ function updateUserPeakHoursView(sub) {
     const rawHours = [];
     for (let h = currHour + 1; h < 24; h++) {
       const lbl = yLabels[h] || `${String(h).padStart(2, '0')}:00`;
-      rollingLabels.push(h === currHour + 1 ? `دیروز ${lbl}` : lbl);
+      rollingLabels.push(h === currHour + 1 ? `${_appTr('دیروز', 'Yesterday')} ${lbl}` : lbl);
       rollingData.push(Number(yest24[h]) || 0);
-      rollingTooltipTitles.push(`دیروز - ساعت ${toEnglishDigits(lbl)}`);
+      rollingTooltipTitles.push(_appTr(`دیروز - ساعت ${toEnglishDigits(lbl)}`, `Yesterday - ${toEnglishDigits(lbl)}`));
       rawHours.push({ hour: h, val: Number(yest24[h]) || 0 });
     }
     const splitTodayIndex = rollingLabels.length;
     for (let h = 0; h < todayCount; h++) {
       const lbl = labels24[h] || `${String(h).padStart(2, '0')}:00`;
-      rollingLabels.push(h === 0 ? `امروز ${lbl}` : lbl);
+      rollingLabels.push(h === 0 ? `${_appTr('امروز', 'Today')} ${lbl}` : lbl);
       rollingData.push(Number(today24[h]) || 0);
-      rollingTooltipTitles.push(`امروز - ساعت ${toEnglishDigits(lbl)}`);
+      rollingTooltipTitles.push(_appTr(`امروز - ساعت ${toEnglishDigits(lbl)}`, `Today - ${toEnglishDigits(lbl)}`));
       rawHours.push({ hour: h, val: Number(today24[h]) || 0 });
     }
 
@@ -3817,7 +3998,7 @@ function updateUserPeakHoursView(sub) {
     }
     if (barContainer) barContainer.classList.add('hidden');
     if (emptyStateEl) emptyStateEl.classList.remove('hidden');
-    if (peakBadge) peakBadge.innerText = 'بدون داده';
+    if (peakBadge) peakBadge.innerText = _appTr('بدون داده', 'No data');
     if (window.chartInstances) {
       if (window.chartInstances['repPeakHoursChartCanvas']) {
         try { window.chartInstances['repPeakHoursChartCanvas'].destroy(); } catch (e) {}
@@ -4074,7 +4255,7 @@ function applySystemBlockScreen(mode, data = {}) {
   }
   const usernameEl = $('headerUsername');
   if (usernameEl) {
-    usernameEl.innerText = sub?.username || user.username || user.first_name || tgUser?.username || tgUser?.first_name || 'کاربر';
+    usernameEl.innerText = sub?.username || user.username || user.first_name || tgUser?.username || tgUser?.first_name || _appTr('کاربر', 'User');
   }
   return true;
 }
@@ -4111,6 +4292,7 @@ function hydrateUserInterface(data) {
 
   // --- PHASE 1: Core User Identity & Top Header (DB Data) ---
   safeStep('identityAndHeader', () => {
+    const isEn = _appIsEn();
     const avatarEl = $('headerUserAvatarInitial') || $('headerUserAvatar');
     if (avatarEl && (user.first_name || user.username)) {
       avatarEl.innerText = (user.first_name || user.username || 'U')[0].toUpperCase();
@@ -4118,13 +4300,15 @@ function hydrateUserInterface(data) {
 
     const usernameEl = $('headerUsername');
     if (usernameEl) {
-      usernameEl.innerText = sub?.username || user.username || user.first_name || 'کاربر';
+      usernameEl.innerText = sub?.username || user.username || user.first_name || _appTr('کاربر', 'User');
     }
 
     const onlineCount = sub?.devices_count ?? (sub?.devices ? sub.devices.length : 0);
     const onlineCountEl = $('headerOnlineCount');
     if (onlineCountEl) {
-      onlineCountEl.innerText = `${toEnglishDigits(onlineCount)} دستگاه آنلاین`;
+      onlineCountEl.innerText = isEn
+        ? `${toEnglishDigits(onlineCount)} device${Number(onlineCount) === 1 ? '' : 's'} online`
+        : `${toEnglishDigits(onlineCount)} دستگاه آنلاین`;
     }
 
     const profName = $('profileFullName');
@@ -4139,9 +4323,9 @@ function hydrateUserInterface(data) {
     const profBirth = $('profileBirthDate');
     const profSub = $('profileSubStatus');
 
-    const userDisplayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
+    const userDisplayName = sub?.username || user.first_name || user.username || _appTr('کاربر گرامی', 'Valued User');
     if (profName) profName.innerText = userDisplayName;
-    if (profUser) profUser.innerText = user.username ? `@${user.username}` : `شناسه: ${user.id || ''}`;
+    if (profUser) profUser.innerText = user.username ? `@${user.username}` : `${_appTr('شناسه:', 'ID:')} ${user.id || ''}`;
     if (profAvatar) profAvatar.innerText = userDisplayName.charAt(0).toUpperCase();
     if (profId) profId.innerText = user.id ? String(user.id) : '--';
     if (profRef) profRef.innerText = user.id ? String(user.id) : '--';
@@ -4163,14 +4347,14 @@ function hydrateUserInterface(data) {
         window.refreshTopupModalState({ refresh: true }).catch(() => {});
       }
       if (profPhone) {
-        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${escapeHtml(toEnglishDigits(user.phone_number))}</span> <span class="inline-flex items-center justify-center select-none translate-y-1" title="شماره همراه تأیید شده"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="تأییدشده" /></span>`;
+        profPhone.innerHTML = `<span class="t-main font-sans font-bold select-all" dir="ltr">${escapeHtml(toEnglishDigits(user.phone_number))}</span> <span class="inline-flex items-center justify-center select-none translate-y-1" title="${_appTr('شماره همراه تأیید شده', 'Verified phone number')}"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="${_appTr('تأییدشده', 'Verified')}" /></span>`;
       }
     } else {
       if (phoneRewardCard) phoneRewardCard.classList.remove('hidden');
       if (warningCard) warningCard.classList.remove('hidden');
       if (verifyBtn) verifyBtn.classList.remove('hidden');
       if (profPhone) {
-        profPhone.innerText = 'وارد نشده';
+        profPhone.innerText = _appTr('وارد نشده', 'Not set');
       }
     }
     const profJoinBadge = $('profileJoinDaysBadge');
@@ -4183,12 +4367,15 @@ function hydrateUserInterface(data) {
           daysPassed = Math.max(1, Math.floor((Date.now() - ct) / (1000 * 60 * 60 * 24)));
         }
       }
-      profJoinBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${toEnglishDigits(daysPassed)} روز</span>`;
+      const joinDaysText = isEn
+        ? `${toEnglishDigits(daysPassed)} ${daysPassed === 1 ? 'day' : 'days'}`
+        : `${toEnglishDigits(daysPassed)} روز`;
+      profJoinBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${joinDaysText}</span>`;
       profJoinBadge.classList.remove('hidden');
     }
     const hasBirthDate = Boolean(user.birth_date && String(user.birth_date).trim());
     if (profBirth) {
-      profBirth.innerText = hasBirthDate ? toEnglishDigits(user.birth_date) : 'ثبت‌نشده';
+      profBirth.innerText = hasBirthDate ? toEnglishDigits(user.birth_date) : _appTr('ثبت‌نشده', 'Not set');
       profBirth.onclick = () => {
         if (hasBirthDate) {
           if (typeof window.openBirthdayCountdownModal === 'function') window.openBirthdayCountdownModal();
@@ -4206,7 +4393,7 @@ function hydrateUserInterface(data) {
         bdayBtn.classList.remove('hidden');
         bdayBtn.className = 't-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none';
         bdayBtn.innerHTML = '<span>✏️</span>';
-        bdayBtn.title = 'ثبت تاریخ تولد';
+        bdayBtn.title = _appTr('ثبت تاریخ تولد', 'Set birth date');
       }
     }
     renderDashboardBirthdayCountdown(user);
@@ -4214,30 +4401,30 @@ function hydrateUserInterface(data) {
     const hasActiveSub = Boolean(data.has_active_sub && (sub?.status === 'ACTIVE' || !sub?.status));
     if (profStatusBadge) {
       if (hasActiveSub) {
-        profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm"></span><span>کاربر فعال</span></span>';
+        profStatusBadge.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm"></span><span>${_appTr('کاربر فعال', 'Active User')}</span></span>`;
         profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5';
       } else {
-        profStatusBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block shadow-sm"></span><span>بدون سرویس فعال</span></span>';
+        profStatusBadge.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block shadow-sm"></span><span>${_appTr('بدون سرویس فعال', 'No Active Plan')}</span></span>`;
         profStatusBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-amber-600 dark:text-amber-400 border border-amber-500/40 inline-flex items-center gap-1.5';
       }
     }
 
     if (profAuthBadge) {
       if (hasPhone) {
-        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/shield.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>حساب تأییدشده</span></span>';
+        profAuthBadge.innerHTML = `<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/shield.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>${_appTr('حساب تأییدشده', 'Verified Account')}</span></span>`;
         profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5 transition';
       } else {
-        profAuthBadge.innerHTML = '<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>نیازمند احراز شماره</span></span>';
+        profAuthBadge.innerHTML = `<span class="inline-flex items-center gap-1.5"><img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span>${_appTr('نیازمند احراز شماره', 'Verification Needed')}</span></span>`;
         profAuthBadge.className = 'px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-transparent text-amber-600 dark:text-amber-400 border border-amber-500/40 inline-flex items-center gap-1.5 transition';
       }
     }
 
     if (profSub) {
       if (hasActiveSub) {
-        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none translate-y-1" title="سرویس فعال"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="فعال" /></span>';
+        profSub.innerHTML = `<span class="inline-flex items-center justify-center select-none translate-y-1" title="${_appTr('سرویس فعال', 'Active service')}"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="${_appTr('فعال', 'Active')}" /></span>`;
         profSub.className = 'inline-block';
       } else {
-        profSub.innerHTML = '<span class="inline-flex items-center justify-center select-none translate-y-1" title="سرویس غیرفعال"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="غیرفعال" /></span>';
+        profSub.innerHTML = `<span class="inline-flex items-center justify-center select-none translate-y-1" title="${_appTr('سرویس غیرفعال', 'Inactive service')}"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-4 h-4 inline-block" alt="${_appTr('غیرفعال', 'Inactive')}" /></span>`;
         profSub.className = 'inline-block';
       }
     }
@@ -4312,19 +4499,22 @@ function hydrateUserInterface(data) {
           emerald: 'text-emerald-500 dark:text-emerald-400',
           diamond: 'text-amber-400 dark:text-amber-300'
         };
+        const isEn = _appIsEn();
         const tierColorClass = tierColorMap[tierId] || 'text-amber-500';
         if ($('loyaltyTierName')) {
-          $('loyaltyTierName').innerText = loyalty.name || 'برنزی';
+          $('loyaltyTierName').innerText = loyalty.name || _appTr('برنزی', 'Bronze');
           $('loyaltyTierName').className = `text-xs font-black ${tierColorClass}`;
         }
         const discBadge = $('loyaltyDiscountBadge');
         if (discBadge) {
           if (loyalty.discount_percent > 0) {
             discBadge.className = 'px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
-            discBadge.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف`;
+            discBadge.innerHTML = isEn
+              ? `<span class="font-sans font-bold num-bidi" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> OFF`
+              : `<span class="font-sans font-bold num-bidi" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف`;
           } else {
             discBadge.className = 'px-2 py-0.5 rounded-lg text-[11px] font-medium bg-slate-500/10 text-slate-500 dark:text-slate-400';
-            discBadge.innerText = 'بدون تخفیف';
+            discBadge.innerText = _appTr('بدون تخفیف', 'No discount');
           }
         }
         const nextText = $('loyaltyNextTierText');
@@ -4333,27 +4523,41 @@ function hydrateUserInterface(data) {
         const totalSpent = $('loyaltyTotalSpent');
         const targetSpent = $('loyaltyNextTierTarget');
         const benefitDesc = $('loyaltyBenefitDesc');
+        const moneyUnit = _appTr('تومان', 'Toman');
 
-        if (totalSpent) totalSpent.innerText = `مجموع خرید: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
+        if (totalSpent) {
+          totalSpent.innerText = isEn
+            ? `Total spent: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} ${moneyUnit}`
+            : `مجموع خرید: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} ${moneyUnit}`;
+        }
 
         if (loyalty.next_tier_name && loyalty.next_tier_threshold) {
           const pct = loyalty.progress_percent ?? loyalty.progress_pct ?? 0;
-          if (nextText) nextText.innerText = `تا سطح بعدی (${loyalty.next_tier_name}):`;
+          if (nextText) nextText.innerText = isEn ? `Next tier (${loyalty.next_tier_name}):` : `تا سطح بعدی (${loyalty.next_tier_name}):`;
           if (progPct) progPct.innerText = `${pct}%`;
           if (progBar) progBar.style.width = `${pct}%`;
-          if (targetSpent) targetSpent.innerText = `هدف بعدی: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} تومان`;
+          if (targetSpent) {
+            targetSpent.innerText = isEn
+              ? `Next goal: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} ${moneyUnit}`
+              : `هدف بعدی: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} ${moneyUnit}`;
+          }
         } else {
-          if (nextText) nextText.innerText = 'بالاترین سطح باشگاه مشتریان 🎉';
+          if (nextText) nextText.innerText = _appTr('بالاترین سطح باشگاه مشتریان 🎉', 'Top Loyalty Club Tier Reached 🎉');
           if (progPct) progPct.innerText = '100%';
           if (progBar) progBar.style.width = '100%';
-          if (targetSpent) targetSpent.innerText = `${loyalty.name || 'الماس'}`;
+          if (targetSpent) targetSpent.innerText = `${loyalty.name || _appTr('الماس', 'Diamond')}`;
         }
 
         if (benefitDesc) {
           if (loyalty.discount_percent > 0) {
-            benefitDesc.innerHTML = `شما دارای <span class="num-bidi font-sans font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
+            benefitDesc.innerHTML = isEn
+              ? `You enjoy a <span class="num-bidi font-sans font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> loyalty discount on all plans. Shop more to unlock higher tiers and bigger savings!`
+              : `شما دارای <span class="num-bidi font-sans font-bold" dir="ltr">${toEnglishDigits(loyalty.discount_percent)}%</span> تخفیف وفاداری روی تمامی بسته‌ها هستید. با افزایش خریدها، به سطوح بالاتر با تخفیف‌های بیشتر ارتقا&nbsp;می‌یابید!`;
           } else {
-            benefitDesc.innerText = 'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.';
+            benefitDesc.innerText = _appTr(
+              'با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.',
+              'Purchase more plans in the Shop to level up your tier and unlock discounts on every order.'
+            );
           }
         }
       }
@@ -4366,8 +4570,8 @@ function hydrateUserInterface(data) {
     const shopBalAmt = $('shopWalletBalanceAmount');
     const walletTabBal = $('walletTabBalance');
     const rawBalNum = Number(user.wallet_balance || 0).toLocaleString('en-US');
-    const formattedWallet = `${rawBalNum} تومان`;
-    if (walletEl) walletEl.innerText = `موجودی: ${formattedWallet}`;
+    const formattedWallet = `${rawBalNum} ${_appTr('تومان', 'Toman')}`;
+    if (walletEl) walletEl.innerText = _appIsEn() ? `Balance: ${formattedWallet}` : `موجودی: ${formattedWallet}`;
     if (shopBalAmt) shopBalAmt.innerText = rawBalNum;
     if (walletTabBal) walletTabBal.innerText = formattedWallet;
     if (window.renderUserWalletCard) {
@@ -4400,13 +4604,16 @@ function hydrateUserInterface(data) {
     const referralLink = data.referral_link || (typeof window.buildRefLink === 'function' ? window.buildRefLink(data.bot_username, user.id) : '');
     if (refLinkInp) refLinkInp.value = referralLink;
 
+    const isEn = _appIsEn();
     const refCount = Number(user.referrals_count || 0);
     const refEarnedGb = Number(user.referral_earned_gb ?? 0);
     const refEarnedComm = Number(user.referral_earned_commission ?? 0);
     const refRewardGb = Math.max(0, Number(data.referral_reward_gb ?? 0));
     const refCommissionPct = Math.max(0, Math.min(50, Number(data.referral_commission_percent ?? 0)));
     const refRenewCommission = Boolean(data.referral_renew_commission_enabled);
-    if (refCountEl) refCountEl.innerHTML = `<span class="font-sans font-bold">${toEnglishDigits(refCount)}</span> <span class="font-sans">نفر</span>`;
+    if (refCountEl) {
+      refCountEl.innerHTML = `<span class="font-sans font-bold">${toEnglishDigits(refCount)}</span> <span class="font-sans">${_appTr('نفر', refCount === 1 ? 'user' : 'users')}</span>`;
+    }
     if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refEarnedGb)}`;
 
     const refStatsGrid = document.getElementById('profileReferralStatsGrid');
@@ -4426,25 +4633,34 @@ function hydrateUserInterface(data) {
 
     const refTitleEl = document.getElementById('profileReferralCardTitle');
     const refNoteEl = document.getElementById('profileReferralNoteText');
-    const commissionScopeText = refRenewCommission ? 'اولین خرید و تمدیدهای او' : 'اولین خرید او';
+    const commissionScopeText = isEn
+      ? (refRenewCommission ? 'their first purchase and renewals' : 'their first purchase')
+      : (refRenewCommission ? 'اولین خرید و تمدیدهای او' : 'اولین خرید او');
 
     if (refTitleEl) {
       if (refCommissionPct > 0 && refRewardGb > 0) {
-        refTitleEl.innerText = 'دعوت دوستان و کسب درآمد و ترافیک';
+        refTitleEl.innerText = _appTr('دعوت دوستان و کسب درآمد و ترافیک', 'Invite Friends & Earn Cash + Data');
       } else if (refCommissionPct > 0) {
-        refTitleEl.innerText = 'دعوت دوستان و کسب پورسانت نقدی';
+        refTitleEl.innerText = _appTr('دعوت دوستان و کسب پورسانت نقدی', 'Invite Friends & Earn Cash Commission');
       } else {
-        refTitleEl.innerText = 'دعوت دوستان و دریافت هدیه';
+        refTitleEl.innerText = _appTr('دعوت دوستان و دریافت هدیه', 'Invite Friends & Earn Rewards');
       }
     }
 
+    const rewardTrafficText = fmtTraffic(refRewardGb, { html: false });
     if (refRewardBadge) {
       if (refCommissionPct > 0 && refRewardGb > 0) {
-        refRewardBadge.innerHTML = `🎁 ${toEnglishDigits(refRewardGb)} گیگ + <span dir="ltr" class="inline-block font-sans num-bidi">${toEnglishDigits(refCommissionPct)}%</span> پورسانت به ازای دعوت`;
+        refRewardBadge.innerHTML = isEn
+          ? `🎁 ${rewardTrafficText} + <span dir="ltr" class="inline-block font-sans num-bidi">${toEnglishDigits(refCommissionPct)}%</span> commission / invite`
+          : `🎁 ${toEnglishDigits(refRewardGb)} گیگ + <span dir="ltr" class="inline-block font-sans num-bidi">${toEnglishDigits(refCommissionPct)}%</span> پورسانت به ازای دعوت`;
       } else if (refCommissionPct > 0) {
-        refRewardBadge.innerHTML = `💰 <span dir="ltr" class="inline-block font-sans num-bidi">${toEnglishDigits(refCommissionPct)}%</span> پورسانت نقدی به ازای هر دعوت`;
+        refRewardBadge.innerHTML = isEn
+          ? `💰 <span dir="ltr" class="inline-block font-sans num-bidi">${toEnglishDigits(refCommissionPct)}%</span> cash commission per invite`
+          : `💰 <span dir="ltr" class="inline-block font-sans num-bidi">${toEnglishDigits(refCommissionPct)}%</span> پورسانت نقدی به ازای هر دعوت`;
       } else {
-        refRewardBadge.innerText = `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
+        refRewardBadge.innerText = isEn
+          ? `🎁 ${rewardTrafficText} gift per invite`
+          : `🎁 ${toEnglishDigits(refRewardGb)} گیگابایت هدیه به ازای هر دعوت`;
       }
     }
 
@@ -4452,11 +4668,17 @@ function hydrateUserInterface(data) {
       const safeScope = escapeHtml(commissionScopeText);
       const pctHtml = `<span dir="ltr" class="inline-block font-sans num-bidi font-bold">${toEnglishDigits(refCommissionPct)}%</span>`;
       if (refCommissionPct > 0 && refRewardGb > 0) {
-        refNoteEl.innerHTML = `با دعوت هر دوست، پس از خرید موفق اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه و ${pctHtml} پورسانت نقدی از ${safeScope} به حساب شما واریز می‌شود.`;
+        refNoteEl.innerHTML = isEn
+          ? `Invite friends! Once they purchase a plan, you receive ${rewardTrafficText} bonus traffic plus ${pctHtml} cash commission from ${safeScope}.`
+          : `با دعوت هر دوست، پس از خرید موفق اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه و ${pctHtml} پورسانت نقدی از ${safeScope} به حساب شما واریز می‌شود.`;
       } else if (refCommissionPct > 0) {
-        refNoteEl.innerHTML = `با دعوت هر دوست، ${pctHtml} پورسانت نقدی از ${safeScope} مستقیم به کیف پول شما واریز می‌شود.`;
+        refNoteEl.innerHTML = isEn
+          ? `Invite a friend and earn ${pctHtml} cash commission directly in your wallet from ${safeScope}.`
+          : `با دعوت هر دوست، ${pctHtml} پورسانت نقدی از ${safeScope} مستقیم به کیف پول شما واریز می‌شود.`;
       } else {
-        refNoteEl.innerText = `با دعوت هر دوست، پس از اولین خرید اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه به اکانت شما اضافه می‌شود.`;
+        refNoteEl.innerText = isEn
+          ? `For every friend you invite who purchases a plan, you receive ${rewardTrafficText} free bonus traffic.`
+          : `با دعوت هر دوست، پس از اولین خرید اشتراک، ${toEnglishDigits(refRewardGb)} گیگابایت ترافیک هدیه به اکانت شما اضافه می‌شود.`;
       }
     }
 
@@ -4483,15 +4705,15 @@ function hydrateUserInterface(data) {
         try {
           const res = await window.api.saveSetting(key, newVal);
           if (res && res.ok) {
-            showToast('✅ تنظیمات با موفقیت ذخیره شد.');
+            showToast(_appTr('✅ تنظیمات با موفقیت ذخیره شد.', '✅ Settings saved successfully.'));
             hapticFeedback('success');
           } else {
             el.checked = !newVal;
-            showToast('❌ خطا در ذخیره تنظیمات');
+            showToast(_appTr('❌ خطا در ذخیره تنظیمات', '❌ Failed to save settings'));
           }
         } catch (e) {
           el.checked = !newVal;
-          showToast('خطا در برقراری ارتباط با سرور.');
+          showToast(_appTr('خطا در برقراری ارتباط با سرور.', 'Server connection error.'));
         }
       };
     });
@@ -4507,18 +4729,18 @@ function hydrateUserInterface(data) {
       try {
         const res = await window.api.setAutoRenew(newVal);
         if (res && res.ok) {
-          showToast(res.message || (newVal ? 'تمدید خودکار فعال شد.' : 'تمدید خودکار غیرفعال شد.'), 'success');
+          showToast(res.message || (newVal ? _appTr('تمدید خودکار فعال شد.', 'Auto-renew enabled.') : _appTr('تمدید خودکار غیرفعال شد.', 'Auto-renew disabled.')), 'success');
           hapticFeedback('success');
           if (autoRenewToggle) autoRenewToggle.checked = newVal;
           if (modalAutoRenewToggle) modalAutoRenewToggle.checked = newVal;
           user.auto_renew = newVal;
         } else {
           sourceEl.checked = !newVal;
-          showToast('❌ خطا در تغییر وضعیت تمدید خودکار', 'error');
+          showToast(_appTr('❌ خطا در تغییر وضعیت تمدید خودکار', '❌ Failed to update auto-renew setting'), 'error');
         }
       } catch (e) {
         sourceEl.checked = !newVal;
-        showToast('خطا در برقراری ارتباط با سرور.', 'error');
+        showToast(_appTr('خطا در برقراری ارتباط با سرور.', 'Server connection error.'), 'error');
       }
     };
 
@@ -4559,13 +4781,13 @@ function hydrateUserInterface(data) {
         try {
           const res = await window.api.saveSetting('traffic_percent', val);
           if (res && res.ok) {
-            showToast(`✅ درصد هشدار مصرف روی ${val}% تنظیم شد.`);
+            showToast(_appIsEn() ? `✅ Usage alert threshold set to ${val}%.` : `✅ درصد هشدار مصرف روی ${val}% تنظیم شد.`);
             hapticFeedback('success');
           } else {
-            showToast('❌ خطا در ذخیره تنظیمات');
+            showToast(_appTr('❌ خطا در ذخیره تنظیمات', '❌ Failed to save settings'));
           }
         } catch (e) {
-          showToast('خطا در برقراری ارتباط با سرور.');
+          showToast(_appTr('خطا در برقراری ارتباط با سرور.', 'Server connection error.'));
         }
       };
     }
@@ -4582,10 +4804,10 @@ function hydrateUserInterface(data) {
             showToast(`✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
             hapticFeedback('success');
           } else {
-            showToast('❌ خطا در ذخیره تنظیمات');
+            showToast(_appTr('❌ خطا در ذخیره تنظیمات', '❌ Failed to save settings'));
           }
         } catch (e) {
-          showToast('خطا در برقراری ارتباط با سرور.');
+          showToast(_appTr('خطا در برقراری ارتباط با سرور.', 'Server connection error.'));
         }
       };
     }
@@ -4654,11 +4876,16 @@ function hydrateUserInterface(data) {
       const pillEl = $('dashboardUsagePill');
       if (pillEl) pillEl.innerText = `${fmtTraffic(sub.traffic_used_gb ?? 0, { html: false })} / ${fmtTraffic(sub.traffic_total_gb ?? 0, { html: false })}`;
 
+      const dLeft = sub.days_left ?? 0;
       const daysEl = $('dashboardDaysLeft');
-      if (daysEl) daysEl.innerText = `${sub.days_left ?? 0} روز`;
+      if (daysEl) daysEl.innerText = _appIsEn() ? `${dLeft} ${dLeft === 1 ? 'day' : 'days'}` : `${dLeft} روز`;
 
       const expireEl = $('dashboardExpireDate');
-      if (expireEl) expireEl.innerText = sub.expire_jalali ? `تا ${sub.expire_jalali}` : 'نامحدود';
+      if (expireEl) {
+        expireEl.innerText = sub.expire_jalali
+          ? (_appIsEn() ? `Until ${toEnglishDigits(sub.expire_jalali)}` : `تا ${sub.expire_jalali}`)
+          : _appTr('نامحدود', 'Unlimited');
+      }
 
       const todayEl = $('dashboardTodayUsed');
       if (todayEl) todayEl.innerText = fmtTraffic(sub.today_used_gb ?? '0.00', { html: false });
@@ -4708,17 +4935,21 @@ function hydrateUserInterface(data) {
 
       const noSubNameEl = $('noSubUserName');
       if (noSubNameEl) {
-        noSubNameEl.innerText = user.first_name || user.username || tgUser?.first_name || 'کاربر';
+        noSubNameEl.innerText = user.first_name || user.username || tgUser?.first_name || _appTr('کاربر', 'User');
       }
 
       if (typeof resetActiveSubAnalytics === 'function') {
         resetActiveSubAnalytics();
       }
 
+      const noSubMsg = _appTr(
+        'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.',
+        'No active subscription found — please purchase a plan in the Shop tab.'
+      );
       const subInputEl = $('subInput');
-      if (subInputEl) subInputEl.value = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
+      if (subInputEl) subInputEl.value = noSubMsg;
       const subDisplayEl = $('subDisplayBox');
-      if (subDisplayEl) subDisplayEl.innerText = 'اشتراک فعالی یافت نشد - لطفاً از تب فروشگاه اقدام فرمایید.';
+      if (subDisplayEl) subDisplayEl.innerText = noSubMsg;
       const remainEl = $('dashboardRemainingTraffic');
       if (remainEl) remainEl.innerText = fmtTraffic(null, { html: false });
       const pctEl = $('dashboardPercentRemaining');
@@ -4726,9 +4957,9 @@ function hydrateUserInterface(data) {
       const pillEl = $('dashboardUsagePill');
       if (pillEl) pillEl.innerText = `${fmtTraffic(0, { html: false })} / ${fmtTraffic(0, { html: false })}`;
       const daysEl = $('dashboardDaysLeft');
-      if (daysEl) daysEl.innerText = '0 روز';
+      if (daysEl) daysEl.innerText = _appTr('0 روز', '0 days');
       const expireEl = $('dashboardExpireDate');
-      if (expireEl) expireEl.innerText = 'غیرفعال';
+      if (expireEl) expireEl.innerText = _appTr('غیرفعال', 'Inactive');
       const todayEl = $('dashboardTodayUsed');
       if (todayEl) todayEl.innerText = fmtTraffic(0, { html: false });
       if (gaugeProgress) { gaugeProgress.style.strokeDashoffset = 314.15; gaugeProgress.setAttribute('stroke', 'url(#gradientMain)'); }
@@ -4737,19 +4968,23 @@ function hydrateUserInterface(data) {
 
   // --- PHASE 6: Active Devices & Sessions (Panel Data) ---
   safeStep('devicesAndSessions', () => {
+    const isEn = _appIsEn();
     const devices = sub?.devices || [];
     const activeDevCount = sub?.devices_count ?? devices.length;
+    const devLabel = isEn
+      ? `${toEnglishDigits(activeDevCount)} ${Number(activeDevCount) === 1 ? 'device' : 'devices'}`
+      : `${toEnglishDigits(activeDevCount)} دستگاه`;
     const repSessionsBadge = $('reportsSessionsBadge');
-    if (repSessionsBadge) repSessionsBadge.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
+    if (repSessionsBadge) repSessionsBadge.innerText = devLabel;
     const mCountText = $('modalSessionsCount');
-    if (mCountText) mCountText.innerText = `${toEnglishDigits(activeDevCount)} دستگاه`;
+    if (mCountText) mCountText.innerText = devLabel;
 
     function renderDeviceList(container) {
       if (!container) return;
       if (devices.length === 0) {
         container.innerHTML = `
           <div class="card-inset p-4 rounded-2xl border border-card-border text-center text-xs t-muted">
-            <span>📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک شما ثبت نشده است.</span>
+            <span>${_appTr('📱 در حال حاضر هیچ دستگاه فعالی روی اشتراک شما ثبت نشده است.', '📱 No active devices currently connected to your subscription.')}</span>
           </div>
         `;
         return;
@@ -4758,7 +4993,7 @@ function hydrateUserInterface(data) {
       container.innerHTML = devices.map(d => {
         const meta = window.parseDeviceMeta ? window.parseDeviceMeta(d) : {
           icon: '📱',
-          model: d.deviceModel || d.model || d.platform || 'دستگاه متصل',
+          model: d.deviceModel || d.model || d.platform || _appTr('دستگاه متصل', 'Connected Device'),
           ip: d.requestIp || d.ip || d.clientIp || '—',
           hwid: d.hwid || '',
           ua: String(d.userAgent || d.user_agent || '').trim(),
@@ -4771,20 +5006,20 @@ function hydrateUserInterface(data) {
 
         const uaHtml = cleanUa ? `
           <div class="text-[10.5px] t-accent truncate mt-0.5 font-sans" title="${escapeHtml(ua)}">
-            <span class="t-muted">کلاینت:</span> ${escapeHtml(cleanUa)}
+            <span class="t-muted">${_appTr('کلاینت:', 'Client:')}</span> ${escapeHtml(cleanUa)}
           </div>
         ` : '';
 
         const updatedHtml = updatedDate ? `
           <div class="flex items-center justify-between t-muted">
-            <span class="flex items-center gap-1"><img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>آخرین فعالیت:</span></span>
+            <span class="flex items-center gap-1"><img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>${_appTr('آخرین فعالیت:', 'Last Seen:')}</span></span>
             <span class="font-sans font-medium t-main num-bidi" dir="ltr">${updatedDate}</span>
           </div>
         ` : '';
 
         const addedHtml = addedDate ? `
           <div class="flex items-center justify-between t-muted">
-            <span class="flex items-center gap-1"><img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>زمان ثبت:</span></span>
+            <span class="flex items-center gap-1"><img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>${_appTr('زمان ثبت:', 'Registered:')}</span></span>
             <span class="font-sans font-medium t-muted num-bidi" dir="ltr">${addedDate}</span>
           </div>
         ` : '';
@@ -4801,7 +5036,7 @@ function hydrateUserInterface(data) {
                   ${uaHtml}
                 </div>
               </div>
-              <button class="kill-device-btn s-danger-soft hover:opacity-85 w-8 h-8 rounded-xl border text-xs transition active:scale-95 flex items-center justify-center shrink-0 cursor-pointer" title="قطع این دستگاه" data-hwid="${escapeHtml(hwid)}" data-model="${escapeHtml(model)}" data-ip="${escapeHtml(ip)}">
+              <button class="kill-device-btn s-danger-soft hover:opacity-85 w-8 h-8 rounded-xl border text-xs transition active:scale-95 flex items-center justify-center shrink-0 cursor-pointer" title="${_appTr('قطع این دستگاه', 'Disconnect device')}" data-hwid="${escapeHtml(hwid)}" data-model="${escapeHtml(model)}" data-ip="${escapeHtml(ip)}">
                 <svg class="w-4 h-4 t-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
@@ -4810,12 +5045,12 @@ function hydrateUserInterface(data) {
             <div class="pt-1.5 border-t border-card-border text-[11px] font-sans space-y-1">
               ${resolvedOs ? `
                 <div class="flex items-center justify-between t-muted">
-                  <span class="flex items-center gap-1"><img src="/static/img/icons/desktop.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>سیستم‌عامل:</span></span>
+                  <span class="flex items-center gap-1"><img src="/static/img/icons/desktop.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>${_appTr('سیستم‌عامل:', 'OS:')}</span></span>
                   <span class="font-sans font-bold t-main num-bidi" dir="ltr">${escapeHtml(resolvedOs)}</span>
                 </div>
               ` : ''}
               <div class="flex items-center justify-between t-muted">
-                <span class="flex items-center gap-1"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>آی‌پی:</span></span>
+                <span class="flex items-center gap-1"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>${_appTr('آی‌پی:', 'IP:')}</span></span>
                 <span class="font-sans font-bold t-accent num-bidi" dir="ltr">${escapeHtml(ip)}</span>
               </div>
               ${addedHtml}
@@ -4828,7 +5063,7 @@ function hydrateUserInterface(data) {
       container.querySelectorAll('.kill-device-btn').forEach(btn => {
         btn.onclick = () => {
           const hwid = btn.getAttribute('data-hwid');
-          const model = btn.getAttribute('data-model') || 'دستگاه متصل';
+          const model = btn.getAttribute('data-model') || _appTr('دستگاه متصل', 'Connected Device');
           const ip = btn.getAttribute('data-ip') || '';
           if (!hwid) return;
           openKillSingleDeviceModal(hwid, model, ip);
@@ -4862,7 +5097,7 @@ function hydrateUserInterface(data) {
     const storyTraffic = $('storyCardTraffic');
     const storyDays = $('storyCardDays');
     const storyQr = $('storyCardQr');
-    const displayName = sub?.username || user.first_name || user.username || 'کاربر گرامی';
+    const displayName = sub?.username || user.first_name || user.username || _appTr('کاربر گرامی', 'Valued User');
     if (storyName) storyName.innerText = displayName;
     if (storyUser) {
       if (user.username) {
@@ -4892,7 +5127,12 @@ function hydrateUserInterface(data) {
     }
 
     if (storyTraffic) storyTraffic.innerText = fmtTraffic(sub?.traffic_remaining_gb, { html: false });
-    if (storyDays) storyDays.innerText = `${toEnglishDigits(sub?.days_left ?? 0)} روز اعتبار`;
+    if (storyDays) {
+      const sDays = sub?.days_left ?? 0;
+      storyDays.innerText = _appIsEn()
+        ? `${toEnglishDigits(sDays)} ${sDays === 1 ? 'day' : 'days'} left`
+        : `${toEnglishDigits(sDays)} روز اعتبار`;
+    }
     const botUsername = data.bot_username || window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '';
     const refLink = typeof window.buildRefLink === 'function' ? window.buildRefLink(botUsername, user.id) : '';
     window.currentReferralLink = refLink;
@@ -4918,7 +5158,7 @@ function hydrateUserInterface(data) {
       if (bDown.length === 0) {
         countryList.innerHTML = `
           <div class="p-3 card-inset text-center text-xs t-muted">
-            <span>ℹ️ امروز هنوز ترافیکی روی سرورها ثبت نشده است.</span>
+            <span>${_appTr('ℹ️ امروز هنوز ترافیکی روی سرورها ثبت نشده است.', 'ℹ️ No traffic recorded on servers today.')}</span>
           </div>
         `;
       } else {
@@ -4968,8 +5208,11 @@ function hydrateUserInterface(data) {
       if (repDailyRemain) repDailyRemain.innerText = fmtTraffic(sub.traffic_remaining_gb, { html: false });
       const repDailyToday = $('repDailyToday');
       if (repDailyToday) repDailyToday.innerText = fmtTraffic(sub.today_used_gb ?? '0.00', { html: false });
+      const expFormatted = _appIsEn()
+        ? `${toEnglishDigits(sub.days_left ?? 0)} ${Number(sub.days_left ?? 0) === 1 ? 'day' : 'days'} (${toEnglishDigits(sub.expire_jalali || 'Unlimited')})`
+        : `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
       const repDailyExpire = $('repDailyExpire');
-      if (repDailyExpire) repDailyExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
+      if (repDailyExpire) repDailyExpire.innerText = expFormatted;
 
       // Nightly report card
       const repTotal = $('repNightlyTotal');
@@ -4981,12 +5224,12 @@ function hydrateUserInterface(data) {
       const repYesterday = $('repNightlyYesterday');
       if (repYesterday) repYesterday.innerText = fmtTraffic(sub.yesterday_used_gb ?? '0.00', { html: false });
       const repExpire = $('repNightlyExpire');
-      if (repExpire) repExpire.innerText = `${toEnglishDigits(sub.days_left ?? 0)} روز (${toEnglishDigits(sub.expire_jalali || 'نامحدود')})`;
+      if (repExpire) repExpire.innerText = expFormatted;
 
       if (typeof renderNodeBreakdown === 'function') {
-        renderNodeBreakdown('repDailyNodesContainer', sub.today_breakdown || [], 'امروز مصرفی روی سرورها ثبت نشده است.');
-        renderNodeBreakdown('repNightlyNodesContainer', sub.yesterday_breakdown || sub.today_breakdown || [], 'دیشب مصرفی روی سرورها ثبت نشده است.');
-        renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], 'مصرفی در 7 روز گذشته ثبت نشده است.');
+        renderNodeBreakdown('repDailyNodesContainer', sub.today_breakdown || [], _appTr('امروز مصرفی روی سرورها ثبت نشده است.', 'No server usage recorded today.'));
+        renderNodeBreakdown('repNightlyNodesContainer', sub.yesterday_breakdown || sub.today_breakdown || [], _appTr('دیشب مصرفی روی سرورها ثبت نشده است.', 'No server usage recorded yesterday.'));
+        renderNodeBreakdown('repWeeklyNodesContainer', sub.week_breakdown || [], _appTr('مصرفی در 7 روز گذشته ثبت نشده است.', 'No usage recorded in the past 7 days.'));
       }
 
       const repWeeklyTotal = $('repWeeklyTotal');
@@ -4998,7 +5241,12 @@ function hydrateUserInterface(data) {
 
       if (typeof renderBarChart === 'function') {
         try {
-          renderBarChart('repWeeklyChartCanvas', sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0], sub.week_day_labels || ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'], false);
+          renderBarChart(
+            'repWeeklyChartCanvas',
+            sub.week_daily_totals_gb || [0, 0, 0, 0, 0, 0, 0],
+            sub.week_day_labels || (_appIsEn() ? ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'] : ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']),
+            false
+          );
         } catch (e) {
           console.warn('Could not render weekly chart:', e);
         }
@@ -5010,13 +5258,20 @@ function hydrateUserInterface(data) {
         const repMonthlyTitle = $('repMonthlyTitle');
         if (repMonthlyTitle) {
           const iconHtml = typeof uiIcon === 'function' ? uiIcon('reports', 'w-4 h-4') : '';
-          repMonthlyTitle.innerHTML = `${iconHtml}<span>گزارش جامع ماه ${escapeHtml(sub.current_month_name || '')}</span>`;
+          repMonthlyTitle.innerHTML = _appIsEn()
+            ? `${iconHtml}<span>${escapeHtml(sub.current_month_name || '')} Monthly Report</span>`
+            : `${iconHtml}<span>گزارش جامع ماه ${escapeHtml(sub.current_month_name || '')}</span>`;
         }
         const repMonthlyTotal = $('repMonthlyTotal');
         if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(sub.month_used_gb ?? '0.00', { html: true });
         if (typeof renderBarChart === 'function') {
           try {
-            renderBarChart('repMonthlyChartCanvas', sub.month_weeks_totals_gb || [0, 0, 0, 0], ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'], true);
+            renderBarChart(
+              'repMonthlyChartCanvas',
+              sub.month_weeks_totals_gb || [0, 0, 0, 0],
+              _appIsEn() ? ['Week 1', 'Week 2', 'Week 3', 'Week 4'] : ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'],
+              true
+            );
           } catch (e) {
             console.warn('Could not render monthly chart:', e);
           }
@@ -5030,7 +5285,7 @@ function hydrateUserInterface(data) {
         console.warn('Could not render active sub analytics:', e);
       }
     } else {
-      const noSubHtml = '<div class="col-span-2 text-center py-2.5 t-muted text-[11px]" dir="rtl">اشتراک فعالی برای نمایش تفکیک مصرف وجود ندارد.</div>';
+      const noSubHtml = `<div class="col-span-2 text-center py-2.5 t-muted text-[11px]" dir="${_appIsEn() ? 'ltr' : 'rtl'}">${_appTr('اشتراک فعالی برای نمایش تفکیک مصرف وجود ندارد.', 'No active subscription for usage breakdown.')}</div>`;
       ['repDailyNodesContainer', 'repNightlyNodesContainer', 'repWeeklyNodesContainer', 'repMonthlyNodesContainer'].forEach(cId => {
         const el = $(cId);
         if (el) el.innerHTML = noSubHtml;
@@ -5091,10 +5346,10 @@ function renderUserAchievements(data) {
   const couponsActionEl = $('achieveCouponsAction');
   if (wonCouponsEl) {
     const count = Number(ach.active_coupons_count ?? wonCoupons.length);
-    wonCouponsEl.innerText = `${count} کد`;
+    wonCouponsEl.innerText = _appIsEn() ? `${count} ${count === 1 ? 'code' : 'codes'}` : `${count} کد`;
     if (couponsActionEl) {
       if (count > 0) {
-        couponsActionEl.innerText = 'کپی آخرین کد';
+        couponsActionEl.innerText = _appTr('کپی آخرین کد', 'Copy latest code');
         couponsActionEl.className = 'text-[11px] t-success mt-0.5 font-medium hover:underline bg-transparent border-0 p-0';
       } else {
         couponsActionEl.innerText = '';
@@ -5107,22 +5362,22 @@ function renderUserAchievements(data) {
   const bdayBtn = $('achieveBdayBtn');
   if (bdayStatusEl) {
     if (ach.birthday_claimed) {
-      bdayStatusEl.innerText = '🎁 دریافت شده';
+      bdayStatusEl.innerText = _appTr('🎁 دریافت شده', '🎁 Claimed');
       bdayStatusEl.className = 't-success text-[11px] font-bold truncate max-w-full';
       if (bdayBtn) bdayBtn.classList.add('hidden');
     } else if (ach.is_birthday_today) {
-      bdayStatusEl.innerText = '🎉 امروز زادروز شماست!';
+      bdayStatusEl.innerText = _appTr('🎉 امروز زادروز شماست!', '🎉 Happy Birthday Today!');
       bdayStatusEl.className = 'text-amber-500 dark:text-amber-300 text-[11px] font-bold truncate max-w-full';
       if (bdayBtn) bdayBtn.classList.add('hidden');
     } else if (ach.has_birthday_set) {
-      bdayStatusEl.innerText = '🎂 ثبت شده';
+      bdayStatusEl.innerText = _appTr('🎂 ثبت شده', '🎂 Saved');
       bdayStatusEl.className = 't-accent text-[11px] font-bold truncate max-w-full';
       if (bdayBtn) bdayBtn.classList.add('hidden');
     } else {
-      bdayStatusEl.innerText = 'ثبت نشده';
+      bdayStatusEl.innerText = _appTr('ثبت نشده', 'Not set');
       bdayStatusEl.className = 't-warn text-[11px] font-bold truncate max-w-full';
       if (bdayBtn) {
-        bdayBtn.innerText = 'ثبت تاریخ';
+        bdayBtn.innerText = _appTr('ثبت تاریخ', 'Set date');
         bdayBtn.className = 'text-[11px] t-warn mt-0.5 hover:underline bg-transparent border-0 p-0';
         bdayBtn.onclick = () => window.openBirthdayModal();
       }
@@ -5132,13 +5387,13 @@ function renderUserAchievements(data) {
   const streakEl = $('achieveStreakCount');
   if (streakEl) {
     const s = Number(ach.wheel_streak ?? data?.wheel_status?.streak ?? 0);
-    streakEl.innerText = `${s} روز`;
+    streakEl.innerText = _appIsEn() ? `${s} ${s === 1 ? 'day' : 'days'}` : `${s} روز`;
   }
 
   const spinTicketsEl = $('achieveSpinTickets');
   if (spinTicketsEl) {
     const t = Number(ach.spin_tickets ?? data?.wheel_status?.spin_tickets ?? 0);
-    spinTicketsEl.innerText = `${t} عدد`;
+    spinTicketsEl.innerText = _appIsEn() ? `${t} ${t === 1 ? 'ticket' : 'tickets'}` : `${t} عدد`;
   }
 }
 window.renderUserAchievements = renderUserAchievements;
@@ -5206,9 +5461,16 @@ const JALALI_MONTHS_MAP = {
   'Mehr': 'مهر', 'Aban': 'آبان', 'Azar': 'آذر',
   'Dey': 'دی', 'Bahman': 'بهمن', 'Esfand': 'اسفند'
 };
+const JALALI_MONTHS_FA_TO_EN = Object.fromEntries(
+  Object.entries(JALALI_MONTHS_MAP).map(([en, fa]) => [fa, en])
+);
 function toPersianMonthName(m) {
   if (!m) return '';
   return JALALI_MONTHS_MAP[m] || m;
+}
+function toLocalizedMonthName(m) {
+  if (!m) return '';
+  return _appIsEn() ? (JALALI_MONTHS_FA_TO_EN[m] || m) : (JALALI_MONTHS_MAP[m] || m);
 }
 
 let currentUserLbWeek = 'all';
@@ -5282,13 +5544,16 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
         weekBar.classList.add('hidden');
       }
     }
-    if (curLabel) curLabel.innerText = activeMonthName ? `ماه ${toPersianMonthName(activeMonthName)}` : '--';
+    if (curLabel) {
+      const mLabel = toLocalizedMonthName(activeMonthName);
+      curLabel.innerText = mLabel ? (_appIsEn() ? mLabel : `ماه ${mLabel}`) : '--';
+    }
 
     const prevMName = avail[currentUserLbMonthIndex + 1] || '';
     const nextMName = avail[currentUserLbMonthIndex - 1] || '';
 
-    if (prevLabel) prevLabel.innerText = toPersianMonthName(prevMName) || '---';
-    if (nextLabel) nextLabel.innerText = toPersianMonthName(nextMName) || '---';
+    if (prevLabel) prevLabel.innerText = toLocalizedMonthName(prevMName) || '---';
+    if (nextLabel) nextLabel.innerText = toLocalizedMonthName(nextMName) || '---';
 
     if (prevBtn) {
       const hasPrev = Boolean(prevMName);
@@ -5308,20 +5573,21 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
   const noticeTextEl = $('userLbNoticeText');
   const noticeIconEl = $('userLbNoticeIcon');
 
+  const isEn = _appIsEn();
   if (noticeTextEl) {
-    let periodLabel = periodData.period_label || '7 روز اخیر';
+    let periodLabel = periodData.period_label || _appTr('7 روز اخیر', 'Last 7 Days');
     if (period === 'daily') {
-      periodLabel = periodData.period_label || 'روزانه (امروز - 00:00 تا 23:59)';
+      periodLabel = periodData.period_label || _appTr('روزانه (امروز - 00:00 تا 23:59)', 'Daily (Today 00:00 - 23:59)');
     } else if (period === 'nightly') {
-      periodLabel = periodData.period_label || 'شبانه (روز قبل - 00:00 تا 23:59)';
+      periodLabel = periodData.period_label || _appTr('شبانه (روز قبل - 00:00 تا 23:59)', 'Nightly (Yesterday 00:00 - 23:59)');
     } else if (period === 'weekly') {
-      periodLabel = '7 روز اخیر';
+      periodLabel = _appTr('7 روز اخیر', 'Last 7 Days');
     } else if (period === 'monthly_30d') {
-      periodLabel = '30 روز اخیر';
+      periodLabel = _appTr('30 روز اخیر', 'Last 30 Days');
     } else if (period === 'monthly') {
-      const mPersian = toPersianMonthName(activeMonthName) || (periodData.month_name ? toPersianMonthName(periodData.month_name) : 'ماهانه');
-      const wLabel = currentUserLbWeek === 'all' ? '' : ` - ${currentUserLbWeek.replace('week', 'هفته ')}`;
-      periodLabel = `ماه ${mPersian}${wLabel}`;
+      const mLocalized = toLocalizedMonthName(activeMonthName) || (periodData.month_name ? toLocalizedMonthName(periodData.month_name) : _appTr('ماهانه', 'Monthly'));
+      const wLabel = currentUserLbWeek === 'all' ? '' : ` - ${currentUserLbWeek.replace('week', isEn ? 'Week ' : 'هفته ')}`;
+      periodLabel = isEn ? `${mLocalized}${wLabel}` : `ماه ${mLocalized}${wLabel}`;
     }
 
     const isPeriodEmpty = top20.length === 0 || top20.every(u => !u.used_gb || u.used_gb <= 0);
@@ -5333,26 +5599,32 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
       if (noticeEl) noticeEl.classList.remove('hidden');
       if (inTop20 && myRank && myUsedGb > 0) {
         if (noticeIconEl) noticeIconEl.innerText = '🎖️';
-        noticeTextEl.innerHTML = `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> از <b class="font-sans">20</b> کاربر برتر قرار دارید.`;
+        noticeTextEl.innerHTML = isEn
+          ? `Congrats! You rank <b class="font-sans font-bold">#${myRank}</b> out of top <b class="font-sans">20</b> users with ${myTrafficHtml}.`
+          : `تبریک! شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> از <b class="font-sans">20</b> کاربر برتر قرار دارید.`;
         if (noticeEl) {
           noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
         }
       } else if (myRank && myRank > 20 && myUsedGb > 0) {
         if (noticeIconEl) noticeIconEl.innerText = '📊';
         const diffTrafficHtml = fmtTraffic(diffGb, { html: true, persianDigits: false });
-        noticeTextEl.innerHTML = `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> قرار دارید. برای ورود به <b class="font-sans">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
+        noticeTextEl.innerHTML = isEn
+          ? `You rank <b class="font-sans font-bold">#${myRank}</b> with ${myTrafficHtml}. Use ${diffTrafficHtml} more to enter the top <b class="font-sans">20</b>.`
+          : `شما با مصرف ${myTrafficHtml} در رتبه <b class="font-sans font-bold">${myRank}</b> قرار دارید. برای ورود به <b class="font-sans">20</b> کاربر برتر، به ${diffTrafficHtml} مصرف بیشتر نیاز دارید.`;
         if (noticeEl) {
           noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-card-border t-main';
         }
       } else if (myUsedGb > 0) {
         if (noticeIconEl) noticeIconEl.innerText = '📈';
-        noticeTextEl.innerHTML = `مصرف شما برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-sans">20</b> کاربر برتر بپیوندید!`;
+        noticeTextEl.innerHTML = isEn
+          ? `Your usage is ${myTrafficHtml}. Keep using to join the top <b class="font-sans">20</b> leaderboard!`
+          : `مصرف شما برابر ${myTrafficHtml} است. با مصرف بیشتر به جمع <b class="font-sans">20</b> کاربر برتر بپیوندید!`;
         if (noticeEl) {
           noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-card-border t-main';
         }
       } else {
         if (noticeIconEl) noticeIconEl.innerText = 'ℹ️';
-        noticeTextEl.innerHTML = `در این بازه هنوز مصرفی برای شما ثبت نشده است.`;
+        noticeTextEl.innerHTML = _appTr('در این بازه هنوز مصرفی برای شما ثبت نشده است.', 'No usage recorded for you in this period yet.');
         if (noticeEl) {
           noticeEl.className = 'p-2.5 rounded-xl text-xs flex items-start gap-2 bg-slate-500/10 border border-card-border t-muted';
         }
@@ -5399,10 +5671,14 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
 
   if (userLeaderboardChartInstance) {
     userLeaderboardChartInstance.data.labels = labels;
+    userLeaderboardChartInstance.data.datasets[0].label = _appTr('مصرف ترافیک', 'Data Usage');
     userLeaderboardChartInstance.data.datasets[0].data = values;
     userLeaderboardChartInstance.data.datasets[0].backgroundColor = bgColors;
     userLeaderboardChartInstance.data.datasets[0].borderColor = borderColors;
     userLeaderboardChartInstance.data.datasets[0].borderWidth = borderWidths;
+    if (userLeaderboardChartInstance.options?.plugins?.tooltip) {
+      userLeaderboardChartInstance.options.plugins.tooltip.rtl = !isEn;
+    }
     userLeaderboardChartInstance.update();
     return;
   }
@@ -5416,12 +5692,13 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
   }
   if (typeof Chart === 'undefined') return;
 
+  const fontFam = isEn ? 'Inter, Vazirmatn, sans-serif' : 'Vazirmatn';
   userLeaderboardChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels,
       datasets: [{
-        label: 'مصرف ترافیک',
+        label: _appTr('مصرف ترافیک', 'Data Usage'),
         data: values,
         backgroundColor: bgColors,
         borderColor: borderColors,
@@ -5436,15 +5713,17 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
       plugins: {
         legend: { display: false },
         tooltip: {
-          rtl: true,
-          titleFont: { family: 'Vazirmatn' },
-          bodyFont: { family: 'Vazirmatn' },
+          rtl: !isEn,
+          titleFont: { family: fontFam },
+          bodyFont: { family: fontFam },
           callbacks: {
             label: (c) => {
               const u = top20[c.dataIndex] || {};
               const trafVal = typeof fmtTraffic === 'function' ? fmtTraffic(c.raw, { html: false, isolate: true, persianDigits: false }) : c.raw;
               const rankNum = c.dataIndex + 1;
-              const prefix = u.is_me ? '👤 شما: ' : (c.dataIndex === 0 ? '👑 رتبه 1: ' : `رتبه ${rankNum}: `);
+              const prefix = _appIsEn()
+                ? (u.is_me ? '👤 You: ' : (c.dataIndex === 0 ? '👑 #1: ' : `#${rankNum}: `))
+                : (u.is_me ? '👤 شما: ' : (c.dataIndex === 0 ? '👑 رتبه 1: ' : `رتبه ${rankNum}: `));
               return `${prefix}${trafVal}`;
             },
           },
@@ -5455,7 +5734,7 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
           grid: { display: false },
           ticks: {
             color: tickColor,
-            font: { family: 'Vazirmatn', size: 9 },
+            font: { family: fontFam, size: 9 },
             maxRotation: 45,
             minRotation: 0,
           },
@@ -5464,7 +5743,7 @@ async function renderUserLeaderboard(leaderboardData, period = currentUserLbPeri
           grid: { color: gridColor },
           ticks: {
             color: tickColor,
-            font: { family: 'Vazirmatn', size: 9 },
+            font: { family: fontFam, size: 9 },
             callback: (v) => typeof fmtTraffic === 'function' ? fmtTraffic(v, { html: false, isolate: true, persianDigits: false }) : v,
           },
         },
@@ -5480,13 +5759,13 @@ function copyActiveCoupon() {
   const coupons = window.lastUserData?.won_coupons || [];
   if (coupons.length === 0) {
     if (typeof showToast === 'function') {
-      showToast('کد تخفیف فعالی برای کپی وجود ندارد', 'info');
+      showToast(_appTr('کد تخفیف فعالی برای کپی وجود ندارد', 'No active promo code to copy'), 'info');
     }
     return;
   }
   const code = coupons[0]?.code;
   if (code) {
-    const copyMsg = `کد تخفیف کپی شد:\n${code}`;
+    const copyMsg = _appIsEn() ? `Promo code copied:\n${code}` : `کد تخفیف کپی شد:\n${code}`;
     if (typeof copyToClipboard === 'function') {
       copyToClipboard(code, copyMsg);
     } else if (navigator.clipboard) {
@@ -5654,7 +5933,7 @@ async function syncUserDataWithApi(accountId, options = {}) {
       if (Number.isFinite(nextBal)) {
         if ((prevBal !== null && nextBal > prevBal) || (hadPendingAwaiting && prevBal === null && nextBal > 0)) {
           _awaitingTopupCreditUntil = 0;
-          showToast('🎉 موجودی کیف پول شما به‌روزرسانی شد!');
+          showToast(_appTr('🎉 موجودی کیف پول شما به‌روزرسانی شد!', '🎉 Your wallet balance has been updated!'));
           hapticFeedback('success');
         }
         _lastLiveWalletBalance = nextBal;
@@ -5664,10 +5943,14 @@ async function syncUserDataWithApi(accountId, options = {}) {
 
       if (res.data.partial) {
         if (typeof showBanner === 'function') {
-          showBanner('⚠️ ارتباط با سرور اشتراک موقتاً با تأخیر همراه است. اطلاعات کیف‌پول و پلن‌ها در دسترس است.', 'warning', {
-            id: 'partialBanner',
-            dismissible: true,
-          });
+          showBanner(
+            _appTr(
+              '⚠️ ارتباط با سرور اشتراک موقتاً با تأخیر همراه است. اطلاعات کیف‌پول و پلن‌ها در دسترس است.',
+              '⚠️ Subscription server is temporarily slow. Wallet and shop info remain available.'
+            ),
+            'warning',
+            { id: 'partialBanner', dismissible: true }
+          );
         }
       } else {
         if (typeof hideBanner === 'function') {
@@ -5694,9 +5977,9 @@ async function syncUserDataWithApi(accountId, options = {}) {
       }
       if (statusCode === 401 || res.error === 'Unauthorized') {
         if (typeof showBanner === 'function') {
-          showBanner('نشست کاربری شما منقضی شده است. لطفاً مینی‌اپ را ببندید و مجدداً باز فرمایید.', 'error', {
+          showBanner(_appTr('نشست کاربری شما منقضی شده است. لطفاً مینی‌اپ را ببندید و مجدداً باز فرمایید.', 'Your session has expired. Please close and reopen the Mini App.'), 'error', {
             id: 'authErrorBanner',
-            actionText: 'بستن برنامه',
+            actionText: _appTr('بستن برنامه', 'Close App'),
             onAction: () => {
               if (window.Telegram?.WebApp?.close) {
                 window.Telegram.WebApp.close();
@@ -5708,17 +5991,17 @@ async function syncUserDataWithApi(accountId, options = {}) {
         }
       } else if (statusCode === 408 || res.is_timeout) {
         if (typeof showBanner === 'function') {
-          showBanner('مهلت ارتباط با سرور به پایان رسید. در حال استفاده از آخرین اطلاعات ذخیره‌شده.', 'warning', {
+          showBanner(_appTr('مهلت ارتباط با سرور به پایان رسید. در حال استفاده از آخرین اطلاعات ذخیره‌شده.', 'Connection timed out. Showing last cached data.'), 'warning', {
             id: 'apiErrorBanner',
-            actionText: 'تلاش مجدد',
+            actionText: _appTr('تلاش مجدد', 'Retry'),
             onAction: () => syncUserDataWithApi(accountId),
           });
         }
       } else {
         if (typeof showBanner === 'function') {
-          showBanner(res.error || res.message || 'خطا در برقراری ارتباط با سرور. لطفاً مجدداً تلاش کنید.', 'warning', {
+          showBanner(res.error || res.message || _appTr('خطا در برقراری ارتباط با سرور. لطفاً مجدداً تلاش کنید.', 'Server connection error. Please try again.'), 'warning', {
             id: 'apiErrorBanner',
-            actionText: 'تلاش مجدد',
+            actionText: _appTr('تلاش مجدد', 'Retry'),
             onAction: () => syncUserDataWithApi(accountId),
           });
         }
@@ -5727,9 +6010,9 @@ async function syncUserDataWithApi(accountId, options = {}) {
   } catch (err) {
     console.debug('Live API sync fallback to cache', err);
     if (typeof showBanner === 'function') {
-      showBanner('خطای شبکه در ارتباط با سرور. لطفاً مجدداً تلاش کنید.', 'warning', {
+      showBanner(_appTr('خطای شبکه در ارتباط با سرور. لطفاً مجدداً تلاش کنید.', 'Network error while connecting to server. Please try again.'), 'warning', {
         id: 'apiErrorBanner',
-        actionText: 'تلاش مجدد',
+        actionText: _appTr('تلاش مجدد', 'Retry'),
         onAction: () => syncUserDataWithApi(accountId),
       });
     }
@@ -5777,7 +6060,7 @@ function initApp() {
       const name = tgUser.first_name || tgUser.username || '';
       if (name) {
         const usernameEl = $('headerUsername');
-        if (usernameEl && (usernameEl.innerText === 'کاربر' || !usernameEl.innerText)) {
+        if (usernameEl && (usernameEl.innerText === 'کاربر' || usernameEl.innerText === 'User' || !usernameEl.innerText)) {
           usernameEl.innerText = name;
         }
         const avatarEl = $('headerUserAvatarInitial');
@@ -5785,7 +6068,7 @@ function initApp() {
           avatarEl.innerText = name[0].toUpperCase();
         }
         const profName = $('profileFullName');
-        if (profName && profName.innerText === 'کاربر گرامی') {
+        if (profName && (profName.innerText === 'کاربر گرامی' || profName.innerText === 'Valued User')) {
           profName.innerText = tgUser.first_name ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : name;
         }
         const profUser = $('profileUsername');
@@ -5898,28 +6181,28 @@ async function checkJoinGateMembership() {
   const origHtml = btn ? btn.innerHTML : '';
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('sync', 'w-3.5 h-3.5 animate-spin')}<span>در حال بررسی...</span></span>`;
+    btn.innerHTML = `<span class="inline-flex items-center gap-1.5">${uiIcon('sync', 'w-3.5 h-3.5 animate-spin')}<span>${_appTr('در حال بررسی...', 'Checking...')}</span></span>`;
   }
   try {
     if (window.hapticFeedback) window.hapticFeedback('impact');
     const res = await window.api.getMe(window.currentAccountId || null, { refresh: true });
     if (res && (res.ok || res._httpOk) && res.data) {
       if (!res.data.is_join_gate) {
-        if (window.showToast) window.showToast('عضویت شما با موفقیت تأیید شد. خوش آمدید! 🎉');
+        if (window.showToast) window.showToast(_appTr('عضویت شما با موفقیت تأیید شد. خوش آمدید! 🎉', 'Membership verified! Welcome 🎉'));
         applySyncedUserData(res.data);
       dismissSplash();
       } else {
-        if (window.showToast) window.showToast('⚠️ هنوز در کانال عضو نشده‌اید. لطفاً ابتدا در کانال عضو شوید.');
+        if (window.showToast) window.showToast(_appTr('⚠️ هنوز در کانال عضو نشده‌اید. لطفاً ابتدا در کانال عضو شوید.', '⚠️ You have not joined the channel yet. Please join first.'));
       }
     } else {
-      if (window.showToast) window.showToast('❌ خطا در ارتباط با سرور.');
+      if (window.showToast) window.showToast(_appTr('❌ خطا در ارتباط با سرور.', '❌ Server connection error.'));
     }
   } catch (err) {
-    if (window.showToast) window.showToast('❌ خطا در بررسی عضویت کانال');
+    if (window.showToast) window.showToast(_appTr('❌ خطا در بررسی عضویت کانال', '❌ Error checking channel membership'));
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = origHtml || `<span class="inline-flex items-center gap-2">${uiIcon('sync', 'w-4 h-4')}<span>تأیید عضویت و ورود</span></span>`;
+      btn.innerHTML = origHtml || `<span class="inline-flex items-center gap-2">${uiIcon('sync', 'w-4 h-4')}<span>${_appTr('تأیید عضویت و ورود', 'Verify Membership & Enter')}</span></span>`;
     }
   }
 }
@@ -5992,9 +6275,10 @@ window.closeGiftServiceSelectModal = closeGiftServiceSelectModal;
 function renderGiftServiceSelectModalList() {
   const container = $('giftServiceSelectModalList');
   if (!container) return;
+  const isEn = _appIsEn();
   const plans = window.lastUserData?.plans || [];
   if (!plans.length) {
-    container.innerHTML = '<div class="p-4 rounded-xl card-inset text-center text-xs t-muted">هیچ بسته فعالی یافت نشد.</div>';
+    container.innerHTML = `<div class="p-4 rounded-xl card-inset text-center text-xs t-muted">${_appTr('هیچ بسته فعالی یافت نشد.', 'No active plans found.')}</div>`;
     return;
   }
 
@@ -6004,28 +6288,32 @@ function renderGiftServiceSelectModalList() {
     const priceStr = baseGiftPrice.toLocaleString('en-US');
     const isTimeOnly = p.plan_type === 'time' || (p.duration_days > 0 && (!p.traffic_gb || p.traffic_gb <= 0));
     const isTrafficOnly = p.plan_type === 'traffic' || (p.traffic_gb > 0 && (!p.duration_days || p.duration_days <= 0));
+    const daysWord = _appTr('روز', p.duration_days === 1 ? 'day' : 'days');
+    const unlimLabel = _appTr('نامحدود', 'Unlimited');
+    const durLabel = p.duration_days > 0 ? `${p.duration_days} ${daysWord}` : unlimLabel;
+    const trafLabel = p.traffic_gb > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : unlimLabel;
 
     let specsHtml = '';
     if (isTimeOnly) {
-      specsHtml = `<span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${p.duration_days} روز</b></span>`;
+      specsHtml = `<span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${durLabel}</b></span>`;
     } else if (isTrafficOnly) {
       specsHtml = `<span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${fmtTraffic(p.traffic_gb, { html: false })}</b></span>`;
     } else {
       specsHtml = `
-        <span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${p.duration_days > 0 ? `${p.duration_days} روز` : 'نامحدود'}</b></span>
-        <span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${p.traffic_gb > 0 ? fmtTraffic(p.traffic_gb, { html: false }) : 'نامحدود'}</b></span>
+        <span class="inline-flex items-center gap-1 font-sans"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="t-main">${durLabel}</b></span>
+        <span class="inline-flex items-center gap-1 font-sans" dir="ltr"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 inline-block" alt="" /><b class="font-sans num-bidi t-main">${trafLabel}</b></span>
       `;
     }
 
     return `
-      <div onclick="window.selectGiftService(${p.id})" dir="rtl" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between gap-2.5 transition">
-        <div class="flex items-center gap-1 shrink-0" dir="rtl">
+      <div onclick="window.selectGiftService(${p.id})" dir="${isEn ? 'ltr' : 'rtl'}" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between gap-2.5 transition">
+        <div class="flex items-center gap-1 shrink-0" dir="${isEn ? 'ltr' : 'rtl'}">
           <span class="text-xs font-bold t-pink font-sans num-bidi">${priceStr}</span>
-          <span class="text-[11px] t-muted">تومان</span>
+          <span class="text-[11px] t-muted">${_appTr('تومان', 'Toman')}</span>
         </div>
-        <div class="space-y-1 min-w-0 text-left flex-1 pl-1">
+        <div class="space-y-1 min-w-0 ${isEn ? 'text-right pr-1' : 'text-left pl-1'} flex-1">
           <b class="text-xs t-main block truncate">${formatPlanTitle(p.name, { iconPosition: 'left' })}</b>
-          <div class="flex items-center justify-start gap-2 text-[11px] t-muted" dir="ltr">
+          <div class="flex items-center ${isEn ? 'justify-end' : 'justify-start'} gap-2 text-[11px] t-muted" dir="ltr">
             ${specsHtml}
           </div>
         </div>
@@ -6164,7 +6452,7 @@ async function submitCreateGift() {
     if (currentGiftType === 'BALANCE') {
       const amt = Number($('giftBalanceAmount')?.value || 0);
       if (!amt || amt < 10000) {
-        showToast('⚠️ حداقل مبلغ هدیه اعتبار 10,000 تومان می‌باشد.');
+        showToast(_appTr('⚠️ حداقل مبلغ هدیه اعتبار 10,000 تومان می‌باشد.', '⚠️ Minimum balance gift amount is 10,000 Toman.'));
         if (btn) btn.disabled = false;
         return;
       }
@@ -6172,7 +6460,7 @@ async function submitCreateGift() {
     } else {
       const svcId = _giftSelectedService?.id || $('giftServiceSelect')?.value;
       if (!svcId) {
-        showToast('⚠️ لطفاً بسته مورد نظر را انتخاب فرمایید.');
+        showToast(_appTr('⚠️ لطفاً بسته مورد نظر را انتخاب فرمایید.', '⚠️ Please select a plan.'));
         if (btn) btn.disabled = false;
         return;
       }
@@ -6182,7 +6470,7 @@ async function submitCreateGift() {
     if (currentGiftDelivery === 'DIRECT') {
       let rec = $('giftReceiverInput')?.value.trim() || '';
       if (!rec) {
-        showToast('⚠️ لطفاً آیدی یا شناسه عددی تلگرام گیرنده را وارد فرمایید.');
+        showToast(_appTr('⚠️ لطفاً آیدی یا شناسه عددی تلگرام گیرنده را وارد فرمایید.', '⚠️ Please enter the recipient Telegram @username or numeric ID.'));
         if (btn) btn.disabled = false;
         return;
       }
@@ -6193,14 +6481,14 @@ async function submitCreateGift() {
 
     const res = await window.api.createGift(payload);
     if (!res || !res.ok) {
-      const errMsg = res?.message || res?.data?.message || 'خطا در ثبت هدیه';
+      const errMsg = res?.message || res?.data?.message || _appTr('خطا در ثبت هدیه', 'Failed to create gift');
       showToast(`❌ ${errMsg}`);
       hapticFeedback('error');
       return;
     }
 
     hapticFeedback('success');
-    showToast('🎉 کارت هدیه با موفقیت صادر شد!');
+    showToast(_appTr('🎉 کارت هدیه با موفقیت صادر شد!', '🎉 Gift created successfully!'));
 
     const d = res.data || res || {};
     const successBox = $('giftCreatedSuccessBox');
@@ -6213,9 +6501,15 @@ async function submitCreateGift() {
       const notice = $('giftCreatedNotice');
       if (notice) {
         if (currentGiftDelivery === 'DIRECT') {
-          notice.innerText = 'هدیه به دوستتان تحویل شد و پیام تبریک به همراه دکمه فعال‌سازی در تلگرام برای ایشان ارسال گردید.';
+          notice.innerText = _appTr(
+            'هدیه به دوستتان تحویل شد و پیام تبریک به همراه دکمه فعال‌سازی در تلگرام برای ایشان ارسال گردید.',
+            'The gift has been delivered! Your friend received a Telegram notification with a button to claim it.'
+          );
         } else {
-          notice.innerText = 'لینک بالا را کپی کرده و برای دوستتان ارسال نمایید تا با یک کلیک هدیه را دریافت کند.';
+          notice.innerText = _appTr(
+            'لینک بالا را کپی کرده و برای دوستتان ارسال نمایید تا با یک کلیک هدیه را دریافت کند.',
+            'Copy the link above and send it to your friend so they can claim it with one click.'
+          );
         }
       }
     }
@@ -6237,7 +6531,7 @@ async function submitCreateGift() {
     }
   } catch (err) {
     console.error('submitCreateGift error:', err);
-    showToast('❌ خطا در ارتباط با سرور.');
+    showToast(_appTr('❌ خطا در ارتباط با سرور.', '❌ Server connection error.'));
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -6247,7 +6541,7 @@ function copyGiftShareLink() {
   const linkInp = $('giftCreatedLinkInput');
   if (!linkInp || !linkInp.value) return;
   copyToClipboard(linkInp.value);
-  showToast('📋 لینک هدیه در کلیپ‌بورد کپی شد!');
+  showToast(_appTr('📋 لینک هدیه در کلیپ‌بورد کپی شد!', '📋 Gift link copied to clipboard!'));
   hapticFeedback('selection');
 }
 
@@ -6255,7 +6549,7 @@ function copyGiftCode() {
   const codeInp = $('giftCreatedCodeInput');
   if (!codeInp || !codeInp.value) return;
   copyToClipboard(codeInp.value);
-  showToast('📋 کد اختصاصی هدیه کپی شد!');
+  showToast(_appTr('📋 کد اختصاصی هدیه کپی شد!', '📋 Gift code copied to clipboard!'));
   hapticFeedback('selection');
 }
 
@@ -6263,25 +6557,26 @@ async function submitClaimVoucher() {
   const inp = $('claimVoucherInput') || $('voucherCodeInput');
   const code = inp?.value.trim().toUpperCase();
   if (!code) {
-    showToast('⚠️ لطفاً کد هدیه را وارد فرمایید.');
+    showToast(_appTr('⚠️ لطفاً کد هدیه را وارد فرمایید.', '⚠️ Please enter the gift code.'));
     return;
   }
 
   try {
     const res = await window.api.claimGift(code);
     if (!res || !res.ok) {
-      showToast(`❌ ${res?.message || 'کد هدیه نامعتبر است یا قبلاً استفاده شده.'}`);
+      showToast(`❌ ${res?.message || _appTr('کد هدیه نامعتبر است یا قبلاً استفاده شده.', 'Invalid or already used gift code.')}`);
       hapticFeedback('error');
       return;
     }
     hapticFeedback('success');
+    const isEn = _appIsEn();
     const giftType = res.gift_type || res.data?.gift_type;
     const amount = res.amount || res.data?.amount;
     const serviceName = res.service_name || res.data?.service_name;
     const giftTitle = giftType === 'BALANCE'
-      ? `${Number(amount || 0).toLocaleString('en-US')} تومان اعتبار کیف پول`
-      : `اشتراک «${serviceName || 'سرویس'}»`;
-    showToast(`🎉 تبریک! هدیه ${giftTitle} دریافت و به حسابتان اضافه شد!`);
+      ? (isEn ? `${Number(amount || 0).toLocaleString('en-US')} Toman wallet credit` : `${Number(amount || 0).toLocaleString('en-US')} تومان اعتبار کیف پول`)
+      : (isEn ? `"${serviceName || 'Plan'}" subscription` : `اشتراک «${serviceName || 'سرویس'}»`);
+    showToast(isEn ? `🎉 Congrats! Gift (${giftTitle}) claimed and added to your account!` : `🎉 تبریک! هدیه ${giftTitle} دریافت و به حسابتان اضافه شد!`);
     inp.value = '';
     try {
       if (typeof window.syncUserDataWithApi === 'function') window.syncUserDataWithApi();
@@ -6290,7 +6585,7 @@ async function submitClaimVoucher() {
     }
     loadGiftsHistory();
   } catch (err) {
-    showToast('❌ خطا در دریافت کد هدیه.');
+    showToast(_appTr('❌ خطا در دریافت کد هدیه.', '❌ Failed to claim gift code.'));
   }
 }
 
@@ -6300,27 +6595,28 @@ async function loadGiftsHistory() {
   }
   const container = $('giftsHistoryContainer');
   if (!container) return;
-  container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">در حال دریافت تاریخچه...</div>';
+  container.innerHTML = `<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">${_appTr('در حال دریافت تاریخچه...', 'Loading history...')}</div>`;
 
   try {
+    const isEn = _appIsEn();
     const res = await window.api.getGiftsHistory();
     const giftsObj = res?.gifts || res?.data?.gifts;
     const sent = giftsObj?.sent || res?.sent_gifts || res?.data?.sent_gifts || (Array.isArray(giftsObj) ? giftsObj : []);
     if (!res || !res.ok || !sent.length) {
-      container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">هنوز هدیه‌ای ارسال نکرده‌اید.</div>';
+      container.innerHTML = `<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">${_appTr('هنوز هدیه‌ای ارسال نکرده‌اید.', 'You have not sent any gifts yet.')}</div>`;
       return;
     }
     container.innerHTML = sent.map(g => {
       const isClaimed = g.is_claimed;
       const statusBadge = isClaimed
-        ? '<span class="text-emerald-500 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />دریافت شده</span>'
-        : '<span class="text-amber-500 font-bold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />در انتظار دریافت</span>';
+        ? `<span class="text-emerald-500 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />${_appTr('دریافت شده', 'Claimed')}</span>`
+        : `<span class="text-amber-500 font-bold text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />${_appTr('در انتظار دریافت', 'Pending')}</span>`;
       const desc = g.gift_type === 'BALANCE'
-        ? `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`
-        : `اشتراک ${escapeHtml(g.service_name || 'سرویس')}`;
+        ? (isEn ? `${Number(g.amount).toLocaleString('en-US')} Toman wallet credit` : `${Number(g.amount).toLocaleString('en-US')} تومان شارژ کیف پول`)
+        : (isEn ? `${escapeHtml(g.service_name || 'Plan')} subscription` : `اشتراک ${escapeHtml(g.service_name || 'سرویس')}`);
       const rec = g.receiver_username
         ? `<span dir="ltr">@${escapeHtml(g.receiver_username)}</span>`
-        : (g.receiver_telegram_id ? `<span dir="ltr">${escapeHtml(String(g.receiver_telegram_id))}</span>` : 'از طریق لینک هدیه');
+        : (g.receiver_telegram_id ? `<span dir="ltr">${escapeHtml(String(g.receiver_telegram_id))}</span>` : _appTr('از طریق لینک هدیه', 'Via gift link'));
       const dateStr = g.created_at_jalali || (g.created_at && window.formatDateToJalali ? window.formatDateToJalali(g.created_at) : '');
       const shareUrl = g.share_url || `https://t.me?start=gift_${g.code}`;
       return `
@@ -6330,14 +6626,14 @@ async function loadGiftsHistory() {
             ${statusBadge}
           </div>
           <div class="flex justify-between items-center text-[11px] t-muted">
-            <span>گیرنده: <code class="font-sans num-bidi">${rec}</code></span>
+            <span>${_appTr('گیرنده:', 'Recipient:')} <code class="font-sans num-bidi">${rec}</code></span>
             <span dir="ltr" class="font-sans num-bidi">${toEnglishDigits(dateStr)}</span>
           </div>
           <div class="flex items-center justify-between text-[11px] border-t border-card-border pt-1">
-            ${!isClaimed ? `<button type="button" data-copy-link="${escapeHtml(shareUrl)}" class="btn-copy-gift-link text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="کپی لینک"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" alt="" /> کپی لینک</button>` : '<span></span>'}
+            ${!isClaimed ? `<button type="button" data-copy-link="${escapeHtml(shareUrl)}" class="btn-copy-gift-link text-[11px] t-pink hover:text-pink-300 font-bold flex items-center gap-1 active:scale-95 transition" title="${_appTr('کپی لینک', 'Copy link')}"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" alt="" /> ${_appTr('کپی لینک', 'Copy Link')}</button>` : '<span></span>'}
             <div class="flex items-center gap-1.5" dir="ltr">
               <span class="font-sans num-bidi t-muted text-[11px] select-all">${escapeHtml(g.code || '')}</span>
-              <button type="button" data-copy-code="${escapeHtml(g.code || '')}" class="btn-copy-gift-code p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="کپی کد"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="کپی" /></button>
+              <button type="button" data-copy-code="${escapeHtml(g.code || '')}" class="btn-copy-gift-code p-1 rounded-md t-accent hover:text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition" title="${_appTr('کپی کد', 'Copy code')}"><img src="/static/img/icons/copy.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" alt="${_appTr('کپی', 'Copy')}" /></button>
             </div>
           </div>
         </div>
@@ -6348,7 +6644,7 @@ async function loadGiftsHistory() {
       btn.onclick = () => {
         if (btn.dataset.copyLink) {
           copyToClipboard(btn.dataset.copyLink);
-          showToast('لینک کپی شد!');
+          showToast(_appTr('لینک کپی شد!', 'Link copied!'));
         }
       };
     });
@@ -6356,12 +6652,12 @@ async function loadGiftsHistory() {
       btn.onclick = () => {
         if (btn.dataset.copyCode) {
           copyToClipboard(btn.dataset.copyCode);
-          showToast('کد کپی شد!');
+          showToast(_appTr('کد کپی شد!', 'Code copied!'));
         }
       };
     });
   } catch (err) {
-    container.innerHTML = '<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">خطا در بارگذاری تاریخچه.</div>';
+    container.innerHTML = `<div class="p-3 rounded-xl card-inset text-center text-xs t-muted">${_appTr('خطا در بارگذاری تاریخچه.', 'Failed to load history.')}</div>`;
   }
 }
 
@@ -6391,9 +6687,9 @@ function renderInvoiceModalFields(inv, orderId) {
   currentInvoiceData = inv;
   $('invNumberDisplay').innerText = inv.invoice_number || `INV-${orderId}`;
   $('invDateDisplay').innerText = `${inv.date_jalali} - ${inv.time_jalali}`;
-  $('invSellerName').innerText = inv.seller?.name || 'سرویس ابری رمنا';
+  $('invSellerName').innerText = inv.seller?.name || _appTr('سرویس ابری رمنا', 'Remna Cloud Service');
   if ($('invSellerDefaultIcon')) $('invSellerDefaultIcon').classList.remove('hidden');
-  const bName = inv.buyer?.name || 'کاربر گرامی';
+  const bName = inv.buyer?.name || _appTr('کاربر گرامی', 'Valued User');
   const bId = inv.buyer?.telegram_id || '';
   if ($('invBuyerName')) $('invBuyerName').innerText = bName;
   if ($('invBuyerId')) {
@@ -6401,7 +6697,7 @@ function renderInvoiceModalFields(inv, orderId) {
     $('invBuyerId').className = bId ? 'text-[11px] text-slate-400 font-sans block w-full select-all text-left' : 'hidden';
   }
 
-  const rawItemTitle = (inv.item?.title || 'بسته اشتراک').trim();
+  const rawItemTitle = (inv.item?.title || _appTr('بسته اشتراک', 'Subscription Plan')).trim();
   const emojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\p{Extended_Pictographic}|\p{Emoji_Presentation})/gu;
   const emojiMatches = rawItemTitle.match(emojiRegex);
   let cleanItemTitle = rawItemTitle.replace(emojiRegex, '').trim() || rawItemTitle;
@@ -6426,22 +6722,23 @@ function renderInvoiceModalFields(inv, orderId) {
   $('invItemAmount').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
 
   $('invFinalAmountToman').innerText = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
-  $('invFinalAmountRial').innerHTML = `(<span class="num-bidi font-sans">${Number((inv.payment?.amount_toman || 0) * 10).toLocaleString('en-US')}</span> ریال)`;
+  $('invFinalAmountRial').innerHTML = `(<span class="num-bidi font-sans">${Number((inv.payment?.amount_toman || 0) * 10).toLocaleString('en-US')}</span> ${_appTr('ریال', 'Rial')})`;
   $('invTrackingCode').innerText = inv.payment?.tracking_code || `TRX-${orderId}`;
 
   const statusEl = $('invPaymentStatus');
   if (statusEl) {
-    let statusText = inv.payment?.status || inv.payment?.status_label || 'پرداخت شده';
-    if (statusText === 'پرداخت شده و فعال') statusText = 'پرداخت شده';
+    let statusText = inv.payment?.status || inv.payment?.status_label || _appTr('پرداخت شده', 'Paid');
+    if (statusText === 'پرداخت شده و فعال') statusText = _appIsEn() ? 'Paid & Active' : 'پرداخت شده';
+    const lowerStatus = String(statusText).toLowerCase();
     let iconSvg = '<img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
     let badgeClass = 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400';
-    if (statusText.includes('ناموفق') || statusText.includes('لغو')) {
+    if (lowerStatus.includes('ناموفق') || lowerStatus.includes('لغو') || lowerStatus.includes('fail') || lowerStatus.includes('cancel') || lowerStatus.includes('reject')) {
       iconSvg = '<img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
       badgeClass = 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400';
-    } else if (statusText.includes('انتظار')) {
+    } else if (lowerStatus.includes('انتظار') || lowerStatus.includes('pending')) {
       iconSvg = '<img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
       badgeClass = 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400';
-    } else if (statusText.includes('مسترد')) {
+    } else if (lowerStatus.includes('مسترد') || lowerStatus.includes('refund')) {
       iconSvg = '<img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-3 h-3 inline-block" alt="" />';
       badgeClass = 'bg-purple-500/15 border-purple-500/30 text-purple-600 dark:text-purple-400';
     }
@@ -6452,7 +6749,7 @@ function renderInvoiceModalFields(inv, orderId) {
 
   const dedStatusEl = $('invWalletDeductionStatus');
   if (dedStatusEl) {
-    const note = inv.payment?.deduction_note || (inv.payment?.is_paid ? 'کسر شده از موجودی کیف پول' : 'هیچ هزینه‌ای کسر نشده است');
+    const note = inv.payment?.deduction_note || (inv.payment?.is_paid ? _appTr('کسر شده از موجودی کیف پول', 'Deducted from wallet balance') : _appTr('هیچ هزینه‌ای کسر نشده است', 'No amount deducted'));
     const isPaid = inv.payment?.is_paid;
     dedStatusEl.innerText = note;
     dedStatusEl.className = `text-xs font-semibold ${isPaid ? 'text-emerald-500' : 'text-slate-400'}`;
@@ -6503,26 +6800,29 @@ async function openInvoiceModal(orderId, itemType = '') {
       invoice_number: `INV-${String(tx.id).padStart(5, '0')}`,
       date_jalali: tx.date_jalali ? String(tx.date_jalali).split(' ')[0] : '—',
       time_jalali: tx.date_jalali && String(tx.date_jalali).includes('-') ? String(tx.date_jalali).split('-')[1]?.trim() : '—',
-      seller: { name: 'سرویس ابری رمنا', support: 'پشتیبانی ربات تلگرام' },
+      seller: {
+        name: _appTr('سرویس ابری رمنا', 'Remna Cloud Service'),
+        support: _appTr('پشتیبانی ربات تلگرام', 'Telegram Bot Support'),
+      },
       buyer: {
-        name: window.lastUserData?.user?.first_name || window.lastUserData?.user?.username || 'کاربر گرامی',
+        name: window.lastUserData?.user?.first_name || window.lastUserData?.user?.username || _appTr('کاربر گرامی', 'Valued User'),
         telegram_id: window.lastUserData?.user?.id,
         phone: window.lastUserData?.user?.phone_number || '—'
       },
       item: {
-        title: tx.title || (tx.type === 'order' ? `سفارش اشتراک #${tx.id}` : 'تراکنش کیف پول'),
-        specs: tx.traffic_gb ? `${fmtTraffic(tx.traffic_gb, { html: false })} — ${tx.duration_days || 30} روز` : 'خدمات شبکه ابری',
+        title: tx.title || (tx.type === 'order' ? (_appIsEn() ? `Subscription Order #${tx.id}` : `سفارش اشتراک #${tx.id}`) : _appTr('تراکنش کیف پول', 'Wallet Transaction')),
+        specs: tx.traffic_gb ? `${fmtTraffic(tx.traffic_gb, { html: false })} — ${tx.duration_days || 30} ${_appTr('روز', 'days')}` : _appTr('خدمات شبکه ابری', 'Cloud Network Services'),
         amount_toman: tx.amount || 0,
         amount_rial: (tx.amount || 0) * 10
       },
       payment: {
-        is_paid: tx.status === 'موفق' || tx.status === 'تایید شده' || tx.status === 'approved' || tx.status === 'paid',
-        status: tx.status || (tx.type === 'topup' ? 'تایید و شارژ شده' : 'پرداخت شده'),
-        status_label: tx.status || 'موفق',
+        is_paid: tx.status === 'موفق' || tx.status === 'تایید شده' || tx.status === 'approved' || tx.status === 'paid' || tx.status === 'Completed' || tx.status === 'Success',
+        status: tx.status || (tx.type === 'topup' ? _appTr('تایید و شارژ شده', 'Confirmed & Credited') : _appTr('پرداخت شده', 'Paid')),
+        status_label: tx.status || _appTr('موفق', 'Success'),
         tracking_code: tx.type === 'topup'
           ? `TRX-TOP-${String(((Number(tx.id) || 1) * 7919) % 100000000).padStart(8, '0')}`
           : `TRX-${String(((Number(tx.id) || 1) * 7919) % 100000000).padStart(8, '0')}`,
-        deduction_note: tx.type === 'topup' ? 'واریز به موجودی کیف پول' : 'کسر شده از موجودی کیف پول'
+        deduction_note: tx.type === 'topup' ? _appTr('واریز به موجودی کیف پول', 'Added to wallet balance') : _appTr('کسر شده از موجودی کیف پول', 'Deducted from wallet balance')
       }
     };
     invoiceClientCache.set(clientKey, fallbackInv);
@@ -6542,12 +6842,12 @@ async function openInvoiceModal(orderId, itemType = '') {
   }
 
   modal.classList.remove('hidden');
-  $('invNumberDisplay').innerText = 'در حال استخراج...';
+  $('invNumberDisplay').innerText = _appTr('در حال استخراج...', 'Loading...');
   $('invDateDisplay').innerText = '--';
   $('invSellerName').innerText = '...';
   if ($('invBuyerName')) $('invBuyerName').innerText = '...';
   if ($('invBuyerId')) $('invBuyerId').innerText = '--';
-  $('invItemTitle').innerText = 'در حال دریافت اطلاعات فاکتور...';
+  $('invItemTitle').innerText = _appTr('در حال دریافت اطلاعات فاکتور...', 'Fetching invoice details...');
   $('invItemSpecs').innerText = '';
   $('invItemAmount').innerText = '--';
   $('invFinalAmountToman').innerText = '--';
@@ -6557,7 +6857,7 @@ async function openInvoiceModal(orderId, itemType = '') {
   try {
     const res = await window.api.getInvoice(orderId, effectiveType);
     if (!res || !res.ok || !res.data) {
-      showToast(`❌ ${res?.message || 'فاکتور یافت نشد.'}`);
+      showToast(`❌ ${res?.message || _appTr('فاکتور یافت نشد.', 'Invoice not found.')}`);
       closeInvoiceModal();
       return;
     }
@@ -6567,7 +6867,7 @@ async function openInvoiceModal(orderId, itemType = '') {
     renderInvoiceModalFields(res.data, orderId);
   } catch (err) {
     console.warn('Failed loading invoice:', err);
-    showToast('❌ خطا در بارگذاری اطلاعات فاکتور.');
+    showToast(_appTr('❌ خطا در بارگذاری اطلاعات فاکتور.', '❌ Failed to load invoice details.'));
     closeInvoiceModal();
   }
 }
@@ -6578,7 +6878,7 @@ function closeInvoiceModal() {
 
 async function sendCurrentInvoiceTelegram() {
   if (!currentInvoiceData || !currentInvoiceData.order_id) {
-    showToast('⚠️ اطلاعات فاکتور در دسترس نیست.');
+    showToast(_appTr('⚠️ اطلاعات فاکتور در دسترس نیست.', '⚠️ Invoice details unavailable.'));
     return;
   }
   const btn = $('sendInvoiceTelegramBtn');
@@ -6591,12 +6891,12 @@ async function sendCurrentInvoiceTelegram() {
     );
     if (res && res.ok) {
       hapticFeedback('success');
-      showToast('🎉 فاکتور رسمی به پیوی تلگرام شما ارسال شد!');
+      showToast(_appTr('🎉 فاکتور رسمی به پیوی تلگرام شما ارسال شد!', '🎉 Official invoice sent to your Telegram DM!'));
     } else {
-      showToast(`❌ ${res?.message || 'خطا در ارسال پیام به تلگرام'}`);
+      showToast(`❌ ${res?.message || _appTr('خطا در ارسال پیام به تلگرام', 'Failed to send message to Telegram')}`);
     }
   } catch (err) {
-    showToast('❌ خطا در ارتباط با سرور.');
+    showToast(_appTr('❌ خطا در ارتباط با سرور.', '❌ Server connection error.'));
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -6640,25 +6940,35 @@ async function generateInvoiceShareCard(invData) {
   ctx.strokeRect(24, 24, 592, 792);
 
   // 4. Header Badge: Official Digital Receipt
+  const isEn = _appIsEn();
+  const canvasFont = isEn ? 'Inter, sans-serif' : 'Vazirmatn, sans-serif';
+  const primaryAlign = isEn ? 'left' : 'right';
+  const oppAlign = isEn ? 'right' : 'left';
+  const primaryOuterX = isEn ? 48 : 592;
+  const oppOuterX = isEn ? 592 : 48;
+  const boxPrimaryX = isEn ? 68 : 572;
+  const boxOppX = isEn ? 572 : 68;
+  const ticketPrimaryX = isEn ? 70 : 570;
+
   ctx.fillStyle = '#06b6d4';
-  ctx.font = 'bold 22px Vazirmatn, sans-serif';
-  ctx.textAlign = 'right';
-  ctx.fillText('⚡ رسید رسمی پرداخت و اشتراک رمنا', 592, 72);
+  ctx.font = `bold 22px ${canvasFont}`;
+  ctx.textAlign = primaryAlign;
+  ctx.fillText(_appTr('⚡ رسید رسمی پرداخت و اشتراک رمنا', '⚡ Remna Official Payment Receipt'), primaryOuterX, 72);
 
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '13px Vazirmatn, sans-serif';
-  ctx.fillText('تاییدیه رسمی تراکنش معتبر سرویس ابری', 592, 98);
+  ctx.font = `13px ${canvasFont}`;
+  ctx.fillText(_appTr('تاییدیه رسمی تراکنش معتبر سرویس ابری', 'Official Verified Cloud Transaction'), primaryOuterX, 98);
 
-  // Invoice Number & Date (Left)
-  ctx.textAlign = 'left';
+  // Invoice Number & Date (Opposite corner)
+  ctx.textAlign = oppAlign;
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 15px sans-serif';
   const invNumber = inv.invoice_number || `INV-${inv.order_id || '00000'}`;
-  ctx.fillText(invNumber, 48, 72);
+  ctx.fillText(invNumber, oppOuterX, 72);
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '13px sans-serif';
-  ctx.fillText(`${inv.date_jalali || '—'} ${inv.time_jalali || ''}`, 48, 96);
+  ctx.fillText(`${inv.date_jalali || '—'} ${inv.time_jalali || ''}`, oppOuterX, 96);
 
   // Divider Line
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
@@ -6673,24 +6983,24 @@ async function generateInvoiceShareCard(invData) {
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
   ctx.strokeRect(48, 140, 544, 88);
 
-  ctx.textAlign = 'right';
+  ctx.textAlign = primaryAlign;
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '13px Vazirmatn, sans-serif';
-  ctx.fillText('👤 مشترک سرویس:', 572, 172);
+  ctx.font = `13px ${canvasFont}`;
+  ctx.fillText(_appTr('👤 مشترک سرویس:', '👤 Subscriber:'), boxPrimaryX, 172);
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 16px Vazirmatn, sans-serif';
-  const buyerName = inv.buyer?.name || window.lastUserData?.user?.first_name || 'کاربر گرامی';
-  ctx.fillText(buyerName, 572, 204);
+  ctx.font = `bold 16px ${canvasFont}`;
+  const buyerName = inv.buyer?.name || window.lastUserData?.user?.first_name || _appTr('کاربر گرامی', 'Valued User');
+  ctx.fillText(buyerName, boxPrimaryX, 204);
 
-  ctx.textAlign = 'left';
+  ctx.textAlign = oppAlign;
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '12px sans-serif';
-  ctx.fillText('شناسه کاربری:', 68, 172);
+  ctx.font = `12px ${canvasFont}`;
+  ctx.fillText(_appTr('شناسه کاربری:', 'User ID:'), boxOppX, 172);
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 14px sans-serif';
   const buyerId = String(inv.buyer?.telegram_id || window.lastUserData?.user?.id || '—');
-  ctx.fillText(buyerId, 68, 204);
+  ctx.fillText(buyerId, boxOppX, 204);
 
   // 6. Plan Details Section (The Cyber Ticket)
   ctx.fillStyle = 'rgba(6, 182, 212, 0.06)';
@@ -6699,17 +7009,17 @@ async function generateInvoiceShareCard(invData) {
   ctx.strokeRect(48, 252, 544, 215);
 
   // Plan Title
-  ctx.textAlign = 'right';
+  ctx.textAlign = primaryAlign;
   ctx.fillStyle = '#38bdf8';
-  ctx.font = 'bold 20px Vazirmatn, sans-serif';
-  const rawItemTitle = (inv.item?.title || 'اشتراک ویژه اینترنت آزاد').replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gu, '').trim();
-  ctx.fillText(`🚀 ${rawItemTitle}`, 570, 298);
+  ctx.font = `bold 20px ${canvasFont}`;
+  const rawItemTitle = (inv.item?.title || _appTr('اشتراک ویژه اینترنت آزاد', 'Premium Cloud Subscription')).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gu, '').trim();
+  ctx.fillText(`🚀 ${rawItemTitle}`, ticketPrimaryX, 298);
 
   // Specs
   ctx.fillStyle = '#cbd5e1';
-  ctx.font = '15px Vazirmatn, sans-serif';
+  ctx.font = `15px ${canvasFont}`;
   const specs = `${inv.item?.traffic_text || ''} | ${inv.item?.duration_text || ''}`;
-  ctx.fillText(specs, 570, 338);
+  ctx.fillText(specs, ticketPrimaryX, 338);
 
   // Perforated line (Ticket Notch effect)
   ctx.setLineDash([8, 6]);
@@ -6721,16 +7031,16 @@ async function generateInvoiceShareCard(invData) {
   ctx.setLineDash([]);
 
   // Amount
-  ctx.textAlign = 'right';
+  ctx.textAlign = primaryAlign;
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '14px Vazirmatn, sans-serif';
-  ctx.fillText('مبلغ پرداخت شده:', 570, 422);
+  ctx.font = `14px ${canvasFont}`;
+  ctx.fillText(_appTr('مبلغ پرداخت شده:', 'Amount Paid:'), ticketPrimaryX, 422);
 
-  ctx.textAlign = 'left';
+  ctx.textAlign = oppAlign;
   ctx.fillStyle = '#10b981';
   ctx.font = 'bold 24px sans-serif';
   const finalPrice = Number(inv.payment?.amount_toman || 0).toLocaleString('en-US');
-  ctx.fillText(`${finalPrice} Toman`, 68, 426);
+  ctx.fillText(`${finalPrice} Toman`, boxOppX, 426);
 
   // 7. Status & Tracking
   ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
@@ -6738,16 +7048,16 @@ async function generateInvoiceShareCard(invData) {
   ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
   ctx.strokeRect(48, 495, 544, 70);
 
-  ctx.textAlign = 'right';
+  ctx.textAlign = primaryAlign;
   ctx.fillStyle = '#10b981';
-  ctx.font = 'bold 15px Vazirmatn, sans-serif';
-  ctx.fillText('وضعیت: پرداخت موفقیت‌آمیز و فعال ✅', 570, 538);
+  ctx.font = `bold 15px ${canvasFont}`;
+  ctx.fillText(_appTr('وضعیت: پرداخت موفقیت‌آمیز و فعال ✅', 'Status: Paid & Active ✅'), ticketPrimaryX, 538);
 
-  ctx.textAlign = 'left';
+  ctx.textAlign = oppAlign;
   ctx.fillStyle = '#64748b';
   ctx.font = '12px sans-serif';
   const trxCode = inv.payment?.tracking_code || `TRX-${inv.order_id || 'SUCCESS'}`;
-  ctx.fillText(trxCode, 68, 538);
+  ctx.fillText(trxCode, boxOppX, 538);
 
   // 8. Footer Remna Seal
   ctx.textAlign = 'center';
@@ -6761,7 +7071,7 @@ async function generateInvoiceShareCard(invData) {
 
 window.generateInvoiceShareCard = generateInvoiceShareCard;
 
-async function _deliverCanvasCardToChatOrDownload(canvas, filename, { orderId = null, itemType = 'order', buttonEl = null, downloadToast = '📸 تصویر باکیفیت ذخیره شد.' } = {}) {
+async function _deliverCanvasCardToChatOrDownload(canvas, filename, { orderId = null, itemType = 'order', buttonEl = null, downloadToast = _appTr('📸 تصویر باکیفیت ذخیره شد.', '📸 High-resolution image saved.') } = {}) {
   if (!canvas) return;
   const dataUrl = canvas.toDataURL('image/png');
   const inTelegramWebApp = Boolean(window.Telegram?.WebApp?.initData);
@@ -6771,12 +7081,12 @@ async function _deliverCanvasCardToChatOrDownload(canvas, filename, { orderId = 
     try {
       const res = await window.api.sendInvoiceToTelegram(orderId, itemType || '', dataUrl);
       if (res && res.ok) {
-        if (typeof showToast === 'function') showToast('📸 تصویر فاکتور با موفقیت به چت تلگرام شما ارسال شد!', 'success');
+        if (typeof showToast === 'function') showToast(_appTr('📸 تصویر فاکتور با موفقیت به چت تلگرام شما ارسال شد!', '📸 Invoice image sent to your Telegram chat!'), 'success');
         if (window.hapticFeedback) window.hapticFeedback('success');
         if (typeof window.playSubtleSound === 'function') window.playSubtleSound('success');
         return;
       }
-      if (typeof showToast === 'function') showToast(`❌ ${res?.message || 'خطا در ارسال تصویر به تلگرام'}`);
+      if (typeof showToast === 'function') showToast(`❌ ${res?.message || _appTr('خطا در ارسال تصویر به تلگرام', 'Failed to send image to Telegram')}`);
       return;
     } finally {
       if (buttonEl) buttonEl.disabled = false;
@@ -6803,7 +7113,7 @@ window.downloadInvoiceShareCard = async function() {
   try {
     const canvas = await generateInvoiceShareCard(currentInvoiceData);
     if (!canvas) {
-      if (typeof showToast === 'function') showToast('خطا در تولید تصویر فاکتور', 'error');
+      if (typeof showToast === 'function') showToast(_appTr('خطا در تولید تصویر فاکتور', 'Failed to generate invoice image'), 'error');
       return;
     }
     const invNum = currentInvoiceData.invoice_number || `INV-${currentInvoiceData.order_id || 'receipt'}`;
@@ -6811,11 +7121,11 @@ window.downloadInvoiceShareCard = async function() {
       orderId: currentInvoiceData.order_id || window.activeInvoiceModalOrderId,
       itemType: currentInvoiceType || currentInvoiceData.type || '',
       buttonEl: $('downloadInvoiceCardBtn'),
-      downloadToast: '📸 تصویر باکیفیت فاکتور رسمی ذخیره گردید.',
+      downloadToast: _appTr('📸 تصویر باکیفیت فاکتور رسمی ذخیره گردید.', '📸 Official invoice image downloaded.'),
     });
   } catch (err) {
     console.warn('Failed to export invoice card:', err);
-    if (typeof showToast === 'function') showToast('❌ خطا در ارسال تصویر فاکتور.');
+    if (typeof showToast === 'function') showToast(_appTr('❌ خطا در ارسال تصویر فاکتور.', '❌ Failed to send invoice image.'));
   }
 };
 
@@ -6824,7 +7134,7 @@ window.downloadPurchaseSuccessCard = async function() {
   if (typeof window.playSubtleSound === 'function') window.playSubtleSound('tap');
 
   try {
-    const name = document.getElementById('psvcName')?.innerText || 'اشتراک ویژه';
+    const name = document.getElementById('psvcName')?.innerText || _appTr('اشتراک ویژه', 'Premium Subscription');
     const traffic = document.getElementById('psvcTraffic')?.innerText || '';
     const days = document.getElementById('psvcDays')?.innerText || '';
     const price = document.getElementById('psvcPrice')?.innerText || '';
@@ -6834,10 +7144,10 @@ window.downloadPurchaseSuccessCard = async function() {
     const invMock = {
       order_id: realOrderId || Date.now().toString().slice(-6),
       invoice_number: `REC-${realOrderId || Date.now().toString().slice(-6)}`,
-      date_jalali: new Date().toLocaleDateString('fa-IR'),
+      date_jalali: new Date().toLocaleDateString(_appIsEn() ? 'en-US' : 'fa-IR'),
       time_jalali: '',
       item: { title: name, traffic_text: traffic, duration_text: days },
-      payment: { amount_toman: Number(String(price).replace(/[^0-9]/g, '')), status: 'پرداخت شده و فعال' },
+      payment: { amount_toman: Number(String(price).replace(/[^0-9]/g, '')), status: _appTr('پرداخت شده و فعال', 'Paid & Active') },
       buyer: { name: user, telegram_id: window.lastUserData?.user?.id }
     };
 
@@ -6848,7 +7158,7 @@ window.downloadPurchaseSuccessCard = async function() {
       orderId: realOrderId,
       itemType: 'order',
       buttonEl: $('psvcShareCardBtn'),
-      downloadToast: '📸 تصویر رسید سفارش ذخیره شد.',
+      downloadToast: _appTr('📸 تصویر رسید سفارش ذخیره شد.', '📸 Order receipt image downloaded.'),
     });
   } catch (err) {
     console.warn('Failed sending purchase card:', err);
@@ -6883,11 +7193,15 @@ function openLoyaltyModal() {
         ? uiEmojiIcon(loyalty.icon || '🥈', 'w-4 h-4')
         : `<img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />`;
     }
-    if ($('loyaltyModalCurrentName')) $('loyaltyModalCurrentName').innerText = loyalty.name || 'برنزی';
-    if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} تومان`;
+    const isEn = _appIsEn();
+    const moneyUnit = _appTr('تومان', 'Toman');
+    if ($('loyaltyModalCurrentName')) $('loyaltyModalCurrentName').innerText = loyalty.name || _appTr('برنزی', 'Bronze');
+    if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} ${moneyUnit}`;
     if ($('loyaltyModalCurrentDiscount')) {
       const disc = toEnglishDigits(loyalty.discount_percent || 0);
-      $('loyaltyModalCurrentDiscount').innerHTML = Number(disc) > 0 ? `<span class="font-sans font-bold num-bidi" dir="ltr">${disc}%</span> تخفیف` : 'بدون تخفیف';
+      $('loyaltyModalCurrentDiscount').innerHTML = Number(disc) > 0
+        ? (isEn ? `<span class="font-sans font-bold num-bidi" dir="ltr">${disc}%</span> OFF` : `<span class="font-sans font-bold num-bidi" dir="ltr">${disc}%</span> تخفیف`)
+        : _appTr('بدون تخفیف', 'No discount');
       $('loyaltyModalCurrentDiscount').className = Number(disc) > 0 ? 'text-xs font-bold text-emerald-500' : 'text-xs font-medium t-muted';
     }
     if ($('loyaltyModalProgressText')) {
@@ -6901,11 +7215,19 @@ function openLoyaltyModal() {
       if (!isMaxTier && nextTier && nextTier.name) {
         const needed = Number(nextTier.remaining_amount || loyalty.amount_to_next || 0).toLocaleString('en-US');
         const nextDisc = toEnglishDigits(nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0);
-        $('loyaltyModalProgressText').innerHTML = `با ${needed} تومان خرید دیگر، به سطح ${escapeHtml(nextTier.name)} ارتقا می‌یابید و از <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
+        $('loyaltyModalProgressText').innerHTML = isEn
+          ? `Spend ${needed} ${moneyUnit} more to reach ${escapeHtml(nextTier.name)} and unlock a <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> discount.`
+          : `با ${needed} تومان خرید دیگر، به سطح ${escapeHtml(nextTier.name)} ارتقا می‌یابید و از <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
       } else if (isMaxTier) {
-        $('loyaltyModalProgressText').innerText = 'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس) دست یافته‌اید.';
+        $('loyaltyModalProgressText').innerText = _appTr(
+          'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس) دست یافته‌اید.',
+          'Congratulations! You have reached the highest Loyalty Club tier (Diamond).'
+        );
       } else {
-        $('loyaltyModalProgressText').innerText = 'با خرید بسته‌های بیشتر، سطح شما در باشگاه مشتریان ارتقا یافته و تخفیف دریافت می‌کنید.';
+        $('loyaltyModalProgressText').innerText = _appTr(
+          'با خرید بسته‌های بیشتر، سطح شما در باشگاه مشتریان ارتقا یافته و تخفیف دریافت می‌کنید.',
+          'Purchase more plans to upgrade your Loyalty Club tier and earn permanent discounts.'
+        );
       }
     }
 
@@ -6915,7 +7237,7 @@ function openLoyaltyModal() {
         const spentEl = $(`loyaltyTierCard_${t.id}_spent`);
         const pctEl = $(`loyaltyTierCard_${t.id}_pct`);
         if (spentEl && t.min_spent !== undefined) {
-          spentEl.innerText = `${Number(t.min_spent).toLocaleString('en-US')} تومان`;
+          spentEl.innerText = `${Number(t.min_spent).toLocaleString('en-US')} ${moneyUnit}`;
         }
         if (pctEl && t.discount_percent !== undefined) {
           pctEl.innerHTML = `<span class="num-bidi font-sans font-bold" dir="ltr">${toEnglishDigits(t.discount_percent)}%</span>`;
@@ -6965,13 +7287,13 @@ async function confirmKillAllSessions() {
   try {
     const res = await window.api.revokeSub();
     if (res && res.ok) {
-      showToast('✅ تمام نشست‌های فعال مسدود و لینک اشتراک امن جدید صادر شد.');
+      showToast(_appTr('✅ تمام نشست‌های فعال مسدود و لینک اشتراک امن جدید صادر شد.', '✅ All active sessions terminated and a new secure subscription link was issued.'));
       syncUserDataWithApi();
     } else {
-      showToast(`❌ ${res?.error || res?.message || 'خطا در قطع نشست‌ها.'}`);
+      showToast(`❌ ${res?.error || res?.message || _appTr('خطا در قطع نشست‌ها.', 'Failed to terminate sessions.')}`);
     }
   } catch (err) {
-    showToast('❌ خطا در برقراری ارتباط با سرور.');
+    showToast(_appTr('❌ خطا در برقراری ارتباط با سرور.', '❌ Server connection error.'));
   }
 }
 window.openKillAllSessionsModal = openKillAllSessionsModal;
@@ -6982,7 +7304,7 @@ let pendingKillSingleHwid = null;
 
 function openKillSingleDeviceModal(hwid, model, ip) {
   pendingKillSingleHwid = hwid;
-  if ($('killDeviceModalModel')) $('killDeviceModalModel').innerText = model || 'دستگاه متصل';
+  if ($('killDeviceModalModel')) $('killDeviceModalModel').innerText = model || _appTr('دستگاه متصل', 'Connected Device');
   if ($('killDeviceModalIp')) $('killDeviceModalIp').innerText = ip || '—';
   const m = $('killSingleDeviceModal');
   if (m) m.classList.remove('hidden');
@@ -7002,13 +7324,13 @@ async function confirmKillSingleDevice() {
   try {
     const res = await window.api.killDevice(hwid, window.currentAccountId);
     if (res && res.ok) {
-      showToast('✅ دستگاه با موفقیت قطع شد.');
+      showToast(_appTr('✅ دستگاه با موفقیت قطع شد.', '✅ Device disconnected successfully.'));
       syncUserDataWithApi();
     } else {
-      showToast(`❌ ${res?.error || 'خطا در قطع دستگاه'}`);
+      showToast(`❌ ${res?.error || _appTr('خطا در قطع دستگاه', 'Failed to disconnect device')}`);
     }
   } catch (e) {
-    showToast('❌ خطا در برقراری ارتباط با سرور.');
+    showToast(_appTr('❌ خطا در برقراری ارتباط با سرور.', '❌ Server connection error.'));
   }
 }
 
@@ -7036,7 +7358,10 @@ window.triggerLogoEasterEgg = async function() {
     const serverAlreadyClaimed = Boolean(window.lastUserData?.achievements?.easter_egg_claimed);
     if (serverAlreadyClaimed && localStorage.getItem('remna_vip_easter_claimed') === '1') {
       if (typeof showToast === 'function') {
-        showToast('✨ باشگاه VIP رمنا! هدیه مخفی (1 تیکت رایگان گردونه) قبلاً دریافت شده است.', 'success', 4000);
+        showToast(_appTr(
+          '✨ باشگاه VIP رمنا! هدیه مخفی (1 تیکت رایگان گردونه) قبلاً دریافت شده است.',
+          '✨ Remna VIP Club! Secret reward (1 free Lucky Wheel ticket) has already been claimed.'
+        ), 'success', 4000);
       }
       return;
     }
@@ -7067,7 +7392,10 @@ window.triggerLogoEasterEgg = async function() {
         }
         if (typeof showToast === 'function') {
           showToast(
-            res.message || '🎉 تبریک! ایستراگ مخفی را باز کردید و 1 تیکت رایگان گردونه شانس گرفتید ✨',
+            res.message || _appTr(
+              '🎉 تبریک! ایستراگ مخفی را باز کردید و 1 تیکت رایگان گردونه شانس گرفتید ✨',
+              '🎉 Congrats! You unlocked the secret Easter Egg and earned 1 free Lucky Wheel ticket ✨'
+            ),
             'success',
             5000
           );
@@ -7076,11 +7404,11 @@ window.triggerLogoEasterEgg = async function() {
           syncUserDataWithApi(window.currentAccountId);
         }
       } else if (typeof showToast === 'function') {
-        showToast(res?.error || '✨ تبریک! عضویت در باشگاه VIP رمنا فعال شد.', 'success', 4000);
+        showToast(res?.error || _appTr('✨ تبریک! عضویت در باشگاه VIP رمنا فعال شد.', '✨ Congrats! Remna VIP Club membership activated.'), 'success', 4000);
       }
     } catch (e) {
       if (typeof showToast === 'function') {
-        showToast('✨ تبریک! عضویت در باشگاه VIP رمنا فعال شد.', 'success', 4000);
+        showToast(_appTr('✨ تبریک! عضویت در باشگاه VIP رمنا فعال شد.', '✨ Congrats! Remna VIP Club membership activated.'), 'success', 4000);
       }
     } finally {
       _easterEggInFlight = false;

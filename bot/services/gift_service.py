@@ -35,15 +35,17 @@ async def create_gift(
     bot: Any = None,
     bot_username: str = "",
     cache: Any = None,
+    lang: str = "fa",
 ) -> dict[str, Any]:
     """Create a gift card, deduct sender's balance atomically, and optionally notify receiver."""
+    is_en = str(lang or "").strip().lower().split("-")[0].split("_")[0] == "en"
     delivery_type = delivery_type.upper() if delivery_type else "LINK"
     if delivery_type not in ("DIRECT", "LINK"):
         delivery_type = "LINK"
 
     gift_type = gift_type.upper() if gift_type else "BALANCE"
     if gift_type not in ("BALANCE", "SERVICE"):
-        return {"ok": False, "message": "نوع هدیه نامعتبر است."}
+        return {"ok": False, "message": "Invalid gift type." if is_en else "نوع هدیه نامعتبر است."}
 
     cost_to_charge = 0
     service_obj = None
@@ -51,17 +53,17 @@ async def create_gift(
 
     if gift_type == "BALANCE":
         if amount < 10000:
-            return {"ok": False, "message": "حداقل مبلغ هدیه اعتبار 10,000 تومان است."}
+            return {"ok": False, "message": "Minimum gift amount is 10,000 Toman." if is_en else "حداقل مبلغ هدیه اعتبار 10,000 تومان است."}
         cost_to_charge = amount
     elif gift_type == "SERVICE":
         if not service_id:
-            return {"ok": False, "message": "شناسه سرویس الزامی است."}
+            return {"ok": False, "message": "Plan ID is required." if is_en else "شناسه سرویس الزامی است."}
         srv_res = await session.execute(select(Service).where(Service.id == service_id, Service.is_active.is_(True)))
         service_obj = srv_res.scalar_one_or_none()
         if not service_obj:
-            return {"ok": False, "message": "سرویس مورد نظر یافت نشد یا غیرفعال است."}
+            return {"ok": False, "message": "Plan not found or inactive." if is_en else "سرویس مورد نظر یافت نشد یا غیرفعال است."}
         if service_obj.max_purchases and (service_obj.purchases_count or 0) >= service_obj.max_purchases:
-            return {"ok": False, "message": "سقف فروش این سرویس تکمیل شده است."}
+            return {"ok": False, "message": "Plan sales quota reached." if is_en else "سقف فروش این سرویس تکمیل شده است."}
         service_name = service_obj.name
         # Charge full retail price on gifts to prevent VIP loyalty discount arbitrage across accounts.
         cost_to_charge = int(service_obj.price)
@@ -86,7 +88,7 @@ async def create_gift(
             "error": "insufficient_balance",
             "needed": cost_to_charge,
             "current": wallet.balance if wallet else 0,
-            "message": "موجودی کیف پول شما برای ارسال این هدیه کافی نیست.",
+            "message": "Insufficient wallet balance for this gift." if is_en else "موجودی کیف پول شما برای ارسال این هدیه کافی نیست.",
         }
 
     # 2. Resolve recipient if direct
@@ -170,7 +172,7 @@ async def create_gift(
         "gift_type": gift_type,
         "delivery_type": delivery_type,
         "direct_notified": direct_notified,
-        "message": "کارت هدیه با موفقیت صادر شد.",
+        "message": "Gift card created successfully." if is_en else "کارت هدیه با موفقیت صادر شد.",
     }
 
 
@@ -183,8 +185,10 @@ async def _claim_gift_core(
     bot: Any = None,
     session_factory: Any = None,
     cache: Any = None,
+    lang: str = "fa",
 ) -> dict[str, Any]:
     """Internal core gift claiming logic."""
+    is_en = str(lang or "").strip().lower().split("-")[0].split("_")[0] == "en"
     clean_code = code.strip().upper()
 
     # Atomic lookup with row lock
@@ -193,24 +197,24 @@ async def _claim_gift_core(
     )
     gift = res.scalar_one_or_none()
     if not gift:
-        return {"ok": False, "message": "کد هدیه نامعتبر است یا یافت نشد."}
+        return {"ok": False, "message": "Gift code is invalid or not found." if is_en else "کد هدیه نامعتبر است یا یافت نشد."}
 
     if gift.is_claimed:
-        return {"ok": False, "message": "این کارت هدیه قبلاً استفاده شده است."}
+        return {"ok": False, "message": "This gift card has already been claimed." if is_en else "این کارت هدیه قبلاً استفاده شده است."}
 
     # Ownership checks for DIRECT delivery
     if gift.delivery_type == "DIRECT":
         if gift.receiver_telegram_id and gift.receiver_telegram_id != claimer_telegram_id:
-            return {"ok": False, "message": "این کارت هدیه اختصاصاً برای کاربر دیگری ارسال شده است."}
+            return {"ok": False, "message": "This gift card was issued for another user." if is_en else "این کارت هدیه اختصاصاً برای کاربر دیگری ارسال شده است."}
         if gift.receiver_username:
             r_uname = gift.receiver_username.lstrip("@").strip().lower()
             c_uname = claimer_username.lstrip("@").strip().lower() if claimer_username else None
             if gift.receiver_telegram_id != claimer_telegram_id and (not c_uname or c_uname != r_uname):
-                return {"ok": False, "message": "این کارت هدیه اختصاصاً برای کاربر دیگری ارسال شده است."}
+                return {"ok": False, "message": "This gift card was issued for another user." if is_en else "این کارت هدیه اختصاصاً برای کاربر دیگری ارسال شده است."}
 
     sender_id = gift.sender_telegram_id
     if sender_id == claimer_telegram_id:
-        return {"ok": False, "message": "شما نمی‌توانید هدیه‌ای که خودتان ساخته‌اید را تحویل بگیرید."}
+        return {"ok": False, "message": "You cannot claim a gift you created." if is_en else "شما نمی‌توانید هدیه‌ای که خودتان ساخته‌اید را تحویل بگیرید."}
 
     orig_receiver_id = gift.receiver_telegram_id
     now_utc = datetime.now(timezone.utc)
@@ -226,7 +230,7 @@ async def _claim_gift_core(
         )
     )
     if (claim_res.rowcount or 0) != 1:
-        return {"ok": False, "message": "این کارت هدیه قبلاً استفاده شده است."}
+        return {"ok": False, "message": "This gift card has already been claimed." if is_en else "این کارت هدیه قبلاً استفاده شده است."}
 
     sub_url = None
 
@@ -302,7 +306,11 @@ async def _claim_gift_core(
                 await session.commit()
                 return {
                     "ok": False,
-                    "message": "در حال حاضر امکان فعال‌سازی اشتراک هدیه وجود ندارد. کارت هدیه شما محفوظ است؛ لطفاً دقایقی دیگر مجدداً تلاش کنید.",
+                    "message": (
+                        "Cannot activate gift subscription right now. Your gift card is safe; please try again shortly."
+                        if is_en
+                        else "در حال حاضر امکان فعال‌سازی اشتراک هدیه وجود ندارد. کارت هدیه شما محفوظ است؛ لطفاً دقایقی دیگر مجدداً تلاش کنید."
+                    ),
                 }
             sub_url = getattr(purchase_res, "subscription_url", None)
             await session.commit()
@@ -320,11 +328,20 @@ async def _claim_gift_core(
         except Exception as notify_err:
             logger.debug("Failed notifying gift sender %s: %s", sender_id, notify_err)
 
-    gift_title = (
-        f"{gift.amount:,} تومان اعتبار کیف‌پول"
-        if gift.gift_type == "BALANCE"
-        else f"اشتراک «{escape(str(gift.service_name or ''))}»"
-    )
+    if is_en:
+        gift_title = (
+            f"{gift.amount:,} Toman wallet credit"
+            if gift.gift_type == "BALANCE"
+            else f"\"{escape(str(gift.service_name or ''))}\" plan"
+        )
+        ok_msg = f"Congrats! {gift_title} added to your account."
+    else:
+        gift_title = (
+            f"{gift.amount:,} تومان اعتبار کیف‌پول"
+            if gift.gift_type == "BALANCE"
+            else f"اشتراک «{escape(str(gift.service_name or ''))}»"
+        )
+        ok_msg = f"تبریک! {gift_title} با موفقیت به حساب شما اضافه شد."
 
     return {
         "ok": True,
@@ -333,7 +350,7 @@ async def _claim_gift_core(
         "service_name": gift.service_name,
         "sender_name": gift.sender_name,
         "subscription_url": sub_url,
-        "message": f"تبریک! {gift_title} با موفقیت به حساب شما اضافه شد.",
+        "message": ok_msg,
     }
 
 
@@ -346,8 +363,10 @@ async def claim_gift(
     bot: Any = None,
     session_factory: Any = None,
     cache: Any = None,
+    lang: str = "fa",
 ) -> dict[str, Any]:
     """Claim a gift card by code. Validates ownership, provisions balance or service, and notifies sender."""
+    is_en = str(lang or "").strip().lower().split("-")[0].split("_")[0] == "en"
     clean_code = code.strip().upper()
     lock_key = f"lock:gift:{clean_code}"
     lock_token = secrets.token_hex(8)
@@ -356,7 +375,7 @@ async def claim_gift(
         try:
             lock_acquired = await cache.set_nx(lock_key, lock_token, ttl_seconds=20)
             if not lock_acquired:
-                return {"ok": False, "message": "این کارت هدیه هم‌اکنون در حال پردازش توسط کاربر دیگری است."}
+                return {"ok": False, "message": "This gift card is currently being processed." if is_en else "این کارت هدیه هم‌اکنون در حال پردازش توسط کاربر دیگری است."}
         except Exception as lock_err:
             logger.debug("Gift lock set_nx exception: %s", lock_err)
 
@@ -370,6 +389,7 @@ async def claim_gift(
             bot=bot,
             session_factory=session_factory,
             cache=cache,
+            lang=lang,
         )
     finally:
         if lock_acquired and cache and hasattr(cache, "release_lock"):
@@ -383,8 +403,10 @@ async def get_user_gifts(
     session: AsyncSession,
     telegram_id: int,
     bot_username: str = "",
+    lang: str = "fa",
 ) -> dict[str, list[dict[str, Any]]]:
     """Return sent and received gifts for a user."""
+    is_en = str(lang or "").strip().lower().split("-")[0].split("_")[0] == "en"
     sent_res = await session.execute(
         select(GiftCard).where(GiftCard.sender_telegram_id == telegram_id).order_by(GiftCard.created_at.desc()).limit(20)
     )
@@ -405,11 +427,18 @@ async def get_user_gifts(
             except Exception:
                 created_at_jalali = g.created_at.strftime("%Y/%m/%d")
 
-        gift_desc = (
-            f"{g.amount:,} تومان اعتبار"
-            if g.gift_type == "BALANCE"
-            else f"اشتراک {g.service_name or ''}".strip()
-        )
+        if is_en:
+            gift_desc = (
+                f"{g.amount:,} Toman credit"
+                if g.gift_type == "BALANCE"
+                else f"Plan {g.service_name or ''}".strip()
+            )
+        else:
+            gift_desc = (
+                f"{g.amount:,} تومان اعتبار"
+                if g.gift_type == "BALANCE"
+                else f"اشتراک {g.service_name or ''}".strip()
+            )
         return {
             "id": g.id,
             "code": g.code,
@@ -444,14 +473,16 @@ async def redeem_code_to_wallet(
     bot: Any = None,
     session_factory: Any = None,
     cache: Any = None,
+    lang: str = "fa",
 ) -> dict[str, Any]:
     """Unified SSOT helper to redeem either a credit voucher coupon, RedPacket, or a friend GiftCard."""
     from bot.db.models import RedPacket
     from bot.db.repositories.coupon_repo import CouponRepository
 
+    is_en = str(lang or "").strip().lower().split("-")[0].split("_")[0] == "en"
     clean_code = code.strip().upper()
     if not clean_code:
-        return {"ok": False, "amount": 0, "message": "کد وارد شده خالی است."}
+        return {"ok": False, "amount": 0, "message": "Entered code is empty." if is_en else "کد وارد شده خالی است."}
 
     # 0. Check if it is a Group Red Packet code (DROP-...)
     rp_res = await session.execute(select(RedPacket.id).where(RedPacket.code == clean_code))
@@ -464,6 +495,7 @@ async def redeem_code_to_wallet(
             claimer_name=username,
             bot=bot,
             cache=cache,
+            lang=lang,
         )
 
     # 1. First check if it exists in GiftCard table (friend gift card for balance or service)
@@ -478,6 +510,7 @@ async def redeem_code_to_wallet(
             bot=bot,
             session_factory=session_factory,
             cache=cache,
+            lang=lang,
         )
 
     # 2. Check if it's a credit voucher in Coupon table (including GIFT- or custom prefix vouchers)
@@ -487,4 +520,4 @@ async def redeem_code_to_wallet(
         await session.commit()
         return {"ok": True, "amount": amount, "message": msg}
 
-    return {"ok": False, "amount": 0, "message": msg or "کد هدیه یا ووچر وارد شده نامعتبر است."}
+    return {"ok": False, "amount": 0, "message": msg or ("Invalid gift or voucher code." if is_en else "کد هدیه یا ووچر وارد شده نامعتبر است.")}

@@ -30,8 +30,10 @@ async def get_order_invoice_data(
     store_logo_url: str = "",
     tz_name: str = "Asia/Tehran",
     invoice_type: str | None = None,
+    lang: str = "fa",
 ) -> dict[str, Any] | None:
     """Fetch order or wallet topup and compile complete official digital invoice data dictionary."""
+    is_en = str(lang or "").strip().lower().split("-")[0].split("_")[0] == "en"
     is_topup_requested = invoice_type == "topup"
     is_order_requested = invoice_type == "order"
 
@@ -78,19 +80,20 @@ async def get_order_invoice_data(
             time_jalali = "—"
             invoice_number = f"TOP-0000-{topup.id:05d}"
 
+        user_fallback = f"User {topup.telegram_id}" if is_en else f"کاربر {topup.telegram_id}"
         buyer_name = (
-            user.full_name or (f"@{user.username}" if user.username else f"کاربر {topup.telegram_id}")
-        ) if user else f"کاربر {topup.telegram_id}"
+            user.full_name or (f"@{user.username}" if user.username else user_fallback)
+        ) if user else user_fallback
         phone = (user.phone_number or "—") if user else "—"
 
         raw_st = (topup.status or "pending").lower()
         is_paid = raw_st == "approved"
         if is_paid:
-            status_label = "تایید و شارژ شده"
+            status_label = "Approved & Credited" if is_en else "تایید و شارژ شده"
         elif raw_st == "rejected":
-            status_label = "رد شده"
+            status_label = "Rejected" if is_en else "رد شده"
         else:
-            status_label = "در انتظار بررسی"
+            status_label = "Pending Review" if is_en else "در انتظار بررسی"
 
         amount_toman = int(topup.amount or 0)
         amount_rial = amount_toman * 10
@@ -105,8 +108,8 @@ async def get_order_invoice_data(
             "seller": {
                 "name": store_name,
                 "logo_url": store_logo_url,
-                "type": "خدمات رایانش و شبکه ابری",
-                "support": support_contact or "پشتیبانی ربات تلگرام",
+                "type": "Cloud & Network Services" if is_en else "خدمات رایانش و شبکه ابری",
+                "support": support_contact or ("Telegram Bot Support" if is_en else "پشتیبانی ربات تلگرام"),
                 "verified": True,
             },
             "buyer": {
@@ -117,24 +120,24 @@ async def get_order_invoice_data(
             },
             "item": {
                 "service_id": 0,
-                "title": "افزایش اعتبار کیف پول (کارت به کارت)",
+                "title": "Wallet Balance Top-up (Card Transfer)" if is_en else "افزایش اعتبار کیف پول (کارت به کارت)",
                 "traffic_gb": 0,
-                "traffic_text": "شارژ ریالی موجودی",
+                "traffic_text": "Wallet Credit Top-up" if is_en else "شارژ ریالی موجودی",
                 "duration_days": 0,
-                "duration_text": "بدون محدودیت زمانی",
+                "duration_text": "No Time Limit" if is_en else "بدون محدودیت زمانی",
                 "is_renewal": False,
             },
             "payment": {
                 "amount_toman": amount_toman,
-                "amount_toman_formatted": f"{amount_toman:,} تومان",
-                "amount_rial_formatted": f"{amount_rial:,} ریال",
-                "method": "کارت‌به‌کارت بانکی",
+                "amount_toman_formatted": f"{amount_toman:,} {'Toman' if is_en else 'تومان'}",
+                "amount_rial_formatted": f"{amount_rial:,} {'Rials' if is_en else 'ریال'}",
+                "method": "Bank Card Transfer" if is_en else "کارت‌به‌کارت بانکی",
                 "status": status_label,
                 "is_paid": is_paid,
                 "tracking_code": tracking_code,
                 "deducted_amount": amount_toman if is_paid else 0,
-                "deducted_formatted": f"{amount_toman:,} تومان" if is_paid else "0 تومان",
-                "deduction_note": "افزایش یافته به موجودی کیف پول" if is_paid else "هیچ مبلغی شارژ نشده است",
+                "deducted_formatted": (f"{amount_toman:,} Toman" if is_en else f"{amount_toman:,} تومان") if is_paid else ("0 Toman" if is_en else "0 تومان"),
+                "deduction_note": ("Credited to Wallet Balance" if is_en else "افزایش یافته به موجودی کیف پول") if is_paid else ("No amount charged yet" if is_en else "هیچ مبلغی شارژ نشده است"),
             },
         }
 
@@ -164,28 +167,33 @@ async def get_order_invoice_data(
         time_jalali = "—"
         invoice_number = f"INV-0000-{order.id:05d}"
 
+    user_fallback = f"User {order.telegram_id}" if is_en else f"کاربر {order.telegram_id}"
     buyer_name = (
-        user.full_name or (f"@{user.username}" if user.username else f"کاربر {order.telegram_id}")
-    ) if user else f"کاربر {order.telegram_id}"
+        user.full_name or (f"@{user.username}" if user.username else user_fallback)
+    ) if user else user_fallback
     phone = (user.phone_number or "—") if user else "—"
 
     traffic_gb = int(order.traffic_gb or 0)
     duration_days = int(order.duration_days or 0)
-    traffic_desc = f"{traffic_gb} گیگابایت" if traffic_gb > 0 else "نامحدود"
-    duration_desc = f"{duration_days} روز" if duration_days > 0 else "بدون محدودیت زمانی"
+    if is_en:
+        traffic_desc = f"{traffic_gb} GB" if traffic_gb > 0 else "Unlimited"
+        duration_desc = f"{duration_days} Days" if duration_days > 0 else "Unlimited Time"
+    else:
+        traffic_desc = f"{traffic_gb} گیگابایت" if traffic_gb > 0 else "نامحدود"
+        duration_desc = f"{duration_days} روز" if duration_days > 0 else "بدون محدودیت زمانی"
 
     raw_status = (
         order.status.value if hasattr(order.status, "value") else str(order.status or "")
     ).lower()
     is_paid = raw_status in (OrderStatus.PAID.value, "paid")
     if is_paid:
-        status_label = "پرداخت شده"
+        status_label = "Paid" if is_en else "پرداخت شده"
     elif raw_status in (OrderStatus.REFUNDED.value, "refunded"):
-        status_label = "مسترد شده (مرجوع)"
+        status_label = "Refunded" if is_en else "مسترد شده (مرجوع)"
     elif raw_status in (OrderStatus.PENDING.value, "pending"):
-        status_label = "در انتظار پرداخت"
+        status_label = "Pending Payment" if is_en else "در انتظار پرداخت"
     else:
-        status_label = "ناموفق / لغو شده"
+        status_label = "Failed / Cancelled" if is_en else "ناموفق / لغو شده"
 
     amount_toman = int(order.amount or 0)
     amount_rial = amount_toman * 10
@@ -202,8 +210,8 @@ async def get_order_invoice_data(
         "seller": {
             "name": store_name,
             "logo_url": store_logo_url,
-            "type": "خدمات رایانش و شبکه ابری",
-            "support": support_contact or "پشتیبانی ربات تلگرام",
+            "type": "Cloud & Network Services" if is_en else "خدمات رایانش و شبکه ابری",
+            "support": support_contact or ("Telegram Bot Support" if is_en else "پشتیبانی ربات تلگرام"),
             "verified": True,
         },
         "buyer": {
@@ -214,7 +222,7 @@ async def get_order_invoice_data(
         },
         "item": {
             "service_id": order.service_id,
-            "title": order.service_name or "بسته اشتراک",
+            "title": order.service_name or ("Subscription Plan" if is_en else "بسته اشتراک"),
             "traffic_gb": traffic_gb,
             "traffic_text": traffic_desc,
             "duration_days": duration_days,
@@ -223,15 +231,23 @@ async def get_order_invoice_data(
         },
         "payment": {
             "amount_toman": amount_toman,
-            "amount_toman_formatted": f"{amount_toman:,} تومان",
-            "amount_rial_formatted": f"{amount_rial:,} ریال",
-            "method": "کیف پول الکترونیک (اعتبار داخلی)",
+            "amount_toman_formatted": f"{amount_toman:,} {'Toman' if is_en else 'تومان'}",
+            "amount_rial_formatted": f"{amount_rial:,} {'Rials' if is_en else 'ریال'}",
+            "method": "Digital Wallet (Balance)" if is_en else "کیف پول الکترونیک (اعتبار داخلی)",
             "status": status_label,
             "is_paid": is_paid,
             "tracking_code": tracking_code,
             "deducted_amount": amount_toman if is_paid else 0,
-            "deducted_formatted": f"{amount_toman:,} تومان" if is_paid else "0 تومان",
-            "deduction_note": "کسر شده از موجودی کیف پول" if is_paid else ("مسترد شده به کیف پول" if raw_status in (OrderStatus.REFUNDED.value, "refunded") else "هیچ هزینه‌ای کسر نشده است"),
+            "deducted_formatted": (f"{amount_toman:,} Toman" if is_en else f"{amount_toman:,} تومان") if is_paid else ("0 Toman" if is_en else "0 تومان"),
+            "deduction_note": (
+                ("Deducted from Wallet Balance" if is_en else "کسر شده از موجودی کیف پول")
+                if is_paid
+                else (
+                    ("Refunded to Wallet" if is_en else "مسترد شده به کیف پول")
+                    if raw_status in (OrderStatus.REFUNDED.value, "refunded")
+                    else ("No amount charged" if is_en else "هیچ هزینه‌ای کسر نشده است")
+                )
+            ),
         },
     }
 
@@ -242,11 +258,14 @@ async def send_invoice_to_telegram(
     invoice: dict[str, Any],
     web_app_url: str = "",
     image_bytes: bytes | None = None,
+    lang: str = "fa",
 ) -> bool:
     """Send a beautifully formatted digital invoice (or rendered PNG image) directly to Telegram chat."""
     import html
+    is_en = str(lang or "").strip().lower().split("-")[0].split("_")[0] == "en"
     inv_num = html.escape(str(invoice.get("invoice_number", "")))
-    date_str = html.escape(f"{invoice.get('date_jalali', '')} ساعت {invoice.get('time_jalali', '')}")
+    time_sep = "at" if is_en else "ساعت"
+    date_str = html.escape(f"{invoice.get('date_jalali', '')} {time_sep} {invoice.get('time_jalali', '')}")
     buyer = invoice.get("buyer") or {}
     item = invoice.get("item") or {}
     pay = invoice.get("payment") or {}
@@ -261,27 +280,45 @@ async def send_invoice_to_telegram(
     status_str = html.escape(str(pay.get("status", "")))
     is_renewal = bool(item.get("is_renewal"))
 
-    msg = (
-        f"🧾 <b>صورت‌حساب و فاکتور رسمی خدمات دیجیتال</b>\n\n"
-        f"📋 <b>شماره فاکتور:</b> <code>{inv_num}</code>\n"
-        f"📅 <b>تاریخ و زمان:</b> {date_str}\n"
-        f"👤 <b>خریدار:</b> {buyer_name} (شناسه: <code>{buyer_id}</code>)\n\n"
-        f"📦 <b>شرح خدمات:</b>\n"
-        f"• سرویس: <b>{item_title}</b>\n"
-        f"• مشخصات: {traffic_text} | {duration_text}\n"
-        f"• نوع تراکنش: {'تمدید اشتراک' if is_renewal else 'خرید اشتراک جدید'}\n\n"
-        f"💳 <b>اطلاعات پرداخت:</b>\n"
-        f"• مبلغ پرداختی: <b>{toman_fmt}</b>\n"
-        f"• معادل ریالی: {rial_fmt}\n"
-        f"• وضعیت: <b>{status_str} {'✅' if pay.get('is_paid') else '❌'}</b>\n"
-        f"• شناسه رهگیری: <code>{tracking}</code>\n\n"
-        f"✨ این فاکتور دیجیتال سند رسمی خرید شما در سامانه می‌باشد."
-    )
+    if is_en:
+        msg = (
+            f"🧾 <b>Official Digital Services Invoice</b>\n\n"
+            f"📋 <b>Invoice #:</b> <code>{inv_num}</code>\n"
+            f"📅 <b>Date & Time:</b> {date_str}\n"
+            f"👤 <b>Buyer:</b> {buyer_name} (ID: <code>{buyer_id}</code>)\n\n"
+            f"📦 <b>Service Details:</b>\n"
+            f"• Plan: <b>{item_title}</b>\n"
+            f"• Specs: {traffic_text} | {duration_text}\n"
+            f"• Type: {'Subscription Renewal' if is_renewal else 'New Subscription'}\n\n"
+            f"💳 <b>Payment Details:</b>\n"
+            f"• Paid Amount: <b>{toman_fmt}</b>\n"
+            f"• Rial Equivalent: {rial_fmt}\n"
+            f"• Status: <b>{status_str} {'✅' if pay.get('is_paid') else '❌'}</b>\n"
+            f"• Tracking Ref: <code>{tracking}</code>\n\n"
+            f"✨ This digital invoice is your official purchase receipt."
+        )
+    else:
+        msg = (
+            f"🧾 <b>صورت‌حساب و فاکتور رسمی خدمات دیجیتال</b>\n\n"
+            f"📋 <b>شماره فاکتور:</b> <code>{inv_num}</code>\n"
+            f"📅 <b>تاریخ و زمان:</b> {date_str}\n"
+            f"👤 <b>خریدار:</b> {buyer_name} (شناسه: <code>{buyer_id}</code>)\n\n"
+            f"📦 <b>شرح خدمات:</b>\n"
+            f"• سرویس: <b>{item_title}</b>\n"
+            f"• مشخصات: {traffic_text} | {duration_text}\n"
+            f"• نوع تراکنش: {'تمدید اشتراک' if is_renewal else 'خرید اشتراک جدید'}\n\n"
+            f"💳 <b>اطلاعات پرداخت:</b>\n"
+            f"• مبلغ پرداختی: <b>{toman_fmt}</b>\n"
+            f"• معادل ریالی: {rial_fmt}\n"
+            f"• وضعیت: <b>{status_str} {'✅' if pay.get('is_paid') else '❌'}</b>\n"
+            f"• شناسه رهگیری: <code>{tracking}</code>\n\n"
+            f"✨ این فاکتور دیجیتال سند رسمی خرید شما در سامانه می‌باشد."
+        )
 
     markup = None
     if web_app_url:
         markup = InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(text="📄 مشاهده نسخه وب و چاپ", url=web_app_url)
+            InlineKeyboardButton(text="📄 View Web Receipt" if is_en else "📄 مشاهده نسخه وب و چاپ", url=web_app_url)
         ]])
 
     logo_url = invoice.get("seller", {}).get("logo_url") or ""

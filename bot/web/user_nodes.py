@@ -1,4 +1,4 @@
-from bot.web.user_common import db_session, require_user
+from bot.web.user_common import db_session, require_user, resolve_tma_lang
 
 """TMA User Nodes, IP telemetry, Settings, and Avatar endpoints."""
 import hashlib
@@ -29,11 +29,14 @@ async def get_user_nodes(request: web.Request) -> web.Response:
     user_auth, err = require_user(request)
     if err or not user_auth:
         return err
+    req_lang = resolve_tma_lang(request)
+    is_en = req_lang == "en"
     remnawave = request.app["remnawave"]
     cache: FastCache = request.app["cache"]
     cache_key = f"tma:user:{int(user_auth['id'])}:nodes"
+    lang_cache_key = cache_key if req_lang == "fa" else f"{cache_key}:{req_lang}"
 
-    cached_nodes = await cache.get(cache_key)
+    cached_nodes = await cache.get(lang_cache_key)
     if cached_nodes:
         return web.json_response({"ok": True, "nodes": cached_nodes})
 
@@ -105,13 +108,13 @@ async def get_user_nodes(request: web.Request) -> web.Response:
                 continue
 
         cleaned_nodes.append({
-            "address": node.get("address") or node.get("host") or "اتصال مستقیم",
+            "address": node.get("address") or node.get("host") or ("Direct Connection" if is_en else "اتصال مستقیم"),
             "name": node.get("name", "Server"),
             "country_code": node.get("country_code", "EU"),
             "status": "ONLINE" if (node.get("isConnected") and not node.get("isDisabled")) else "OFFLINE",
         })
 
-    await cache.set(cache_key, cleaned_nodes, ttl_seconds=30)
+    await cache.set(lang_cache_key, cleaned_nodes, ttl_seconds=30)
     return web.json_response({"ok": True, "nodes": cleaned_nodes})
 
 

@@ -18,8 +18,10 @@
     {
       id: 'ocean',
       name: 'اقیانوس نئون',
+      nameEn: 'Neon Ocean',
       min_tier: 'bronze',
       min_tier_label: 'برنزی',
+      min_tier_label_en: 'Bronze',
       unlocked: true,
       selected: true,
       accent: '#38bdf8',
@@ -135,11 +137,12 @@
       const showDashAlert = canCustom && (advisor.status === 'fast' || advisor.status === 'exhausted');
       dashChip.classList.toggle('hidden', !showDashAlert);
       if (showDashAlert) {
+        const recTraffic = typeof fmtTraffic === 'function' ? fmtTraffic(recGb, { html: false }) : `${recGb}`;
         dashChip.innerHTML = `
           <button type="button" onclick="window.applySmartRenewalAdvisor(${recGb}, ${recDays})" class="w-full s-warn-soft border border-amber-500/35 rounded-xl px-3 py-2 text-[11px] font-bold flex items-center justify-between gap-2 active:scale-[0.99] transition">
             <span class="flex items-center gap-1.5 truncate">
               ${typeof uiIcon === 'function' ? uiIcon('sparkles', 'w-3.5 h-3.5 shrink-0') : ''}
-              <span class="truncate">${_esc(advisor.title)}: <b class="font-sans num-bidi" dir="ltr">${_esc(recGb)} GB</b></span>
+              <span class="truncate">${_esc(advisor.title)}: <b class="font-sans num-bidi" dir="ltr">${_esc(recTraffic)}</b></span>
             </span>
             <span class="underline shrink-0">${_isEn() ? 'Configure →' : 'تنظیم ←'}</span>
           </button>
@@ -199,16 +202,18 @@
     bar.innerHTML = themes.map(t => {
       const isSelected = t.id === selectedId;
       const isLocked = t.unlocked === false;
+      const dispName = (_isEn() && t.nameEn) ? t.nameEn : t.name;
+      const dispMinTier = (_isEn() && t.min_tier_label_en) ? t.min_tier_label_en : t.min_tier_label;
       const lockBadge = isLocked
         ? `<span class="text-[9px] leading-none">🔒</span>`
         : (isSelected ? `<span class="text-[9px] leading-none text-white">✓</span>` : '');
       const titleText = isLocked
-        ? (_isEn() ? `${t.name} (Requires ${t.min_tier_label})` : `${t.name} (نیازمند سطح ${t.min_tier_label})`)
-        : t.name;
+        ? (_isEn() ? `${dispName} (Requires ${dispMinTier})` : `${dispName} (نیازمند سطح ${dispMinTier})`)
+        : dispName;
       return `
         <button type="button" onclick="window.selectUserCardTheme('${_esc(t.id)}')" title="${_esc(titleText)}" class="flex flex-col items-center gap-1 p-1 rounded-xl border transition active:scale-95 ${isSelected ? 'border-cyan-400 s-accent-soft' : 'border-card-border card-inset'} ${isLocked ? 'opacity-65' : ''}">
           <span class="w-7 h-7 rounded-full border border-white/40 shadow-sm flex items-center justify-center" style="background: linear-gradient(135deg, ${_esc(t.accent)}, ${_esc(t.secondary)});">${lockBadge}</span>
-          <span class="text-[10px] t-muted truncate max-w-[54px] font-medium">${_esc(t.name)}</span>
+          <span class="text-[10px] t-muted truncate max-w-[54px] font-medium">${_esc(dispName)}</span>
         </button>
       `;
     }).join('');
@@ -222,11 +227,13 @@
     if (!chosen) return;
     if (chosen.unlocked === false) {
       _haptic('error');
+      const dispName = (_isEn() && chosen.nameEn) ? chosen.nameEn : chosen.name;
+      const dispMinTier = (_isEn() && chosen.min_tier_label_en) ? chosen.min_tier_label_en : chosen.min_tier_label;
       if (typeof showToast === 'function') {
         showToast(
           _isEn()
-            ? `Unlock with ${chosen.min_tier_label} Loyalty tier!`
-            : `برای استفاده از تم «${chosen.name}»، باید به سطح وفاداری ${chosen.min_tier_label} برسید.`,
+            ? `Unlock ${dispName} with ${dispMinTier} Loyalty tier!`
+            : `برای استفاده از تم «${dispName}»، باید به سطح وفاداری ${dispMinTier} برسید.`,
           'warning'
         );
       }
@@ -427,7 +434,9 @@
       const res = await window.api.claimWeeklyQuest(questId);
       if (!res || !res.ok) {
         _haptic('error');
-        if (typeof showToast === 'function') showToast(res?.message || 'Error claiming quest.', 'warning');
+        if (typeof showToast === 'function') {
+          showToast(res?.message || (_isEn() ? 'Error claiming quest.' : 'خطا در دریافت پاداش مأموریت.'), 'warning');
+        }
         return;
       }
       _haptic('success');
@@ -550,11 +559,15 @@
       });
       if (!res || !res.ok) {
         _haptic('error');
-        if (typeof showToast === 'function') showToast(res?.message || 'Error creating Red Packet.', 'error');
+        if (typeof showToast === 'function') {
+          showToast(res?.message || (_isEn() ? 'Error creating Red Packet.' : 'خطا در ایجاد پاکت گروهی.'), 'error');
+        }
         return;
       }
       _haptic('success');
-      if (typeof showToast === 'function') showToast(res.message || 'پاکت گروهی ایجاد شد!', 'success');
+      if (typeof showToast === 'function') {
+        showToast(res.message || (_isEn() ? 'Group Red Packet created!' : 'پاکت گروهی ایجاد شد!'), 'success');
+      }
 
       const box = document.getElementById('giftCreatedSuccessBox');
       const codeInp = document.getElementById('giftCreatedCodeInput');
@@ -633,7 +646,7 @@
         window.renderRedPacketsHistory();
         if (typeof window.syncUserDataWithApi === 'function') window.syncUserDataWithApi(window.currentAccountId);
       } else if (typeof showToast === 'function') {
-        showToast(res?.message || 'Error', 'warning');
+        showToast(res?.message || (_isEn() ? 'Error' : 'خطا'), 'warning');
       }
     } catch (e) {}
   };
@@ -711,7 +724,9 @@
       const res = await window.api.transferWalletBalance({ recipient: rec, amount: amt, note });
       if (!res || !res.ok) {
         _haptic('error');
-        if (typeof showToast === 'function') showToast(res?.message || 'Transfer failed.', 'error');
+        if (typeof showToast === 'function') {
+          showToast(res?.message || (_isEn() ? 'Transfer failed.' : 'خطا در انتقال موجودی.'), 'error');
+        }
         return;
       }
       _haptic('success');

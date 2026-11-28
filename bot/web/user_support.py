@@ -11,7 +11,7 @@ from bot.db.repositories.support_repo import SupportMessageRepository
 from bot.services.app_settings import get_store_settings
 from bot.services.support_chat import append_support_message, get_support_messages
 from bot.web.cache import FastCache
-from bot.web.user_common import db_session, require_user
+from bot.web.user_common import db_session, require_user, resolve_tma_lang
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +47,14 @@ async def post_user_support_message(request: web.Request) -> web.Response:
     if not isinstance(body, dict):
         body = {}
 
+    req_lang = resolve_tma_lang(request)
+    is_en = req_lang == "en"
     text = str(body.get("text") or "").strip()
     if not text:
-        return web.json_response({"ok": False, "error": "متن پیام نمی‌تواند خالی باشد."}, status=400)
+        return web.json_response(
+            {"ok": False, "error": "Message cannot be empty." if is_en else "متن پیام نمی‌تواند خالی باشد."},
+            status=400,
+        )
 
     now_ts = int(time.time())
     now_dt = datetime.fromtimestamp(now_ts)

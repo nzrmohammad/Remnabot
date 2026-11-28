@@ -21,15 +21,25 @@ from bot.services.formatting import (
 logger = logging.getLogger(__name__)
 
 
+_JALALI_MONTHS_FA = [
+    "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
+    "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",
+]
+_JALALI_MONTHS_EN = [
+    "Farvardin", "Ordibehesht", "Khordad", "Tir", "Mordad", "Shahrivar",
+    "Mehr", "Aban", "Azar", "Dey", "Bahman", "Esfand",
+]
+_WEEKDAYS_FULL_EN = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+_WEEKDAYS_SHORT_FA = ["ش", "ی", "د", "س", "چ", "پ", "ج"]
+_WEEKDAYS_SHORT_EN = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]
+
+
 def _build_monthly_history(
-    series: list[dict[str, Any]] | None, now_dt: datetime
+    series: list[dict[str, Any]] | None, now_dt: datetime, *, lang: str = "fa"
 ) -> list[dict[str, Any]]:
     """Build multi-month traffic history and server breakdown for monthly navigation."""
     now_j = jdatetime.datetime.fromgregorian(datetime=now_dt)
-    month_names = [
-        "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
-        "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
-    ]
+    month_names = _JALALI_MONTHS_EN if lang == "en" else _JALALI_MONTHS_FA
 
     target_months: list[tuple[int, int]] = []
     cur_y, cur_m = now_j.year, now_j.month
@@ -54,13 +64,13 @@ def _build_monthly_history(
                 data = r.get("data") or []
                 n_name = r.get("name") or r.get("nodeName") or "Server"
                 c_code = (r.get("countryCode") or "EU").upper()
-                c_fa = country_name(c_code) or n_name
+                c_loc = country_name(c_code, lang=lang) or n_name
 
                 if n_name not in node_totals:
                     node_totals[n_name] = {
                         "name": n_name,
                         "country_code": c_code,
-                        "country_name": c_fa,
+                        "country_name": c_loc,
                         "flag": country_flag(c_code),
                         "total_bytes": 0,
                     }
@@ -106,7 +116,13 @@ def _build_monthly_history(
 
 
 async def calc_bandwidth_stats(
-    remnawave: Any, primary: dict[str, Any], panel_user_id: Any, now_dt: datetime, tz_name: str
+    remnawave: Any,
+    primary: dict[str, Any],
+    panel_user_id: Any,
+    now_dt: datetime,
+    tz_name: str,
+    *,
+    lang: str = "fa",
 ) -> dict[str, Any]:
     """Calculate bandwidth usage across nodes and timeframes."""
     since = parse_iso(primary.get("lastTrafficResetAt")) or parse_iso(primary.get("createdAt"))
@@ -207,11 +223,11 @@ async def calc_bandwidth_stats(
             n_name = r.get("name") or r.get("nodeName") or "Server"
             c_code = (r.get("countryCode") or "EU").upper()
             if node_week > 0:
-                c_fa = country_name(c_code) or n_name
+                c_loc = country_name(c_code, lang=lang) or n_name
                 week_nodes_dict[n_name] = {
                     "name": n_name,
                     "country_code": c_code,
-                    "country_name": c_fa,
+                    "country_name": c_loc,
                     "flag": country_flag(c_code),
                     "total_formatted": human_bytes(node_week),
                     "total_bytes": node_week,
@@ -219,7 +235,7 @@ async def calc_bandwidth_stats(
             for i, val in enumerate(last_7):
                 week_daily_totals[i] += int(val or 0)
 
-        monthly_history = _build_monthly_history(series, now_dt)
+        monthly_history = _build_monthly_history(series, now_dt, lang=lang)
         month_weeks_totals_gb = monthly_history[0]["month_weeks_totals_gb"] if monthly_history else [0.0, 0.0, 0.0, 0.0]
     else:
         try:
@@ -235,11 +251,11 @@ async def calc_bandwidth_stats(
                     if b_val > 0:
                         c_code = (n.get("countryCode") or "EU").upper()
                         n_name = n.get("name") or "Server"
-                        c_fa = country_name(c_code) or n_name
+                        c_loc = country_name(c_code, lang=lang) or n_name
                         today_breakdown.append({
                             "name": n_name,
                             "country_code": c_code,
-                            "country_name": c_fa,
+                            "country_name": c_loc,
                             "flag": country_flag(c_code),
                             "total_formatted": human_bytes(b_val),
                             "total_gb": round(b_val / (1024**3), 2),
@@ -255,7 +271,7 @@ async def calc_bandwidth_stats(
         if today_bytes > 0:
             weeks_gb[w_idx] = today_gb
 
-        monthly_history = _build_monthly_history([], now_dt)
+        monthly_history = _build_monthly_history([], now_dt, lang=lang)
         if today_bytes > 0 and monthly_history:
             monthly_history[0]["total_bytes"] = today_bytes
             monthly_history[0]["total_used_gb"] = today_gb
@@ -271,14 +287,19 @@ async def calc_bandwidth_stats(
         max_idx = week_daily_totals.index(max_val)
         busiest_dt = week_start_dt + timedelta(days=max_idx)
         b_jd = jdatetime.datetime.fromgregorian(datetime=busiest_dt)
-        busiest_day_name = jdatetime.date.j_weekdays_fa[b_jd.weekday()]
+        busiest_day_name = (
+            _WEEKDAYS_FULL_EN[b_jd.weekday()]
+            if lang == "en"
+            else jdatetime.date.j_weekdays_fa[b_jd.weekday()]
+        )
         busiest_day_amount = human_bytes(max_val)
 
+    short_days = _WEEKDAYS_SHORT_EN if lang == "en" else _WEEKDAYS_SHORT_FA
     week_day_labels = []
     for i in range(7):
         d_dt = week_start_dt + timedelta(days=i)
         d_jd = jdatetime.datetime.fromgregorian(datetime=d_dt)
-        week_day_labels.append(['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'][d_jd.weekday()])
+        week_day_labels.append(short_days[d_jd.weekday()])
 
     return {
         "today_bytes": today_bytes,
@@ -312,6 +333,7 @@ def calc_usage_curves(
     now_dt: datetime | None = None,
     tz_name: str = "Asia/Tehran",
     yesterday_used_gb: float = 0.0,
+    lang: str = "fa",
 ) -> dict[str, Any]:
     if now_dt is None:
         try:
@@ -339,7 +361,7 @@ def calc_usage_curves(
     country_totals: dict[str, int] = {}
     for n in source_breakdown:
         flag = n.get("flag") or "🌐"
-        c_name = n.get("country_name") or country_name(n.get("country_code") or n.get("name")) or n.get("name") or "Server"
+        c_name = n.get("country_name") or country_name(n.get("country_code") or n.get("name"), lang=lang) or n.get("name") or "Server"
         b_val = int(n.get("total_bytes") or 0)
         if b_val > 0:
             label = f"{flag} {c_name}"
@@ -350,7 +372,7 @@ def calc_usage_curves(
     country_gb_vals = [round(c[1] / (1024**3), 2) for c in sorted_countries[:5]]
     if len(sorted_countries) > 5:
         other_b = sum(c[1] for c in sorted_countries[5:])
-        country_labels.append("🌐 سایر")
+        country_labels.append("🌐 Other" if lang == "en" else "🌐 سایر")
         country_gb_vals.append(round(other_b / (1024**3), 2))
 
     base_curve_gb = float(today_used_gb or 0.0)
@@ -460,7 +482,7 @@ def calc_usage_curves(
         elif "linux" in p_raw:
             p_key = "🐧 Linux"
         else:
-            p_key = "📱 سایر"
+            p_key = "📱 Other" if lang == "en" else "📱 سایر"
         platform_counts[p_key] = platform_counts.get(p_key, 0) + 1
 
     return {
@@ -498,6 +520,8 @@ async def build_active_subscription(
     session: Any,
     tz_name: str,
     now_dt: datetime,
+    *,
+    lang: str = "fa",
 ) -> tuple[dict[str, Any] | None, bool, list[dict[str, Any]]]:
     """Parse panel users and construct active subscription data & multi-account list."""
     if not panel_users:
@@ -531,10 +555,14 @@ async def build_active_subscription(
         traffic_remaining_gb = 9999.0
         percent_remaining = 100.0
 
-    bw = await calc_bandwidth_stats(remnawave, primary, panel_user_id, now_dt, tz_name)
+    bw = await calc_bandwidth_stats(remnawave, primary, panel_user_id, now_dt, tz_name, lang=lang)
     now_j = jdatetime.datetime.fromgregorian(datetime=now_dt)
-    month_names = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
-    current_month_name = month_names[now_j.month - 1] if 1 <= now_j.month <= 12 else "ماه جاری"
+    month_names = _JALALI_MONTHS_EN if lang == "en" else _JALALI_MONTHS_FA
+    current_month_name = (
+        month_names[now_j.month - 1]
+        if 1 <= now_j.month <= 12
+        else ("Current Month" if lang == "en" else "ماه جاری")
+    )
 
     devices = []
     try:
@@ -594,6 +622,7 @@ async def build_active_subscription(
         now_dt=now_dt,
         tz_name=tz_name,
         yesterday_used_gb=bw.get("yesterday_used_gb", 0.0),
+        lang=lang,
     )
 
     # Calculate Burn-rate & Projected Expiry
@@ -609,24 +638,37 @@ async def build_active_subscription(
 
     if limit_bytes == 0:
         burn_status = "unlimited"
-        burn_text = "حجم بسته شما نامحدود است."
+        burn_text = "Your plan traffic is unlimited." if lang == "en" else "حجم بسته شما نامحدود است."
     elif traffic_remaining_gb <= 0:
         burn_status = "exhausted"
-        burn_text = "حجم بسته شما به پایان رسیده است."
+        burn_text = "Your plan traffic has run out." if lang == "en" else "حجم بسته شما به پایان رسیده است."
     elif avg_3days_gb > 0:
         projected_days = round(traffic_remaining_gb / avg_3days_gb, 1)
+        proj_disp = int(projected_days) if projected_days.is_integer() else projected_days
         if days_left > 0 and projected_days < days_left:
             burn_status = "fast"
-            burn_text = f"با الگوی مصرف فعلی، حجم شما تا حدود {int(projected_days) if projected_days.is_integer() else projected_days} روز دیگر به پایان می‌رسد."
+            burn_text = (
+                f"At your current pace, data will run out in about {proj_disp} days."
+                if lang == "en"
+                else f"با الگوی مصرف فعلی، حجم شما تا حدود {proj_disp} روز دیگر به پایان می‌رسد."
+            )
         elif days_left > 0 and projected_days >= days_left:
             burn_status = "safe"
-            burn_text = f"با الگوی مصرف فعلی، حجم شما تا {days_left} روز آینده (تا انقضای اشتراک) کاملاً پاسخگو است."
+            burn_text = (
+                f"At your current pace, your data easily lasts all {days_left} remaining days until expiry."
+                if lang == "en"
+                else f"با الگوی مصرف فعلی، حجم شما تا {days_left} روز آینده (تا انقضای اشتراک) کاملاً پاسخگو است."
+            )
         else:
             burn_status = "normal"
-            burn_text = f"با الگوی مصرف فعلی، حجم شما تا حدود {int(projected_days) if projected_days.is_integer() else projected_days} روز دیگر به پایان می‌رسد."
+            burn_text = (
+                f"At your current pace, data will last about {proj_disp} days."
+                if lang == "en"
+                else f"با الگوی مصرف فعلی، حجم شما تا حدود {proj_disp} روز دیگر به پایان می‌رسد."
+            )
     else:
         burn_status = "idle"
-        burn_text = "مصرف قابل توجهی در 3 روز اخیر ثبت نشده است."
+        burn_text = "No notable usage recorded over the last 3 days." if lang == "en" else "مصرف قابل توجهی در 3 روز اخیر ثبت نشده است."
 
     from bot.services.engagement_service import compute_renewal_advisor
 
@@ -640,6 +682,7 @@ async def build_active_subscription(
     burn_rate["advisor"] = compute_renewal_advisor(
         burn_rate,
         {"days_left": days_left, "traffic_remaining_gb": traffic_remaining_gb},
+        lang=lang,
     )
 
     primary_squad_uuid = None

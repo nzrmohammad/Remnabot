@@ -25,6 +25,10 @@
   const DOWNLOAD_DURATION_MS = 9000;
   const UPLOAD_DURATION_MS = 7000;
 
+  const _stTr = (fa, en) => (typeof window !== 'undefined' && typeof window.trText === 'function')
+    ? window.trText(fa, en)
+    : ((typeof window !== 'undefined' && (window.isAppEn?.() || window.getAppLanguage?.() === 'en')) ? en : fa);
+
   const domCache = new Map();
   function getEl(id) {
     let el = domCache.get(id);
@@ -180,9 +184,9 @@
     const statusText = getEl('speedStatusBadge');
     const phaseLabel = getEl('speedPhaseLabel');
 
-    if (phaseLabel) phaseLabel.innerText = 'سنجش پینگ و تاخیر...';
+    if (phaseLabel) phaseLabel.innerText = _stTr('سنجش پینگ و تاخیر...', 'Measuring ping & jitter...');
     if (statusText) {
-      statusText.innerText = '📶 در حال اندازه‌گیری دقیق تاخیر زمانی (Ping)...';
+      statusText.innerText = _stTr('📶 در حال اندازه‌گیری دقیق تاخیر زمانی (Ping)...', '📶 Measuring network latency & jitter (Ping)...');
       statusText.className = 'py-1.5 px-3 rounded-xl s-accent-soft border text-[11px] font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
@@ -286,9 +290,9 @@
     const downloadVal = getEl('speedDownloadVal');
     const dataUsedEl = getEl('speedDataUsed');
 
-    if (phaseLabel) phaseLabel.innerText = 'سرعت دانلود (Download)';
+    if (phaseLabel) phaseLabel.innerText = _stTr('سرعت دانلود (Download)', 'Download Speed');
     if (statusText) {
-      statusText.innerText = '📥 در حال دریافت داده و سنجش واقعی پهنای‌باند دانلود...';
+      statusText.innerText = _stTr('📥 در حال دریافت داده و سنجش واقعی پهنای‌باند دانلود...', '📥 Measuring real download bandwidth throughput...');
       statusText.className = 'py-1.5 px-3 rounded-xl s-success-soft border text-[11px] font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
@@ -406,9 +410,9 @@
     const phaseLabel = getEl('speedPhaseLabel');
     const uploadVal = getEl('speedUploadVal');
 
-    if (phaseLabel) phaseLabel.innerText = 'سرعت آپلود (Upload)';
+    if (phaseLabel) phaseLabel.innerText = _stTr('سرعت آپلود (Upload)', 'Upload Speed');
     if (statusText) {
-      statusText.innerText = '📤 در حال ارسال داده و سنجش واقعی پهنای‌باند آپلود...';
+      statusText.innerText = _stTr('📤 در حال ارسال داده و سنجش واقعی پهنای‌باند آپلود...', '📤 Measuring real upload bandwidth throughput...');
       statusText.className = 'py-1.5 px-3 rounded-xl s-info-soft border text-[11px] font-medium transition text-center min-h-[38px] flex items-center justify-center';
     }
 
@@ -561,36 +565,36 @@
   function getVerdictText(dlSpeed, ulSpeed, ping, totalBytes) {
     if (totalBytes === 0) {
       return {
-        text: '⚠️ سرور پاسخ نداد؛ وضعیت اتصال فیلترشکن را بررسی فرمایید.',
+        text: _stTr('⚠️ سرور پاسخ نداد؛ وضعیت اتصال فیلترشکن را بررسی فرمایید.', '⚠️ Server did not respond; please check your VPN connection.'),
         cls: 's-warn-soft border',
-        rating: '❌ قطع ارتباط',
+        rating: _stTr('❌ قطع ارتباط', '❌ Disconnected'),
       };
     }
     if (dlSpeed >= 25 && ping > 0 && ping <= 90) {
       return {
-        text: '🚀 کیفیت فوق‌العاده؛ عالی برای استریم 4K، بازی آنلاین و وب‌گردی پرسرعت',
+        text: _stTr('🚀 کیفیت فوق‌العاده؛ عالی برای استریم 4K، بازی آنلاین و وب‌گردی پرسرعت', '🚀 Excellent quality; great for 4K streaming, online gaming, and fast browsing'),
         cls: 's-success-soft border',
-        rating: '🚀 فوق‌العاده',
+        rating: _stTr('🚀 فوق‌العاده', '🚀 Excellent'),
       };
     }
     if (dlSpeed >= 12) {
       return {
-        text: '⚡️ کیفیت بسیار خوب؛ عالی برای اینستاگرام، تلگرام، یوتیوب HD و تماس ویدیویی',
+        text: _stTr('⚡️ کیفیت بسیار خوب؛ عالی برای اینستاگرام، تلگرام، یوتیوب HD و تماس ویدیویی', '⚡️ Very good quality; great for Instagram, Telegram, HD YouTube & video calls'),
         cls: 's-accent-soft border',
-        rating: '⚡️ بسیار خوب',
+        rating: _stTr('⚡️ بسیار خوب', '⚡️ Very Good'),
       };
     }
     if (dlSpeed >= 4) {
       return {
-        text: '🟡 کیفیت معمولی؛ مناسب برای چت، وب‌گردی و دانلود با سرعت استاندارد',
+        text: _stTr('🟡 کیفیت معمولی؛ مناسب برای چت، وب‌گردی و دانلود با سرعت استاندارد', '🟡 Fair quality; suitable for chat, browsing, and standard downloads'),
         cls: 's-warn-soft border',
-        rating: '📶 معمولی',
+        rating: _stTr('📶 معمولی', '📶 Fair'),
       };
     }
     return {
-      text: '⚠️ سرعت محدود؛ مناسب برای ارسال پیام متنی یا نیازمند تغییر سرور/پروکسی',
+      text: _stTr('⚠️ سرعت محدود؛ مناسب برای ارسال پیام متنی یا نیازمند تغییر سرور/پروکسی', '⚠️ Limited speed; suitable for messaging or switch to a faster node'),
       cls: 's-danger-soft border',
-      rating: '⚠️ ضعیف',
+      rating: _stTr('⚠️ ضعیف', '⚠️ Weak'),
     };
   }
 
@@ -641,7 +645,7 @@
       startBtn.classList.add('bg-rose-600', 'hover:bg-rose-500');
       startBtn.classList.remove('bg-gradient-to-r', 'from-emerald-500');
     }
-    if (startBtnText) startBtnText.innerText = 'توقف تست ⏹️';
+    if (startBtnText) startBtnText.innerText = _stTr('توقف تست ⏹️', 'Stop Test ⏹️');
     if (downloadVal) downloadVal.innerText = '--';
     if (uploadVal) uploadVal.innerText = '--';
 
@@ -677,7 +681,7 @@
 
       // Step 5: Final Result Display
       targetSpeedMbps = finalDownloadMbps;
-      if (phaseLabel) phaseLabel.innerText = 'نتیجه نهایی تست';
+      if (phaseLabel) phaseLabel.innerText = _stTr('نتیجه نهایی تست', 'Final Test Result');
 
       const verdict = getVerdictText(finalDownloadMbps, finalUploadMbps, medianPing, totalReceivedBytes);
       if (statusText) {
@@ -709,7 +713,7 @@
       if (!isAborted && runId === currentSpeedRunId) {
         console.warn('SpeedTest caught error:', err);
         if (statusText) {
-          statusText.innerText = '⚠️ اختلال در دریافت اطلاعات؛ لطفاً دکمه شروع را مجدداً لمس فرمایید.';
+          statusText.innerText = _stTr('⚠️ اختلال در دریافت اطلاعات؛ لطفاً دکمه شروع را مجدداً لمس فرمایید.', '⚠️ Connection interrupted; please tap Start to try again.');
           statusText.className = 'py-2 px-3 rounded-xl s-warn-soft border text-[11px] font-medium text-center min-h-[38px] flex items-center justify-center';
         }
       }
@@ -724,7 +728,7 @@
           startBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
           startBtn.classList.add('bg-gradient-to-r', 'from-emerald-500');
         }
-        if (startBtnText) startBtnText.innerText = 'شروع مجدد تست 🚀';
+        if (startBtnText) startBtnText.innerText = _stTr('شروع مجدد تست 🚀', 'Restart Test 🚀');
       }
     }
   }
@@ -748,10 +752,10 @@
       startBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
       startBtn.classList.add('bg-gradient-to-r', 'from-emerald-500');
     }
-    if (startBtnText) startBtnText.innerText = 'شروع تست سرعت 🚀';
-    if (phaseLabel) phaseLabel.innerText = 'آماده شروع';
-    if (statusText && statusText.innerText.includes('در حال')) {
-      statusText.innerText = 'تست متوقف شد. آماده برای تست مجدد.';
+    if (startBtnText) startBtnText.innerText = _stTr('شروع تست سرعت 🚀', 'Start Speed Test 🚀');
+    if (phaseLabel) phaseLabel.innerText = _stTr('آماده شروع', 'Ready');
+    if (statusText && (statusText.innerText.includes('در حال') || statusText.innerText.includes('Measuring') || statusText.innerText.includes('Downloading') || statusText.innerText.includes('Uploading'))) {
+      statusText.innerText = _stTr('تست متوقف شد. آماده برای تست مجدد.', 'Test stopped. Ready to run again.');
       statusText.className = 'py-2 px-3 rounded-xl s-neutral-soft border text-[11px] font-medium text-center transition min-h-[38px] flex items-center justify-center';
     }
   }

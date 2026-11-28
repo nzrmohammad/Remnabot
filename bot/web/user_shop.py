@@ -1,4 +1,4 @@
-from bot.web.user_common import db_session, enforce_invite_only, require_user
+from bot.web.user_common import db_session, enforce_invite_only, require_user, resolve_tma_lang
 
 """TMA User Shop, Purchase, Subscriptions, Devices, and Lucky Wheel endpoints."""
 import base64
@@ -165,9 +165,10 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     if err:
         return err
 
+    is_en = resolve_tma_lang(request) == "en"
     if user_auth.get("is_preview"):
         return web.json_response(
-            {"ok": False, "error": "این عملیات فقط در محیط رسمی تلگرام امکان‌پذیر است."},
+            {"ok": False, "error": "This action is only available inside Telegram." if is_en else "این عملیات فقط در محیط رسمی تلگرام امکان‌پذیر است."},
             status=400,
         )
 
@@ -183,7 +184,10 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     remnawave = request.app["remnawave"]
     panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
     if not panel_users:
-        return web.json_response({"ok": False, "error": "سرویس فعالی یافت نشد."}, status=404)
+        return web.json_response(
+            {"ok": False, "error": "No active subscription found." if is_en else "سرویس فعالی یافت نشد."},
+            status=404,
+        )
 
     account_id = data.get("account_id") or data.get("panel_user_id")
     target_user = _select_panel_account(panel_users, account_id) or panel_users[0]
@@ -194,7 +198,10 @@ async def post_user_revoke_sub(request: web.Request) -> web.Response:
     else:
         revoked = await remnawave.revoke_user_subscription(primary_id)
     if not revoked:
-        return web.json_response({"ok": False, "error": "خطا در تغییر لینک اشتراک."}, status=500)
+        return web.json_response(
+            {"ok": False, "error": "Failed to revoke subscription link." if is_en else "خطا در تغییر لینک اشتراک."},
+            status=500,
+        )
 
     # Invalidate cache
     cache: FastCache = request.app["cache"]
@@ -218,9 +225,10 @@ async def post_user_kill_device(request: web.Request) -> web.Response:
     if err:
         return err
 
+    is_en = resolve_tma_lang(request) == "en"
     if user_auth.get("is_preview"):
         return web.json_response(
-            {"ok": False, "error": "این عملیات فقط در محیط رسمی تلگرام امکان‌پذیر است."},
+            {"ok": False, "error": "This action is only available inside Telegram." if is_en else "این عملیات فقط در محیط رسمی تلگرام امکان‌پذیر است."},
             status=400,
         )
 
@@ -233,18 +241,27 @@ async def post_user_kill_device(request: web.Request) -> web.Response:
 
     hwid = body.get("hwid")
     if not hwid:
-        return web.json_response({"ok": False, "error": "شناسه دستگاه (HWID) الزامی است."}, status=400)
+        return web.json_response(
+            {"ok": False, "error": "Device ID (HWID) is required." if is_en else "شناسه دستگاه (HWID) الزامی است."},
+            status=400,
+        )
 
     telegram_id = int(user_auth["id"])
     remnawave = request.app["remnawave"]
     panel_users = await remnawave.get_users_by_telegram_id(telegram_id)
     if not panel_users:
-        return web.json_response({"ok": False, "error": "سرویس فعالی یافت نشد."}, status=404)
+        return web.json_response(
+            {"ok": False, "error": "No active subscription found." if is_en else "سرویس فعالی یافت نشد."},
+            status=404,
+        )
 
     account_id = body.get("account_id") or body.get("panel_user_id")
     target_user = _select_panel_account(panel_users, account_id)
     if target_user is None:
-        return web.json_response({"ok": False, "error": "اکانت انتخاب‌شده یافت نشد."}, status=404)
+        return web.json_response(
+            {"ok": False, "error": "Selected account not found." if is_en else "اکانت انتخاب‌شده یافت نشد."},
+            status=404,
+        )
 
     primary_id = target_user.get("id") or target_user.get("uuid")
     success = await remnawave.delete_hwid_device(primary_id, hwid)
@@ -262,6 +279,7 @@ async def post_user_validate_coupon(request: web.Request) -> web.Response:
     if err:
         return err
 
+    is_en = resolve_tma_lang(request) == "en"
     try:
         body = await request.json()
     except Exception:
@@ -271,9 +289,9 @@ async def post_user_validate_coupon(request: web.Request) -> web.Response:
 
     code = (body.get("code") or "").strip()
     if not code:
-        return web.json_response({"ok": False, "message": "کد تخفیف الزامی است."}, status=400)
+        return web.json_response({"ok": False, "message": "Promo code is required." if is_en else "کد تخفیف الزامی است."}, status=400)
     if not re.match(r"^[A-Za-z0-9_-]{3,32}$", code):
-        return web.json_response({"ok": False, "message": "فرمت کد تخفیف نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid promo code format." if is_en else "فرمت کد تخفیف نامعتبر است."}, status=400)
 
     telegram_id = int(user_auth["id"])
     from bot.db.repositories.coupon_repo import CouponRepository
@@ -286,16 +304,28 @@ async def post_user_validate_coupon(request: web.Request) -> web.Response:
             price=0,
         )
         if not is_valid:
-            err_map = {
-                "coupon_not_found": "کد تخفیف وارد شده یافت نشد.",
-                "coupon_inactive": "این کد تخفیف در حال حاضر غیرفعال است.",
-                "coupon_expired": "مهلت استفاده از این کد تخفیف به پایان رسیده است.",
-                "coupon_limit_reached": "ظرفیت استفاده از این کد تخفیف تکمیل شده است.",
-                "coupon_already_used": "شما قبلاً از این کد تخفیف استفاده کرده‌اید.",
-                "coupon_is_voucher": "این کد یک کارت شارژ است و باید در بخش شارژ کیف‌پول استفاده شود.",
-                "coupon_not_yours": "این کد تخفیف اختصاصاً برای کاربر دیگری صادر شده است.",
-            }
-            msg = err_map.get(err_key, "کد تخفیف نامعتبر است.")
+            err_map = (
+                {
+                    "coupon_not_found": "Promo code not found.",
+                    "coupon_inactive": "This promo code is currently inactive.",
+                    "coupon_expired": "This promo code has expired.",
+                    "coupon_limit_reached": "Promo code usage limit reached.",
+                    "coupon_already_used": "You have already used this promo code.",
+                    "coupon_is_voucher": "This is a wallet voucher code; redeem it in Wallet.",
+                    "coupon_not_yours": "This promo code was issued for another user.",
+                }
+                if is_en
+                else {
+                    "coupon_not_found": "کد تخفیف وارد شده یافت نشد.",
+                    "coupon_inactive": "این کد تخفیف در حال حاضر غیرفعال است.",
+                    "coupon_expired": "مهلت استفاده از این کد تخفیف به پایان رسیده است.",
+                    "coupon_limit_reached": "ظرفیت استفاده از این کد تخفیف تکمیل شده است.",
+                    "coupon_already_used": "شما قبلاً از این کد تخفیف استفاده کرده‌اید.",
+                    "coupon_is_voucher": "این کد یک کارت شارژ است و باید در بخش شارژ کیف‌پول استفاده شود.",
+                    "coupon_not_yours": "این کد تخفیف اختصاصاً برای کاربر دیگری صادر شده است.",
+                }
+            )
+            msg = err_map.get(err_key, "Invalid promo code." if is_en else "کد تخفیف نامعتبر است.")
             return web.json_response({"ok": False, "message": msg}, status=400)
 
         coupon = await coupon_repo.get_by_code(code)
@@ -322,16 +352,17 @@ async def post_user_purchase(request: web.Request) -> web.Response:
     if not isinstance(body, dict):
         body = {}
 
+    is_en = resolve_tma_lang(request) == "en"
     service_id = body.get("service_id")
     coupon_code = (body.get("coupon_code") or "").strip().upper() or None
     account_id = body.get("account_id")
     create_new = bool(body.get("create_new"))
     custom_username = (body.get("custom_username") or "").strip() or None
     if coupon_code and not re.match(r"^[A-Za-z0-9_-]{3,32}$", coupon_code):
-        return web.json_response({"ok": False, "message": "فرمت کد تخفیف نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid promo code format." if is_en else "فرمت کد تخفیف نامعتبر است."}, status=400)
 
     if not service_id:
-        return web.json_response({"ok": False, "message": "شناسه بسته الزامی است."}, status=400)
+        return web.json_response({"ok": False, "message": "Plan ID is required." if is_en else "شناسه بسته الزامی است."}, status=400)
 
     telegram_id = int(user_auth["id"])
     remnawave = request.app["remnawave"]
@@ -346,7 +377,11 @@ async def post_user_purchase(request: web.Request) -> web.Response:
         return web.json_response({
             "ok": False,
             "error": "conflict",
-            "message": "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید.",
+            "message": (
+                "A purchase is already in progress for this account. Please wait a moment."
+                if is_en
+                else "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید."
+            ),
         }, status=409)
 
     try:
@@ -383,14 +418,18 @@ async def _post_user_purchase_body(
         if inv_err:
             return inv_err
 
+        is_en = resolve_tma_lang(request) == "en"
         try:
             s_id = int(service_id)
         except (ValueError, TypeError):
-            return web.json_response({"ok": False, "message": "شناسه بسته نامعتبر است."}, status=400)
+            return web.json_response({"ok": False, "message": "Invalid plan ID." if is_en else "شناسه بسته نامعتبر است."}, status=400)
 
         service = await session.get(Service, s_id)
         if not service or not service.is_active or (service.max_purchases and (service.purchases_count or 0) >= service.max_purchases):
-            return web.json_response({"ok": False, "message": "بسته مورد نظر یافت نشد، منقضی شده یا سقف فروش آن تکمیل شده است."}, status=404)
+            return web.json_response({
+                "ok": False,
+                "message": "Plan not found, inactive, or sold out." if is_en else "بسته مورد نظر یافت نشد، منقضی شده یا سقف فروش آن تکمیل شده است.",
+            }, status=404)
 
         coupon_repo = CouponRepository(session)
         discount_amount = 0
@@ -400,7 +439,7 @@ async def _post_user_purchase_body(
             if not is_valid:
                 return web.json_response({
                     "ok": False,
-                    "message": "کد تخفیف وارد شده معتبر نیست یا منقضی شده است."
+                    "message": "Promo code is invalid or expired." if is_en else "کد تخفیف وارد شده معتبر نیست یا منقضی شده است."
                 }, status=400)
             discount_amount = disc
             coupon_obj = await coupon_repo.get_by_code(coupon_code)
@@ -413,7 +452,7 @@ async def _post_user_purchase_body(
                 if not chosen_acc:
                     return web.json_response({
                         "ok": False,
-                        "message": "شناسه اکانت انتخاب‌شده نامعتبر است یا متعلق به شما نیست.",
+                        "message": "Selected account is invalid or does not belong to you." if is_en else "شناسه اکانت انتخاب‌شده نامعتبر است یا متعلق به شما نیست.",
                     }, status=400)
             else:
                 if len(panel_users) == 1:
@@ -422,7 +461,11 @@ async def _post_user_purchase_body(
                     return web.json_response({
                         "ok": False,
                         "error": "needs_account",
-                        "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را جهت خرید یا تمدید انتخاب فرمایید.",
+                        "message": (
+                            "You have multiple active accounts. Please select which account to buy or renew for."
+                            if is_en
+                            else "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را جهت خرید یا تمدید انتخاب فرمایید."
+                        ),
                         "accounts": [
                             {
                                 "id": u.get("id"),
@@ -467,48 +510,48 @@ async def _post_user_purchase_body(
                     "error": "insufficient_balance",
                     "needed": effective_price,
                     "current": result.new_balance,
-                    "message": "موجودی کیف پول شما کافی نیست.",
+                    "message": "Insufficient wallet balance." if is_en else "موجودی کیف پول شما کافی نیست.",
                 }, status=400)
             elif result.kind == "coupon_exhausted":
                 return web.json_response({
                     "ok": False,
                     "error": "coupon_exhausted",
-                    "message": "کد تخفیف به حداکثر سقف مجاز استفاده رسیده است یا قبلاً استفاده شده است.",
+                    "message": "Promo code usage limit reached or already used." if is_en else "کد تخفیف به حداکثر سقف مجاز استفاده رسیده است یا قبلاً استفاده شده است.",
                 }, status=400)
             elif result.kind == "conflict":
                 return web.json_response({
                     "ok": False,
                     "error": "conflict",
-                    "message": "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید.",
+                    "message": "A purchase is already in progress for this account. Please wait." if is_en else "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید.",
                 }, status=409)
             elif result.kind == "maintenance":
                 return web.json_response({
                     "ok": False,
-                    "message": "فروشگاه در حال حاضر در دست تعمیر و به‌روزرسانی است.",
+                    "message": "Shop is currently under maintenance." if is_en else "فروشگاه در حال حاضر در دست تعمیر و به‌روزرسانی است.",
                 }, status=503)
             elif result.kind == "needs_account":
                 return web.json_response({
                     "ok": False,
                     "error": "needs_account",
-                    "message": "لطفاً حساب کاربری مورد نظر جهت تمدید را انتخاب نمایید.",
+                    "message": "Please select an account to renew." if is_en else "لطفاً حساب کاربری مورد نظر جهت تمدید را انتخاب نمایید.",
                 }, status=400)
             elif result.kind == "needs_active_sub":
                 return web.json_response({
                     "ok": False,
                     "error": "needs_active_sub",
-                    "message": "برای خرید بسته افزایش حجم یا افزایش زمان، داشتن یک اشتراک فعال الزامی است.",
+                    "message": "An active subscription is required to purchase data/time add-ons." if is_en else "برای خرید بسته افزایش حجم یا افزایش زمان، داشتن یک اشتراک فعال الزامی است.",
                 }, status=400)
             elif result.kind in ("username_invalid", "username_taken"):
                 return web.json_response({
                     "ok": False,
                     "error": result.kind,
-                    "message": result.message or "نام کاربری انتخابی معتبر یا در دسترس نیست.",
+                    "message": result.message or ("Selected username is invalid or unavailable." if is_en else "نام کاربری انتخابی معتبر یا در دسترس نیست."),
                 }, status=400)
             elif result.kind == "squad_mismatch":
                 return web.json_response({
                     "ok": False,
                     "error": "squad_mismatch",
-                    "message": "این بسته افزایشی با نوع سرویس و سرورهای فعال شما سازگار نیست.",
+                    "message": "This add-on plan is incompatible with your active server group." if is_en else "این بسته افزایشی با نوع سرویس و سرورهای فعال شما سازگار نیست.",
                 }, status=400)
 
             logger.error("Purchase failed for user %s, service %s, result_kind: %s", telegram_id, service_id, result.kind)
@@ -524,7 +567,10 @@ async def _post_user_purchase_body(
                     )
                 except Exception:
                     pass
-            return web.json_response({"ok": False, "message": "خطا در ارتباط با سرور پنل جهت فعال‌سازی سرویس."}, status=500)
+            return web.json_response({
+                "ok": False,
+                "message": "Panel server error while activating service." if is_en else "خطا در ارتباط با سرور پنل جهت فعال‌سازی سرویس.",
+            }, status=500)
 
         await session.commit()
 
@@ -554,7 +600,11 @@ async def _post_user_purchase_body(
 
         return web.json_response({
             "ok": True,
-            "message": "سرویس با موفقیت به دسته جدید ارتقا یافت!" if getattr(result, "squad_changed", False) else "سرویس با موفقیت فعال / تمدید شد!",
+            "message": (
+                ("Service upgraded to new server group!" if getattr(result, "squad_changed", False) else "Service activated / renewed successfully!")
+                if is_en
+                else ("سرویس با موفقیت به دسته جدید ارتقا یافت!" if getattr(result, "squad_changed", False) else "سرویس با موفقیت فعال / تمدید شد!")
+            ),
             "subscription_url": result.subscription_url,
             "new_balance": result.new_balance,
             "service_name": service.name,
@@ -827,12 +877,13 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         data = {}
     if not isinstance(data, dict):
         data = {}
+    is_en = resolve_tma_lang(request) == "en"
     try:
         traffic_gb = int(data.get("traffic_gb", 0) or 0)
         duration_days = int(data.get("duration_days", 0) or 0)
         hwid_limit = max(1, min(10, int(data.get("hwid_limit", 2) or 2)))
     except (ValueError, TypeError):
-        return web.json_response({"ok": False, "message": "مقادیر حجم و روز نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid traffic or duration values." if is_en else "مقادیر حجم و روز نامعتبر است."}, status=400)
     account_id = data.get("account_id")
     create_new = bool(data.get("create_new"))
     custom_username = (data.get("custom_username") or "").strip() or None
@@ -848,7 +899,11 @@ async def post_user_custom_plan_purchase(request: web.Request) -> web.Response:
         return web.json_response({
             "ok": False,
             "error": "conflict",
-            "message": "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید.",
+            "message": (
+                "A purchase is already in progress for this account. Please wait."
+                if is_en
+                else "یک عملیات خرید برای این حساب در حال انجام است. لطفاً چند لحظه صبر کنید."
+            ),
         }, status=409)
 
     try:
@@ -889,9 +944,10 @@ async def _post_user_custom_plan_purchase_body(
         if inv_err:
             return inv_err
 
+        is_en = resolve_tma_lang(request) == "en"
         store_settings = await get_store_settings(session)
         if not store_settings.custom_plan_enabled:
-            return web.json_response({"ok": False, "message": "طراحی بسته اختصاصی در حال حاضر غیرفعال است."}, status=400)
+            return web.json_response({"ok": False, "message": "Custom Plan builder is currently disabled." if is_en else "طراحی بسته اختصاصی در حال حاضر غیرفعال است."}, status=400)
 
         min_gb = max(1, int(store_settings.custom_plan_min_gb or 1))
         max_gb = max(min_gb, int(store_settings.custom_plan_max_gb or min_gb))
@@ -901,13 +957,21 @@ async def _post_user_custom_plan_purchase_body(
         if traffic_gb < min_gb or traffic_gb > max_gb:
             return web.json_response({
                 "ok": False,
-                "message": f"حجم انتخابی باید بین {min_gb} تا {max_gb} گیگابایت باشد."
+                "message": (
+                    f"Traffic must be between {min_gb} and {max_gb} GB."
+                    if is_en
+                    else f"حجم انتخابی باید بین {min_gb} تا {max_gb} گیگابایت باشد."
+                ),
             }, status=400)
 
         if duration_days < min_days or duration_days > max_days:
             return web.json_response({
                 "ok": False,
-                "message": f"مدت زمان انتخابی باید بین {min_days} تا {max_days} روز باشد."
+                "message": (
+                    f"Duration must be between {min_days} and {max_days} days."
+                    if is_en
+                    else f"مدت زمان انتخابی باید بین {min_days} تا {max_days} روز باشد."
+                ),
             }, status=400)
 
         if (
@@ -917,14 +981,14 @@ async def _post_user_custom_plan_purchase_body(
         ):
             return web.json_response({
                 "ok": False,
-                "message": "تعرفه بسته دلخواه هنوز توسط مدیریت تنظیم نشده است."
+                "message": "Custom plan pricing has not been configured yet." if is_en else "تعرفه بسته دلخواه هنوز توسط مدیریت تنظیم نشده است."
             }, status=400)
 
         raw_base, volume_pct, base_price = compute_custom_plan_price(traffic_gb, duration_days, store_settings, hwid_limit=hwid_limit)
         if base_price <= 0:
             return web.json_response({
                 "ok": False,
-                "message": "تعرفه محاسبه شده نامعتبر است."
+                "message": "Calculated custom price is invalid." if is_en else "تعرفه محاسبه شده نامعتبر است."
             }, status=400)
 
         loyalty = await get_user_loyalty(session, telegram_id, cache=cache)
@@ -937,7 +1001,7 @@ async def _post_user_custom_plan_purchase_body(
             if account_id:
                 chosen_acc = next((u for u in panel_users if str(u.get("id")) == str(account_id)), None)
                 if not chosen_acc:
-                    return web.json_response({"ok": False, "message": "اشتراک انتخابی جهت تمدید یافت نشد."}, status=400)
+                    return web.json_response({"ok": False, "message": "Selected subscription for renewal not found." if is_en else "اشتراک انتخابی جهت تمدید یافت نشد."}, status=400)
             else:
                 if len(panel_users) == 1:
                     chosen_acc = panel_users[0]
@@ -945,7 +1009,11 @@ async def _post_user_custom_plan_purchase_body(
                     return web.json_response({
                         "ok": False,
                         "error": "needs_account",
-                        "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را انتخاب فرمایید.",
+                        "message": (
+                            "You have multiple active accounts. Please select an account first."
+                            if is_en
+                            else "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را انتخاب فرمایید."
+                        ),
                         "accounts": [
                             {
                                 "id": u.get("id"),
@@ -994,7 +1062,7 @@ async def _post_user_custom_plan_purchase_body(
 
         custom_svc = SimpleNamespace(
             id=None,
-            name="بسته دلخواه",
+            name="Custom Plan" if is_en else "بسته دلخواه",
             price=base_price,
             duration_days=duration_days,
             traffic_gb=traffic_gb,
@@ -1031,13 +1099,13 @@ async def _post_user_custom_plan_purchase_body(
                     "error": "insufficient_balance",
                     "needed": final_price,
                     "current": result.new_balance,
-                    "message": "موجودی کیف پول شما کافی نیست.",
+                    "message": "Insufficient wallet balance." if is_en else "موجودی کیف پول شما کافی نیست.",
                 }, status=400)
             if result.kind == "needs_account":
                 return web.json_response({
                     "ok": False,
                     "error": "needs_account",
-                    "message": "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را انتخاب فرمایید.",
+                    "message": "Please select an account first." if is_en else "شما چند اکانت فعال دارید. لطفاً ابتدا اکانت مورد نظر خود را انتخاب فرمایید.",
                     "accounts": [
                         {
                             "id": u.get("id"),
@@ -1052,7 +1120,7 @@ async def _post_user_custom_plan_purchase_body(
                 return web.json_response({
                     "ok": False,
                     "error": result.kind,
-                    "message": result.message or "نام کاربری انتخابی معتبر یا در دسترس نیست.",
+                    "message": result.message or ("Selected username is invalid or unavailable." if is_en else "نام کاربری انتخابی معتبر یا در دسترس نیست."),
                 }, status=400)
             if result.kind in ("failed", "error") or not result.message:
                 bot = request.app.get("bot")
@@ -1069,7 +1137,7 @@ async def _post_user_custom_plan_purchase_body(
                         )
                     except Exception as rep_err:
                         logger.warning("Failed to report custom plan purchase error: %s", rep_err)
-            err_msg = result.message or "خطا در خرید بسته اختصاصی."
+            err_msg = result.message or ("Failed to purchase custom plan." if is_en else "خطا در خرید بسته اختصاصی.")
             return web.json_response({"ok": False, "message": err_msg}, status=400)
 
         await session.commit()
@@ -1100,7 +1168,7 @@ async def _post_user_custom_plan_purchase_body(
 
         return web.json_response({
             "ok": True,
-            "message": "بسته دلخواه شما با موفقیت فعال شد!",
+            "message": "Your custom plan has been activated!" if is_en else "بسته دلخواه شما با موفقیت فعال شد!",
             "subscription_url": result.subscription_url,
             "new_balance": result.new_balance,
             "service_name": custom_svc.name,
@@ -1120,9 +1188,11 @@ async def get_user_invoice(request: web.Request) -> web.Response:
     if err:
         return err
 
+    req_lang = resolve_tma_lang(request)
+    is_en = req_lang == "en"
     order_id_str = request.match_info.get("order_id", "")
     if not order_id_str.isdigit():
-        return web.json_response({"ok": False, "message": "شناسه سفارش نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid order ID." if is_en else "شناسه سفارش نامعتبر است."}, status=400)
 
     order_id = int(order_id_str)
     telegram_id = int(user_auth["id"])
@@ -1133,14 +1203,16 @@ async def get_user_invoice(request: web.Request) -> web.Response:
         cache_key = f"inv:{inv_type}:{telegram_id}:{order_id}"
     else:
         cache_key = f"inv:ord:{telegram_id}:{order_id}"
+    lang_cache_key = cache_key if req_lang == "fa" else f"{cache_key}:{req_lang}"
     if cache and hasattr(cache, "get"):
-        cached_inv = await cache.get(cache_key)
+        cached_inv = await cache.get(lang_cache_key)
         if cached_inv:
             return web.json_response({"ok": True, "data": cached_inv})
 
     async with db_session(request) as session:
         store_settings = await get_store_settings(session)
-        store_name = getattr(store_settings, "invoice_company_name", "") or getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
+        default_brand = "Remna Cloud Service" if is_en else "سرویس ابری رمنا"
+        store_name = getattr(store_settings, "invoice_company_name", "") or getattr(store_settings, "bot_name", default_brand) or default_brand
         support_contact = getattr(store_settings, "support_contact", "") or ""
         store_logo_url = getattr(store_settings, "store_logo_url", "") or ""
 
@@ -1152,12 +1224,16 @@ async def get_user_invoice(request: web.Request) -> web.Response:
             support_contact=support_contact,
             store_logo_url=store_logo_url,
             invoice_type=inv_type,
+            lang=req_lang,
         )
         if not inv_data:
-            return web.json_response({"ok": False, "message": "فاکتور مورد نظر یافت نشد."}, status=404)
+            return web.json_response({"ok": False, "message": "Invoice not found." if is_en else "فاکتور مورد نظر یافت نشد."}, status=404)
 
         if cache and hasattr(cache, "set"):
-            await cache.set(cache_key, inv_data, ttl_seconds=600)
+            if req_lang == "fa":
+                await cache.set(cache_key, inv_data, ttl_seconds=600)
+            else:
+                await cache.set(lang_cache_key, inv_data, ttl_seconds=600)
 
         return web.json_response({"ok": True, "data": inv_data})
 
@@ -1188,16 +1264,18 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
     if err:
         return err
 
+    req_lang = resolve_tma_lang(request)
+    is_en = req_lang == "en"
     order_id_str = request.match_info.get("order_id", "")
     if not order_id_str.isdigit():
-        return web.json_response({"ok": False, "message": "شناسه سفارش نامعتبر است."}, status=400)
+        return web.json_response({"ok": False, "message": "Invalid order ID." if is_en else "شناسه سفارش نامعتبر است."}, status=400)
 
     order_id = int(order_id_str)
     telegram_id = int(user_auth["id"])
 
     bot: Bot | None = request.app.get("bot")
     if not bot:
-        return web.json_response({"ok": False, "message": "ربات در دسترس نیست."}, status=503)
+        return web.json_response({"ok": False, "message": "Bot is unavailable." if is_en else "ربات در دسترس نیست."}, status=503)
 
     image_bytes: bytes | None = None
     try:
@@ -1210,7 +1288,8 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
     inv_type = request.query.get("type", "").lower() or None
     async with db_session(request) as session:
         store_settings = await get_store_settings(session)
-        store_name = getattr(store_settings, "invoice_company_name", "") or getattr(store_settings, "bot_name", "سرویس ابری رمنا") or "سرویس ابری رمنا"
+        default_brand = "Remna Cloud Service" if is_en else "سرویس ابری رمنا"
+        store_name = getattr(store_settings, "invoice_company_name", "") or getattr(store_settings, "bot_name", default_brand) or default_brand
         support_contact = getattr(store_settings, "support_contact", "") or ""
         store_logo_url = getattr(store_settings, "store_logo_url", "") or ""
 
@@ -1222,22 +1301,28 @@ async def post_user_send_invoice_telegram(request: web.Request) -> web.Response:
             support_contact=support_contact,
             store_logo_url=store_logo_url,
             invoice_type=inv_type,
+            lang=req_lang,
         )
         if not inv_data:
-            return web.json_response({"ok": False, "message": "فاکتور یافت نشد."}, status=404)
+            return web.json_response({"ok": False, "message": "Invoice not found." if is_en else "فاکتور یافت نشد."}, status=404)
 
         sent = await send_invoice_to_telegram(
             bot=bot,
             telegram_id=telegram_id,
             invoice=inv_data,
             image_bytes=image_bytes,
+            lang=req_lang,
         )
         if not sent:
-            return web.json_response({"ok": False, "message": "خطا در ارسال پیام به تلگرام شما."}, status=500)
+            return web.json_response({"ok": False, "message": "Failed to send message to your Telegram." if is_en else "خطا در ارسال پیام به تلگرام شما."}, status=500)
 
         return web.json_response({
             "ok": True,
-            "message": "تصویر فاکتور رسمی با موفقیت به چت تلگرام شما ارسال شد!" if image_bytes else "فاکتور رسمی با موفقیت به پیوی تلگرام شما ارسال شد!",
+            "message": (
+                ("Official invoice image sent to your Telegram!" if image_bytes else "Official invoice sent to your Telegram!")
+                if is_en
+                else ("تصویر فاکتور رسمی با موفقیت به چت تلگرام شما ارسال شد!" if image_bytes else "فاکتور رسمی با موفقیت به پیوی تلگرام شما ارسال شد!")
+            ),
         })
 
 
@@ -1247,12 +1332,17 @@ async def post_user_easter_egg(request: web.Request) -> web.Response:
     if err:
         return err
 
+    is_en = resolve_tma_lang(request) == "en"
     if user_auth.get("is_preview"):
         return web.json_response({
             "ok": True,
             "already_claimed": True,
             "spin_tickets": 0,
-            "message": "🎉 حالت پیش‌نمایش فعال است! در تلگرام 1 تیکت رایگان گردونه شانس هدیه می‌گیرید.",
+            "message": (
+                "🎉 Preview mode active! In Telegram you'll receive 1 free Lucky Wheel ticket."
+                if is_en
+                else "🎉 حالت پیش‌نمایش فعال است! در تلگرام 1 تیکت رایگان گردونه شانس هدیه می‌گیرید."
+            ),
         })
 
     telegram_id = int(user_auth["id"])
@@ -1261,7 +1351,7 @@ async def post_user_easter_egg(request: web.Request) -> web.Response:
     async with _user_action_lock(cache, telegram_id, "easter_egg", ttl_seconds=15) as acquired:
         if not acquired:
             return web.json_response(
-                {"ok": False, "error": "درخواست در حال پردازش است. لطفاً چند لحظه بعد تلاش کنید."},
+                {"ok": False, "error": "Request in progress. Please try again shortly." if is_en else "درخواست در حال پردازش است. لطفاً چند لحظه بعد تلاش کنید."},
                 status=429,
             )
 
@@ -1297,7 +1387,11 @@ async def post_user_easter_egg(request: web.Request) -> web.Response:
                         "ok": True,
                         "already_claimed": True,
                         "spin_tickets": cur_tickets,
-                        "message": "✨ باشگاه VIP رمنا! هدیه مخفی (1 تیکت رایگان گردونه شانس) قبلاً برای شما فعال شده است.",
+                        "message": (
+                            "✨ VIP Club! The secret reward (1 free Lucky Wheel ticket) has already been claimed."
+                            if is_en
+                            else "✨ باشگاه VIP رمنا! هدیه مخفی (1 تیکت رایگان گردونه شانس) قبلاً برای شما فعال شده است."
+                        ),
                     })
 
                 new_tickets = cur_tickets + 1
@@ -1322,7 +1416,11 @@ async def post_user_easter_egg(request: web.Request) -> web.Response:
             "reward_type": "spin_ticket",
             "reward_amount": 1,
             "spin_tickets": new_tickets,
-            "message": "🎉 تبریک! ایستراگ مخفی رمنا را کشف کردید!\n🎟 1 تیکت رایگان گردونه شانس به اکانت شما اضافه شد ✨",
+            "message": (
+                "🎉 Congrats! You found the secret VIP Easter Egg!\n🎟 +1 free Lucky Wheel ticket added ✨"
+                if is_en
+                else "🎉 تبریک! ایستراگ مخفی رمنا را کشف کردید!\n🎟 1 تیکت رایگان گردونه شانس به اکانت شما اضافه شد ✨"
+            ),
         })
 
 

@@ -6,26 +6,27 @@ import urllib.parse
 from aiohttp import web
 
 from bot.services.configs import parse_subscription_text
+from bot.services.formatting import country_name as fmt_country_name
 from bot.web.cache import FastCache
-from bot.web.user_common import require_user
+from bot.web.user_common import require_user, resolve_tma_lang
 
 logger = logging.getLogger(__name__)
 
 COUNTRY_MAP = [
-    ("🇩🇪", "آلمان", ["de", "germany", "frankfurt", "berlin"]),
-    ("🇳🇱", "هلند", ["nl", "netherlands", "amsterdam"]),
-    ("🇫🇮", "فنلاند", ["fi", "finland", "helsinki"]),
-    ("🇫🇷", "فرانسه", ["fr", "france", "paris"]),
-    ("🇺🇸", "آمریکا", ["us", "usa", "america", "united states", "los angeles", "new york"]),
-    ("🇬🇧", "انگلیس", ["gb", "uk", "england", "london", "britain"]),
-    ("🇹🇷", "ترکیه", ["tr", "turkey", "istanbul"]),
-    ("🇨🇦", "کانادا", ["ca", "canada", "toronto"]),
-    ("🇸🇪", "سوئد", ["se", "sweden", "stockholm"]),
-    ("🇵🇱", "لهستان", ["pl", "poland", "warsaw"]),
-    ("🇨🇭", "سوئیس", ["ch", "switzerland", "zurich"]),
-    ("🇦🇪", "امارات", ["ae", "uae", "dubai"]),
-    ("🇸🇬", "سنگاپور", ["sg", "singapore"]),
-    ("🇮🇷", "ایران", ["ir", "iran", "tehran"]),
+    ("🇩🇪", "آلمان", "Germany", ["de", "germany", "frankfurt", "berlin"]),
+    ("🇳🇱", "هلند", "Netherlands", ["nl", "netherlands", "amsterdam"]),
+    ("🇫🇮", "فنلاند", "Finland", ["fi", "finland", "helsinki"]),
+    ("🇫🇷", "فرانسه", "France", ["fr", "france", "paris"]),
+    ("🇺🇸", "آمریکا", "United States", ["us", "usa", "america", "united states", "los angeles", "new york"]),
+    ("🇬🇧", "انگلیس", "United Kingdom", ["gb", "uk", "england", "london", "britain"]),
+    ("🇹🇷", "ترکیه", "Turkey", ["tr", "turkey", "istanbul"]),
+    ("🇨🇦", "کانادا", "Canada", ["ca", "canada", "toronto"]),
+    ("🇸🇪", "سوئد", "Sweden", ["se", "sweden", "stockholm"]),
+    ("🇵🇱", "لهستان", "Poland", ["pl", "poland", "warsaw"]),
+    ("🇨🇭", "سوئیس", "Switzerland", ["ch", "switzerland", "zurich"]),
+    ("🇦🇪", "امارات", "UAE", ["ae", "uae", "dubai"]),
+    ("🇸🇬", "سنگاپور", "Singapore", ["sg", "singapore"]),
+    ("🇮🇷", "ایران", "Iran", ["ir", "iran", "tehran"]),
 ]
 
 
@@ -35,6 +36,8 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     if err:
         return err
 
+    req_lang = resolve_tma_lang(request)
+    is_en = req_lang == "en"
     telegram_id = user_auth.get("id")
     account_id_param = request.query.get("account_id")
     if account_id_param and str(account_id_param).strip().lower() in ("null", "undefined", "none", ""):
@@ -42,13 +45,17 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
 
     cache: FastCache = request.app["cache"]
     cache_key = f"tma:user:{telegram_id}:configs:{account_id_param or 'def'}"
-    cached = await cache.get(cache_key)
+    lang_cache_key = cache_key if req_lang == "fa" else f"{cache_key}:{req_lang}"
+    cached = await cache.get(lang_cache_key)
     if cached is not None:
         return web.json_response({"ok": True, "configs": cached, "cached": True})
 
     remnawave = request.app.get("remnawave")
     if not remnawave:
-        return web.json_response({"ok": False, "error": "سرویس سرور در دسترس نیست."}, status=503)
+        return web.json_response(
+            {"ok": False, "error": "Server service unavailable." if is_en else "سرویس سرور در دسترس نیست."},
+            status=503,
+        )
 
     # 1. Fetch user accounts directly from Remnawave API with bounded timeout
     panel_fetch_failed = False
@@ -76,7 +83,11 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
     if panel_fetch_failed:
         return web.json_response({
             "ok": False,
-            "error": "ارتباط با پنل سرور موقتاً برقرار نشد. لطفاً چند لحظه دیگر تلاش فرمایید.",
+            "error": (
+                "Could not reach panel server temporarily. Please try again shortly."
+                if is_en
+                else "ارتباط با پنل سرور موقتاً برقرار نشد. لطفاً چند لحظه دیگر تلاش فرمایید."
+            ),
         }, status=503)
 
     target = None
@@ -99,7 +110,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         return web.json_response({
             "ok": True,
             "configs": [],
-            "message": "اشتراک فعالی برای این حساب در پنل یافت نشد.",
+            "message": "No active subscription found for this account." if is_en else "اشتراک فعالی برای این حساب در پنل یافت نشد.",
         })
 
     # Strict check: ensure target matches telegram_id
@@ -108,7 +119,7 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         return web.json_response({
             "ok": True,
             "configs": [],
-            "message": "اشتراک فعالی برای این حساب در پنل یافت نشد.",
+            "message": "No active subscription found for this account." if is_en else "اشتراک فعالی برای این حساب در پنل یافت نشد.",
         })
 
     # 2. Extract user identifiers for direct Remnawave API
@@ -156,38 +167,40 @@ async def get_user_subscription_configs(request: web.Request) -> web.Response:
         uri = cfg.get("uri", "")
 
         flag = "🌐"
-        country_name = "سرور"
+        c_label = "Server" if is_en else "سرور"
         name_lower = name.lower()
 
         # Check existing emoji in name
-        for f, c_name, _keywords in COUNTRY_MAP:
+        for f, c_fa, c_en, _keywords in COUNTRY_MAP:
             if f in name:
                 flag = f
-                country_name = c_name
+                c_label = c_en if is_en else c_fa
                 break
         if flag == "🌐":
-            for f, c_name, keywords in COUNTRY_MAP:
+            for f, c_fa, c_en, keywords in COUNTRY_MAP:
                 if any(kw in name_lower for kw in keywords):
                     flag = f
-                    country_name = c_name
+                    c_label = c_en if is_en else c_fa
                     break
+        if flag != "🌐" and c_label in ("Server", "سرور"):
+            c_label = fmt_country_name(name, default=c_label, lang=req_lang)
 
         configs.append({
             "id": idx,
             "name": name or f"Config #{idx}",
             "protocol": proto,
             "flag": flag,
-            "country_name": country_name,
+            "country_name": c_label,
             "uri": uri,
         })
 
     # Cache for 120 seconds
     if configs:
-        await cache.set(cache_key, configs, ttl_seconds=120)
+        await cache.set(lang_cache_key, configs, ttl_seconds=120)
         return web.json_response({"ok": True, "configs": configs})
 
     return web.json_response({
         "ok": True,
         "configs": [],
-        "message": "کانفیگی در پنل رمنانو یافت نشد.",
+        "message": "No configs found in Remnawave panel." if is_en else "کانفیگی در پنل رمنانو یافت نشد.",
     })

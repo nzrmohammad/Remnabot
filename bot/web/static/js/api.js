@@ -12,14 +12,17 @@ const api = {
     this._lastSessionExpiredAt = now;
 
     if (typeof document !== 'undefined' && document.body && !document.getElementById('tmaSessionExpiredBanner')) {
+      const tr = (fa, en) => (typeof window !== 'undefined' && typeof window.trText === 'function')
+        ? window.trText(fa, en)
+        : (typeof window !== 'undefined' && window.getAppLanguage?.() === 'en' ? en : fa);
       const banner = document.createElement('div');
       banner.id = 'tmaSessionExpiredBanner';
-      banner.dir = 'rtl';
+      banner.dir = (typeof window !== 'undefined' && window.getAppLanguage?.() === 'en') ? 'ltr' : 'rtl';
       banner.className = 'fixed top-4 left-4 right-4 z-[100] modal-card t-main border border-rose-500/30 rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3 max-w-lg mx-auto';
 
       const textWrap = document.createElement('div');
       textWrap.className = 'text-xs leading-relaxed font-semibold';
-      textWrap.textContent = 'نشست کاربری تلگرام منقضی شده است. لطفاً صفحه را بارگذاری مجدد کنید.';
+      textWrap.textContent = tr('نشست کاربری تلگرام منقضی شده است. لطفاً صفحه را بارگذاری مجدد کنید.', 'Telegram session expired. Please reload the page.');
 
       const actions = document.createElement('div');
       actions.className = 'flex items-center gap-2 shrink-0';
@@ -27,7 +30,7 @@ const api = {
       const reloadBtn = document.createElement('button');
       reloadBtn.type = 'button';
       reloadBtn.className = 'btn btn-primary text-xs px-3 py-1.5 rounded-xl';
-      reloadBtn.textContent = 'بارگذاری مجدد';
+      reloadBtn.textContent = tr('بارگذاری مجدد', 'Reload');
       reloadBtn.addEventListener('click', () => {
         window.location.reload();
       });
@@ -36,7 +39,7 @@ const api = {
         const tgCloseBtn = document.createElement('button');
         tgCloseBtn.type = 'button';
         tgCloseBtn.className = 'btn btn-secondary text-xs px-2.5 py-1.5 rounded-xl';
-        tgCloseBtn.textContent = 'خروج';
+        tgCloseBtn.textContent = tr('خروج', 'Close');
         tgCloseBtn.addEventListener('click', () => {
           try { window.Telegram.WebApp.close(); } catch (e) { window.location.reload(); }
         });
@@ -46,7 +49,7 @@ const api = {
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
       closeBtn.className = 'btn btn-secondary text-xs px-2.5 py-1.5 rounded-xl';
-      closeBtn.textContent = 'بستن';
+      closeBtn.textContent = tr('بستن', 'Dismiss');
       closeBtn.addEventListener('click', () => {
         banner.remove();
       });
@@ -59,7 +62,10 @@ const api = {
     }
 
     if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
-      window.showToast('⚠️ نشست کاربری تلگرام منقضی شد. لطفاً صفحه را مجدداً باز کنید.', 'warning', 5000);
+      const expiredToast = (typeof window.trText === 'function')
+        ? window.trText('نشست کاربری تلگرام منقضی شد. لطفاً صفحه را مجدداً باز کنید.', 'Telegram session expired. Please reopen the app.')
+        : 'نشست کاربری تلگرام منقضی شد. لطفاً صفحه را مجدداً باز کنید.';
+      window.showToast(expiredToast, 'warning', 5000);
     }
   },
 
@@ -140,7 +146,12 @@ const api = {
     } catch (netErr) {
       const isTimeout = netErr?.name === 'AbortError' || String(netErr).toLowerCase().includes('timeout');
       console.warn(`API ${isTimeout ? 'timeout' : 'network error'} for ${url}:`, netErr);
-      const errMsg = isTimeout ? 'مهلت زمانی ارتباط با سرور به پایان رسید (Timeout)' : 'خطای شبکه در ارتباط با سرور';
+      const tr = (fa, en) => (typeof window !== 'undefined' && typeof window.trText === 'function')
+        ? window.trText(fa, en)
+        : (typeof window !== 'undefined' && window.getAppLanguage?.() === 'en' ? en : fa);
+      const errMsg = isTimeout
+        ? tr('مهلت زمانی ارتباط با سرور به پایان رسید (Timeout)', 'Server request timed out (Timeout)')
+        : tr('خطای شبکه در ارتباط با سرور', 'Network error while connecting to server');
       const fallbackData = {
         ok: false,
         status: isTimeout ? 408 : 0,

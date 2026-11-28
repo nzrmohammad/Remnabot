@@ -2516,9 +2516,9 @@ def test_latest_ui_refinements():
     assert "wheel-streak-note" in wheel_text
     assert "html.theme-light .wheel-streak-note" in css_text
 
-    # 4. App guide modal: gold/silver medal badges without background and without 'پیشنهادی' word
-    assert 'title="پیشنهادی">🥇</span>' in app_js
-    assert 'title="جایگزین">🥈</span>' in app_js
+    # 4. App guide modal: gold/silver medal badges without background (localized title)
+    assert """title="${_appTr('پیشنهادی', 'Recommended')}">🥇</span>""" in app_js
+    assert """title="${_appTr('جایگزین', 'Alternative')}">🥈</span>""" in app_js
     assert "🥇</span>" in app_js
 
     # 5. Admin crypto refresh button border and force refresh

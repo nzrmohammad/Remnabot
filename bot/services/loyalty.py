@@ -87,6 +87,61 @@ DEFAULT_LOYALTY_TIERS = [
 
 LOYALTY_TIERS = DEFAULT_LOYALTY_TIERS
 
+_LOYALTY_EN_NAMES: dict[str, str] = {
+    "bronze": "Bronze",
+    "silver": "Silver",
+    "gold": "Gold",
+    "platinum": "Platinum",
+    "ruby": "Ruby",
+    "emerald": "Emerald",
+    "diamond": "Diamond",
+}
+
+
+def localize_loyalty_data(data: dict[str, Any], lang: str = "fa") -> dict[str, Any]:
+    """Return localized loyalty payload copy when English UI is active."""
+    if not isinstance(data, dict) or str(lang or "").strip().lower().split("-")[0].split("_")[0] != "en":
+        return data
+
+    def _desc(tier_id: str, pct: int) -> str:
+        if pct <= 0:
+            return "Starter loyalty tier (no discount)"
+        if tier_id == "diamond":
+            return f"{pct}% discount + Priority Support"
+        return f"{pct}% discount"
+
+    out = dict(data)
+    tid = str(out.get("tier_id") or "bronze").lower()
+    if not out.get("enabled", True):
+        out["name"] = "Disabled"
+        out["description"] = "Loyalty club is currently disabled."
+    else:
+        out["name"] = _LOYALTY_EN_NAMES.get(tid, out.get("name", ""))
+        out["description"] = _desc(tid, int(out.get("discount_percent") or 0))
+
+    nxt = out.get("next_tier")
+    if isinstance(nxt, dict):
+        nxt_id = str(nxt.get("id") or "").lower()
+        nxt_copy = dict(nxt)
+        nxt_copy["name"] = _LOYALTY_EN_NAMES.get(nxt_id, nxt.get("name", ""))
+        out["next_tier"] = nxt_copy
+        out["next_tier_name"] = nxt_copy["name"]
+
+    if isinstance(out.get("all_tiers"), list):
+        localized_tiers = []
+        for t in out["all_tiers"]:
+            if not isinstance(t, dict):
+                localized_tiers.append(t)
+                continue
+            t_id = str(t.get("id") or "").lower()
+            tc = dict(t)
+            tc["name"] = _LOYALTY_EN_NAMES.get(t_id, tc.get("name", ""))
+            tc["description"] = _desc(t_id, int(tc.get("discount_percent") or 0))
+            localized_tiers.append(tc)
+        out["all_tiers"] = localized_tiers
+
+    return out
+
 
 async def get_configured_loyalty_tiers(session: AsyncSession | None = None) -> list[dict[str, Any]]:
     """Return active loyalty tiers, merged with admin-configured thresholds & discounts if present."""
@@ -135,13 +190,14 @@ async def get_user_loyalty(
     session: AsyncSession,
     telegram_id: int,
     cache: Any = None,
+    lang: str = "fa",
 ) -> dict[str, Any]:
     """Calculate and return user loyalty tier, total spending, progress, and perks."""
     from bot.services.app_settings import get_store_settings
 
     store_settings = await get_store_settings(session)
     if not store_settings.loyalty_enabled:
-        return {
+        return localize_loyalty_data({
             "enabled": False,
             "tier": "NONE",
             "tier_id": "bronze",
@@ -161,14 +217,14 @@ async def get_user_loyalty(
             "next_tier_threshold": None,
             "is_max_tier": True,
             "all_tiers": [],
-        }
+        }, lang)
 
     cache_key = f"loyalty:user:v2:{telegram_id}"
     if cache and hasattr(cache, "get"):
         try:
             cached = await cache.get(cache_key)
             if cached and isinstance(cached, dict) and "tier_id" in cached:
-                return cached
+                return localize_loyalty_data(cached, lang)
         except Exception as exc:
             logger.debug("Failed reading loyalty cache for %s: %s", telegram_id, exc)
 
@@ -249,7 +305,7 @@ async def get_user_loyalty(
         except Exception as exc:
             logger.debug("Failed setting loyalty cache for %s: %s", telegram_id, exc)
 
-    return data
+    return localize_loyalty_data(data, lang)
 
 
 def apply_loyalty_discount(base_price: int, discount_percent: int) -> tuple[int, int]:
