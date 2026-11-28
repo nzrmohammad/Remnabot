@@ -427,6 +427,159 @@ test('wallet.js getTxPurchaseInfo & renderWalletTransactions render cleanly in E
   assert(listEl.innerHTML.includes('[medal-gold]'));
 });
 
+test('user.bundle.min.js boots cleanly without recursion and keeps tabs, accordions, and TON display responsive', async () => {
+  const bundleCode = fs.readFileSync(path.join(__dirname, '../../bot/web/static/js/dist/user.bundle.min.js'), 'utf8');
+  const noop = () => {};
+  const byId = new Map();
+  const evMap = new Map();
+  const docEv = {};
+  const mkEl = (id = '') => {
+    const cls = new Set();
+    const el = {
+      id,
+      tagName: 'DIV',
+      style: {},
+      dataset: {},
+      value: '',
+      textContent: '',
+      innerText: '',
+      innerHTML: '',
+      children: [],
+      scrollTo: noop,
+      remove: noop,
+      focus: noop,
+      click: () => {
+        const key = `${id}:click`;
+        const fn = evMap.get(key) || el.onclick;
+        if (fn) fn({ target: el, currentTarget: el, preventDefault: noop, stopPropagation: noop });
+      },
+      classList: {
+        add: (...a) => a.forEach((x) => cls.add(x)),
+        remove: (...a) => a.forEach((x) => cls.delete(x)),
+        toggle: (x, f) => {
+          if (f === true) { cls.add(x); return true; }
+          if (f === false) { cls.delete(x); return false; }
+          return cls.has(x) ? (cls.delete(x), false) : (cls.add(x), true);
+        },
+        contains: (x) => cls.has(x),
+      },
+      getAttribute: () => null,
+      setAttribute: noop,
+      removeAttribute: noop,
+      addEventListener: (ev, fn) => { evMap.set(`${id}:${ev}`, fn); },
+      appendChild: noop,
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      closest: () => null,
+    };
+    return el;
+  };
+  const getEl = (id) => { if (!byId.has(id)) byId.set(id, mkEl(id)); return byId.get(id); };
+  const navTabs = ['tab-dashboard', 'tab-reports', 'tab-shop', 'tab-wallet', 'tab-profile'];
+  const navBtns = navTabs.map((t) => {
+    const b = mkEl(`nav_${t}`);
+    b.getAttribute = (k) => (k === 'data-tab' ? t : null);
+    return b;
+  });
+  const panes = navTabs.map((t) => getEl(t));
+  const store = {};
+  const win = {
+    location: { origin: 'http://localhost', href: 'http://localhost/', search: '', pathname: '/' },
+    addEventListener: noop,
+    removeEventListener: noop,
+    matchMedia: () => ({ matches: false, addEventListener: noop }),
+    scrollTo: noop,
+    Telegram: {
+      WebApp: {
+        ready: noop,
+        expand: noop,
+        initData: 'auth=1',
+        initDataUnsafe: { user: { id: 123, first_name: 'Ali' } },
+        BackButton: { hide: noop, show: noop, onClick: noop },
+        HapticFeedback: { impactOccurred: noop, selectionChanged: noop, notificationOccurred: noop },
+        MainButton: { hide: noop },
+      },
+    },
+    navigator: { userAgent: 'Mozilla' },
+  };
+  const doc = {
+    readyState: 'loading',
+    documentElement: Object.assign(mkEl('html'), { lang: 'fa', dir: 'rtl' }),
+    head: mkEl('head'),
+    body: mkEl('body'),
+    getElementById: getEl,
+    querySelector: () => null,
+    querySelectorAll: (sel) => (sel === '.nav-btn' ? navBtns : (sel === '.tab-pane' ? panes : [])),
+    createElement: () => mkEl(),
+    addEventListener: (e, f) => { (docEv[e] = docEv[e] || []).push(f); },
+  };
+  const sandbox = {
+    window: win,
+    document: doc,
+    localStorage: {
+      getItem: (k) => (k in store ? store[k] : null),
+      setItem: (k, v) => { store[k] = String(v); },
+      removeItem: (k) => { delete store[k]; },
+    },
+    navigator: win.navigator,
+    performance: { now: () => Date.now() },
+    MutationObserver: function () { this.observe = noop; },
+    getComputedStyle: () => ({}),
+    FormData: function () {},
+    fetch: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        data: {
+          user: { id: 123, first_name: 'Ali', wallet_balance: 500000, language: 'en', referral_earned_commission: 25000 },
+          referral_commission_percent: 10,
+          plans: [{ id: 1, name: 'Plan 1', price: 150000, traffic_gb: 30, duration_days: 30 }],
+          wallet_transactions: [{ type: 'order', id: 1, title: 'Gold VIP', amount: 150000, status: 'Paid' }],
+          has_active_sub: false,
+          loyalty: { enabled: true, tier_id: 'gold', icon: '🥇', total_spent: 500000, discount_percent: 5 },
+        },
+      }),
+    }),
+    console,
+    setTimeout,
+    clearTimeout,
+    setInterval: () => 0,
+    clearInterval: noop,
+    URLSearchParams,
+    URL,
+    CustomEvent: function () {},
+    Event: function () {},
+  };
+  win.window = win;
+  win.document = doc;
+  win.localStorage = sandbox.localStorage;
+  const ctx = vm.createContext(sandbox);
+  vm.runInContext(bundleCode, ctx, { filename: 'user.bundle.min.js' });
+
+  let localeCalls = 0;
+  let syncCurrencyCalls = 0;
+  const origApply = win.applyAppLocale;
+  const origSync = win.syncAllCurrencyViews;
+  win.applyAppLocale = (...a) => { localeCalls++; return origApply(...a); };
+  win.syncAllCurrencyViews = (...a) => { syncCurrencyCalls++; return origSync(...a); };
+
+  getEl('subAccordionBody').classList.add('hidden');
+  for (const fn of (docEv.DOMContentLoaded || [])) fn();
+  await new Promise((r) => setTimeout(r, 120));
+
+  assert(localeCalls <= 5, `Unexpected excessive applyAppLocale calls: ${localeCalls}`);
+  assert(syncCurrencyCalls <= 5, `Unexpected excessive syncAllCurrencyViews calls: ${syncCurrencyCalls}`);
+  navBtns[2].click();
+  assert.strictEqual(getEl('tab-shop').classList.contains('hidden'), false);
+  getEl('toggleSubAccordionBtn').click();
+  assert.strictEqual(getEl('subChevron').style.transform, 'rotate(90deg)');
+  assert.strictEqual(getEl('shopWalletBalanceAmount').innerText, '1');
+  assert.strictEqual(getEl('shopWalletBalanceUnit').innerText, 'TON');
+  assert.strictEqual(getEl('profileReferralCommissionTotal').innerText, '0.05');
+  assert.strictEqual(getEl('profileReferralCommissionUnit').innerText, 'TON');
+});
+
 (async () => {
   for (const t of testsQueue) {
     try {

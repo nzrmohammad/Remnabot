@@ -4296,6 +4296,78 @@ function applySystemBlockScreen(mode, data = {}) {
   return true;
 }
 
+let _hydratingUserUi = false;
+
+function _appFmtMoney(amt, opts = {}) {
+  if (typeof window.formatDisplayMoneyParts === 'function') {
+    return window.formatDisplayMoneyParts(amt, opts);
+  }
+  const unit = _appTr('تومان', 'Toman');
+  const valStr = Number(amt || 0).toLocaleString('en-US');
+  return { valueText: valStr, unit, fullText: `${valStr} ${unit}` };
+}
+
+function renderWalletAndShopCurrency(data = window.lastUserData) {
+  const user = data?.user || {};
+  const walletEl = $('shopWalletBalance');
+  const shopBalAmt = $('shopWalletBalanceAmount');
+  const shopBalUnit = $('shopWalletBalanceUnit');
+  const walletTabBal = $('walletTabBalance');
+  const balDisp = _appFmtMoney(user.wallet_balance || 0, { floorStars: true });
+  if (walletEl) walletEl.innerText = _appIsEn() ? `Balance: ${balDisp.fullText}` : `موجودی: ${balDisp.fullText}`;
+  if (shopBalAmt) shopBalAmt.innerText = balDisp.valueText;
+  if (shopBalUnit) shopBalUnit.innerText = balDisp.unit;
+  if (walletTabBal) walletTabBal.innerText = balDisp.fullText;
+  if (typeof window.renderUserWalletCard === 'function') {
+    window.renderUserWalletCard(user);
+  }
+  if (typeof window.renderShopPlans === 'function' && data) {
+    window.renderShopPlans(data);
+  }
+  if (typeof window.updateCustomPlanCalculation === 'function') {
+    window.updateCustomPlanCalculation();
+  }
+}
+
+function renderLoyaltyCurrencySummary(loyalty = window.lastUserData?.loyalty) {
+  if (!loyalty) return;
+  const isEn = _appIsEn();
+  const totalSpent = $('loyaltyTotalSpent');
+  const targetSpent = $('loyaltyNextTierTarget');
+  if (totalSpent) {
+    const spentFull = _appFmtMoney(loyalty.total_spent || 0).fullText;
+    totalSpent.innerText = isEn ? `Total spent: ${spentFull}` : `مجموع خرید: ${spentFull}`;
+  }
+  if (targetSpent && loyalty.next_tier_name && loyalty.next_tier_threshold) {
+    const goalFull = _appFmtMoney(loyalty.next_tier_threshold).fullText;
+    targetSpent.innerText = isEn ? `Next goal: ${goalFull}` : `هدف بعدی: ${goalFull}`;
+  }
+}
+
+function renderReferralCommissionStat(data = window.lastUserData) {
+  const user = data?.user || {};
+  const isEn = _appIsEn();
+  const refEarnedComm = Number(user.referral_earned_commission ?? 0);
+  const refCommissionPct = Math.max(0, Math.min(50, Number(data?.referral_commission_percent ?? 0)));
+  const refStatsGrid = document.getElementById('profileReferralStatsGrid');
+  const refCommBox = document.getElementById('profileReferralCommissionStatBox');
+  const refCommWrap = document.getElementById('profileReferralCommissionWrap');
+  const refCommTotalEl = document.getElementById('profileReferralCommissionTotal');
+  const refCommUnitEl = document.getElementById('profileReferralCommissionUnit');
+  const showCommStat = refCommissionPct > 0 || refEarnedComm > 0;
+  if (refStatsGrid) {
+    refStatsGrid.classList.toggle('grid-cols-3', showCommStat);
+    refStatsGrid.classList.toggle('grid-cols-2', !showCommStat);
+  }
+  if (refCommBox) {
+    refCommBox.classList.toggle('hidden', !showCommStat);
+  }
+  const commDisp = _appFmtMoney(refEarnedComm);
+  if (refCommWrap) refCommWrap.dir = isEn ? 'ltr' : 'rtl';
+  if (refCommTotalEl) refCommTotalEl.innerText = toEnglishDigits(commDisp.valueText);
+  if (refCommUnitEl) refCommUnitEl.innerText = commDisp.unit;
+}
+
 function hydrateUserInterface(data) {
   if (!data || typeof data !== 'object') return;
 
@@ -4326,10 +4398,16 @@ function hydrateUserInterface(data) {
     window.currentAccountId = sub.account_id || sub.id;
   }
 
-  // Sync static DOM strings & direction before hydrating dynamic user values
-  const currentLang = window.applyAppLocale
-    ? window.applyAppLocale(user.language || 'fa')
-    : (user.language || 'fa');
+  // Sync static DOM strings & direction before hydrating dynamic user values (without re-entrant currency loop)
+  _hydratingUserUi = true;
+  let currentLang = user.language || 'fa';
+  try {
+    currentLang = window.applyAppLocale
+      ? window.applyAppLocale(user.language || 'fa')
+      : (user.language || 'fa');
+  } finally {
+    _hydratingUserUi = false;
+  }
 
   // --- PHASE 1: Core User Identity & Top Header (DB Data) ---
   safeStep('identityAndHeader', () => {
@@ -4576,26 +4654,14 @@ function hydrateUserInterface(data) {
         const totalSpent = $('loyaltyTotalSpent');
         const targetSpent = $('loyaltyNextTierTarget');
         const benefitDesc = $('loyaltyBenefitDesc');
-        const _appFmtMoney = (amt) => (typeof window.formatDisplayMoneyParts === 'function'
-          ? window.formatDisplayMoneyParts(amt).fullText
-          : `${Number(amt || 0).toLocaleString('en-US')} ${_appTr('تومان', 'Toman')}`);
 
-        if (totalSpent) {
-          totalSpent.innerText = isEn
-            ? `Total spent: ${_appFmtMoney(loyalty.total_spent || 0)}`
-            : `مجموع خرید: ${_appFmtMoney(loyalty.total_spent || 0)}`;
-        }
+        renderLoyaltyCurrencySummary(loyalty);
 
         if (loyalty.next_tier_name && loyalty.next_tier_threshold) {
           const pct = loyalty.progress_percent ?? loyalty.progress_pct ?? 0;
           if (nextText) nextText.innerText = isEn ? `Next tier (${loyalty.next_tier_name}):` : `تا سطح بعدی (${loyalty.next_tier_name}):`;
           if (progPct) progPct.innerText = `${pct}%`;
           if (progBar) progBar.style.width = `${pct}%`;
-          if (targetSpent) {
-            targetSpent.innerText = isEn
-              ? `Next goal: ${_appFmtMoney(loyalty.next_tier_threshold)}`
-              : `هدف بعدی: ${_appFmtMoney(loyalty.next_tier_threshold)}`;
-          }
         } else {
           if (nextText) nextText.innerText = _appTr('بالاترین سطح باشگاه مشتریان 🎉', 'Top Loyalty Club Tier Reached 🎉');
           if (progPct) progPct.innerText = '100%';
@@ -4621,27 +4687,7 @@ function hydrateUserInterface(data) {
 
   // --- PHASE 2: Wallet Balance & Shop Plans (DB Data) ---
   safeStep('walletAndShop', () => {
-    const walletEl = $('shopWalletBalance');
-    const shopBalAmt = $('shopWalletBalanceAmount');
-    const shopBalUnit = $('shopWalletBalanceUnit');
-    const walletTabBal = $('walletTabBalance');
-    const balDisp = typeof window.formatDisplayMoneyParts === 'function'
-      ? window.formatDisplayMoneyParts(user.wallet_balance || 0, { floorStars: true })
-      : { valueText: Number(user.wallet_balance || 0).toLocaleString('en-US'), unit: _appTr('تومان', 'Toman'), fullText: `${Number(user.wallet_balance || 0).toLocaleString('en-US')} ${_appTr('تومان', 'Toman')}` };
-    if (walletEl) walletEl.innerText = _appIsEn() ? `Balance: ${balDisp.fullText}` : `موجودی: ${balDisp.fullText}`;
-    if (shopBalAmt) shopBalAmt.innerText = balDisp.valueText;
-    if (shopBalUnit) shopBalUnit.innerText = balDisp.unit;
-    if (walletTabBal) walletTabBal.innerText = balDisp.fullText;
-    if (window.renderUserWalletCard) {
-      window.renderUserWalletCard(user);
-    }
-
-    if (typeof renderShopPlans === 'function') {
-      renderShopPlans(data);
-    }
-    if (typeof window.updateCustomPlanCalculation === 'function') {
-      window.updateCustomPlanCalculation();
-    }
+    renderWalletAndShopCurrency(data);
   });
 
   // --- PHASE 3: Profile Settings & Language Preferences ---
@@ -4677,31 +4723,7 @@ function hydrateUserInterface(data) {
     }
     if (refRewardTotalEl) refRewardTotalEl.innerText = `${toEnglishDigits(refEarnedGb)}`;
 
-    const refStatsGrid = document.getElementById('profileReferralStatsGrid');
-    const refCommBox = document.getElementById('profileReferralCommissionStatBox');
-    const refCommWrap = document.getElementById('profileReferralCommissionWrap');
-    const refCommTotalEl = document.getElementById('profileReferralCommissionTotal');
-    const refCommUnitEl = document.getElementById('profileReferralCommissionUnit');
-    const showCommStat = refCommissionPct > 0 || refEarnedComm > 0;
-    if (refStatsGrid) {
-      refStatsGrid.classList.toggle('grid-cols-3', showCommStat);
-      refStatsGrid.classList.toggle('grid-cols-2', !showCommStat);
-    }
-    if (refCommBox) {
-      refCommBox.classList.toggle('hidden', !showCommStat);
-    }
-    const commDisp = typeof window.formatDisplayMoneyParts === 'function'
-      ? window.formatDisplayMoneyParts(refEarnedComm)
-      : { valueText: toEnglishDigits(refEarnedComm.toLocaleString('en-US')), unit: _appTr('تومان', 'Toman') };
-    if (refCommWrap) {
-      refCommWrap.dir = isEn ? 'ltr' : 'rtl';
-    }
-    if (refCommTotalEl) {
-      refCommTotalEl.innerText = toEnglishDigits(commDisp.valueText);
-    }
-    if (refCommUnitEl) {
-      refCommUnitEl.innerText = commDisp.unit;
-    }
+    renderReferralCommissionStat(data);
 
     const refTitleEl = document.getElementById('profileReferralCardTitle');
     const refNoteEl = document.getElementById('profileReferralNoteText');
@@ -7547,18 +7569,18 @@ window.closeKillSingleDeviceModal = closeKillSingleDeviceModal;
 window.confirmKillSingleDevice = confirmKillSingleDevice;
 window.renderUserLeaderboard = renderUserLeaderboard;
 window.syncAllCurrencyViews = function() {
+  if (_hydratingUserUi) return;
   try {
     const data = window.lastUserData;
-    if (data && typeof hydrateUserInterface === 'function') {
-      hydrateUserInterface(data);
-    } else if (typeof window.updateCustomPlanCalculation === 'function') {
-      window.updateCustomPlanCalculation();
+    renderWalletAndShopCurrency(data);
+    renderReferralCommissionStat(data);
+    renderLoyaltyCurrencySummary(data?.loyalty);
+    if (typeof window.renderWalletTransactions === 'function') {
+      window.renderWalletTransactions();
     }
     if ($('giftModal') && !$('giftModal').classList.contains('hidden')) {
       const bal = data?.user?.wallet_balance || 0;
-      const balDisp = typeof window.formatDisplayMoneyParts === 'function'
-        ? window.formatDisplayMoneyParts(bal, { floorStars: true })
-        : { valueText: Number(bal).toLocaleString('en-US'), unit: _appTr('تومان', 'Toman') };
+      const balDisp = _appFmtMoney(bal, { floorStars: true });
       if ($('giftCurrentBalanceDisplay')) $('giftCurrentBalanceDisplay').innerText = balDisp.valueText;
       if ($('giftBalanceUnit')) $('giftBalanceUnit').innerText = balDisp.unit;
       if (typeof renderGiftServiceSelectModalList === 'function') renderGiftServiceSelectModalList();

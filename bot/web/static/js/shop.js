@@ -539,8 +539,13 @@ function renderShopPlans(data) {
   cachedPlansData = data;
   renderWonCoupons(data);
   const shopBalAmt = document.getElementById('shopWalletBalanceAmount');
+  const shopBalUnit = document.getElementById('shopWalletBalanceUnit');
   if (shopBalAmt && data?.user?.wallet_balance !== undefined) {
-    shopBalAmt.innerText = Number(data.user.wallet_balance || 0).toLocaleString('en-US');
+    const balDisp = typeof window.formatDisplayMoneyParts === 'function'
+      ? window.formatDisplayMoneyParts(data.user.wallet_balance || 0, { floorStars: true })
+      : _shopMoneyParts(data.user.wallet_balance || 0);
+    shopBalAmt.innerText = balDisp.valueText;
+    if (shopBalUnit) shopBalUnit.innerText = balDisp.unit;
   }
 
   const customSettings = data?.custom_plan_settings || window.storeSettings?.custom_plan_settings;
