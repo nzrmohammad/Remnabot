@@ -74,20 +74,33 @@ function _wTr(fa, en) {
 }
 
 const WALLET_CURRENCY_OPTIONS = [
-  { id: 'toman', name: 'تومان (IRT)', nameEn: 'Toman (IRT)', desc: 'واحد پایه پولی ایران (پیش‌فرض سامانه ⭐)', descEn: 'Iranian Toman base currency (System Default ⭐)', icon: '/static/img/icons/coins.svg?v=fl2' },
-  { id: 'ton', name: 'تون (TON)', nameEn: 'Toncoin (TON)', desc: 'شبکه بلاکچین تلگرام The Open Network', descEn: 'Telegram The Open Network blockchain', icon: '/static/img/icons/ton.svg?v=fl2' },
+  { id: 'toman', name: 'تومان (IRT)', nameEn: 'Toman (IRT)', desc: 'واحد پایه پولی ایران (پیش‌فرض سامانه ⭐)', descEn: 'Iranian Toman currency', icon: '/static/img/icons/coins.svg?v=fl2' },
+  { id: 'ton', name: 'تون (TON)', nameEn: 'Toncoin (TON)', desc: 'شبکه بلاکچین تلگرام The Open Network', descEn: 'Telegram The Open Network blockchain (Default ⭐)', icon: '/static/img/icons/ton.svg?v=fl2' },
   { id: 'usdt', name: 'تتر (USDT)', nameEn: 'Tether (USDT)', desc: 'استیبل‌کوین دلاری تتر معادل دلار آمریکا', descEn: 'USD-pegged Tether stablecoin equivalent', icon: '/static/img/icons/credit-card.svg?v=fl2' },
   { id: 'trx', name: 'ترون (TRX)', nameEn: 'TRON (TRX)', desc: 'ارز دیجیتال شبکه پرسرعت TRON', descEn: 'Fast & low-fee TRON network token', icon: '/static/img/icons/tron.svg?v=fl2' },
   { id: 'pol', name: 'پالیگان (POL / MATIC)', nameEn: 'Polygon (POL / MATIC)', desc: 'ارز دیجیتال اکوسیستم و شبکه Polygon', descEn: 'Polygon network ecosystem token', icon: '/static/img/icons/polygon.svg?v=fl2' },
   { id: 'stars', name: 'ستاره تلگرام (Stars ⭐️)', nameEn: 'Telegram Stars ⭐️', desc: 'اعتبار رسمی ستاره‌های درون‌برنامه‌ای تلگرام', descEn: 'Official Telegram in-app Stars balance', icon: '/static/img/icons/star.svg?v=fl2' },
 ];
 
+window.getDefaultWalletCurrency = function() {
+  return _wIsEn() ? 'ton' : 'toman';
+};
+
+window.getEffectiveWalletCurrency = function() {
+  const valid = ['toman', 'ton', 'usdt', 'trx', 'pol', 'stars'];
+  const isManual = localStorage.getItem('user_wallet_currency_manual') === '1';
+  const stored = localStorage.getItem('user_wallet_currency');
+  if (isManual && valid.includes(stored)) return stored;
+  if (!isManual && valid.includes(stored) && stored !== 'toman' && stored !== 'ton') return stored;
+  return window.getDefaultWalletCurrency();
+};
+
 window.openWalletCurrencyModal = function() {
   const modal = document.getElementById('walletCurrencyModal');
   const listEl = document.getElementById('walletCurrencyOptionsList');
   if (!modal || !listEl) return;
 
-  const currentVal = localStorage.getItem('user_wallet_currency') || 'toman';
+  const currentVal = window.getEffectiveWalletCurrency();
   const isEn = _wIsEn();
 
   listEl.innerHTML = WALLET_CURRENCY_OPTIONS.map(opt => {
@@ -121,6 +134,7 @@ window.closeWalletCurrencyModal = function() {
 };
 
 window.selectWalletCurrency = function(curr) {
+  localStorage.setItem('user_wallet_currency_manual', '1');
   window.setWalletCurrency(curr);
   window.closeWalletCurrencyModal();
   if (window.hapticFeedback) window.hapticFeedback('success');
@@ -129,14 +143,15 @@ window.selectWalletCurrency = function(curr) {
 
 window.cycleWalletCurrency = function() {
   const currencies = ['toman', 'ton', 'usdt', 'trx', 'pol', 'stars'];
-  const cur = localStorage.getItem('user_wallet_currency') || 'toman';
+  const cur = window.getEffectiveWalletCurrency();
   const nextIdx = (currencies.indexOf(cur) + 1) % currencies.length;
+  localStorage.setItem('user_wallet_currency_manual', '1');
   window.setWalletCurrency(currencies[nextIdx]);
 };
 
 window.setWalletCurrency = function(curr) {
   const valid = ['toman', 'ton', 'usdt', 'trx', 'pol', 'stars'];
-  const target = valid.includes(curr) ? curr : 'toman';
+  const target = valid.includes(curr) ? curr : window.getDefaultWalletCurrency();
   localStorage.setItem('user_wallet_currency', target);
 
   // Sync settings display elements
@@ -330,7 +345,7 @@ window.renderUserWalletCard = function(userData) {
   const polRate = Number(window.storeSettings?.pol_rate_toman) || 35000;
   const starsRate = Number(window.storeSettings?.stars_rate_toman) || 1500;
 
-  const currentCurrency = localStorage.getItem('user_wallet_currency') || 'toman';
+  const currentCurrency = window.getEffectiveWalletCurrency();
 
   let formattedBalStr = `${rawBal.toLocaleString('en-US')} ${moneyUnit}`;
   let currencyShortName = moneyUnit;
@@ -605,7 +620,9 @@ function getTxPurchaseInfo(tx) {
     }
 
     const iconHtml = `<span class="shrink-0 inline-flex items-center justify-center">${typeof uiEmojiIcon === 'function' ? uiEmojiIcon(emojiStr || '📦', 'w-4 h-4') : (emojiStr || '📦')}</span>`;
-    planHtml = `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
+    planHtml = isEnLang
+      ? `<span class="inline-flex items-center gap-1.5">${iconHtml}<bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi></span>`
+      : `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
   }
 
   return { typeRowText, planHtml };

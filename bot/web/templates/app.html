@@ -337,7 +337,7 @@
 
           <!-- Headline & Description -->
           <div class="space-y-1">
-            <h3 class="text-sm font-black t-main"><span data-i18n="no_sub_hello">سلام</span> <span id="noSubUserName" class="t-accent" data-i18n="default_user_name">کاربر</span><span data-i18n="no_sub_dear"> عزیز!</span></h3>
+            <h3 class="text-sm font-black t-main"><span data-i18n="no_sub_hello">سلام</span> <span id="noSubUserName" class="t-accent">کاربر</span><span data-i18n="no_sub_dear"> عزیز!</span></h3>
             <p class="text-[11px] t-muted leading-snug max-w-xs mx-auto">
               اشتراک فعالی برای شما ثبت نشده است. برای اتصال به اینترنت آزاد و پرسرعت، پلن مورد نظر خود را فعال کنید.
             </p>
@@ -553,7 +553,7 @@
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <span id="reportsSessionsBadge" class="text-[11px] font-bold t-success bg-transparent border-0 px-0 py-0 font-sans" dir="rtl">0 دستگاه</span>
+              <span id="reportsSessionsBadge" class="text-[11px] font-bold t-success bg-transparent border-0 px-0 py-0 font-sans">0 دستگاه</span>
             </div>
           </button>
 
@@ -779,7 +779,7 @@
               <!-- Birthday Status -->
               <div class="card-inset rounded-xl p-2.5 flex flex-col items-center justify-between">
                 <span class="text-[11px] t-muted block mb-1" data-i18n="ach_birthday">هدیه زادروز</span>
-                <b id="achieveBdayStatus" class="t-warn text-[11px] font-bold truncate max-w-full" data-i18n="not_registered">ثبت نشده</b>
+                <b id="achieveBdayStatus" class="t-warn text-[11px] font-bold truncate max-w-full">ثبت نشده</b>
                 <button id="achieveBdayBtn" type="button" onclick="window.openBirthdayModal()" class="text-[11px] t-warn mt-0.5 hover:underline bg-transparent border-0 p-0" data-i18n="register_date_btn">ثبت تاریخ</button>
               </div>
             </div>
@@ -1068,11 +1068,11 @@
                 </div>
               </div>
               <div class="flex items-center gap-1.5 flex-wrap justify-end">
-                <span id="customPlanVolumeBadge" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-success-soft border border-emerald-500/30 whitespace-nowrap">
-                  <img src="/static/img/icons/flame.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />تخفیف حجم: <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanVolumePct">0</span>%</span>
+                <span id="customPlanVolumeBadge" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-success-soft border border-emerald-500/30 whitespace-nowrap inline-flex items-center gap-1">
+                  <img src="/static/img/icons/flame.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" /><span data-i18n="custom_vol_badge_lbl">تخفیف حجم:</span> <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanVolumePct">0</span>%</span>
                 </span>
-                <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-warn-soft border border-amber-500/30 whitespace-nowrap">
-                  تخفیف وفاداری: <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
+                <span id="customPlanLoyaltyDiscountPill" class="hidden px-2 py-0.5 rounded-lg text-[11px] font-bold s-warn-soft border border-amber-500/30 whitespace-nowrap inline-flex items-center gap-1">
+                  <span data-i18n="custom_loyalty_badge_lbl">تخفیف وفاداری:</span> <span dir="ltr" class="font-sans num-bidi font-bold"><span id="customPlanLoyaltyPct">0</span>%</span>
                 </span>
               </div>
             </div>
@@ -1156,11 +1156,11 @@
           </div>
         </div>
 
-        <!-- Coupon Box (Hidden until plans are rendered) -->
+        <!-- Coupon Box (Hidden until plans are rendered; Apply stays on right) -->
         <div id="shopCouponSection" class="space-y-2 hidden">
-          <div class="card-inset rounded-xl p-2.5 flex items-center gap-2 border border-card-border">
+          <div class="card-inset rounded-xl p-2.5 flex items-center gap-2 border border-card-border" dir="rtl">
             <button id="applyCouponBtn" type="button" class="btn btn-primary text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0"><span class="flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /><span data-i18n="apply_btn">اعمال</span></span></button>
-            <input type="text" placeholder="کد تخفیف خود را وارد کنید..." class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-sans tracking-wide" id="couponInput" data-i18n-placeholder="coupon_placeholder" />
+            <input type="text" dir="auto" placeholder="کد تخفیف خود را وارد کنید..." class="input-base text-xs placeholder:text-[11px] px-3 py-2 rounded-lg flex-1 outline-none uppercase font-sans tracking-wide" id="couponInput" data-i18n-placeholder="coupon_placeholder" />
           </div>
 
           <!-- Won Lucky Wheel Coupons (User Active Discounts) -->
@@ -1385,7 +1385,7 @@
             <span class="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-0.5 border-2 border-card-border flex items-center justify-center pointer-events-none"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></span>
           </div>
 
-          <h3 id="profileFullName" class="text-base font-extrabold t-main" data-i18n="default_dear_user">کاربر گرامی</h3>
+          <h3 id="profileFullName" class="text-base font-extrabold t-main">کاربر گرامی</h3>
           <span id="profileUsername" dir="ltr" class="text-xs t-info font-sans font-medium block mt-0.5">@user</span>
           <div class="flex items-center justify-center gap-2 mt-2.5">
             <span id="profileStatusBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-transparent text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 inline-flex items-center gap-1.5"><img src="/static/img/icons/check.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span>کاربر فعال</span></span>
@@ -1479,7 +1479,7 @@
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
               <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span data-i18n="prof_phone_label">شماره همراه</span></span>
               <div id="profilePhoneContainer" class="flex items-center gap-1.5">
-                <span id="profilePhone" class="t-muted font-medium font-sans" dir="ltr" data-i18n="prof_not_set">وارد نشده</span>
+                <span id="profilePhone" class="t-muted font-medium font-sans" dir="ltr">وارد نشده</span>
                 <button id="verifyPhoneInBotBtn" type="button" onclick="window.verifyPhoneNative()" class="hidden px-2 py-0.5 rounded-lg bg-transparent text-amber-600 dark:text-amber-300 border border-amber-500/60 text-xs font-black hover:bg-amber-500/10 transition active:scale-95 flex items-center gap-1">
                   <span><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
                   <span data-i18n="prof_verify_btn">تأیید</span>
@@ -1490,25 +1490,25 @@
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
               <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span data-i18n="prof_join_date_label">تاریخ عضویت</span></span>
               <div class="flex items-center gap-1.5">
-                <span id="profileJoinDaysBadge" onclick="window.openMembershipModal && window.openMembershipModal()" class="hidden px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-sans font-bold cursor-pointer hover:border-accent transition" title="مشاهده کارنامه همراهی"></span>
-                <span id="profileJoinDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openMembershipModal && window.openMembershipModal()" title="مشاهده کارنامه همراهی">--</span>
+                <span id="profileJoinDaysBadge" onclick="window.openMembershipModal && window.openMembershipModal()" class="hidden px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-sans font-bold cursor-pointer hover:border-accent transition" title="مشاهده کارنامه همراهی" data-i18n-title="prof_view_milestone_title"></span>
+                <span id="profileJoinDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openMembershipModal && window.openMembershipModal()" title="مشاهده کارنامه همراهی" data-i18n-title="prof_view_milestone_title">--</span>
               </div>
             </div>
 
             <div class="flex justify-between items-center py-1 border-t border-card-border pt-1.5">
               <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span data-i18n="prof_bday_label">تاریخ تولد</span></span>
               <div class="flex items-center gap-1.5">
-                <button id="openBirthdayModalBtn" type="button" onclick="window.openBirthdayModal()" class="t-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none" title="ثبت تاریخ تولد">
+                <button id="openBirthdayModalBtn" type="button" onclick="window.openBirthdayModal()" class="t-pink hover:text-pink-300 text-xs transition active:scale-95 bg-transparent border-0 p-0 shadow-none" title="ثبت تاریخ تولد" data-i18n-title="prof_bday_title">
                   <span><img src="/static/img/icons/edit.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
                 </button>
-                <span id="profileBirthdayCountdownBadge" onclick="window.openBirthdayCountdownModal && window.openBirthdayCountdownModal()" class="hidden px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-sans font-bold cursor-pointer hover:border-accent transition" title="مشاهده شمارش معکوس زادروز"></span>
-                <span id="profileBirthDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openBirthdayCountdownModal && window.openBirthdayCountdownModal()" data-i18n="not_registered">ثبت‌نشده</span>
+                <span id="profileBirthdayCountdownBadge" onclick="window.openBirthdayCountdownModal && window.openBirthdayCountdownModal()" class="hidden px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-sans font-bold cursor-pointer hover:border-accent transition" title="مشاهده شمارش معکوس زادروز" data-i18n-title="bday_card_box_title"></span>
+                <span id="profileBirthDate" class="t-main font-medium font-sans cursor-pointer hover:t-accent transition" dir="ltr" onclick="window.openBirthdayCountdownModal && window.openBirthdayCountdownModal()">ثبت‌نشده</span>
               </div>
             </div>
 
             <div class="flex justify-between items-center py-1.5 border-t border-card-border pt-2">
               <span class="t-muted flex items-center gap-1.5"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span data-i18n="prof_sub_status_label">وضعیت سرویس</span></span>
-              <span id="profileSubStatus" class="font-semibold t-success" data-i18n="prof_sub_active">فعال</span>
+              <span id="profileSubStatus" class="font-semibold t-success">فعال</span>
             </div>
           </div>
         </div>
@@ -1523,13 +1523,13 @@
               <div>
                 <div class="flex items-center gap-1.5">
                   <b class="text-xs t-main block" data-i18n="prof_loyalty_label">سطح کاربری:</b>
-                  <b id="loyaltyTierName" class="text-xs font-black text-amber-500" data-i18n="prof_loyalty_bronze">برنزی</b>
+                  <b id="loyaltyTierName" class="text-xs font-black text-amber-500">برنزی</b>
                 </div>
                 <span class="text-[11px] t-muted block mt-0.5" data-i18n="prof_loyalty_sub">باشگاه مشتریان و تخفیف وفاداری</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <span id="loyaltyDiscountBadge" class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300" data-i18n="no_discount">
+              <span id="loyaltyDiscountBadge" class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300">
                 بدون تخفیف
               </span>
               <img src="/static/img/icons/chevron-down.svg?v=fl2" class="settings-box-chevron ui-icon-img w-4 h-4 shrink-0 t-muted transition-transform duration-200" width="16" height="16" alt="" />
@@ -1540,22 +1540,22 @@
             <!-- Progress Bar to Next Tier -->
             <div class="space-y-1.5">
               <div class="flex justify-between items-center text-[11px]">
-                <span id="loyaltyNextTierText" class="t-muted" data-i18n="prof_loyalty_next">تا سطح بعدی (نقره‌ای):</span>
+                <span id="loyaltyNextTierText" class="t-muted">تا سطح بعدی (نقره‌ای):</span>
                 <span id="loyaltyProgressPct" class="font-sans font-bold t-main num-bidi" dir="ltr">0%</span>
               </div>
               <div class="w-full bg-slate-700/30 dark:bg-slate-700/50 rounded-full h-2 overflow-hidden card-inset">
                 <div id="loyaltyProgressBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
               </div>
               <div class="flex justify-between items-center text-[11px] t-muted font-sans num-bidi">
-                <span id="loyaltyTotalSpent" data-i18n="prof_loyalty_spent">مجموع خرید: 0 تومان</span>
-                <span id="loyaltyNextTierTarget" data-i18n="prof_loyalty_target">هدف بعدی: 1,000,000 تومان</span>
+                <span id="loyaltyTotalSpent">مجموع خرید: 0 تومان</span>
+                <span id="loyaltyNextTierTarget">هدف بعدی: 1,000,000 تومان</span>
               </div>
             </div>
 
             <!-- Benefits description -->
             <div class="text-[11px] t-muted leading-relaxed flex items-center gap-2">
               <span><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
-              <span id="loyaltyBenefitDesc" data-i18n="prof_loyalty_hint">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.</span>
+              <span id="loyaltyBenefitDesc">با خرید بیشتر از فروشگاه، سطح خود را ارتقا دهید و از تخفیف روی تمامی بسته‌ها بهره‌مند شوید.</span>
             </div>
 
             <!-- Call to Action button to open modal -->
@@ -1564,7 +1564,7 @@
                 <span><img src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span>
                 <span data-i18n="prof_loyalty_cta">مشاهده سطوح 7‌گانه و جزئیات تخفیف</span>
               </span>
-              <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" />
+              <img src="/static/img/icons/arrow-left.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 ltr:rotate-180" width="14" height="14" alt="" />
             </button>
           </div>
         </div>
@@ -1576,9 +1576,9 @@
               <span class="w-8 h-8 flex items-center justify-center shrink-0">
                 <img src="/static/img/icons/users.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
               </span>
-              <div class="text-right">
+              <div class="text-start">
                 <b id="profileReferralCardTitle" class="text-xs t-main block" data-i18n="prof_ref_title">دعوت از دوستان و دریافت پاداش ترافیک</b>
-                <span id="profileReferralRewardBadge" class="text-[11px] t-warn font-bold block mt-0.5 flex items-center"><img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" />1 گیگابایت هدیه به ازای هر دعوت</span>
+                <span id="profileReferralRewardBadge" class="text-[11px] t-warn font-bold mt-0.5 flex items-center gap-1"><img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle" width="14" height="14" alt="" />1 گیگابایت هدیه به ازای هر دعوت</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -1633,7 +1633,6 @@
             <img src="/static/img/icons/settings.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" aria-hidden="true" />
             <span data-i18n="settings_section_title">تنظیمات و هشدارهای تلگرام</span>
           </h4>
-          <span class="text-[11px] t-muted font-medium" data-i18n="settings_section_sub">سفارشی‌سازی اعلان‌ها</span>
         </div>
 
         <!-- 2. Box: هشدارهای تلگرام و گزارش‌های دوره‌ای -->
@@ -1654,7 +1653,7 @@
             <!-- Toggle: Nightly Report -->
             <div class="flex items-center justify-between py-1">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_nightly_t">گزارش شبانه (ساعت 23:59)</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_nightly_t">گزارش شبانه (ساعت 23:59)</span></span>
                 <span class="text-[11px] t-muted" data-i18n="set_nightly_d">ارسال خلاصه مصرف دیشب در تلگرام</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1668,7 +1667,7 @@
             <!-- Toggle: Weekly Report -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/reports.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_weekly_t">گزارش هفتگی (جمعه‌شب‌ها)</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/reports.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_weekly_t">گزارش هفتگی (جمعه‌شب‌ها)</span></span>
                 <span class="text-[11px] t-muted" data-i18n="set_weekly_d">ارسال آمار مصرف 7 روز گذشته</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1682,7 +1681,7 @@
             <!-- Toggle: Monthly Report -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_monthly_t">گزارش ماهانه (پایان ماه)</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_monthly_t">گزارش ماهانه (پایان ماه)</span></span>
                 <span class="text-[11px] t-muted" data-i18n="set_monthly_d">ارسال گزارش جامع مصرف ماه شمسی</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1696,7 +1695,7 @@
             <!-- Toggle: Auto Clean Old Reports -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_clean_t">پاکسازی خودکار گزارش‌ها</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/trash.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_clean_t">پاکسازی خودکار گزارش‌ها</span></span>
                 <span class="text-[11px] t-muted" data-i18n="set_clean_d">حذف گزارش قبلی در تلگرام قبل از ارسال جدید</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1727,7 +1726,7 @@
             <!-- Toggle: Low Traffic Warning -->
             <div class="flex items-center justify-between py-1">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_low_traffic_t">هشدار کمبود حجم</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_low_traffic_t">هشدار کمبود حجم</span></span>
                 <span id="settingTrafficSubtext" class="text-[11px] t-muted">هشدار قبل از پایان ترافیک (80%)</span>
               </div>
               <div class="flex items-center gap-2 relative">
@@ -1748,7 +1747,7 @@
             <!-- Toggle: Expiry Warning -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_expire_t">هشدار پایان اعتبار سرویس</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_expire_t">هشدار پایان اعتبار سرویس</span></span>
                 <span id="settingExpireSubtext" class="text-[11px] t-muted">اطلاع‌رسانی 3 روز مانده به انقضا</span>
               </div>
               <div class="flex items-center gap-2 relative">
@@ -1786,7 +1785,7 @@
             <!-- Toggle: Lucky Wheel Reminder -->
             <div class="flex items-center justify-between py-1">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/wheel.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_wheel_t">یادآور گردونه شانس</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/wheel.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_wheel_t">یادآور گردونه شانس</span></span>
                 <span class="text-[11px] t-muted" data-i18n="set_wheel_d">پیام یادآوری تلگرام به محض اتمام 24 ساعت</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1800,7 +1799,7 @@
             <!-- Sound Effects Toggle (افکت‌های صوتی لمسی) -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/bell.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_sound_t">افکت‌های صوتی لمسی</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/bell.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_sound_t">افکت‌های صوتی لمسی</span></span>
                 <span class="text-[11px] t-muted" data-i18n="set_sound_d">پخش صدای ملایم لمس، کپی و جوایز</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1814,7 +1813,7 @@
             <!-- Toggle: Auto-Renew -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_autorenew_t">تمدید خودکار اشتراک</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/sync.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_autorenew_t">تمدید خودکار اشتراک</span></span>
                 <span class="text-[11px] t-muted" data-i18n="set_autorenew_d">تمدید خودکار اشتراک هنگام پایان با استفاده از موجودی کیف پول</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1828,7 +1827,7 @@
             <!-- Language Selector (تغییر زبان) -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center gap-1.5"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="app_lang_title">زبان برنامه</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/globe.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="app_lang_title">زبان برنامه</span></span>
                 <span data-i18n="app_lang_desc" class="text-[11px] t-muted">زبان پیش‌فرض ربات و داشبورد</span>
               </div>
               <div class="flex items-center gap-1 card-inset p-0.5 rounded-lg">
@@ -1857,7 +1856,7 @@
             <!-- Wallet Card Style Toggle (نمایش گرافیکی کارت کیف پول) -->
             <div class="flex items-center justify-between py-1">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_wallet_graphic_t">نمایش گرافیکی کارت کیف پول</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/credit-card.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_wallet_graphic_t">نمایش گرافیکی کارت کیف پول</span></span>
                 <span class="text-[11px] t-muted" data-i18n="set_wallet_graphic_d">نمایش کارت سه‌بعدی متالیک به جای کادر ساده</span>
               </div>
               <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -1871,7 +1870,7 @@
             <!-- Currency Trigger (واحد پول نمایش کیف پول) -->
             <div class="flex items-center justify-between py-1 border-t border-card-border pt-2">
               <div>
-                <span class="t-main font-medium block flex items-center"><img src="/static/img/icons/coins.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_currency_t">واحد پول نمایش کیف پول</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/coins.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_currency_t">واحد پول نمایش کیف پول</span></span>
                 <span id="userCurrencySubtext" class="text-[11px] t-muted">واحد اصلی: تومان (IRT)</span>
               </div>
               <div class="flex items-center gap-2 relative">
@@ -1886,7 +1885,7 @@
             <!-- Card Color Swatches (رنگ کارت سه‌بعدی کیف پول) -->
             <div id="userWalletColorRow" class="flex flex-col gap-2.5 py-1 border-t border-card-border pt-2">
               <div class="flex items-center justify-between gap-2">
-                <span class="t-main font-medium flex items-center"><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block ml-1.5" width="16" height="16" alt="" /><span data-i18n="set_wallet_color_t">رنگ کارت کیف پول</span></span>
+                <span class="t-main font-medium flex items-center gap-1.5"><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /><span data-i18n="set_wallet_color_t">رنگ کارت کیف پول</span></span>
                 <span id="userWalletColorSubtext" class="text-[11px] t-muted font-medium">طرح فعال: آبی رویال</span>
               </div>
               <div class="flex items-center justify-between gap-2 pt-0.5" dir="ltr">
@@ -1995,7 +1994,7 @@
     <!-- ======================================================== -->
     <div id="qrModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-[70] flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-center">
-        <button id="closeQrModalBtn" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره کیوآرکد"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button id="closeQrModalBtn" class="modal-close-btn absolute top-3 end-3" title="بستن" aria-label="بستن پنجره کیوآرکد"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         <div>
           <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40">
             <img src="/static/img/icons/qr.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /><span data-i18n="qr_badge">اسکن مستقیم</span>
@@ -2019,8 +2018,8 @@
     <!-- ======================================================== -->
     <div id="configsModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-cyan-500/50 rounded-3xl p-5 w-full space-y-3.5 shadow-2xl relative max-w-[420px] sm:max-w-[450px] my-auto text-xs h-[86vh] max-h-[92vh] flex flex-col">
-        <button id="closeConfigsModalBtn" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره کانفیگ‌ها"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
-        <div class="border-b border-card-border pb-2.5 text-right flex-shrink-0">
+        <button id="closeConfigsModalBtn" class="modal-close-btn absolute top-3.5 end-3.5" title="بستن" aria-label="بستن پنجره کانفیگ‌ها"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <div class="border-b border-card-border pb-2.5 text-start pe-10 flex-shrink-0">
           <div class="flex items-center gap-2">
             <img src="/static/img/icons/layers.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
             <div>
@@ -2098,7 +2097,7 @@
     <!-- ======================================================== -->
     <div id="topupModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeModal && window.closeModal('topupModal')" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-indigo-500/50 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[370px] my-auto text-xs">
-        <button id="closeTopupModalBtn" onclick="window.closeModal && window.closeModal('topupModal')" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره افزایش موجودی"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button id="closeTopupModalBtn" onclick="window.closeModal && window.closeModal('topupModal')" class="modal-close-btn absolute top-3 end-3" title="بستن" aria-label="بستن پنجره افزایش موجودی"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         
         <div class="border-b border-card-border pb-2">
           <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold t-info p-0 bg-transparent border-0 inline-flex items-center gap-1">
@@ -2694,8 +2693,8 @@
     <!-- 4.3 MODAL: CHECKOUT CONFIRM (تایید نهایی خرید بسته)       -->
     <!-- ======================================================== -->
     <div id="checkoutConfirmModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-blue-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[350px] my-auto text-xs text-right">
-        <button id="closeCheckoutModalBtn" class="modal-close-btn absolute top-3 left-3" onclick="closeModal('checkoutConfirmModal')" title="انصراف" aria-label="انصراف و بستن پیش‌فاکتور"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+      <div class="modal-card border border-blue-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[350px] my-auto text-xs text-start">
+        <button id="closeCheckoutModalBtn" class="modal-close-btn absolute top-3 end-3" onclick="closeModal('checkoutConfirmModal')" title="انصراف" aria-label="انصراف و بستن پیش‌فاکتور"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         <div class="border-b border-card-border pb-2">
           <span class="text-[11px] font-black t-accent uppercase tracking-wide inline-block">
             <img src="/static/img/icons/cart.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" aria-hidden="true" /><span data-i18n="checkout_badge">تایید سفارش</span>
@@ -2796,8 +2795,8 @@
     <!-- 4.4 MODAL: SHOP GUIDANCE (راهنمایی و هدایت هوشمند خرید)    -->
     <!-- ======================================================== -->
     <div id="shopGuidanceModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-xs text-right">
-        <button id="closeGuidanceModalBtn" class="modal-close-btn absolute top-3.5 left-3.5" onclick="closeModal('shopGuidanceModal')" title="انصراف" aria-label="بستن پنجره راهنما"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+      <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full space-y-4 shadow-2xl relative max-w-[340px] my-auto text-xs text-start">
+        <button id="closeGuidanceModalBtn" class="modal-close-btn absolute top-3.5 end-3.5" onclick="closeModal('shopGuidanceModal')" title="انصراف" aria-label="بستن پنجره راهنما"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         <div class="border-b border-card-border pb-2">
           <span id="shopGuidanceBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40 inline-flex items-center gap-1 leading-none w-fit">
             <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" />
@@ -2826,7 +2825,7 @@
     <!-- ======================================================== -->
     <div id="luckyWheelModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-card-border rounded-3xl p-5 w-full text-center shadow-2xl relative max-w-[390px] sm:max-w-[420px] h-[86vh] max-h-[92vh] flex flex-col justify-between my-auto">
-        <button id="closeLuckyWheelBtn" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن گردونه شانس"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button id="closeLuckyWheelBtn" class="modal-close-btn absolute top-3.5 end-3.5" title="بستن" aria-label="بستن گردونه شانس"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         
         <!-- Header -->
         <div class="space-y-2 flex-shrink-0">
@@ -3029,7 +3028,7 @@
     <!-- ======================================================== -->
     <div id="storyCardModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card relative w-full max-w-[330px] flex flex-col items-center space-y-3 my-auto">
-        <button id="closeStoryCardBtn" class="modal-close-btn absolute -top-3.5 left-0 z-20" title="بستن" aria-label="بستن کارت استوری"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button id="closeStoryCardBtn" class="modal-close-btn absolute -top-3.5 end-0 z-20" title="بستن" aria-label="بستن کارت استوری"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <!-- Redesigned Premium Glassmorphic Card Container -->
         <div id="exportableStoryCard" class="surface-dark on-dark w-full rounded-[28px] p-4 border border-indigo-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden text-center flex flex-col justify-between transition-all duration-300 bg-gradient-to-b from-[#131b2e] via-[#0d1322] to-[#0a0f1d] backdrop-blur-md">
@@ -3124,7 +3123,7 @@
     <!-- ======================================================== -->
     <div id="purchaseSuccessModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-emerald-500/50 rounded-3xl p-5 w-full text-center space-y-3.5 shadow-2xl relative max-w-[340px] my-auto">
-        <button id="psvcTopCloseBtn" class="modal-close-btn absolute top-4 left-4 z-10" title="بستن" aria-label="بستن رسید خرید"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button id="psvcTopCloseBtn" class="modal-close-btn absolute top-4 end-4 z-10" title="بستن" aria-label="بستن رسید خرید"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         <div class="w-16 h-16 bg-emerald-500/20 t-success rounded-full flex items-center justify-center text-3xl mx-auto border border-emerald-500/40 shadow-lg shadow-emerald-500/30">
           <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-9 h-9 shrink-0 drop-shadow-md" width="36" height="36" alt="" />
         </div>
@@ -3134,7 +3133,7 @@
         </div>
 
         <!-- Receipt Details Box -->
-        <div class="card-inset rounded-2xl p-3 text-xs space-y-2 text-right">
+        <div class="card-inset rounded-2xl p-3 text-xs space-y-2 text-start">
           <div class="flex justify-between items-center">
             <span class="t-muted" data-i18n="psvc_plan">بسته خریداری‌شده:</span>
             <div class="flex items-center gap-1.5">
@@ -3238,12 +3237,12 @@
           </div>
         </div>
 
-        <!-- Chat Input Bar (Send button on the right in RTL) -->
-        <div class="bg-slate-500/5 border-t border-card-border p-3 flex items-center gap-2 shrink-0">
+        <!-- Chat Input Bar (Send button always anchored on the right) -->
+        <div class="bg-slate-500/5 border-t border-card-border p-3 flex items-center gap-2 shrink-0" dir="rtl">
           <button id="sendMessageBtn" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl transition active:scale-95 flex items-center justify-center font-bold" title="ارسال پیام">
             <img src="/static/img/icons/rocket.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
           </button>
-          <input type="text" id="chatInput" placeholder="پیام خود را برای پشتیبان بنویسید..." data-i18n-placeholder="support_input_ph" class="input-base text-xs flex-1" />
+          <input type="text" id="chatInput" dir="auto" placeholder="پیام خود را برای پشتیبان بنویسید..." data-i18n-placeholder="support_input_ph" class="input-base text-xs flex-1" />
         </div>
       </div>
     </div>
@@ -3254,10 +3253,10 @@
     <div id="tutorialModal" role="dialog" aria-modal="true" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[420px] sm:max-w-[450px] shadow-2xl relative my-auto text-xs h-[86vh] max-h-[92vh] flex flex-col space-y-3">
         <!-- Close Button -->
-        <button id="closeTutorialModalBtn" type="button" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن راهنمای اتصال"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button id="closeTutorialModalBtn" type="button" class="modal-close-btn absolute top-3.5 end-3.5" title="بستن" aria-label="بستن راهنمای اتصال"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <!-- Modal Header -->
-        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border pl-8 flex-shrink-0">
+        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border pe-10 flex-shrink-0">
           <div class="w-8 h-8 rounded-xl bg-cyan-500/20 t-accent border border-cyan-500/30 flex items-center justify-center text-sm flex-shrink-0">
             <img src="/static/img/icons/phone.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />
           </div>
@@ -3315,10 +3314,10 @@
     <div id="speedTestModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeSpeedTestModal()" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden animate-fadeIn overflow-y-auto">
       <div class="modal-card border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[420px] sm:max-w-[450px] shadow-2xl relative my-auto text-xs h-[86vh] max-h-[92vh] flex flex-col justify-between space-y-3">
         <!-- Close Button -->
-        <button id="closeSpeedTestModalBtn" type="button" onclick="window.closeSpeedTestModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن تست سرعت"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button id="closeSpeedTestModalBtn" type="button" onclick="window.closeSpeedTestModal()" class="modal-close-btn absolute top-3.5 end-3.5" title="بستن" aria-label="بستن تست سرعت"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <!-- Modal Header -->
-        <div class="flex items-center gap-2.5 pb-1.5 border-b border-card-border pl-8 flex-shrink-0">
+        <div class="flex items-center gap-2.5 pb-1.5 border-b border-card-border pe-10 flex-shrink-0">
           <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
             <img src="/static/img/icons/lightning.svg?v=fl2" class="ui-icon-img w-5 h-5" width="20" height="20" alt="" />
           </div>
@@ -3444,7 +3443,7 @@
     <!-- ======================================================== -->
     <div id="wheelResultModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeWheelResultModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-amber-500/50 rounded-3xl p-5 w-full max-w-[320px] text-center shadow-2xl relative my-auto space-y-3">
-        <button type="button" onclick="window.closeWheelResultModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن نتیجه شانس"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button type="button" onclick="window.closeWheelResultModal()" class="modal-close-btn absolute top-3 end-3" title="بستن" aria-label="بستن نتیجه شانس"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         
         <div id="wheelResultModalIconBox" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg border border-amber-500/30 bg-amber-500/10 mt-1">
           <span id="wheelResultModalIcon" class="inline-flex items-center justify-center"><img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-8 h-8 shrink-0" width="32" height="32" alt="" /></span>
@@ -3481,7 +3480,7 @@
     <!-- ======================================================== -->
     <div id="speedResultsModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeSpeedResultsModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-emerald-500/50 rounded-3xl p-5 w-full max-w-[360px] text-center shadow-2xl relative my-auto space-y-3.5">
-        <button type="button" onclick="window.closeSpeedResultsModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن نتیجه تست کیفیت شبکه"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button type="button" onclick="window.closeSpeedResultsModal()" class="modal-close-btn absolute top-3 end-3" title="بستن" aria-label="بستن نتیجه تست کیفیت شبکه"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
         
         <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-emerald-500/30 bg-emerald-500/10 mt-1">
           <img src="/static/img/icons/rocket.svg?v=fl2" class="ui-icon-img w-8 h-8" width="32" height="32" alt="" />
@@ -3543,7 +3542,7 @@
       <div class="modal-card border border-indigo-500/40 rounded-3xl p-4 sm:p-5 w-full max-w-[360px] max-h-[88vh] flex flex-col text-center shadow-2xl relative my-auto space-y-3">
         
         <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
-        <button type="button" onclick="window.closeBirthdayModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره زادروز"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button type="button" onclick="window.closeBirthdayModal()" class="modal-close-btn absolute top-3.5 end-3.5" title="بستن" aria-label="بستن پنجره زادروز"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <!-- Header -->
         <div class="flex flex-col items-center">
@@ -3610,12 +3609,12 @@
 
     <!-- 12.1 MODAL: ALERT THRESHOLD PICKER (تنظیم آستانه هشدار ترافیک و انقضا) -->
     <div id="alertThresholdModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeAlertThresholdModal()" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full max-w-[380px] max-h-[88vh] flex flex-col shadow-2xl relative my-auto space-y-3.5 text-right">
+      <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full max-w-[380px] max-h-[88vh] flex flex-col shadow-2xl relative my-auto space-y-3.5 text-start">
         
         <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
-        <button type="button" onclick="window.closeAlertThresholdModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button type="button" onclick="window.closeAlertThresholdModal()" class="modal-close-btn absolute top-3.5 end-3.5" title="بستن" aria-label="بستن پنجره"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
-        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border pl-10 shrink-0">
+        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border pe-10 shrink-0">
           <div id="alertThresholdIconBox" class="w-10 h-10 rounded-2xl bg-cyan-500/20 t-accent border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0">
             <img src="/static/img/icons/warning.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
           </div>
@@ -3633,11 +3632,11 @@
 
     <!-- 12.2 MODAL: WALLET CURRENCY PICKER (انتخاب واحد پول نمایش کیف پول) -->
     <div id="walletCurrencyModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeWalletCurrencyModal && window.closeWalletCurrencyModal()" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full max-w-[380px] max-h-[88vh] flex flex-col shadow-2xl relative my-auto space-y-3.5 text-right">
+      <div class="modal-card border border-cyan-500/40 rounded-3xl p-5 w-full max-w-[380px] max-h-[88vh] flex flex-col shadow-2xl relative my-auto space-y-3.5 text-start">
         <div class="w-10 h-1 bg-slate-700/60 rounded-full mx-auto -mt-1 mb-1"></div>
-        <button type="button" onclick="window.closeWalletCurrencyModal && window.closeWalletCurrencyModal()" class="modal-close-btn absolute top-3.5 left-3.5" title="بستن" aria-label="بستن پنجره"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button type="button" onclick="window.closeWalletCurrencyModal && window.closeWalletCurrencyModal()" class="modal-close-btn absolute top-3.5 end-3.5" title="بستن" aria-label="بستن پنجره"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
-        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border pl-10 shrink-0">
+        <div class="flex items-center gap-2.5 pb-2 border-b border-card-border pe-10 shrink-0">
           <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 t-accent border border-cyan-500/30 flex items-center justify-center text-lg flex-shrink-0">
             <img src="/static/img/icons/coins.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
           </div>
@@ -3656,7 +3655,7 @@
     <!-- 13. MODAL: SERVICE EXPIRY COUNTDOWN (شمارش معکوس زنده پایان اعتبار) -->
     <div id="expiryCountdownModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeExpiryCountdownModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-amber-500/50 rounded-3xl p-5 w-full max-w-[350px] text-center shadow-2xl relative my-auto space-y-4">
-        <button type="button" onclick="window.closeExpiryCountdownModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن پنجره پایان اعتبار"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button type="button" onclick="window.closeExpiryCountdownModal()" class="modal-close-btn absolute top-3 end-3" title="بستن" aria-label="بستن پنجره پایان اعتبار"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-amber-500/30 bg-amber-500/10 mt-1">
           <img src="/static/img/icons/clock.svg?v=fl2" class="ui-icon-img w-8 h-8 shrink-0" width="32" height="32" alt="" aria-hidden="true" />
@@ -3690,31 +3689,31 @@
         </div>
 
         <!-- Smart Consumption Pace & Daily Allowance Box -->
-        <div class="card-inset rounded-2xl p-3 text-right space-y-2 text-xs">
+        <div class="card-inset rounded-2xl p-3 text-start space-y-2 text-xs">
           <div class="flex items-center justify-between">
-            <span class="t-muted text-[11px] flex items-center gap-1">
-              <img src="/static/img/icons/lightbulb.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span data-i18n="daily_allowance_lbl">میانگین مجاز مصرف روزانه:</span>
+            <span class="t-muted text-[11px] flex items-center gap-1.5">
+              <img src="/static/img/icons/lightbulb.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /> <span data-i18n="daily_allowance_lbl">میانگین مجاز مصرف روزانه:</span>
             </span>
             <span id="modalExpiryDailyAllowance" class="font-sans font-bold t-success num-bidi" dir="ltr">-- GB</span>
           </div>
           <div class="flex items-center justify-between border-t border-card-border pt-1.5">
-            <span class="t-muted text-[11px] flex items-center gap-1">
-              <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span data-i18n="exact_expiry_lbl">تاریخ دقیق پایان اعتبار:</span>
+            <span class="t-muted text-[11px] flex items-center gap-1.5">
+              <img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /> <span data-i18n="exact_expiry_lbl">تاریخ دقیق پایان اعتبار:</span>
             </span>
             <span id="modalExpiryExactDate" class="font-sans font-semibold t-main text-[11px] num-bidi" dir="ltr">--</span>
           </div>
           <div class="flex items-center justify-between border-t border-card-border pt-1.5">
-            <span class="t-muted text-[11px] flex items-center gap-1">
-              <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle ml-1" width="16" height="16" alt="" /> <span data-i18n="pace_status_lbl">وضعیت سرعت مصرف:</span>
+            <span class="t-muted text-[11px] flex items-center gap-1.5">
+              <img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /> <span data-i18n="pace_status_lbl">وضعیت سرعت مصرف:</span>
             </span>
             <span id="modalExpiryPaceStatus" class="font-bold text-[11px] t-success" data-i18n="pace_optimal">بهینه</span>
           </div>
         </div>
 
         <!-- Live Auto-Renew Quick Switch inside Expiry Modal -->
-        <div class="card-inset rounded-xl p-2.5 flex items-center justify-between text-right text-xs">
+        <div class="card-inset rounded-xl p-2.5 flex items-center justify-between text-start text-xs">
           <div>
-            <span class="t-main font-bold block text-[11px]"><img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block ml-1" width="14" height="14" alt="" aria-hidden="true" /><span data-i18n="autorenew_short">تمدید خودکار</span></span>
+            <span class="t-main font-bold text-[11px] flex items-center gap-1"><img src="/static/img/icons/recycle.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" aria-hidden="true" /><span data-i18n="autorenew_short">تمدید خودکار</span></span>
             <span class="text-[11px] t-muted block" data-i18n="autorenew_short_d">تمدید خودکار هنگام پایان با موجودی کیف پول</span>
           </div>
           <label dir="ltr" class="relative inline-flex items-center cursor-pointer">
@@ -3737,7 +3736,7 @@
     <!-- 14. MODAL: LIVE BIRTHDAY COUNTDOWN & TRAITS (شمارش معکوس زنده زادروز و طالع) -->
     <div id="birthdayCountdownModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeBirthdayCountdownModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-pink-500/50 rounded-3xl p-5 w-full max-w-[350px] text-center shadow-2xl relative my-auto space-y-4">
-        <button type="button" onclick="window.closeBirthdayCountdownModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن شمارش معکوس زادروز"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button type="button" onclick="window.closeBirthdayCountdownModal()" class="modal-close-btn absolute top-3 end-3" title="بستن" aria-label="بستن شمارش معکوس زادروز"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-pink-500/30 bg-pink-500/10 mt-1">
           <img src="/static/img/icons/cake.svg?v=fl2" class="ui-icon-img w-8 h-8" width="32" height="32" alt="" />
@@ -3771,7 +3770,7 @@
         </div>
 
         <!-- Astrology & Positive Traits Box for Birth Month -->
-        <div id="bdayTraitBox" class="card-inset rounded-2xl p-3 text-right space-y-1.5 text-xs">
+        <div id="bdayTraitBox" class="card-inset rounded-2xl p-3 text-start space-y-1.5 text-xs">
           <div class="flex items-center justify-between">
             <span class="t-muted text-[11px] flex items-center gap-1">
               <span><img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block align-middle" width="16" height="16" alt="" /></span> <span data-i18n="birth_month_lbl">ماه تولد:</span>
@@ -3786,7 +3785,7 @@
         </div>
 
         <!-- VIP Birthday Gift Details Box -->
-        <div class="card-inset rounded-2xl p-3 border border-pink-500/30 text-right space-y-1 text-xs">
+        <div class="card-inset rounded-2xl p-3 border border-pink-500/30 text-start space-y-1 text-xs">
           <span class="text-pink-600 dark:text-pink-300 font-extrabold block text-xs flex items-center gap-1">
             <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span data-i18n="bday_gifts_title">هدایای روز زادروز شما:</span>
           </span>
@@ -3800,7 +3799,7 @@
     <!-- 14.1 MODAL: MEMBERSHIP MILESTONE & STATS (روزهای همراهی و کارنامه کاربری) -->
     <div id="membershipModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeMembershipModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden animate-fadeIn">
       <div class="modal-card border border-sky-500/50 rounded-3xl p-5 w-full max-w-[350px] text-center shadow-2xl relative my-auto space-y-4">
-        <button type="button" onclick="window.closeMembershipModal()" class="modal-close-btn absolute top-3 left-3" title="بستن" aria-label="بستن مودال عضویت"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <button type="button" onclick="window.closeMembershipModal()" class="modal-close-btn absolute top-3 end-3" title="بستن" aria-label="بستن مودال عضویت"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg border border-amber-500/30 bg-amber-500/10 mt-1">
           <img id="membershipModalHeaderIcon" src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-8 h-8" width="32" height="32" alt="" />
@@ -3822,7 +3821,7 @@
         </div>
 
         <!-- 2 Key Metric Cards: Total Spent & Total Traffic Used -->
-        <div class="grid grid-cols-2 gap-2 text-right">
+        <div class="grid grid-cols-2 gap-2 text-start">
           <div class="card-inset rounded-2xl p-2.5 space-y-1">
             <span class="text-[11px] t-muted block flex items-center gap-1">
               <img src="/static/img/icons/wallet.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5" width="14" height="14" alt="" />
@@ -3927,11 +3926,11 @@
 
         <!-- 15. MODAL: GIFT TO FRIENDS (ارسال هدیه به دوستان) -->
     <div id="giftModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeGiftModal()" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right shadow-2xl relative max-w-[390px] sm:max-w-[420px] max-h-[88vh] flex flex-col my-auto">
-        <button type="button" onclick="window.closeGiftModal()" class="modal-close-btn absolute top-3 left-3 z-10" title="بستن" aria-label="بستن مودال هدیه"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-start shadow-2xl relative max-w-[390px] sm:max-w-[420px] max-h-[88vh] flex flex-col my-auto">
+        <button type="button" onclick="window.closeGiftModal()" class="modal-close-btn absolute top-3 end-3 z-10" title="بستن" aria-label="بستن مودال هدیه"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <!-- Header -->
-        <div class="flex items-center gap-2.5 shrink-0 pb-1">
+        <div class="flex items-center gap-2.5 pe-10 shrink-0 pb-1">
           <div class="w-10 h-10 rounded-2xl bg-pink-500/15 text-pink-500 border border-pink-500/30 flex items-center justify-center shrink-0 shadow-sm">
             <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
           </div>
@@ -4122,9 +4121,9 @@
 
     <!-- 15.1 MODAL: SELECT SUBSCRIPTION FOR GIFT (انتخاب بسته اشتراک هدیه) -->
     <div id="giftServiceSelectModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeGiftServiceSelectModal()" class="fixed inset-0 modal-backdrop z-[90] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[420px] max-h-[88vh] flex flex-col my-auto">
-        <button type="button" onclick="window.closeGiftServiceSelectModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن پنجره انتخاب بسته"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
-        <div class="border-b border-card-border pb-2.5 flex items-center gap-2 shrink-0">
+      <div class="modal-card border border-pink-500/40 rounded-3xl p-4 sm:p-5 w-full text-start space-y-3 shadow-2xl relative max-w-[420px] max-h-[88vh] flex flex-col my-auto">
+        <button type="button" onclick="window.closeGiftServiceSelectModal()" class="modal-close-btn absolute top-3.5 end-3.5 z-10" title="بستن" aria-label="بستن پنجره انتخاب بسته"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <div class="border-b border-card-border pb-2.5 flex items-center gap-2 pe-10 shrink-0">
           <img src="/static/img/icons/gift.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 inline-block align-middle" width="20" height="20" alt="" />
           <div>
             <h3 class="text-xs font-bold t-main" data-i18n="gift_select_modal_t">انتخاب بسته اشتراک هدیه</h3>
@@ -4242,11 +4241,11 @@
     <!-- VIP Loyalty Club Modal (باشگاه مشتریان و سطوح وفاداری) -->
     <!-- ======================================================== -->
     <div id="loyaltyModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeLoyaltyModal()" class="fixed inset-0 modal-backdrop z-[80] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-amber-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-4 shadow-2xl relative max-w-[390px] my-auto">
-        <button type="button" onclick="window.closeLoyaltyModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن مودال"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+      <div class="modal-card border border-amber-500/40 rounded-3xl p-4 sm:p-5 w-full text-start space-y-4 shadow-2xl relative max-w-[390px] my-auto">
+        <button type="button" onclick="window.closeLoyaltyModal()" class="modal-close-btn absolute top-3.5 end-3.5 z-10" title="بستن" aria-label="بستن مودال"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
 
         <!-- Header -->
-        <div class="border-b border-card-border pb-3 flex items-center gap-2.5">
+        <div class="border-b border-card-border pb-3 flex items-center gap-2.5 pe-10">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-yellow-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
             <img src="/static/img/icons/crown.svg?v=fl2" class="ui-icon-img w-6 h-6 shrink-0" width="24" height="24" alt="" />
           </div>
@@ -4271,9 +4270,9 @@
           </div>
           <div class="flex items-center justify-between text-xs">
             <span class="t-muted text-[11px]" data-i18n="loyalty_disc_lbl">میزان تخفیف شما:</span>
-            <b id="loyaltyModalCurrentDiscount" class="text-xs font-bold text-emerald-500" data-i18n="no_discount">بدون تخفیف</b>
+            <b id="loyaltyModalCurrentDiscount" class="text-xs font-bold text-emerald-500">بدون تخفیف</b>
           </div>
-          <p id="loyaltyModalProgressText" class="text-[11px] t-warn pt-1 leading-snug" data-i18n="prof_loyalty_hint">
+          <p id="loyaltyModalProgressText" class="text-[11px] t-warn pt-1 leading-snug">
             با خرید بسته‌های بیشتر، سطح شما ارتقا یافته و تخفیف دریافت می‌کنید.
           </p>
         </div>
@@ -4388,9 +4387,9 @@
     <!-- 17. MODAL: P2P WALLET TRANSFER (انتقال مستقیم کیف پول)  -->
     <!-- ======================================================== -->
     <div id="walletTransferModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeWalletTransferModal && window.closeWalletTransferModal()" class="fixed inset-0 modal-backdrop z-[85] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[390px] my-auto">
-        <button type="button" onclick="window.closeWalletTransferModal && window.closeWalletTransferModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن انتقال کیف پول"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
-        <div class="flex items-center gap-2.5 pb-1">
+      <div class="modal-card border border-emerald-500/40 rounded-3xl p-4 sm:p-5 w-full text-start space-y-3 shadow-2xl relative max-w-[390px] my-auto">
+        <button type="button" onclick="window.closeWalletTransferModal && window.closeWalletTransferModal()" class="modal-close-btn absolute top-3.5 end-3.5 z-10" title="بستن" aria-label="بستن انتقال کیف پول"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <div class="flex items-center gap-2.5 pe-10 pb-1">
           <div class="w-10 h-10 rounded-2xl s-success-soft border border-emerald-500/30 flex items-center justify-center shrink-0">
             <img src="/static/img/icons/finance.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
           </div>
@@ -4434,9 +4433,9 @@
     <!-- 18. MODAL: WEEKLY QUESTS (مأموریت‌های هفتگی گردونه)      -->
     <!-- ======================================================== -->
     <div id="weeklyQuestsModal" role="dialog" aria-modal="true" onclick="if(event.target === this) window.closeWeeklyQuestsModal && window.closeWeeklyQuestsModal()" class="fixed inset-0 modal-backdrop z-[85] flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn overflow-y-auto">
-      <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full text-right space-y-3 shadow-2xl relative max-w-[390px] my-auto">
-        <button type="button" onclick="window.closeWeeklyQuestsModal && window.closeWeeklyQuestsModal()" class="modal-close-btn absolute top-3.5 left-3.5 z-10" title="بستن" aria-label="بستن مأموریت‌های هفتگی"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
-        <div class="flex items-center gap-2.5 pb-1 border-b border-card-border">
+      <div class="modal-card border border-cyan-500/40 rounded-3xl p-4 sm:p-5 w-full text-start space-y-3 shadow-2xl relative max-w-[390px] my-auto">
+        <button type="button" onclick="window.closeWeeklyQuestsModal && window.closeWeeklyQuestsModal()" class="modal-close-btn absolute top-3.5 end-3.5 z-10" title="بستن" aria-label="بستن مأموریت‌های هفتگی"><img src="/static/img/icons/close.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /></button>
+        <div class="flex items-center gap-2.5 pb-1 pe-10 border-b border-card-border">
           <div class="w-10 h-10 rounded-2xl s-accent-soft border border-cyan-500/30 flex items-center justify-center shrink-0">
             <img src="/static/img/icons/sparkles.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
           </div>

@@ -209,3 +209,59 @@ def test_backend_en_localization_helpers():
         lang="fa",
     )
     assert re.search(r"[\u0600-\u06FF]", fa_advisor["summary"])
+
+
+def test_bilingual_ui_regression_fixes():
+    """Verify EN/FA visual layout, dynamic field preservation, TON default, and modal LTR contracts."""
+    app_html = Path("bot/web/templates/app.html").read_text(encoding="utf-8")
+    i18n_js = Path("bot/web/static/js/i18n.js").read_text(encoding="utf-8")
+    app_js = Path("bot/web/static/js/app.js").read_text(encoding="utf-8")
+    wallet_js = Path("bot/web/static/js/wallet.js").read_text(encoding="utf-8")
+    shop_js = Path("bot/web/static/js/shop.js").read_text(encoding="utf-8")
+    admin_panel_js = Path("bot/web/static/js/admin_panel.js").read_text(encoding="utf-8")
+
+    # 1. Dynamic fields never wiped by static i18n selectors/attributes
+    assert "#headerUsername" not in i18n_js
+    for dyn_id in ('id="profilePhone"', 'id="profileBirthDate"', 'id="profileSubStatus"', 'id="loyaltyTierName"'):
+        idx = app_html.find(dyn_id)
+        assert idx != -1
+        tag = app_html[app_html.rfind("<", 0, idx):app_html.find(">", idx)]
+        assert "data-i18n=" not in tag, f"Dynamic element {dyn_id} must not declare data-i18n="
+    assert app_js.find("window.applyAppLocale") < app_js.find("// --- PHASE 1:")
+
+    # 2. Removed Customize alerts subtitle
+    assert "settings_section_sub" not in app_html
+    assert "settings_section_sub" not in i18n_js
+
+    # 3. Settings rows use logical flex gap instead of directional ml-1.5
+    settings_slice = app_html[app_html.find("<!-- 2. Box: هشدارهای تلگرام"):app_html.find('id="userWalletColorRow"')]
+    assert "ml-1.5" not in settings_slice
+
+    # 4. Support chat Send and Shop Coupon Apply stay anchored on right side
+    chat_bar_idx = app_html.find('id="sendMessageBtn"')
+    assert 'dir="rtl"' in app_html[chat_bar_idx - 160:chat_bar_idx]
+    coupon_bar_idx = app_html.find('id="applyCouponBtn"')
+    assert 'dir="rtl"' in app_html[coupon_bar_idx - 160:coupon_bar_idx]
+
+    # 5. Default wallet display currency is Ton in EN and Toman in FA
+    assert "window.getDefaultWalletCurrency" in wallet_js and "_wIsEn() ? 'ton' : 'toman'" in wallet_js
+    assert "window.getEffectiveWalletCurrency" in wallet_js and "window.getEffectiveWalletCurrency()" in app_js
+
+    # 6. Monthly report localizes Persian month names; sessions keep number before devices; country breakdown places country left / volume right
+    assert "toLocalizedMonthName(mNameRaw)" in app_js
+    assert "repSessionsBadge.dir = isEn ? 'ltr' : 'rtl'" in app_js
+    assert '<div class="flex justify-between items-center text-xs" dir="ltr">' in app_js
+
+    # 7. Modals use logical end-* close buttons and #walletCurrencyModal / #configsModal are not text-right/pl-10
+    assert "modal-close-btn absolute top-3.5 left-3.5" not in app_html
+    assert "modal-close-btn absolute top-3 left-3" not in app_html
+    cur_modal = app_html[app_html.find('id="walletCurrencyModal"'):app_html.find('id="expiryCountdownModal"')]
+    assert "text-right" not in cur_modal and "pl-10" not in cur_modal
+
+    # 8. Shop custom badges & EN card header, Wallet TX left icon, Hosts pagination LTR prev/next
+    assert 'data-i18n="custom_vol_badge_lbl"' in app_html
+    assert 'data-i18n="custom_loyalty_badge_lbl"' in app_html
+    assert "const cardHeaderHtml = isEn ?" in shop_js
+    assert "${iconHtml}<bdi class=\"font-bold select-all\">" in wallet_js
+    assert "paginationEl.setAttribute('dir', 'ltr')" in admin_panel_js
+    assert 'aria-label="قبلی"' in admin_panel_js and admin_panel_js.find("M15 19l-7-7 7-7") < admin_panel_js.find("M9 5l7 7-7 7")

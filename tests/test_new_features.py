@@ -1059,6 +1059,51 @@ async def test_user_weekly_report_formatting_and_alignment():
 
 
 @pytest.mark.anyio
+async def test_user_weekly_report_zero_usage_omits_daily_rows():
+    from bot.db.models import User
+    from bot.services.reports.weekly import _weekly_text_for_user
+
+    gb = 1024**3
+    now = datetime(2026, 10, 2, 23, 59, tzinfo=timezone.utc)
+
+    # 1. Single account with 0 weekly usage (FA + EN) should omit daily rows
+    for lang, expected_phrase in (
+        ("fa", "این هفته هیچ مصرفی روی این اکانت ثبت نشده است."),
+        ("en", "No usage was recorded on this account this week."),
+    ):
+        user = User(telegram_id=999887, username="idle_user", language=lang)
+        remnawave = MagicMock()
+        remnawave.get_users_by_telegram_id = AsyncMock(return_value=[{"id": 201, "username": "idle_user"}])
+        remnawave.get_user_bandwidth_stats = AsyncMock(return_value=[])
+        text = await _weekly_text_for_user(user, remnawave, now)
+        assert text is not None
+        assert expected_phrase in text
+        assert "📅 " not in text
+
+    # 2. Multi-account: idle account skips daily rows while active account keeps them
+    multi_user = User(telegram_id=999886, username="multi_user", language="fa")
+    remnawave_multi = MagicMock()
+    remnawave_multi.get_users_by_telegram_id = AsyncMock(return_value=[
+        {"id": 301, "username": "zero_acc"},
+        {"id": 302, "username": "active_acc"},
+    ])
+    remnawave_multi.get_user_bandwidth_stats = AsyncMock(side_effect=[
+        [],  # zero_acc current
+        [],  # zero_acc prev
+        [{"name": "DE-Node", "countryCode": "DE", "total": 2 * gb, "data": [0, 0, 0, 0, 0, 0, 2 * gb]}],
+        [],  # active_acc prev
+    ])
+    multi_text = await _weekly_text_for_user(multi_user, remnawave_multi, now)
+    assert multi_text is not None
+    zero_section, active_section = multi_text.split("<code>active_acc</code>", 1)
+    assert "<code>zero_acc</code>" in zero_section
+    assert "این هفته هیچ مصرفی روی این اکانت ثبت نشده است." in zero_section
+    assert "📅 " not in zero_section
+    assert "📅 جمعه" in active_section
+    assert "مصرف کل این هفته" in active_section
+
+
+@pytest.mark.anyio
 async def test_report_settings_auto_clean_reports(async_session: AsyncSession):
     from bot.db.models import User
     from bot.db.repositories.report_repo import ReportRepository

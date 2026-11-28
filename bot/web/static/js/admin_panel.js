@@ -227,15 +227,16 @@
         const prevDisabled = hostsPage <= 1 ? 'opacity-40 pointer-events-none' : 'hover:border-cyan-500/40';
         const nextDisabled = hostsPage >= totalPages ? 'opacity-40 pointer-events-none' : 'hover:border-cyan-500/40';
         paginationEl.classList.remove('hidden');
+        paginationEl.setAttribute('dir', 'ltr');
         paginationEl.innerHTML = `
           <button type="button" aria-label="قبلی" title="قبلی" onclick="window.panelCtrl.setHostsPage(${hostsPage - 1})" class="w-8 h-8 rounded-xl card-inset border border-card-border t-main flex items-center justify-center transition active:scale-95 ${prevDisabled}" ${hostsPage <= 1 ? 'disabled' : ''}>
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
           </button>
           <div class="text-[11px] t-muted font-medium text-center" dir="rtl">
             صفحه <span class="font-bold t-main num-bidi">${hostsPage}</span> از <span class="num-bidi">${totalPages}</span>
           </div>
           <button type="button" aria-label="بعدی" title="بعدی" onclick="window.panelCtrl.setHostsPage(${hostsPage + 1})" class="w-8 h-8 rounded-xl card-inset border border-card-border t-main flex items-center justify-center transition active:scale-95 ${nextDisabled}" ${hostsPage >= totalPages ? 'disabled' : ''}>
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
           </button>
         `;
       }

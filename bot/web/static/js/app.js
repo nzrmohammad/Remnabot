@@ -94,17 +94,21 @@ function updateMonthlyReportView(index) {
 
   const mData = history[currentMonthlyIndex];
 
+  const mNameRaw = mData.month_name || '';
+  const mNameLoc = toLocalizedMonthName(mNameRaw);
+  const mFullLoc = toLocalizedMonthName(mData.full_name || mNameRaw || '');
+
   const repMonthlyTitle = $('repMonthlyTitle');
   if (repMonthlyTitle) {
     const iconHtml = typeof uiIcon === 'function' ? uiIcon('reports', 'w-4 h-4') : '';
-    const mName = escapeHtml(mData.month_name || '');
+    const mName = escapeHtml(mNameLoc);
     repMonthlyTitle.innerHTML = isEn
       ? `${iconHtml}<span>Monthly Report — ${mName}</span>`
       : `${iconHtml}<span>گزارش جامع ماه ${mName}</span>`;
   }
 
   const repMonthlyCurrentLabel = $('repMonthlyCurrentLabel');
-  if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = mData.full_name || mData.month_name || _appTr('ماه جاری', 'Current Month');
+  if (repMonthlyCurrentLabel) repMonthlyCurrentLabel.innerText = mFullLoc || mNameLoc || _appTr('ماه جاری', 'Current Month');
 
   const repMonthlyPeriodBadge = $('repMonthlyPeriodBadge');
   if (repMonthlyPeriodBadge) {
@@ -141,8 +145,8 @@ function updateMonthlyReportView(index) {
       'repMonthlyNodesContainer',
       mData.nodes_breakdown || [],
       isEn
-        ? `No traffic recorded for ${mData.month_name || 'this month'}.`
-        : `مصرفی در ماه ${mData.month_name || ''} ثبت نشده است.`
+        ? `No traffic recorded for ${mNameLoc || 'this month'}.`
+        : `مصرفی در ماه ${mNameLoc || ''} ثبت نشده است.`
     );
   }
 
@@ -160,7 +164,8 @@ function updateMonthlyReportView(index) {
     prevBtn.classList.toggle('cursor-not-allowed', !hasPrev);
   }
   if (prevLabel) {
-    prevLabel.innerText = hasPrev ? (history[currentMonthlyIndex + 1]?.month_name || _appTr('ماه قبل', 'Prev Month')) : _appTr('ماه قبل', 'Prev Month');
+    const prevName = toLocalizedMonthName(history[currentMonthlyIndex + 1]?.month_name || '');
+    prevLabel.innerText = hasPrev ? (prevName || _appTr('ماه قبل', 'Prev Month')) : _appTr('ماه قبل', 'Prev Month');
   }
 
   if (nextBtn) {
@@ -169,7 +174,8 @@ function updateMonthlyReportView(index) {
     nextBtn.classList.toggle('cursor-not-allowed', !hasNext);
   }
   if (nextLabel) {
-    nextLabel.innerText = hasNext ? (history[currentMonthlyIndex - 1]?.month_name || _appTr('ماه بعد', 'Next Month')) : _appTr('ماه بعد', 'Next Month');
+    const nextName = toLocalizedMonthName(history[currentMonthlyIndex - 1]?.month_name || '');
+    nextLabel.innerText = hasNext ? (nextName || _appTr('ماه بعد', 'Next Month')) : _appTr('ماه بعد', 'Next Month');
   }
 }
 window.updateMonthlyReportView = updateMonthlyReportView;
@@ -2808,6 +2814,7 @@ function openMembershipModal() {
       .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
   }
   if (spentEl) {
+    spentEl.dir = isEn ? 'ltr' : 'rtl';
     spentEl.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${totalSpentVal.toLocaleString('en-US')}</span> <span>${moneyUnit}</span>`;
   }
 
@@ -2857,17 +2864,19 @@ function renderDashboardBirthdayCountdown(user) {
   }
 
   const profBadge = $('profileBirthdayCountdownBadge');
+  const isEn = _appIsEn();
 
   if (profBadge) {
     if (!birthDate || !String(birthDate).trim()) {
       profBadge.classList.add('hidden');
     } else if (isToday || daysLeft === 0) {
       profBadge.classList.remove('hidden');
-      profBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('cake', 'w-3 h-3 text-pink-400 shrink-0')} ${_appTr('امروز (مبارک!)', 'Today (Happy B-Day!)')}</span>`;
+      profBadge.innerHTML = `<span class="inline-flex items-center gap-1" dir="${isEn ? 'ltr' : 'rtl'}">${uiIcon('cake', 'w-3 h-3 text-pink-400 shrink-0')} ${_appTr('امروز (مبارک!)', 'Today (Happy B-Day!)')}</span>`;
       profBadge.className = 'px-2 py-0.5 rounded-lg bg-pink-500/15 border border-pink-500/30 text-[11px] t-pink font-bold cursor-pointer transition';
     } else if (daysLeft !== null && daysLeft !== undefined) {
       profBadge.classList.remove('hidden');
-      profBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${toEnglishDigits(daysLeft)} ${_appTr('روز', 'days')}</span>`;
+      const unitTxt = isEn ? (Number(daysLeft) === 1 ? 'day' : 'days') : 'روز';
+      profBadge.innerHTML = `<span class="inline-flex items-center gap-1" dir="${isEn ? 'ltr' : 'rtl'}">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${toEnglishDigits(daysLeft)} ${unitTxt}</span>`;
       profBadge.className = 'px-2 py-0.5 rounded-lg card-inset border border-card-border text-[11px] t-accent font-bold cursor-pointer hover:border-accent transition';
     } else {
       profBadge.classList.add('hidden');
@@ -3663,6 +3672,9 @@ function setupProfileHandlers() {
         if (typeof renderReportsCharts === 'function') {
           try { renderReportsCharts(); } catch (_) {}
         }
+        if (typeof updateMonthlyReportView === 'function') {
+          try { updateMonthlyReportView(currentMonthlyIndex); } catch (_) {}
+        }
       } else {
         showToast(window.t ? window.t('lang_save_error', '❌ خطا در ذخیره تنظیمات زبان.') : '❌ خطا در ذخیره تنظیمات زبان.', 'error');
       }
@@ -3780,7 +3792,10 @@ function resetActiveSubAnalytics() {
   }
 
   const repSessionsBadge = $('reportsSessionsBadge');
-  if (repSessionsBadge) repSessionsBadge.innerText = _appTr('0 دستگاه', '0 devices');
+  if (repSessionsBadge) {
+    repSessionsBadge.dir = _appIsEn() ? 'ltr' : 'rtl';
+    repSessionsBadge.innerText = _appTr('0 دستگاه', '0 devices');
+  }
 
   const devContainer = $('activeDevicesContainer');
   if (devContainer) {
@@ -4295,6 +4310,11 @@ function hydrateUserInterface(data) {
     window.currentAccountId = sub.account_id || sub.id;
   }
 
+  // Sync static DOM strings & direction before hydrating dynamic user values
+  const currentLang = window.applyAppLocale
+    ? window.applyAppLocale(user.language || 'fa')
+    : (user.language || 'fa');
+
   // --- PHASE 1: Core User Identity & Top Header (DB Data) ---
   safeStep('identityAndHeader', () => {
     const isEn = _appIsEn();
@@ -4363,7 +4383,12 @@ function hydrateUserInterface(data) {
       }
     }
     const profJoinBadge = $('profileJoinDaysBadge');
-    if (profJoin) profJoin.innerText = user.created_at_jalali ? toEnglishDigits(user.created_at_jalali) : '—';
+    if (profJoin) {
+      const enJoinDate = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '';
+      profJoin.innerText = isEn
+        ? (enJoinDate || (user.created_at_jalali ? toEnglishDigits(user.created_at_jalali) : '—'))
+        : (user.created_at_jalali ? toEnglishDigits(user.created_at_jalali) : '—');
+    }
     if (profJoinBadge) {
       let daysPassed = 1;
       if (user.created_at) {
@@ -4375,7 +4400,7 @@ function hydrateUserInterface(data) {
       const joinDaysText = isEn
         ? `${toEnglishDigits(daysPassed)} ${daysPassed === 1 ? 'day' : 'days'}`
         : `${toEnglishDigits(daysPassed)} روز`;
-      profJoinBadge.innerHTML = `<span class="inline-flex items-center gap-1">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${joinDaysText}</span>`;
+      profJoinBadge.innerHTML = `<span class="inline-flex items-center gap-1" dir="${isEn ? 'ltr' : 'rtl'}">${uiIcon('clock', 'w-3 h-3 text-cyan-400 shrink-0')} ${joinDaysText}</span>`;
       profJoinBadge.classList.remove('hidden');
     }
     const hasBirthDate = Boolean(user.birth_date && String(user.birth_date).trim());
@@ -4806,7 +4831,7 @@ function hydrateUserInterface(data) {
         try {
           const res = await window.api.saveSetting('expire_days', val);
           if (res && res.ok) {
-            showToast(`✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
+            showToast(_appIsEn() ? `✅ Expiry alert threshold set to ${val} day${val === 1 ? '' : 's'}.` : `✅ مهلت هشدار انقضا روی ${val} روز تنظیم شد.`);
             hapticFeedback('success');
           } else {
             showToast(_appTr('❌ خطا در ذخیره تنظیمات', '❌ Failed to save settings'));
@@ -4819,13 +4844,10 @@ function hydrateUserInterface(data) {
 
     updateAlertSubtexts(settings.traffic_percent || 80, settings.expire_days || 3);
 
-    // Language Buttons & Live DOM Locale Sync
-    const currentLang = window.applyAppLocale
-      ? window.applyAppLocale(user.language || 'fa')
-      : (user.language || 'fa');
-
     // Wallet Display Currency Selector Sync
-    const curVal = localStorage.getItem('user_wallet_currency') || 'toman';
+    const curVal = typeof window.getEffectiveWalletCurrency === 'function'
+      ? window.getEffectiveWalletCurrency()
+      : (localStorage.getItem('user_wallet_currency') || (currentLang === 'en' ? 'ton' : 'toman'));
     const curInput = $('userCurrencyInput');
     const curDisp = $('userCurrencyDisplay');
     const curSub = $('userCurrencySubtext');
@@ -4980,9 +5002,15 @@ function hydrateUserInterface(data) {
       ? `${toEnglishDigits(activeDevCount)} ${Number(activeDevCount) === 1 ? 'device' : 'devices'}`
       : `${toEnglishDigits(activeDevCount)} دستگاه`;
     const repSessionsBadge = $('reportsSessionsBadge');
-    if (repSessionsBadge) repSessionsBadge.innerText = devLabel;
+    if (repSessionsBadge) {
+      repSessionsBadge.dir = isEn ? 'ltr' : 'rtl';
+      repSessionsBadge.innerText = devLabel;
+    }
     const mCountText = $('modalSessionsCount');
-    if (mCountText) mCountText.innerText = devLabel;
+    if (mCountText) {
+      mCountText.dir = isEn ? 'ltr' : 'rtl';
+      mCountText.innerText = devLabel;
+    }
 
     function renderDeviceList(container) {
       if (!container) return;
@@ -5170,12 +5198,12 @@ function hydrateUserInterface(data) {
         countryList.innerHTML = bDown.map(item => {
           return `
           <div class="p-2.5 card-inset">
-            <div class="flex justify-between items-center text-xs">
-              <span class="t-accent font-black text-xs font-sans num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
+            <div class="flex justify-between items-center text-xs" dir="ltr">
               <span class="flex items-center gap-2 font-bold t-main">
-                <span>${escapeHtml(item.name || '')}</span>
                 <span class="text-base">${typeof renderFlagHtml === 'function' ? renderFlagHtml(item.flag || '🌐', 'w-4 h-3 inline-block rounded-xs shadow-xs object-cover align-middle') : escapeHtml(item.flag || '🌐')}</span>
+                <span>${escapeHtml(item.name || '')}</span>
               </span>
+              <span class="t-accent font-black text-xs font-sans num-bidi" dir="ltr">${fmtTraffic(item.total_formatted, { html: false })}</span>
             </div>
           </div>
           `;
@@ -5263,9 +5291,10 @@ function hydrateUserInterface(data) {
         const repMonthlyTitle = $('repMonthlyTitle');
         if (repMonthlyTitle) {
           const iconHtml = typeof uiIcon === 'function' ? uiIcon('reports', 'w-4 h-4') : '';
+          const locMonth = escapeHtml(toLocalizedMonthName(sub.current_month_name || ''));
           repMonthlyTitle.innerHTML = _appIsEn()
-            ? `${iconHtml}<span>${escapeHtml(sub.current_month_name || '')} Monthly Report</span>`
-            : `${iconHtml}<span>گزارش جامع ماه ${escapeHtml(sub.current_month_name || '')}</span>`;
+            ? `${iconHtml}<span>${locMonth} Monthly Report</span>`
+            : `${iconHtml}<span>گزارش جامع ماه ${locMonth}</span>`;
         }
         const repMonthlyTotal = $('repMonthlyTotal');
         if (repMonthlyTotal) repMonthlyTotal.innerHTML = fmtTraffic(sub.month_used_gb ?? '0.00', { html: true });
@@ -5475,7 +5504,21 @@ function toPersianMonthName(m) {
 }
 function toLocalizedMonthName(m) {
   if (!m) return '';
-  return _appIsEn() ? (JALALI_MONTHS_FA_TO_EN[m] || m) : (JALALI_MONTHS_MAP[m] || m);
+  const str = String(m);
+  if (_appIsEn()) {
+    if (JALALI_MONTHS_FA_TO_EN[str]) return JALALI_MONTHS_FA_TO_EN[str];
+    let out = str;
+    for (const [fa, en] of Object.entries(JALALI_MONTHS_FA_TO_EN)) {
+      if (out.includes(fa)) out = out.replace(fa, en);
+    }
+    return out;
+  }
+  if (JALALI_MONTHS_MAP[str]) return JALALI_MONTHS_MAP[str];
+  let out = str;
+  for (const [en, fa] of Object.entries(JALALI_MONTHS_MAP)) {
+    if (out.includes(en)) out = out.replace(en, fa);
+  }
+  return out;
 }
 
 let currentUserLbWeek = 'all';

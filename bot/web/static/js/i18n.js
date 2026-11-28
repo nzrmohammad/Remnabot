@@ -226,6 +226,8 @@
     custom_days_label: 'Validity Duration:',
     custom_hwid_label: 'Device Slots:',
     custom_hwid_unit: 'devices',
+    custom_vol_badge_lbl: 'Volume Discount:',
+    custom_loyalty_badge_lbl: 'Loyalty Discount:',
     custom_base_rate_label: 'Base + Data & Duration:',
     custom_final_price_label: 'Final Payable Amount:',
     custom_submit_btn: 'Buy & Activate Custom Plan',
@@ -293,7 +295,6 @@
     prof_ref_share_btn: 'Share with Friends on Telegram',
     prof_ref_note_default: '<b>Note:</b> Referral traffic rewards are credited once your invited friend completes their <b>first purchase</b>.',
     settings_section_title: 'Telegram Notifications & Settings',
-    settings_section_sub: 'Customize alerts & preferences',
     settings_reports_title: 'Telegram Alerts & Reports',
     settings_reports_sub: 'Nightly, weekly, monthly usage & auto-cleanup',
     set_nightly_t: 'Nightly Report (23:59)',
@@ -828,7 +829,6 @@
   const SELECTOR_I18N_MAP = [
     ['#splashScreen > p', 'splash_subtitle'],
     ['#splashScreen > span', 'splash_loading'],
-    ['#headerUsername', 'default_user_name'],
     ['#systemMaintenanceScreen h2', 'maint_title'],
     ['#systemMaintenanceScreen p', 'maint_desc'],
     ['.status-pill-maint > span', 'maint_pill'],
@@ -1002,6 +1002,14 @@
     const noSubArrow = document.querySelector('#noSubGoToShopBtn span:last-child');
     if (noSubArrow && (noSubArrow.textContent === '←' || noSubArrow.textContent === '→')) {
       noSubArrow.textContent = isEn ? '→' : '←';
+    }
+    const chatInputEl = document.getElementById('chatInput');
+    if (chatInputEl) chatInputEl.dir = isEn ? 'ltr' : 'rtl';
+    const couponInputEl = document.getElementById('couponInput');
+    if (couponInputEl) couponInputEl.dir = isEn ? 'ltr' : 'auto';
+    const transferCurBalEl = document.getElementById('transferCurrentBalance');
+    if (transferCurBalEl && transferCurBalEl.parentElement) {
+      transferCurBalEl.parentElement.dir = isEn ? 'ltr' : 'rtl';
     }
 
     return norm;

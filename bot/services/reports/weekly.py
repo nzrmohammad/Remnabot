@@ -100,24 +100,28 @@ async def _weekly_text_for_user(
         if multi_account:
             acc_lines.append(f"{t(lang, 'stats_account')} : <code>{u_name}</code>")
 
-        for offset in range(6, -1, -1):
-            day_dt = week_start + timedelta(days=offset)
-            day = day_dt.strftime("%Y-%m-%d")
-            total = day_totals.get(day, 0)
-            d_name = _weekday_name(day_dt, lang)
-            date_str = format_date(day_dt, lang)
+        if acc_week_total <= 0:
             acc_lines.append("")
-            acc_lines.append(t(lang, "weekly_day", day=d_name, date=date_str))
-            rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
-            parts = [f"{lbl} {human_bytes(val)}" for lbl, val in rows if val > 0]
-            rtl_mark = "\u200f" if lang == "fa" else ""
-            if parts:
-                acc_lines.append(f"{rtl_mark}{human_bytes(total)} : {' • '.join(parts)}")
-            else:
-                acc_lines.append(f"{rtl_mark}{human_bytes(total)}")
+            acc_lines.append(t(lang, "weekly_zero_usage"))
+        else:
+            for offset in range(6, -1, -1):
+                day_dt = week_start + timedelta(days=offset)
+                day = day_dt.strftime("%Y-%m-%d")
+                total = day_totals.get(day, 0)
+                d_name = _weekday_name(day_dt, lang)
+                date_str = format_date(day_dt, lang)
+                acc_lines.append("")
+                acc_lines.append(t(lang, "weekly_day", day=d_name, date=date_str))
+                rows = sorted(day_rows.get(day, []), key=lambda x: x[1], reverse=True)
+                parts = [f"{lbl} {human_bytes(val)}" for lbl, val in rows if val > 0]
+                rtl_mark = "\u200f" if lang == "fa" else ""
+                if parts:
+                    acc_lines.append(f"{rtl_mark}{human_bytes(total)} : {' • '.join(parts)}")
+                else:
+                    acc_lines.append(f"{rtl_mark}{human_bytes(total)}")
 
-        acc_lines.append("")
-        acc_lines.append(t(lang, "weekly_total", total=human_bytes(acc_week_total)))
+            acc_lines.append("")
+            acc_lines.append(t(lang, "weekly_total", total=human_bytes(acc_week_total)))
         blocks.append("\n".join(acc_lines))
 
     lines = [
@@ -130,7 +134,14 @@ async def _weekly_text_for_user(
     if multi_account:
         lines.append("")
         lines.append(SEPARATOR)
-        lines.append(f"📊 <b>مجموع کل مصارف ({len(account_data)} اکانت) : {human_bytes(grand_week_total)}</b>")
+        lines.append(
+            t(
+                lang,
+                "weekly_multi_total",
+                count=len(account_data),
+                total=human_bytes(grand_week_total),
+            )
+        )
 
     lines.append(SEPARATOR)
 
@@ -139,7 +150,10 @@ async def _weekly_text_for_user(
         str(account_data[0][0].get("username") or user.username or "")
     ) or "👤"
     lines.append(t(lang, "weekly_hi", name=name))
-    summary = [t(lang, "weekly_sum_total", total=human_bytes(grand_week_total))]
+    if grand_week_total <= 0:
+        summary = [t(lang, "weekly_sum_zero")]
+    else:
+        summary = [t(lang, "weekly_sum_total", total=human_bytes(grand_week_total))]
 
     if grand_prev_total > 0 and grand_week_total > 0:
         change = (grand_week_total - grand_prev_total) / grand_prev_total * 100

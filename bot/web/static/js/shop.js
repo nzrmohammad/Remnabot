@@ -792,11 +792,7 @@ function renderFilteredShopPlans() {
 
     const hasDiscountBadges = Boolean(discountVal > 0 || hasLoyaltyDiscount);
     const buttonPriceText = hasAnyDiscount ? ` (${formattedFinal} ${moneyUnit})` : '';
-    return `
-      <div class="shop-plan-card card p-3 border ${badgeBorderClass} relative overflow-hidden group">
-        ${planBadge}
-        <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0 flex-1 ${isEn ? 'text-left' : 'text-right'}">
+    const priceRowHtml = `
             <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="${isEn ? 'ltr' : 'rtl'}">
               ${hasAnyDiscount ? `
                 <span class="price-slash-strike t-main text-base font-black leading-tight num-bidi" dir="ltr">${formattedOriginal}</span>
@@ -810,13 +806,30 @@ function renderFilteredShopPlans() {
                 <span class="text-base font-black t-main leading-tight num-bidi" dir="ltr">${formattedOriginal}</span>
                 <span class="text-[11px] t-muted font-sans leading-none">${moneyUnit}</span>
               `}
-            </div>
+            </div>`;
+    const cardHeaderHtml = isEn ? `
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0 flex-1 text-left ${planBadge ? 'mt-4' : ''}">
+            <h4 class="font-bold text-xs sm:text-sm t-main truncate text-left">${formatPlanTitle(p.name)}</h4>
+          </div>
+          <div class="flex flex-col items-end shrink-0 text-right">
+            ${priceRowHtml}
+          </div>
+        </div>
+        <p class="shop-plan-desc text-[10.5px] leading-snug t-muted text-left line-clamp-2 tracking-tight mt-1.5">${safeDesc}</p>` : `
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0 flex-1 ${isEn ? 'text-left' : 'text-right'}">
+            ${priceRowHtml}
             <p class="shop-plan-desc text-[10.5px] leading-snug t-muted ${isEn ? 'text-left' : 'text-right'} line-clamp-2 tracking-tight mt-1.5">${safeDesc}</p>
           </div>
           <div class="flex flex-col ${isEn ? 'items-end' : 'items-start'} min-w-0 shrink-0 max-w-[46%] ${planBadge ? 'mt-4' : ''}" dir="ltr">
             <h4 class="font-bold text-xs sm:text-sm t-main truncate ${isEn ? 'text-right' : 'text-left'}">${formatPlanTitle(p.name)}</h4>
           </div>
-        </div>
+        </div>`;
+    return `
+      <div class="shop-plan-card card p-3 border ${badgeBorderClass} relative overflow-hidden group">
+        ${planBadge}
+        ${cardHeaderHtml}
         ${limitedStockBlock}
         ${hasDiscountBadges ? `
           <div class="plan-discounts-box hidden flex items-center justify-start gap-1.5 flex-wrap my-2 -ml-2" dir="ltr">

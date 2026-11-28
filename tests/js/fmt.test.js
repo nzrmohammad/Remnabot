@@ -231,6 +231,8 @@ test('i18n round-trip restores data-i18n* attributes and partial compound labels
     firstChild: { nodeType: 3, nodeValue: 'تخفیف باشگاه مشتریان (' },
     lastChild: { nodeType: 3, nodeValue: '):' },
   };
+  const headerUsername = { dataset: {}, textContent: 'ali_vip' };
+  const chatInput = { dir: 'rtl' };
   const store = {};
   global.localStorage = {
     getItem: (k) => (k in store ? store[k] : null),
@@ -245,8 +247,12 @@ test('i18n round-trip restores data-i18n* attributes and partial compound labels
   };
   global.document = {
     documentElement: { lang: 'fa', dir: 'rtl' },
-    getElementById: () => null,
-    querySelector: (sel) => (sel === '#customPlanDiscountRow > span:first-child' ? partialRow : null),
+    getElementById: (id) => (id === 'chatInput' ? chatInput : null),
+    querySelector: (sel) => {
+      if (sel === '#customPlanDiscountRow > span:first-child') return partialRow;
+      if (sel === '#headerUsername') return headerUsername;
+      return null;
+    },
     querySelectorAll: (sel) => selectorMap[sel] || [],
   };
   global.window = { getAppLanguage };
@@ -254,6 +260,8 @@ test('i18n round-trip restores data-i18n* attributes and partial compound labels
     applyAppLocale('en');
     assert.strictEqual(isAppEn(), true);
     assert.strictEqual(trText('سلام', 'Hello'), 'Hello');
+    assert.strictEqual(headerUsername.textContent, 'ali_vip');
+    assert.strictEqual(chatInput.dir, 'ltr');
     assert.strictEqual(textEl.textContent, 'Wallet Style & Appearance');
     assert.notStrictEqual(htmlEl.innerHTML, 'متن فارسی');
     assert.strictEqual(phEl.getAttribute('placeholder'), 'Enter gift or voucher code...');
@@ -265,6 +273,8 @@ test('i18n round-trip restores data-i18n* attributes and partial compound labels
     applyAppLocale('fa');
     assert.strictEqual(isAppEn(), false);
     assert.strictEqual(trText('سلام', 'Hello'), 'سلام');
+    assert.strictEqual(headerUsername.textContent, 'ali_vip');
+    assert.strictEqual(chatInput.dir, 'rtl');
     assert.strictEqual(textEl.textContent, 'تنظیمات و ظاهر کیف پول');
     assert.strictEqual(htmlEl.innerHTML, 'متن فارسی');
     assert.strictEqual(phEl.getAttribute('placeholder'), 'کد هدیه');
