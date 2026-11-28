@@ -374,7 +374,9 @@ async def get_user_me(request: web.Request) -> web.Response:
             if inspect.isawaitable(commit_res):
                 await commit_res
 
-        user_lang = resolve_tma_lang(request, db_user)
+        explicit_query_lang = request.query.get("lang")
+        db_lang = getattr(db_user, "language", None) if db_user is not None else None
+        user_lang = normalize_lang(explicit_query_lang or db_lang or request.headers.get("X-App-Language"))
 
         wallet_res = await session.execute(select(Wallet).where(Wallet.telegram_id == telegram_id))
         wallet = wallet_res.scalar_one_or_none()

@@ -864,7 +864,6 @@
     ['#walletTransferModalTitle', 'transfer_modal_title'],
     ['#walletTransferModalSubtitle', 'transfer_modal_subtitle'],
     ['#transferCurrentBalance + span', 'currency_unit_toman'],
-    ['#invStatusBadge > span:first-child', 'inv_paid_badge'],
     ['#storyThemePickerLabel', 'story_theme_title'],
     ['#giftTypeBtn-redpacket span:last-child', 'red_packet_tab'],
   ];
@@ -973,11 +972,11 @@
     const enBtn = document.getElementById('langEnBtn');
     if (faBtn && enBtn) {
       if (norm === 'fa') {
-        faBtn.className = 'lang-opt-btn flex-1 py-2 px-3 rounded-xl font-bold text-xs bg-blue-600 text-white shadow-sm transition';
-        enBtn.className = 'lang-opt-btn flex-1 py-2 px-3 rounded-xl font-medium text-xs t-muted hover:t-main transition';
+        faBtn.className = 'lang-opt-btn px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white shadow-sm';
+        enBtn.className = 'lang-opt-btn px-2.5 py-1 text-xs rounded-md font-medium transition t-muted hover:t-main';
       } else {
-        enBtn.className = 'lang-opt-btn flex-1 py-2 px-3 rounded-xl font-bold text-xs bg-blue-600 text-white shadow-sm transition';
-        faBtn.className = 'lang-opt-btn flex-1 py-2 px-3 rounded-xl font-medium text-xs t-muted hover:t-main transition';
+        enBtn.className = 'lang-opt-btn px-2.5 py-1 text-xs rounded-md font-bold transition bg-blue-600 text-white shadow-sm';
+        faBtn.className = 'lang-opt-btn px-2.5 py-1 text-xs rounded-md font-medium transition t-muted hover:t-main';
       }
     }
 

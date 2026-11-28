@@ -112,7 +112,7 @@ async def test_wallet_history_and_miniapp_language_api_localization(session_fact
     assert resp_set.status == 200
     assert json.loads(resp_set.text)["language"] == "en"
 
-    req_me = make_mocked_request("GET", "/api/me?user_id=91919", app=app)
+    req_me = make_mocked_request("GET", "/api/me?user_id=91919", headers={"X-App-Language": "fa"}, app=app)
     resp_me = await get_user_me(req_me)
     assert resp_me.status == 200
     me_data = json.loads(resp_me.text)["data"]
@@ -134,6 +134,8 @@ def test_frontend_i18n_runtime_and_bundle_integration():
     assert '<script src="/static/js/i18n.js" defer></script>' in app_html
     assert "'i18n.js'" in build_mjs
     assert "window.applyAppLocale" in app_js
+    assert "window.lastUserData.user.language = appliedLang" in app_js
+    assert "syncUserDataWithApi(window.currentAccountId, { refresh: true })" in app_js
     assert "txDateDisplay" in wallet_js and "txUnitLabel" in wallet_js
     lang_en_btn = re.search(r'<button[^>]*id="langEnBtn"[^>]*>', app_html)
     assert lang_en_btn and "t-muted hover:t-main" in lang_en_btn.group(0)

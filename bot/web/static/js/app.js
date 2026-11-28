@@ -3630,8 +3630,13 @@ function setupProfileHandlers() {
   async function changeAppLanguage(lang) {
     try {
       const res = await window.api.changeLanguage(lang);
-      if (res.ok) {
-        const appliedLang = window.applyAppLocale ? window.applyAppLocale(res.language || lang) : lang;
+      if (res && res.ok) {
+        const appliedLang = window.applyAppLocale ? window.applyAppLocale(res.language || lang) : (res.language || lang);
+        if (window.lastUserData) {
+          window.lastUserData.user = window.lastUserData.user || {};
+          window.lastUserData.user.language = appliedLang;
+          try { saveUserCache(window.lastUserData); } catch (_) {}
+        }
         if (window.lastUserData && typeof hydrateUserInterface === 'function') {
           try { hydrateUserInterface(window.lastUserData); } catch (_) {}
         }
@@ -3651,7 +3656,7 @@ function setupProfileHandlers() {
           window.renderEngagementFeatures(window.lastUserData);
         }
         showToast(appliedLang === 'en' ? '✅ Language changed to English.' : '✅ زبان به فارسی تغییر یافت.', 'success');
-        await syncUserDataWithApi(window.currentAccountId);
+        await syncUserDataWithApi(window.currentAccountId, { refresh: true });
         if (typeof cachedPeakHoursSub !== 'undefined' && cachedPeakHoursSub && typeof updateUserPeakHoursView === 'function') {
           try { updateUserPeakHoursView(cachedPeakHoursSub); } catch (_) {}
         }
