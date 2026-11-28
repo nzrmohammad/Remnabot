@@ -1262,3 +1262,94 @@ async def test_family_dns_hosts_pagination_and_referral_ui_contracts(session_fac
     assert me_data["user"]["referral_earned_commission"] == 35000
 
 
+@pytest.mark.anyio
+async def test_tma_currency_ui_polish_and_profile_latency_optimizations(session_factory):
+    """Verify /api/me speed optimizations, wallet tx EN fix, currency unification, and UI polish contracts."""
+    from types import SimpleNamespace
+
+    from bot.db.models import User
+    from bot.web.user_profile import get_user_me
+
+    root = Path(__file__).resolve().parents[1]
+    app_html = (root / "bot" / "web" / "templates" / "app.html").read_text(encoding="utf-8")
+    app_js = (root / "bot" / "web" / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    wallet_js = (root / "bot" / "web" / "static" / "js" / "wallet.js").read_text(encoding="utf-8")
+    shop_js = (root / "bot" / "web" / "static" / "js" / "shop.js").read_text(encoding="utf-8")
+    utils_js = (root / "bot" / "web" / "static" / "js" / "utils.js").read_text(encoding="utf-8")
+    i18n_js = (root / "bot" / "web" / "static" / "js" / "i18n.js").read_text(encoding="utf-8")
+    app_css = (root / "bot" / "web" / "static" / "css" / "app.css").read_text(encoding="utf-8")
+    sub_detail_py = (root / "bot" / "web" / "user_subscription_detail.py").read_text(encoding="utf-8")
+
+    # 1. Wallet Transactions & Orders no longer uses undefined isEnLang inside getTxPurchaseInfo
+    tx_info_start = wallet_js.index("function getTxPurchaseInfo")
+    tx_info_end = wallet_js.index("function formatTxPlan", tx_info_start)
+    assert "isEnLang" not in wallet_js[tx_info_start:tx_info_end]
+
+    # 2. SSOT Display Currency helper wired across Wallet, Shop, Commission, Custom Plan, Gift & Loyalty
+    assert "function formatDisplayMoneyParts(" in utils_js
+    assert "function _shopMoneyParts(" in shop_js
+    assert 'id="shopWalletBalanceUnit"' in app_html
+    assert 'id="customPlanFinalUnit"' in app_html
+    assert 'id="profileReferralCommissionUnit"' in app_html
+    assert 'id="giftCostUnit"' in app_html and 'id="giftBalanceUnit"' in app_html
+    assert "window.syncAllCurrencyViews" in app_js
+
+    # 3. Reports 5 tabs, Achievements footer, Diurnal Late Night, Voucher Apply & Chevrons
+    assert '<div class="flex items-center gap-2" dir="rtl">\n            <button id="redeemVoucherBtn"' in app_html
+    assert 'flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 whitespace-nowrap text-[10px] sm:text-xs' in app_html
+    assert 'grid grid-cols-2 gap-2 text-[11px]' in app_html
+    assert '<span class="truncate" data-i18n="diurnal_dawn">بامداد</span>' in app_html
+    assert 'id="tutorialOsTabsBar"' in app_html
+    assert 'rotate(90deg)' in utils_js and 'syncAccordionChevrons' in utils_js
+    assert 'syncAccordionChevrons' in i18n_js
+
+    # 4. Connection Guide / Tier medal pulse keyframes + reduced-motion guard
+    for cls_name in (".medal-pulse-gold", ".medal-pulse-silver", ".medal-pulse-bronze"):
+        assert cls_name in app_css
+    assert "prefers-reduced-motion: reduce" in app_css
+    assert "medal-pulse-gold" in app_js and "medal-pulse-silver" in app_js and "medal-pulse-bronze" in app_js
+
+    # 5. Concurrent subscription detail build (calc_bandwidth_stats + get_user_hwid_devices via asyncio.gather)
+    assert "await asyncio.gather(" in sub_detail_py
+    assert "calc_bandwidth_stats(" in sub_detail_py and "_fetch_hwid_devices()" in sub_detail_py
+
+    # 6. /api/me FastCache hits on X-App-Language header differences + internal_squads cached across rebuilds
+    cache = FastCache(redis_client=None)
+    get_squads_mock = AsyncMock(return_value=[{"uuid": "sq-1", "name": "VIP"}])
+    app = {
+        "bot_token": "123:abc",
+        "admin_ids": [99999],
+        "is_dev": True,
+        "session_factory": session_factory,
+        "cache": cache,
+        "settings": SimpleNamespace(TIMEZONE="Asia/Tehran", PANEL_URL="https://panel.example.com"),
+        "remnawave": SimpleNamespace(
+            get_users_by_telegram_id=AsyncMock(return_value=[]),
+            get_nodes=AsyncMock(return_value=[]),
+            get_all_panel_users=AsyncMock(return_value=[]),
+            get_internal_squads=get_squads_mock,
+        ),
+    }
+    async with session_factory() as session:
+        session.add(User(telegram_id=8809, username="speed_tester", full_name="Speed Tester", language="fa"))
+        await session.commit()
+
+    req1 = make_mocked_request("GET", "/api/me?user_id=8809", app=app)
+    resp1 = await get_user_me(req1)
+    assert resp1.status == 200
+    assert get_squads_mock.call_count == 1
+
+    # Different X-App-Language header MUST hit cached payload rather than rebuilding from Remnawave
+    req2 = make_mocked_request("GET", "/api/me?user_id=8809", headers={"X-App-Language": "en"}, app=app)
+    resp2 = await get_user_me(req2)
+    assert resp2.status == 200
+    assert json.loads(resp2.text).get("cached") is True
+
+    # Forced rebuild (?refresh=1) reuses cached tma:cluster:internal_squads instead of calling Remnawave again
+    req3 = make_mocked_request("GET", "/api/me?user_id=8809&refresh=1", app=app)
+    resp3 = await get_user_me(req3)
+    assert resp3.status == 200
+    assert get_squads_mock.call_count == 1
+
+
+

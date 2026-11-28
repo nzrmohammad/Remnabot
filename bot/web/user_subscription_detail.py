@@ -555,7 +555,24 @@ async def build_active_subscription(
         traffic_remaining_gb = 9999.0
         percent_remaining = 100.0
 
-    bw = await calc_bandwidth_stats(remnawave, primary, panel_user_id, now_dt, tz_name, lang=lang)
+    uid_arg = int(panel_user_id) if str(panel_user_id).isdigit() else panel_user_id
+
+    async def _fetch_hwid_devices() -> list[dict[str, Any]]:
+        try:
+            return (
+                await asyncio.wait_for(
+                    remnawave.get_user_hwid_devices(uid_arg, user_uuid=primary.get("uuid")),
+                    timeout=4.0,
+                )
+            ) or []
+        except (TimeoutError, Exception) as exc:
+            logger.warning("Failed or timed out fetching HWID devices for %s: %s", panel_user_id, exc)
+            return []
+
+    bw, devices = await asyncio.gather(
+        calc_bandwidth_stats(remnawave, primary, panel_user_id, now_dt, tz_name, lang=lang),
+        _fetch_hwid_devices(),
+    )
     now_j = jdatetime.datetime.fromgregorian(datetime=now_dt)
     month_names = _JALALI_MONTHS_EN if lang == "en" else _JALALI_MONTHS_FA
     current_month_name = (
@@ -563,17 +580,6 @@ async def build_active_subscription(
         if 1 <= now_j.month <= 12
         else ("Current Month" if lang == "en" else "ماه جاری")
     )
-
-    devices = []
-    try:
-        devices = (
-            await asyncio.wait_for(
-                remnawave.get_user_hwid_devices(bw["uid_arg"], user_uuid=primary.get("uuid")),
-                timeout=4.0,
-            )
-        ) or []
-    except (TimeoutError, Exception) as exc:
-        logger.warning("Failed or timed out fetching HWID devices for %s: %s", panel_user_id, exc)
 
     days_left = 0
     expire_jalali_str = ""

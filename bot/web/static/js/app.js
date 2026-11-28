@@ -320,10 +320,11 @@ function setupReportsSubtabs() {
   const viewRepAnalytics = $('viewRepAnalytics');
 
   function setRepSub(activeBtn, activeView) {
+    const baseCls = 'flex-1 min-w-0 py-1.5 px-1 rounded-xl transition text-center flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 whitespace-nowrap text-[10px] sm:text-xs';
     [repSubDaily, repSubNightly, repSubWeekly, repSubMonthly, repSubAnalytics].forEach(b => {
-      if (b) b.className = 'flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center';
+      if (b) b.className = `${baseCls} font-medium t-muted hover:t-main`;
     });
-    if (activeBtn) activeBtn.className = 'flex-1 py-1.5 rounded-xl font-bold bg-blue-600 text-white shadow-sm transition text-center';
+    if (activeBtn) activeBtn.className = `${baseCls} font-bold bg-blue-600 text-white shadow-sm`;
 
     [viewRepDaily, viewRepNightly, viewRepWeekly, viewRepMonthly, viewRepAnalytics].forEach(v => v?.classList.add('hidden'));
     activeView?.classList.remove('hidden');
@@ -1987,9 +1988,9 @@ function renderTutorialApps(osKey) {
           </div>
           <!-- Right side: Recommended/Alternative/Third badge + Tutorial button -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            ${app.isRecommended ? `<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('پیشنهادی', 'Recommended')}">🥇</span>` : ''}
-            ${app.isAlternative ? `<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('جایگزین', 'Alternative')}">🥈</span>` : ''}
-            ${app.isThird ? `<span class="inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('رتبه سوم', '3rd Choice')}">🥉</span>` : ''}
+            ${app.isRecommended ? `<span class="medal-pulse-gold inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('پیشنهادی', 'Recommended')}">🥇</span>` : ''}
+            ${app.isAlternative ? `<span class="medal-pulse-silver inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('جایگزین', 'Alternative')}">🥈</span>` : ''}
+            ${app.isThird ? `<span class="medal-pulse-bronze inline-flex items-center justify-center text-2xl leading-none bg-transparent border-0 shadow-none flex-shrink-0" title="${_appTr('رتبه سوم', '3rd Choice')}">🥉</span>` : ''}
             ${tutorialBtnHtml}
           </div>
         </div>
@@ -2814,8 +2815,11 @@ function openMembershipModal() {
       .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
   }
   if (spentEl) {
+    const spentDisp = typeof window.formatDisplayMoneyParts === 'function'
+      ? window.formatDisplayMoneyParts(totalSpentVal)
+      : { valueText: totalSpentVal.toLocaleString('en-US'), unit: moneyUnit };
     spentEl.dir = isEn ? 'ltr' : 'rtl';
-    spentEl.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${totalSpentVal.toLocaleString('en-US')}</span> <span>${moneyUnit}</span>`;
+    spentEl.innerHTML = `<span class="font-sans font-bold num-bidi" dir="ltr">${spentDisp.valueText}</span> <span>${spentDisp.unit}</span>`;
   }
 
   let usedGb = Number(sub?.lifetime_used_traffic_gb ?? sub?.traffic_used_gb ?? sub?.used_traffic_gb ?? 0);
@@ -3661,11 +3665,20 @@ function setupProfileHandlers() {
         if (typeof window.renderShopPlans === 'function' && window.lastUserData) {
           try { window.renderShopPlans(window.lastUserData); } catch (_) {}
         }
+        if (typeof window.renderUserLeaderboard === 'function') {
+          try { window.renderUserLeaderboard(cachedUserLeaderboardData, window.currentUserLbPeriod || 'weekly'); } catch (_) {}
+        }
+        if (typeof updateMonthlyReportView === 'function') {
+          try { updateMonthlyReportView(currentMonthlyIndex); } catch (_) {}
+        }
         if (typeof window.renderEngagementFeatures === 'function' && window.lastUserData) {
           window.renderEngagementFeatures(window.lastUserData);
         }
         showToast(appliedLang === 'en' ? '✅ Language changed to English.' : '✅ زبان به فارسی تغییر یافت.', 'success');
         await syncUserDataWithApi(window.currentAccountId, { refresh: true });
+        if (typeof window.applyAppLocale === 'function') {
+          try { window.applyAppLocale(appliedLang); } catch (_) {}
+        }
         if (typeof cachedPeakHoursSub !== 'undefined' && cachedPeakHoursSub && typeof updateUserPeakHoursView === 'function') {
           try { updateUserPeakHoursView(cachedPeakHoursSub); } catch (_) {}
         }
@@ -3674,6 +3687,9 @@ function setupProfileHandlers() {
         }
         if (typeof updateMonthlyReportView === 'function') {
           try { updateMonthlyReportView(currentMonthlyIndex); } catch (_) {}
+        }
+        if (typeof window.renderUserLeaderboard === 'function') {
+          try { window.renderUserLeaderboard(cachedUserLeaderboardData, window.currentUserLbPeriod || 'weekly'); } catch (_) {}
         }
       } else {
         showToast(window.t ? window.t('lang_save_error', '❌ خطا در ذخیره تنظیمات زبان.') : '❌ خطا در ذخیره تنظیمات زبان.', 'error');
@@ -4495,12 +4511,19 @@ function hydrateUserInterface(data) {
     // --- VIP Loyalty Tier & Club Integration ---
     const loyalty = data.loyalty;
     const isLoyaltyEnabled = Boolean(loyalty && loyalty.enabled !== false);
+    const tierPulseClass = (() => {
+      const tid = String(loyalty?.id || loyalty?.tier_id || '').toLowerCase();
+      if (tid === 'gold') return 'medal-pulse-gold';
+      if (tid === 'silver') return 'medal-pulse-silver';
+      if (tid === 'bronze') return 'medal-pulse-bronze';
+      return '';
+    })();
     const headerBadge = $('headerLoyaltyBadge');
     if (headerBadge) {
       if (isLoyaltyEnabled) {
         headerBadge.innerHTML = typeof uiEmojiIcon === 'function'
-          ? uiEmojiIcon(loyalty.icon || '🥈', 'w-5 h-5')
-          : `<img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />`;
+          ? uiEmojiIcon(loyalty.icon || '🥈', `w-5 h-5 ${tierPulseClass}`.trim())
+          : `<img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 ${tierPulseClass}" width="20" height="20" alt="" />`;
         headerBadge.classList.remove('hidden');
         headerBadge.className = 'w-7 h-7 flex items-center justify-center bg-transparent border-0 transition cursor-pointer active:scale-95 shrink-0 select-none';
       } else {
@@ -4516,7 +4539,7 @@ function hydrateUserInterface(data) {
         loyaltyCard.classList.remove('hidden');
         if ($('loyaltyTierIcon')) {
           $('loyaltyTierIcon').innerHTML = typeof uiEmojiIcon === 'function'
-            ? uiEmojiIcon(loyalty.icon || '🥈', 'w-6 h-6')
+            ? uiEmojiIcon(loyalty.icon || '🥈', `w-6 h-6 ${tierPulseClass}`.trim())
             : escapeHtml(loyalty.icon || '🥈');
         }
         const tierId = String(loyalty.id || 'bronze').toLowerCase();
@@ -4553,12 +4576,14 @@ function hydrateUserInterface(data) {
         const totalSpent = $('loyaltyTotalSpent');
         const targetSpent = $('loyaltyNextTierTarget');
         const benefitDesc = $('loyaltyBenefitDesc');
-        const moneyUnit = _appTr('تومان', 'Toman');
+        const _appFmtMoney = (amt) => (typeof window.formatDisplayMoneyParts === 'function'
+          ? window.formatDisplayMoneyParts(amt).fullText
+          : `${Number(amt || 0).toLocaleString('en-US')} ${_appTr('تومان', 'Toman')}`);
 
         if (totalSpent) {
           totalSpent.innerText = isEn
-            ? `Total spent: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} ${moneyUnit}`
-            : `مجموع خرید: ${Number(loyalty.total_spent || 0).toLocaleString('en-US')} ${moneyUnit}`;
+            ? `Total spent: ${_appFmtMoney(loyalty.total_spent || 0)}`
+            : `مجموع خرید: ${_appFmtMoney(loyalty.total_spent || 0)}`;
         }
 
         if (loyalty.next_tier_name && loyalty.next_tier_threshold) {
@@ -4568,8 +4593,8 @@ function hydrateUserInterface(data) {
           if (progBar) progBar.style.width = `${pct}%`;
           if (targetSpent) {
             targetSpent.innerText = isEn
-              ? `Next goal: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} ${moneyUnit}`
-              : `هدف بعدی: ${Number(loyalty.next_tier_threshold).toLocaleString('en-US')} ${moneyUnit}`;
+              ? `Next goal: ${_appFmtMoney(loyalty.next_tier_threshold)}`
+              : `هدف بعدی: ${_appFmtMoney(loyalty.next_tier_threshold)}`;
           }
         } else {
           if (nextText) nextText.innerText = _appTr('بالاترین سطح باشگاه مشتریان 🎉', 'Top Loyalty Club Tier Reached 🎉');
@@ -4598,18 +4623,24 @@ function hydrateUserInterface(data) {
   safeStep('walletAndShop', () => {
     const walletEl = $('shopWalletBalance');
     const shopBalAmt = $('shopWalletBalanceAmount');
+    const shopBalUnit = $('shopWalletBalanceUnit');
     const walletTabBal = $('walletTabBalance');
-    const rawBalNum = Number(user.wallet_balance || 0).toLocaleString('en-US');
-    const formattedWallet = `${rawBalNum} ${_appTr('تومان', 'Toman')}`;
-    if (walletEl) walletEl.innerText = _appIsEn() ? `Balance: ${formattedWallet}` : `موجودی: ${formattedWallet}`;
-    if (shopBalAmt) shopBalAmt.innerText = rawBalNum;
-    if (walletTabBal) walletTabBal.innerText = formattedWallet;
+    const balDisp = typeof window.formatDisplayMoneyParts === 'function'
+      ? window.formatDisplayMoneyParts(user.wallet_balance || 0, { floorStars: true })
+      : { valueText: Number(user.wallet_balance || 0).toLocaleString('en-US'), unit: _appTr('تومان', 'Toman'), fullText: `${Number(user.wallet_balance || 0).toLocaleString('en-US')} ${_appTr('تومان', 'Toman')}` };
+    if (walletEl) walletEl.innerText = _appIsEn() ? `Balance: ${balDisp.fullText}` : `موجودی: ${balDisp.fullText}`;
+    if (shopBalAmt) shopBalAmt.innerText = balDisp.valueText;
+    if (shopBalUnit) shopBalUnit.innerText = balDisp.unit;
+    if (walletTabBal) walletTabBal.innerText = balDisp.fullText;
     if (window.renderUserWalletCard) {
       window.renderUserWalletCard(user);
     }
 
     if (typeof renderShopPlans === 'function') {
       renderShopPlans(data);
+    }
+    if (typeof window.updateCustomPlanCalculation === 'function') {
+      window.updateCustomPlanCalculation();
     }
   });
 
@@ -4648,7 +4679,9 @@ function hydrateUserInterface(data) {
 
     const refStatsGrid = document.getElementById('profileReferralStatsGrid');
     const refCommBox = document.getElementById('profileReferralCommissionStatBox');
+    const refCommWrap = document.getElementById('profileReferralCommissionWrap');
     const refCommTotalEl = document.getElementById('profileReferralCommissionTotal');
+    const refCommUnitEl = document.getElementById('profileReferralCommissionUnit');
     const showCommStat = refCommissionPct > 0 || refEarnedComm > 0;
     if (refStatsGrid) {
       refStatsGrid.classList.toggle('grid-cols-3', showCommStat);
@@ -4657,8 +4690,17 @@ function hydrateUserInterface(data) {
     if (refCommBox) {
       refCommBox.classList.toggle('hidden', !showCommStat);
     }
+    const commDisp = typeof window.formatDisplayMoneyParts === 'function'
+      ? window.formatDisplayMoneyParts(refEarnedComm)
+      : { valueText: toEnglishDigits(refEarnedComm.toLocaleString('en-US')), unit: _appTr('تومان', 'Toman') };
+    if (refCommWrap) {
+      refCommWrap.dir = isEn ? 'ltr' : 'rtl';
+    }
     if (refCommTotalEl) {
-      refCommTotalEl.innerText = toEnglishDigits(refEarnedComm.toLocaleString('en-US'));
+      refCommTotalEl.innerText = toEnglishDigits(commDisp.valueText);
+    }
+    if (refCommUnitEl) {
+      refCommUnitEl.innerText = commDisp.unit;
     }
 
     const refTitleEl = document.getElementById('profileReferralCardTitle');
@@ -5419,15 +5461,18 @@ function renderUserAchievements(data) {
   }
 
   const streakEl = $('achieveStreakCount');
+  const isEn = _appIsEn();
   if (streakEl) {
     const s = Number(ach.wheel_streak ?? data?.wheel_status?.streak ?? 0);
-    streakEl.innerText = _appIsEn() ? `${s} ${s === 1 ? 'day' : 'days'}` : `${s} روز`;
+    streakEl.dir = isEn ? 'ltr' : 'rtl';
+    streakEl.innerText = isEn ? `${s} ${s === 1 ? 'day' : 'days'}` : `${s} روز`;
   }
 
   const spinTicketsEl = $('achieveSpinTickets');
   if (spinTicketsEl) {
     const t = Number(ach.spin_tickets ?? data?.wheel_status?.spin_tickets ?? 0);
-    spinTicketsEl.innerText = _appIsEn() ? `${t} ${t === 1 ? 'ticket' : 'tickets'}` : `${t} عدد`;
+    spinTicketsEl.dir = isEn ? 'ltr' : 'rtl';
+    spinTicketsEl.innerText = isEn ? `${t} ${t === 1 ? 'ticket' : 'tickets'}` : `${t} عدد`;
   }
 }
 window.renderUserAchievements = renderUserAchievements;
@@ -5458,9 +5503,9 @@ function switchUserLeaderboardPeriod(period) {
   tabs.forEach(t => {
     if (!t.el) return;
     if (t.id === period) {
-      t.el.className = 'w-full py-2 rounded-lg font-bold transition bg-cyan-600 text-white shadow text-center text-xs';
+      t.el.className = 'w-full py-2 px-0.5 rounded-lg font-bold transition bg-cyan-600 text-white shadow text-center text-[11px] sm:text-xs whitespace-nowrap';
     } else {
-      t.el.className = 'w-full py-2 rounded-lg font-medium transition text-slate-400 hover:text-white text-center text-xs';
+      t.el.className = 'w-full py-2 px-0.5 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs whitespace-nowrap';
     }
   });
 
@@ -5495,19 +5540,28 @@ const JALALI_MONTHS_MAP = {
   'Mehr': 'مهر', 'Aban': 'آبان', 'Azar': 'آذر',
   'Dey': 'دی', 'Bahman': 'بهمن', 'Esfand': 'اسفند'
 };
-const JALALI_MONTHS_FA_TO_EN = Object.fromEntries(
-  Object.entries(JALALI_MONTHS_MAP).map(([en, fa]) => [fa, en])
+const JALALI_MONTHS_FA_TO_EN = Object.assign(
+  Object.fromEntries(Object.entries(JALALI_MONTHS_MAP).map(([en, fa]) => [fa, en])),
+  { 'ابان': 'Aban', 'اذر': 'Azar', 'فروردين': 'Farvardin', 'ارديبهشت': 'Ordibehesht', 'تير': 'Tir', 'شهريور': 'Shahrivar', 'دي': 'Dey' }
 );
+function _normalizeFaMonthStr(s) {
+  return String(s || '')
+    .replace(/\u064a/g, 'ی')
+    .replace(/\u0643/g, 'ک')
+    .replace(/\u200c/g, '')
+    .trim();
+}
 function toPersianMonthName(m) {
   if (!m) return '';
   return JALALI_MONTHS_MAP[m] || m;
 }
 function toLocalizedMonthName(m) {
   if (!m) return '';
-  const str = String(m);
+  const str = _normalizeFaMonthStr(m);
   if (_appIsEn()) {
-    if (JALALI_MONTHS_FA_TO_EN[str]) return JALALI_MONTHS_FA_TO_EN[str];
-    let out = str;
+    const clean = str.replace(/^ماه\s+/, '');
+    if (JALALI_MONTHS_FA_TO_EN[clean]) return JALALI_MONTHS_FA_TO_EN[clean];
+    let out = clean;
     for (const [fa, en] of Object.entries(JALALI_MONTHS_FA_TO_EN)) {
       if (out.includes(fa)) out = out.replace(fa, en);
     }
@@ -6272,8 +6326,13 @@ function openGiftModal() {
   populateGiftServices();
   updateGiftCostDisplay();
   const bal = window.lastUserData?.user?.wallet_balance || 0;
+  const balDisp = typeof window.formatDisplayMoneyParts === 'function'
+    ? window.formatDisplayMoneyParts(bal, { floorStars: true })
+    : { valueText: Number(bal).toLocaleString('en-US'), unit: _appTr('تومان', 'Toman') };
   const currBalEl = $('giftCurrentBalanceDisplay');
-  if (currBalEl) currBalEl.innerText = Number(bal).toLocaleString('en-US');
+  const currBalUnit = $('giftBalanceUnit');
+  if (currBalEl) currBalEl.innerText = balDisp.valueText;
+  if (currBalUnit) currBalUnit.innerText = balDisp.unit;
   $('giftCreatedSuccessBox')?.classList.add('hidden');
 }
 
@@ -6333,7 +6392,11 @@ function renderGiftServiceSelectModalList() {
   container.innerHTML = plans.map(p => {
     const isSelected = _giftSelectedService && _giftSelectedService.id === p.id;
     const baseGiftPrice = Number(p.original_price ?? p.price ?? 0);
-    const priceStr = baseGiftPrice.toLocaleString('en-US');
+    const giftDisp = typeof window.formatDisplayMoneyParts === 'function'
+      ? window.formatDisplayMoneyParts(baseGiftPrice)
+      : { valueText: baseGiftPrice.toLocaleString('en-US'), unit: _appTr('تومان', 'Toman') };
+    const priceStr = giftDisp.valueText;
+    const giftUnit = giftDisp.unit;
     const isTimeOnly = p.plan_type === 'time' || (p.duration_days > 0 && (!p.traffic_gb || p.traffic_gb <= 0));
     const isTrafficOnly = p.plan_type === 'traffic' || (p.traffic_gb > 0 && (!p.duration_days || p.duration_days <= 0));
     const daysWord = _appTr('روز', p.duration_days === 1 ? 'day' : 'days');
@@ -6357,7 +6420,7 @@ function renderGiftServiceSelectModalList() {
       <div onclick="window.selectGiftService(${p.id})" dir="${isEn ? 'ltr' : 'rtl'}" class="cursor-pointer card-inset p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-500/10' : 'border-card-border hover:border-pink-500/50'} flex items-center justify-between gap-2.5 transition">
         <div class="flex items-center gap-1 shrink-0" dir="${isEn ? 'ltr' : 'rtl'}">
           <span class="text-xs font-bold t-pink font-sans num-bidi">${priceStr}</span>
-          <span class="text-[11px] t-muted">${_appTr('تومان', 'Toman')}</span>
+          <span class="text-[11px] t-muted">${giftUnit}</span>
         </div>
         <div class="space-y-1 min-w-0 ${isEn ? 'text-right pr-1' : 'text-left pl-1'} flex-1">
           <b class="text-xs t-main block truncate">${formatPlanTitle(p.name, { iconPosition: 'left' })}</b>
@@ -6476,8 +6539,13 @@ function updateGiftCostDisplay() {
   } else {
     cost = Math.max(0, Number(_giftSelectedService?.original_price ?? _giftSelectedService?.price ?? 0));
   }
+  const costDisp = typeof window.formatDisplayMoneyParts === 'function'
+    ? window.formatDisplayMoneyParts(cost)
+    : { valueText: Number(cost).toLocaleString('en-US'), unit: _appTr('تومان', 'Toman') };
   const costEl = $('giftCostDisplay');
-  if (costEl) costEl.innerText = Number(cost).toLocaleString('en-US');
+  const costUnit = $('giftCostUnit');
+  if (costEl) costEl.innerText = costDisp.valueText;
+  if (costUnit) costUnit.innerText = costDisp.unit;
 }
 
 async function submitCreateGift() {
@@ -7236,15 +7304,21 @@ function openLoyaltyModal() {
   if (!modal) return;
   const loyalty = window.lastUserData?.loyalty;
   if (loyalty) {
+    const _loyTid = String(loyalty.tier_id || loyalty.id || '').toLowerCase();
+    const _loyPulseCls = _loyTid === 'gold'
+      ? 'medal-pulse-gold'
+      : (_loyTid === 'silver' ? 'medal-pulse-silver' : (_loyTid === 'bronze' ? 'medal-pulse-bronze' : ''));
     if ($('loyaltyModalCurrentIcon')) {
       $('loyaltyModalCurrentIcon').innerHTML = typeof uiEmojiIcon === 'function'
-        ? uiEmojiIcon(loyalty.icon || '🥈', 'w-4 h-4')
-        : `<img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0" width="16" height="16" alt="" />`;
+        ? uiEmojiIcon(loyalty.icon || '🥈', `w-4 h-4 ${_loyPulseCls}`.trim())
+        : `<img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 ${_loyPulseCls}" width="16" height="16" alt="" />`;
     }
     const isEn = _appIsEn();
-    const moneyUnit = _appTr('تومان', 'Toman');
+    const _loyFmtMoney = (amt) => (typeof window.formatDisplayMoneyParts === 'function'
+      ? window.formatDisplayMoneyParts(amt).fullText
+      : `${Number(amt || 0).toLocaleString('en-US')} ${_appTr('تومان', 'Toman')}`);
     if ($('loyaltyModalCurrentName')) $('loyaltyModalCurrentName').innerText = loyalty.name || _appTr('برنزی', 'Bronze');
-    if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = `${Number(loyalty.total_spent || 0).toLocaleString('en-US')} ${moneyUnit}`;
+    if ($('loyaltyModalTotalSpent')) $('loyaltyModalTotalSpent').innerText = _loyFmtMoney(loyalty.total_spent || 0);
     if ($('loyaltyModalCurrentDiscount')) {
       const disc = toEnglishDigits(loyalty.discount_percent || 0);
       $('loyaltyModalCurrentDiscount').innerHTML = Number(disc) > 0
@@ -7261,11 +7335,11 @@ function openLoyaltyModal() {
       } : null);
 
       if (!isMaxTier && nextTier && nextTier.name) {
-        const needed = Number(nextTier.remaining_amount || loyalty.amount_to_next || 0).toLocaleString('en-US');
+        const neededStr = _loyFmtMoney(nextTier.remaining_amount || loyalty.amount_to_next || 0);
         const nextDisc = toEnglishDigits(nextTier.discount_percent ?? loyalty.next_tier_discount ?? 0);
         $('loyaltyModalProgressText').innerHTML = isEn
-          ? `Spend ${needed} ${moneyUnit} more to reach ${escapeHtml(nextTier.name)} and unlock a <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> discount.`
-          : `با ${needed} تومان خرید دیگر، به سطح ${escapeHtml(nextTier.name)} ارتقا می‌یابید و از <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
+          ? `Spend ${neededStr} more to reach ${escapeHtml(nextTier.name)} and unlock a <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> discount.`
+          : `با ${neededStr} خرید دیگر، به سطح ${escapeHtml(nextTier.name)} ارتقا می‌یابید و از <span class="num-bidi font-sans font-bold" dir="ltr">${nextDisc}%</span> تخفیف بهره‌مند می‌شوید.`;
       } else if (isMaxTier) {
         $('loyaltyModalProgressText').innerText = _appTr(
           'تبریک! شما به بالاترین سطح باشگاه مشتریان (الماس) دست یافته‌اید.',
@@ -7280,12 +7354,16 @@ function openLoyaltyModal() {
     }
 
     // Dynamic thresholds update if all_tiers is provided
+    const bronzeSpentEl = $('loyaltyTierCard_bronze_spent');
+    if (bronzeSpentEl) {
+      bronzeSpentEl.innerText = _appIsEn() ? `From ${_loyFmtMoney(0)}` : `از ${_loyFmtMoney(0)}`;
+    }
     if (Array.isArray(loyalty.all_tiers)) {
       loyalty.all_tiers.forEach(t => {
         const spentEl = $(`loyaltyTierCard_${t.id}_spent`);
         const pctEl = $(`loyaltyTierCard_${t.id}_pct`);
         if (spentEl && t.min_spent !== undefined) {
-          spentEl.innerText = `${Number(t.min_spent).toLocaleString('en-US')} ${moneyUnit}`;
+          spentEl.innerText = _loyFmtMoney(t.min_spent);
         }
         if (pctEl && t.discount_percent !== undefined) {
           pctEl.innerHTML = `<span class="num-bidi font-sans font-bold" dir="ltr">${toEnglishDigits(t.discount_percent)}%</span>`;
@@ -7467,3 +7545,29 @@ window.triggerLogoEasterEgg = async function() {
 window.openKillSingleDeviceModal = openKillSingleDeviceModal;
 window.closeKillSingleDeviceModal = closeKillSingleDeviceModal;
 window.confirmKillSingleDevice = confirmKillSingleDevice;
+window.renderUserLeaderboard = renderUserLeaderboard;
+window.syncAllCurrencyViews = function() {
+  try {
+    const data = window.lastUserData;
+    if (data && typeof hydrateUserInterface === 'function') {
+      hydrateUserInterface(data);
+    } else if (typeof window.updateCustomPlanCalculation === 'function') {
+      window.updateCustomPlanCalculation();
+    }
+    if ($('giftModal') && !$('giftModal').classList.contains('hidden')) {
+      const bal = data?.user?.wallet_balance || 0;
+      const balDisp = typeof window.formatDisplayMoneyParts === 'function'
+        ? window.formatDisplayMoneyParts(bal, { floorStars: true })
+        : { valueText: Number(bal).toLocaleString('en-US'), unit: _appTr('تومان', 'Toman') };
+      if ($('giftCurrentBalanceDisplay')) $('giftCurrentBalanceDisplay').innerText = balDisp.valueText;
+      if ($('giftBalanceUnit')) $('giftBalanceUnit').innerText = balDisp.unit;
+      if (typeof renderGiftServiceSelectModalList === 'function') renderGiftServiceSelectModalList();
+      if (typeof updateGiftCostDisplay === 'function') updateGiftCostDisplay();
+    }
+    if ($('loyaltyModal') && !$('loyaltyModal').classList.contains('hidden') && typeof openLoyaltyModal === 'function') {
+      openLoyaltyModal();
+    }
+  } catch (err) {
+    console.warn('[syncAllCurrencyViews] Error:', err);
+  }
+};

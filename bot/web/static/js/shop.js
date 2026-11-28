@@ -277,6 +277,15 @@ function initCustomPlanBuilder() {
   updateCustomPlanCalculation();
 }
 
+function _shopMoneyParts(tomanAmount, sign = '') {
+  if (typeof window.formatDisplayMoneyParts === 'function') {
+    return window.formatDisplayMoneyParts(tomanAmount, { sign });
+  }
+  const fallbackUnit = _shopTr('تومان', 'Toman');
+  const valStr = `${sign}${Number(tomanAmount || 0).toLocaleString('en-US')}`;
+  return { valueText: valStr, unit: fallbackUnit, fullText: `${valStr} ${fallbackUnit}` };
+}
+
 async function updateCustomPlanCalculation() {
   const gbSlider = document.getElementById('customPlanGbSlider');
   const daysSlider = document.getElementById('customPlanDaysSlider');
@@ -346,8 +355,9 @@ async function updateCustomPlanCalculation() {
     const localDisc = Math.floor((localBase * loyaltyPct) / 100);
     const localFinal = Math.max(0, localBase - localDisc);
 
-    const moneyUnit = _shopTr('تومان', 'Toman');
-    if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${Number(rawSubtotal).toLocaleString('en-US')}</span> ${moneyUnit}`;
+    const baseDisp = _shopMoneyParts(rawSubtotal);
+    const moneyUnit = baseDisp.unit;
+    if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${baseDisp.valueText}</span> ${moneyUnit}`;
 
     const hwidRow = document.getElementById('customPlanHwidCostRow');
     const hwidCostDisplay = document.getElementById('customPlanHwidCostDisplay');
@@ -355,7 +365,8 @@ async function updateCustomPlanCalculation() {
     if (hwid > 1 && localHwidCost > 0) {
       if (hwidRow) hwidRow.classList.remove('hidden');
       if (hwidCountDisplay) hwidCountDisplay.innerText = hwid;
-      if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">+${Number(localHwidCost).toLocaleString('en-US')}</span> ${moneyUnit}`;
+      const hwidDisp = _shopMoneyParts(localHwidCost, '+');
+      if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${hwidDisp.valueText}</span> ${hwidDisp.unit}`;
     } else {
       if (hwidRow) hwidRow.classList.add('hidden');
     }
@@ -369,7 +380,8 @@ async function updateCustomPlanCalculation() {
     if (volPct > 0) {
       if (volRow) volRow.classList.remove('hidden');
       if (volTierPct) volTierPct.innerText = volPct;
-      if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(localVolDiscAmt).toLocaleString('en-US')}</span> ${moneyUnit}`;
+      const volDisp = _shopMoneyParts(localVolDiscAmt, '-');
+      if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${volDisp.valueText}</span> ${volDisp.unit}`;
       if (volBadge) volBadge.classList.remove('hidden');
       if (volPctVal) volPctVal.innerText = volPct;
     } else {
@@ -381,11 +393,18 @@ async function updateCustomPlanCalculation() {
       if (discRow) discRow.classList.remove('hidden');
       const discPctEl = document.getElementById('customPlanDiscountPct');
       if (discPctEl) discPctEl.innerText = loyaltyPct;
-      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(localDisc).toLocaleString('en-US')}</span> ${moneyUnit}`;
+      const discDisp = _shopMoneyParts(localDisc, '-');
+      if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${discDisp.valueText}</span> ${discDisp.unit}`;
     } else {
       if (discRow) discRow.classList.add('hidden');
     }
-    if (finalEl) finalEl.innerText = Number(localFinal).toLocaleString('en-US');
+    const finalDisp = _shopMoneyParts(localFinal);
+    if (finalEl) {
+      finalEl.innerText = finalDisp.valueText;
+      finalEl.dataset.tomanPrice = String(Math.round(localFinal));
+    }
+    const finalUnitEl = document.getElementById('customPlanFinalUnit');
+    if (finalUnitEl) finalUnitEl.innerText = finalDisp.unit;
     if (loyaltyPct > 0) {
       if (pill) pill.classList.remove('hidden');
       if (pctEl) pctEl.innerText = loyaltyPct;
@@ -396,8 +415,8 @@ async function updateCustomPlanCalculation() {
       submitBtn.disabled = false;
       submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       submitBtn.innerText = _shopIsEn()
-        ? `Buy Custom Plan (${Number(localFinal).toLocaleString('en-US')} ${moneyUnit})`
-        : `خرید بسته دلخواه (${Number(localFinal).toLocaleString('en-US')} تومان)`;
+        ? `Buy Custom Plan (${finalDisp.fullText})`
+        : `خرید بسته دلخواه (${finalDisp.fullText})`;
     }
   } else {
     if (submitBtn) {
@@ -414,8 +433,9 @@ async function updateCustomPlanCalculation() {
       const res = await window.api.calculateCustomPlan(gb, days, hwid);
       if (res && res.ok && res.data) {
         const d = res.data;
-        const moneyUnit = _shopTr('تومان', 'Toman');
-        if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${Number(d.base_subtotal != null ? (d.base_subtotal + (d.volume_discount_amount || 0)) : (d.raw_base_price || d.base_price)).toLocaleString('en-US')}</span> ${moneyUnit}`;
+        const srvRawBase = Number(d.base_subtotal != null ? (d.base_subtotal + (d.volume_discount_amount || 0)) : (d.raw_base_price || d.base_price));
+        const srvBaseDisp = _shopMoneyParts(srvRawBase);
+        if (baseEl) baseEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${srvBaseDisp.valueText}</span> ${srvBaseDisp.unit}`;
 
         const hwidRow = document.getElementById('customPlanHwidCostRow');
         const hwidCostDisplay = document.getElementById('customPlanHwidCostDisplay');
@@ -424,7 +444,8 @@ async function updateCustomPlanCalculation() {
         if (d.hwid_limit > 1 && hwidCost > 0) {
           if (hwidRow) hwidRow.classList.remove('hidden');
           if (hwidCountDisplay) hwidCountDisplay.innerText = d.hwid_limit;
-          if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">+${Number(hwidCost).toLocaleString('en-US')}</span> ${moneyUnit}`;
+          const srvHwidDisp = _shopMoneyParts(hwidCost, '+');
+          if (hwidCostDisplay) hwidCostDisplay.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${srvHwidDisp.valueText}</span> ${srvHwidDisp.unit}`;
         } else {
           if (hwidRow) hwidRow.classList.add('hidden');
         }
@@ -438,7 +459,8 @@ async function updateCustomPlanCalculation() {
         if (d.volume_discount_percent > 0) {
           if (volRow) volRow.classList.remove('hidden');
           if (volTierPct) volTierPct.innerText = d.volume_discount_percent;
-          if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(d.volume_discount_amount).toLocaleString('en-US')}</span> ${moneyUnit}`;
+          const srvVolDisp = _shopMoneyParts(d.volume_discount_amount, '-');
+          if (volEl) volEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${srvVolDisp.valueText}</span> ${srvVolDisp.unit}`;
           if (volBadge) volBadge.classList.remove('hidden');
           if (volPctVal) volPctVal.innerText = d.volume_discount_percent;
         } else {
@@ -448,11 +470,18 @@ async function updateCustomPlanCalculation() {
 
         if (d.loyalty_discount_amount > 0) {
           if (discRow) discRow.classList.remove('hidden');
-          if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">-${Number(d.loyalty_discount_amount).toLocaleString('en-US')}</span> ${moneyUnit} <span dir="ltr" class="font-sans font-bold num-bidi">(${d.loyalty_discount_percent}%)</span>`;
+          const srvDiscDisp = _shopMoneyParts(d.loyalty_discount_amount, '-');
+          if (discEl) discEl.innerHTML = `<span dir="ltr" class="font-sans num-bidi">${srvDiscDisp.valueText}</span> ${srvDiscDisp.unit} <span dir="ltr" class="font-sans font-bold num-bidi">(${d.loyalty_discount_percent}%)</span>`;
         } else {
           if (discRow) discRow.classList.add('hidden');
         }
-        if (finalEl) finalEl.innerText = Number(d.final_price).toLocaleString('en-US');
+        const srvFinalDisp = _shopMoneyParts(d.final_price);
+        if (finalEl) {
+          finalEl.innerText = srvFinalDisp.valueText;
+          finalEl.dataset.tomanPrice = String(Math.round(Number(d.final_price || 0)));
+        }
+        const finalUnitEl = document.getElementById('customPlanFinalUnit');
+        if (finalUnitEl) finalUnitEl.innerText = srvFinalDisp.unit;
         if (d.loyalty_discount_percent > 0) {
           if (pill) pill.classList.remove('hidden');
           if (pctEl) pctEl.innerText = d.loyalty_discount_percent;
@@ -469,8 +498,8 @@ async function updateCustomPlanCalculation() {
             submitBtn.innerText = _shopTr('تعرفه بسته دلخواه هنوز تعریف نشده است', 'Custom plan pricing is not configured yet');
           } else {
             submitBtn.innerText = _shopIsEn()
-              ? `Buy Custom Plan (${Number(d.final_price).toLocaleString('en-US')} ${moneyUnit})`
-              : `خرید بسته دلخواه (${Number(d.final_price).toLocaleString('en-US')} تومان)`;
+              ? `Buy Custom Plan (${srvFinalDisp.fullText})`
+              : `خرید بسته دلخواه (${srvFinalDisp.fullText})`;
           }
         }
       }
@@ -479,14 +508,16 @@ async function updateCustomPlanCalculation() {
     }
   }, 120);
 }
+window.updateCustomPlanCalculation = updateCustomPlanCalculation;
 
 function purchaseCustomPlan() {
   const gb = Number(document.getElementById('customPlanGbSlider')?.value || 30);
   const days = Number(document.getElementById('customPlanDaysSlider')?.value || 30);
   const hwid = Number(document.getElementById('customPlanHwidSlider')?.value || 2);
   const finalPriceEl = document.getElementById('customPlanFinalPrice');
+  const datasetPrice = Number(finalPriceEl?.dataset?.tomanPrice || 0);
   const finalPriceText = finalPriceEl ? finalPriceEl.innerText.replace(/[^0-9]/g, '') : '';
-  const finalPrice = Number(finalPriceText) || 0;
+  const finalPrice = datasetPrice > 0 ? datasetPrice : (Number(finalPriceText) || 0);
 
   const customPlanObj = {
     id: 'custom',
@@ -691,8 +722,11 @@ function renderFilteredShopPlans() {
     }
     const finalPrice = Math.max(0, p.price - discountVal);
     const hasAnyDiscount = hasLoyaltyDiscount || (discountVal > 0);
-    const formattedFinal = Number(finalPrice).toLocaleString('en-US');
-    const formattedOriginal = Number(originalPriceToDisplay || 0).toLocaleString('en-US');
+    const finalDisp = _shopMoneyParts(finalPrice);
+    const origDisp = _shopMoneyParts(originalPriceToDisplay || 0);
+    const formattedFinal = finalDisp.valueText;
+    const formattedOriginal = origDisp.valueText;
+    const planMoneyUnit = finalDisp.unit;
     const devLimitText = (p.hwid_limit && p.hwid_limit > 0)
       ? _shopTr(`${p.hwid_limit} کاربر`, `${p.hwid_limit} user${Number(p.hwid_limit) === 1 ? '' : 's'}`)
       : _shopTr('کاربر نامحدود', 'Unlimited users');
@@ -791,12 +825,12 @@ function renderFilteredShopPlans() {
     ` : '';
 
     const hasDiscountBadges = Boolean(discountVal > 0 || hasLoyaltyDiscount);
-    const buttonPriceText = hasAnyDiscount ? ` (${formattedFinal} ${moneyUnit})` : '';
+    const buttonPriceText = hasAnyDiscount ? ` (${formattedFinal} ${planMoneyUnit})` : '';
     const priceRowHtml = `
             <div class="flex items-baseline justify-start gap-1.5 flex-wrap font-sans" dir="${isEn ? 'ltr' : 'rtl'}">
               ${hasAnyDiscount ? `
                 <span class="price-slash-strike t-main text-base font-black leading-tight num-bidi" dir="ltr">${formattedOriginal}</span>
-                <span class="text-[11px] t-muted font-sans leading-none">${moneyUnit}</span>
+                <span class="text-[11px] t-muted font-sans leading-none">${origDisp.unit}</span>
                 ${hasDiscountBadges ? `
                   <button type="button" class="plan-discount-toggle-btn inline-flex items-center justify-center text-xs transition active:scale-90 cursor-pointer p-0.5 mr-0.5 shrink-0 bg-transparent border-0" title="${_shopTr('مشاهده جزئیات تخفیف', 'View discount breakdown')}" onclick="const p = this.closest('.shop-plan-card')?.querySelector('.plan-discounts-box'); if (p) p.classList.toggle('hidden');">
                     <span>🏷️</span>
@@ -804,7 +838,7 @@ function renderFilteredShopPlans() {
                 ` : ''}
               ` : `
                 <span class="text-base font-black t-main leading-tight num-bidi" dir="ltr">${formattedOriginal}</span>
-                <span class="text-[11px] t-muted font-sans leading-none">${moneyUnit}</span>
+                <span class="text-[11px] t-muted font-sans leading-none">${planMoneyUnit}</span>
               `}
             </div>`;
     const cardHeaderHtml = isEn ? `
@@ -914,14 +948,17 @@ function openCheckoutConfirmModal(plan) {
       daysEl.innerText = _shopTr('نامحدود روز', 'Unlimited days');
     }
   }
+  const finalDisp = _shopMoneyParts(planPrice);
+  const balDisp = _shopMoneyParts(userBalance);
   if (priceEl) {
     if (plan.originalPrice && plan.originalPrice > planPrice) {
-      priceEl.innerHTML = `<span class="price-slash-strike text-slate-400 dark:text-slate-500 font-sans text-xs ml-1.5" dir="ltr">${Number(plan.originalPrice).toLocaleString('en-US')}</span> <span class="text-emerald-400 font-extrabold price-discount-glow" dir="ltr">${Number(planPrice).toLocaleString('en-US')} ${moneyUnit}</span>`;
+      const origDisp = _shopMoneyParts(plan.originalPrice);
+      priceEl.innerHTML = `<span class="price-slash-strike text-slate-400 dark:text-slate-500 font-sans text-xs ml-1.5" dir="ltr">${origDisp.valueText}</span> <span class="text-emerald-400 font-extrabold price-discount-glow" dir="ltr">${finalDisp.fullText}</span>`;
     } else {
-      priceEl.innerText = `${Number(planPrice).toLocaleString('en-US')} ${moneyUnit}`;
+      priceEl.innerText = finalDisp.fullText;
     }
   }
-  if (balEl) balEl.innerText = `${Number(userBalance).toLocaleString('en-US')} ${moneyUnit}`;
+  if (balEl) balEl.innerText = balDisp.fullText;
 
   const hwidEl = document.getElementById('checkoutPlanHwid');
   const hwidRow = document.getElementById('checkoutPlanHwidRow');
@@ -997,7 +1034,7 @@ function openCheckoutConfirmModal(plan) {
   if (isShortage) {
     if (remRow) remRow.classList.add('hidden');
     if (shortageBox) shortageBox.classList.remove('hidden');
-    if (shortageAmtEl) shortageAmtEl.innerText = `${Number(shortageAmount).toLocaleString('en-US')} ${moneyUnit}`;
+    if (shortageAmtEl) shortageAmtEl.innerText = _shopMoneyParts(shortageAmount).fullText;
     if (topupBtn) {
       topupBtn.classList.remove('hidden');
       topupBtn.onclick = () => {
@@ -1010,7 +1047,7 @@ function openCheckoutConfirmModal(plan) {
     if (shortageBox) shortageBox.classList.add('hidden');
     if (topupBtn) topupBtn.classList.add('hidden');
     if (remRow) remRow.classList.remove('hidden');
-    if (remBalEl) remBalEl.innerText = `${Number(userBalance - planPrice).toLocaleString('en-US')} ${moneyUnit}`;
+    if (remBalEl) remBalEl.innerText = _shopMoneyParts(Math.max(0, userBalance - planPrice)).fullText;
     if (confirmBtn) {
       confirmBtn.classList.remove('hidden');
       confirmBtn.disabled = false;
@@ -1441,8 +1478,8 @@ function showPurchaseModal(res, fallbackPlanName, fallbackPlanPrice) {
     }
   }
   if (sUserEl) sUserEl.innerText = res.panel_username || (window.lastUserData?.active_sub?.username || _shopTr('کاربر', 'User'));
-  if (sPriceEl) sPriceEl.innerText = `${Number(res.effective_price ?? fallbackPlanPrice).toLocaleString('en-US')} ${moneyUnit}`;
-  if (sBalEl) sBalEl.innerText = `${Number(res.new_balance || 0).toLocaleString('en-US')} ${moneyUnit}`;
+  if (sPriceEl) sPriceEl.innerText = _shopMoneyParts(res.effective_price ?? fallbackPlanPrice).fullText;
+  if (sBalEl) sBalEl.innerText = _shopMoneyParts(res.new_balance || 0).fullText;
 
   const subUrl = res.subscription_url || window.lastUserData?.active_sub?.subscription_url || '';
   if (sSubEl) sSubEl.innerText = subUrl || _shopTr('لینک اشتراک در داشبورد ثبت گردید.', 'Subscription link is available in Dashboard.');

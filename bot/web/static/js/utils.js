@@ -997,16 +997,117 @@ function initModalAccessibility() {
   });
 }
 
-// DRY Accordion setup helper
+// SSOT Display Currency Helper (shared across Wallet, Shop, Loyalty, Commission & Gift views)
+const _DISPLAY_CURRENCY_VALID = ['toman', 'ton', 'usdt', 'trx', 'pol', 'stars'];
+
+function getDefaultDisplayCurrency() {
+  return _utilsIsEn() ? 'ton' : 'toman';
+}
+
+function getEffectiveDisplayCurrency() {
+  try {
+    const isManual = localStorage.getItem('user_wallet_currency_manual') === '1';
+    const stored = localStorage.getItem('user_wallet_currency');
+    if (isManual && _DISPLAY_CURRENCY_VALID.includes(stored)) return stored;
+    if (!isManual && _DISPLAY_CURRENCY_VALID.includes(stored) && stored !== 'toman' && stored !== 'ton') {
+      return stored;
+    }
+  } catch (e) {}
+  return getDefaultDisplayCurrency();
+}
+
+function getDisplayCurrencyMeta(currOverride = null) {
+  const curr = _DISPLAY_CURRENCY_VALID.includes(currOverride)
+    ? currOverride
+    : getEffectiveDisplayCurrency();
+  const s = (typeof window !== 'undefined' && window.storeSettings) ? window.storeSettings : {};
+  const tomanLabel = _utilsTr('تومان', 'Toman');
+  const map = {
+    toman: { id: 'toman', rate: 1, unit: tomanLabel, shortUnit: tomanLabel, decimals: 0 },
+    ton: { id: 'ton', rate: Number(s.ton_rate_toman) || 500000, unit: 'TON', shortUnit: 'TON', decimals: 3 },
+    usdt: { id: 'usdt', rate: Number(s.usdt_rate_toman) || 75000, unit: 'USDT', shortUnit: 'USDT', decimals: 2 },
+    trx: { id: 'trx', rate: Number(s.trx_rate_toman) || 12000, unit: 'TRX', shortUnit: 'TRX', decimals: 2 },
+    pol: { id: 'pol', rate: Number(s.pol_rate_toman) || 35000, unit: 'POL', shortUnit: 'POL', decimals: 3 },
+    stars: { id: 'stars', rate: Number(s.stars_rate_toman) || 1500, unit: '⭐️', shortUnit: 'Stars ⭐️', decimals: 0 },
+  };
+  return map[curr] || map.toman;
+}
+
+function formatDisplayMoneyParts(tomanAmount, opts = {}) {
+  const meta = getDisplayCurrencyMeta(opts.currency);
+  const rawNum = Number(tomanAmount || 0);
+  const absRaw = Math.abs(rawNum);
+  const signPrefix = opts.sign || (rawNum < 0 ? '-' : '');
+  let valueText = '0';
+
+  if (!isFinite(absRaw) || absRaw === 0) {
+    valueText = '0';
+  } else if (meta.id === 'toman') {
+    valueText = Math.round(absRaw).toLocaleString('en-US');
+  } else if (meta.id === 'stars') {
+    const rate = meta.rate > 0 ? meta.rate : 1500;
+    const rawStars = opts.floorStars ? Math.floor(absRaw / rate) : Math.max(1, Math.round(absRaw / rate));
+    valueText = rawStars.toLocaleString('en-US');
+  } else {
+    const rate = meta.rate > 0 ? meta.rate : 1;
+    const converted = absRaw / rate;
+    const dec = converted > 0 && converted < 0.01 ? Math.max(meta.decimals, 4) : meta.decimals;
+    const fixedNum = Number(converted.toFixed(dec));
+    valueText = fixedNum.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: dec,
+    });
+  }
+
+  const unit = opts.useShortUnit ? meta.shortUnit : meta.unit;
+  return {
+    currency: meta.id,
+    valueText: `${signPrefix}${valueText}`,
+    unit,
+    shortUnit: meta.shortUnit,
+    fullText: `${signPrefix}${valueText} ${unit}`,
+  };
+}
+
+function formatDisplayMoney(tomanAmount, opts = {}) {
+  return formatDisplayMoneyParts(tomanAmount, opts).fullText;
+}
+
+// DRY Accordion setup helper (supports dynamic RTL/LTR chevron direction)
+const _ACCORDION_REGISTRY = [];
+
+function _applyChevronDirectionState(body, chevron) {
+  if (!body || !chevron) return;
+  const isLtr = typeof document !== 'undefined' && document.documentElement?.dir === 'ltr';
+  const isOpen = !body.classList.contains('hidden');
+  chevron.textContent = isLtr ? '▶' : '◀';
+  chevron.style.transform = isOpen ? (isLtr ? 'rotate(90deg)' : 'rotate(-90deg)') : 'rotate(0deg)';
+}
+
+function syncAccordionChevrons() {
+  for (const item of _ACCORDION_REGISTRY) {
+    const body = document.getElementById(item.bodyId);
+    const chevron = document.getElementById(item.chevronId);
+    _applyChevronDirectionState(body, chevron);
+  }
+}
+
 function setupAccordion(btnId, bodyId, chevronId) {
   const btn = document.getElementById(btnId);
   const body = document.getElementById(bodyId);
   const chevron = document.getElementById(chevronId);
   if (btn && body && chevron) {
-    btn.addEventListener('click', () => {
-      body.classList.toggle('hidden');
-      chevron.style.transform = body.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(-90deg)';
-    });
+    if (!_ACCORDION_REGISTRY.some(x => x.btnId === btnId)) {
+      _ACCORDION_REGISTRY.push({ btnId, bodyId, chevronId });
+    }
+    _applyChevronDirectionState(body, chevron);
+    if (!btn.dataset.accordionBound) {
+      btn.dataset.accordionBound = '1';
+      btn.addEventListener('click', () => {
+        body.classList.toggle('hidden');
+        _applyChevronDirectionState(body, chevron);
+      });
+    }
   }
 }
 
@@ -2224,6 +2325,12 @@ if (typeof window !== 'undefined') {
   window.safeHttpUrl = safeHttpUrl;
   window.openExternalUrl = openExternalUrl;
   window.renderCurrencyIcon = renderCurrencyIcon;
+  window.getDefaultDisplayCurrency = getDefaultDisplayCurrency;
+  window.getEffectiveDisplayCurrency = getEffectiveDisplayCurrency;
+  window.getDisplayCurrencyMeta = getDisplayCurrencyMeta;
+  window.formatDisplayMoneyParts = formatDisplayMoneyParts;
+  window.formatDisplayMoney = formatDisplayMoney;
+  window.syncAccordionChevrons = syncAccordionChevrons;
   window.openQuickDiagnosticModal = openQuickDiagnosticModal;
   window.closeQuickDiagnosticModal = closeQuickDiagnosticModal;
   window.setQuickDiagnosticMode = setQuickDiagnosticMode;
@@ -2237,6 +2344,13 @@ if (typeof module !== 'undefined' && module.exports) {
     renderModalPickerRow,
     safeHttpUrl,
     renderCurrencyIcon,
+    getDefaultDisplayCurrency,
+    getEffectiveDisplayCurrency,
+    getDisplayCurrencyMeta,
+    formatDisplayMoneyParts,
+    formatDisplayMoney,
+    syncAccordionChevrons,
+    setupAccordion,
     openQuickDiagnosticModal,
     closeQuickDiagnosticModal,
     setQuickDiagnosticMode,

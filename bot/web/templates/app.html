@@ -588,13 +588,13 @@
           </div>
         </button>
 
-        <!-- Periodic Reports Sub-Tabs (5 items: Daily & Nightly on the right) -->
-        <div class="card p-1 rounded-2xl border border-card-border shadow-sm flex items-center text-xs gap-1">
-          <button id="repSubDaily" class="flex-1 py-1.5 rounded-xl font-bold bg-blue-600 text-white shadow-sm transition text-center"><img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="rep_daily">روزانه</span></button>
-          <button id="repSubNightly" class="flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center"><img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="rep_nightly">شبانه</span></button>
-          <button id="repSubWeekly" class="flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center"><img src="/static/img/icons/reports.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="rep_weekly">هفتگی</span></button>
-          <button id="repSubMonthly" class="flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center"><img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="rep_monthly">ماهانه</span></button>
-          <button id="repSubAnalytics" class="flex-1 py-1.5 rounded-xl font-medium t-muted hover:t-main transition text-center"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="rep_analytics">تحلیل</span></button>
+        <!-- Periodic Reports Sub-Tabs (5 items: uniform mobile icon-above-text & single-row desktop) -->
+        <div class="card p-1 rounded-2xl border border-card-border shadow-sm flex items-center text-[10px] sm:text-xs gap-1">
+          <button id="repSubDaily" class="flex-1 min-w-0 py-1.5 px-1 rounded-xl font-bold bg-blue-600 text-white shadow-sm transition text-center flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 whitespace-nowrap text-[10px] sm:text-xs"><img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span data-i18n="rep_daily">روزانه</span></button>
+          <button id="repSubNightly" class="flex-1 min-w-0 py-1.5 px-1 rounded-xl font-medium t-muted hover:t-main transition text-center flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 whitespace-nowrap text-[10px] sm:text-xs"><img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span data-i18n="rep_nightly">شبانه</span></button>
+          <button id="repSubWeekly" class="flex-1 min-w-0 py-1.5 px-1 rounded-xl font-medium t-muted hover:t-main transition text-center flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 whitespace-nowrap text-[10px] sm:text-xs"><img src="/static/img/icons/reports.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span data-i18n="rep_weekly">هفتگی</span></button>
+          <button id="repSubMonthly" class="flex-1 min-w-0 py-1.5 px-1 rounded-xl font-medium t-muted hover:t-main transition text-center flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 whitespace-nowrap text-[10px] sm:text-xs"><img src="/static/img/icons/calendar.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span data-i18n="rep_monthly">ماهانه</span></button>
+          <button id="repSubAnalytics" class="flex-1 min-w-0 py-1.5 px-1 rounded-xl font-medium t-muted hover:t-main transition text-center flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 whitespace-nowrap text-[10px] sm:text-xs"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span data-i18n="rep_analytics">تحلیل</span></button>
         </div>
 
         <!-- 0. Daily Report Card -->
@@ -785,14 +785,14 @@
             </div>
 
             <!-- Streak & Spin tickets footer -->
-            <div class="flex items-center justify-between card-inset rounded-xl px-3 py-1.5 text-[11px]">
-              <div class="flex items-center gap-1.5 t-muted">
-                <span class="flex items-center gap-1"><img src="/static/img/icons/flame.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span data-i18n="ach_streak">روزهای متوالی چرخش:</span></span>
-                <b id="achieveStreakCount" class="font-sans t-warn font-bold" dir="rtl">0 روز</b>
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div class="card-inset rounded-xl px-2.5 py-2 flex items-center justify-between gap-1.5 min-w-0">
+                <span class="flex items-center gap-1 t-muted min-w-0 truncate"><img src="/static/img/icons/flame.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /> <span class="truncate" data-i18n="ach_streak">روزهای متوالی چرخش:</span></span>
+                <b id="achieveStreakCount" class="font-sans t-warn font-bold whitespace-nowrap shrink-0" dir="auto">0 روز</b>
               </div>
-              <div class="flex items-center gap-1.5 t-muted">
-                <span class="flex items-center gap-1"><img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block" width="14" height="14" alt="" /> <span data-i18n="ach_tickets">بلیط گردونه:</span></span>
-                <b id="achieveSpinTickets" class="font-sans t-info font-bold" dir="rtl">0 عدد</b>
+              <div class="card-inset rounded-xl px-2.5 py-2 flex items-center justify-between gap-1.5 min-w-0">
+                <span class="flex items-center gap-1 t-muted min-w-0 truncate"><img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /> <span class="truncate" data-i18n="ach_tickets">بلیط گردونه:</span></span>
+                <b id="achieveSpinTickets" class="font-sans t-info font-bold whitespace-nowrap shrink-0" dir="auto">0 عدد</b>
               </div>
             </div>
 
@@ -844,19 +844,19 @@
               </div>
               <!-- Period Switcher: Daily / Nightly / 7-Day / 30-Day / Monthly (Full Width 5 Columns) -->
               <div class="w-full grid grid-cols-5 gap-1 p-1 card-inset rounded-xl text-[11px] sm:text-xs font-bold">
-                <button type="button" id="userLbTabDaily" onclick="window.switchUserLeaderboardPeriod('daily')" class="w-full py-2 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs" data-i18n="lb_tab_daily">
+                <button type="button" id="userLbTabDaily" onclick="window.switchUserLeaderboardPeriod('daily')" class="w-full py-2 px-0.5 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs whitespace-nowrap" data-i18n="lb_tab_daily">
                   روزانه
                 </button>
-                <button type="button" id="userLbTabNightly" onclick="window.switchUserLeaderboardPeriod('nightly')" class="w-full py-2 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs" data-i18n="lb_tab_nightly">
+                <button type="button" id="userLbTabNightly" onclick="window.switchUserLeaderboardPeriod('nightly')" class="w-full py-2 px-0.5 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs whitespace-nowrap" data-i18n="lb_tab_nightly">
                   شبانه
                 </button>
-                <button type="button" id="userLbTabWeekly" onclick="window.switchUserLeaderboardPeriod('weekly')" class="w-full py-2 rounded-lg font-bold transition bg-cyan-600 text-white shadow text-center text-[11px] sm:text-xs" data-i18n="lb_tab_7d">
+                <button type="button" id="userLbTabWeekly" onclick="window.switchUserLeaderboardPeriod('weekly')" class="w-full py-2 px-0.5 rounded-lg font-bold transition bg-cyan-600 text-white shadow text-center text-[11px] sm:text-xs whitespace-nowrap" data-i18n="lb_tab_7d">
                   7 روز
                 </button>
-                <button type="button" id="userLbTabMonthly30d" onclick="window.switchUserLeaderboardPeriod('monthly_30d')" class="w-full py-2 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs" data-i18n="lb_tab_30d">
+                <button type="button" id="userLbTabMonthly30d" onclick="window.switchUserLeaderboardPeriod('monthly_30d')" class="w-full py-2 px-0.5 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs whitespace-nowrap" data-i18n="lb_tab_30d">
                   30 روز
                 </button>
-                <button type="button" id="userLbTabMonthly" onclick="window.switchUserLeaderboardPeriod('monthly')" class="w-full py-2 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs" data-i18n="lb_tab_monthly">
+                <button type="button" id="userLbTabMonthly" onclick="window.switchUserLeaderboardPeriod('monthly')" class="w-full py-2 px-0.5 rounded-lg font-medium transition t-muted hover:t-main text-center text-[11px] sm:text-xs whitespace-nowrap" data-i18n="lb_tab_monthly">
                   ماهانه
                 </button>
               </div>
@@ -939,33 +939,45 @@
 
               <!-- 4 Diurnal Intervals Breakdown Summary -->
               <div id="repHourlyPeriodsSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 font-sans text-[11px]">
-                <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                  <div class="flex items-center justify-between t-muted text-[11px] font-sans">
-                    <span class="flex items-center gap-1"><span><img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="diurnal_dawn">بامداد</span></span> <span dir="ltr" class="font-sans text-[11px] t-muted">(00-06)</span></span>
-                    <span id="periodDawnPercent" class="t-accent font-bold font-sans">0%</span>
+                <div class="card-inset p-2.5 rounded-xl flex flex-col justify-between gap-1.5">
+                  <div class="flex items-center justify-between gap-1 text-[11px] font-sans">
+                    <span class="flex items-center gap-1 min-w-0 t-muted font-medium"><img src="/static/img/icons/moon.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span class="truncate" data-i18n="diurnal_dawn">بامداد</span></span>
+                    <span id="periodDawnPercent" class="t-accent font-bold font-sans shrink-0">0%</span>
                   </div>
-                  <b id="periodDawnVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+                  <div class="flex items-center justify-between gap-1">
+                    <b id="periodDawnVal" class="text-white text-xs font-sans num-bidi" dir="ltr">0.00 GB</b>
+                    <span dir="ltr" class="font-sans text-[10px] t-muted shrink-0">(00-06)</span>
+                  </div>
                 </div>
-                <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                  <div class="flex items-center justify-between t-muted text-[11px] font-sans">
-                    <span class="flex items-center gap-1"><span><img src="/static/img/icons/sunrise.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="diurnal_morning">صبح</span></span> <span dir="ltr" class="font-sans text-[11px] t-muted">(06-12)</span></span>
-                    <span id="periodMorningPercent" class="t-success font-bold font-sans">0%</span>
+                <div class="card-inset p-2.5 rounded-xl flex flex-col justify-between gap-1.5">
+                  <div class="flex items-center justify-between gap-1 text-[11px] font-sans">
+                    <span class="flex items-center gap-1 min-w-0 t-muted font-medium"><img src="/static/img/icons/sunrise.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span class="truncate" data-i18n="diurnal_morning">صبح</span></span>
+                    <span id="periodMorningPercent" class="t-success font-bold font-sans shrink-0">0%</span>
                   </div>
-                  <b id="periodMorningVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+                  <div class="flex items-center justify-between gap-1">
+                    <b id="periodMorningVal" class="text-white text-xs font-sans num-bidi" dir="ltr">0.00 GB</b>
+                    <span dir="ltr" class="font-sans text-[10px] t-muted shrink-0">(06-12)</span>
+                  </div>
                 </div>
-                <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                  <div class="flex items-center justify-between t-muted text-[11px] font-sans">
-                    <span class="flex items-center gap-1"><span><img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="diurnal_afternoon">عصر</span></span> <span dir="ltr" class="font-sans text-[11px] t-muted">(12-18)</span></span>
-                    <span id="periodAfternoonPercent" class="t-warn font-bold font-sans">0%</span>
+                <div class="card-inset p-2.5 rounded-xl flex flex-col justify-between gap-1.5">
+                  <div class="flex items-center justify-between gap-1 text-[11px] font-sans">
+                    <span class="flex items-center gap-1 min-w-0 t-muted font-medium"><img src="/static/img/icons/sun.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span class="truncate" data-i18n="diurnal_afternoon">عصر</span></span>
+                    <span id="periodAfternoonPercent" class="t-warn font-bold font-sans shrink-0">0%</span>
                   </div>
-                  <b id="periodAfternoonVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+                  <div class="flex items-center justify-between gap-1">
+                    <b id="periodAfternoonVal" class="text-white text-xs font-sans num-bidi" dir="ltr">0.00 GB</b>
+                    <span dir="ltr" class="font-sans text-[10px] t-muted shrink-0">(12-18)</span>
+                  </div>
                 </div>
-                <div class="card-inset p-2 rounded-xl flex flex-col justify-between">
-                  <div class="flex items-center justify-between t-muted text-[11px] font-sans">
-                    <span class="flex items-center gap-1"><span><img src="/static/img/icons/sunset.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0 inline-block align-middle ml-1" width="14" height="14" alt="" /><span data-i18n="diurnal_night">شب</span></span> <span dir="ltr" class="font-sans text-[11px] t-muted">(18-24)</span></span>
-                    <span id="periodNightPercent" class="t-purple font-bold font-sans">0%</span>
+                <div class="card-inset p-2.5 rounded-xl flex flex-col justify-between gap-1.5">
+                  <div class="flex items-center justify-between gap-1 text-[11px] font-sans">
+                    <span class="flex items-center gap-1 min-w-0 t-muted font-medium"><img src="/static/img/icons/sunset.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span class="truncate" data-i18n="diurnal_night">شب</span></span>
+                    <span id="periodNightPercent" class="t-purple font-bold font-sans shrink-0">0%</span>
                   </div>
-                  <b id="periodNightVal" class="text-white text-xs mt-1 block num-bidi" dir="ltr">0.00 GB</b>
+                  <div class="flex items-center justify-between gap-1">
+                    <b id="periodNightVal" class="text-white text-xs font-sans num-bidi" dir="ltr">0.00 GB</b>
+                    <span dir="ltr" class="font-sans text-[10px] t-muted shrink-0">(18-24)</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1022,7 +1034,7 @@
           <div class="flex items-center gap-1.5 text-xs">
             <span class="t-muted font-sans" data-i18n="balance_label">موجودی:</span>
             <span id="shopWalletBalanceAmount" class="text-sm font-black t-success font-sans">0</span>
-            <span class="text-[11px] t-muted font-sans" data-i18n="currency_unit_toman">تومان</span>
+            <span id="shopWalletBalanceUnit" class="text-[11px] t-muted font-sans">تومان</span>
           </div>
         </div>
 
@@ -1135,7 +1147,7 @@
               <span class="font-bold t-main text-xs" data-i18n="custom_final_price_label">مبلغ نهایی پرداخت:</span>
               <div class="text-right">
                 <span id="customPlanFinalPrice" class="text-base font-black text-emerald-700 dark:text-emerald-400 font-sans num-bidi">0</span>
-                <span class="text-[11px] t-muted font-sans mr-1" data-i18n="currency_unit_toman">تومان</span>
+                <span id="customPlanFinalUnit" class="text-[11px] t-muted font-sans mx-1">تومان</span>
               </div>
             </div>
           </div>
@@ -1322,7 +1334,7 @@
               <img src="/static/img/icons/ticket.svg?v=fl2" class="ui-icon-img w-4 h-4 shrink-0 inline-block" width="16" height="16" alt="" /> <span data-i18n="voucher_box_title">فعال‌سازی کارت شارژ / گیفت‌کارت</span>
             </span>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2" dir="rtl">
             <button id="redeemVoucherBtn" type="button" class="btn btn-primary text-xs font-bold px-3 py-2 rounded-xl transition active:scale-95 shadow shrink-0">
               <span class="inline-flex items-center gap-1"><img src="/static/img/icons/zap.svg?v=fl2" class="ui-icon-img w-3.5 h-3.5 shrink-0" width="14" height="14" alt="" /><span data-i18n="apply_btn">اعمال</span></span>
             </button>
@@ -1600,9 +1612,9 @@
               </div>
               <div id="profileReferralCommissionStatBox" class="hidden ref-stat-box card-inset rounded-xl p-2.5">
                 <span class="text-[11px] t-muted block mb-0.5" data-i18n="prof_ref_commission">پورسانت</span>
-                <div class="flex items-center justify-center gap-1 text-sm font-black font-sans t-warn" dir="rtl">
+                <div id="profileReferralCommissionWrap" class="flex items-center justify-center gap-1 text-sm font-black font-sans t-warn" dir="rtl">
                   <span id="profileReferralCommissionTotal" dir="ltr" class="num-bidi">0</span>
-                  <span class="text-[10px] font-bold font-sans leading-none" data-i18n="currency_unit_toman">تومان</span>
+                  <span id="profileReferralCommissionUnit" class="text-[10px] font-bold font-sans leading-none">تومان</span>
                 </div>
               </div>
             </div>
@@ -3266,29 +3278,29 @@
         </div>
 
         <!-- OS Selection Tabs: Horizontal Scrollable Bar (iOS/iPad, Android, Windows, Mac, Linux, TV, DNS) -->
-        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar p-1 card-inset rounded-2xl flex-shrink-0 min-h-0" dir="rtl">
+        <div id="tutorialOsTabsBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar p-1 card-inset rounded-2xl flex-shrink-0 min-h-0" dir="rtl">
           <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap shrink-0 transition flex items-center justify-center gap-1.5 bg-cyan-600 text-white shadow" data-os="ios">
             <svg class="w-3.5 h-3.5 shrink-0 translate-y-[-0.5px]" viewBox="0 0 24 24" aria-hidden="true"><path fill="#f8fafc" stroke="#475569" stroke-width="1.1" d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83z"/><path fill="#22c55e" stroke="#15803d" stroke-width="0.6" d="M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg><span class="leading-none pt-0.5">iOS / iPad</span>
           </button>
-          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5" data-os="android">
+          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:t-main transition flex items-center justify-center gap-1.5" data-os="android">
             <svg class="w-3.5 h-3.5 shrink-0 translate-y-[-0.5px]" viewBox="0 0 24 24" aria-hidden="true"><path fill="#3ddc84" stroke="#065f46" stroke-width="0.6" d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.2439 13.8533 7.8508 12 7.8508s-3.5902.3931-5.1367 1.0989L4.841 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3435-4.1021-2.6892-7.5743-6.1185-9.4396"/></svg><span data-i18n="os_android">اندروید</span>
           </button>
-          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5" data-os="windows">
+          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:t-main transition flex items-center justify-center gap-1.5" data-os="windows">
             <svg class="w-3.5 h-3.5 shrink-0 translate-y-[-0.5px]" viewBox="0 0 24 24" aria-hidden="true"><path fill="#f25022" d="M0 3.449L9.75 2.1v9.451H0z"/><path fill="#7fba00" d="M10.949 1.949L24 0v11.4H10.949z"/><path fill="#60a5fa" d="M0 12.6h9.75v9.451L0 20.699z"/><path fill="#ffb900" d="M10.949 12.6H24V24l-12.949-1.801z"/></svg><span data-i18n="os_windows">ویندوز</span>
           </button>
-          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5" data-os="macos">
+          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:t-main transition flex items-center justify-center gap-1.5" data-os="macos">
             <svg class="w-3.5 h-3.5 shrink-0 translate-y-[-0.5px]" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4.5" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2"/><path fill="#38bdf8" d="M6.5 2h6.8c-1.8 4.2-2.1 7.6-.2 10.6h-2.1c-.4 3.1.2 6.2 1.8 9.4H6.5A4.5 4.5 0 012 17.5v-11A4.5 4.5 0 016.5 2z"/><path fill="none" stroke="#0f172a" stroke-width="1.7" stroke-linecap="round" d="M7.5 7.5v2.3M16.5 7.5v2.3M7.2 15.2c1.4 1.6 3.1 2.3 4.8 2.3s3.4-.7 4.8-2.3"/></svg><span data-i18n="os_mac">مک</span>
           </button>
-          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5" data-os="linux">
+          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:t-main transition flex items-center justify-center gap-1.5" data-os="linux">
             <svg class="w-3.5 h-3.5 shrink-0 translate-y-[-0.5px]" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1e293b" stroke="#94a3b8" stroke-width="1" d="M12 2c-3.1 0-5 2.2-5 5.4 0 1.7-.7 3.1-1.6 4.7-1.1 1.9-1.8 3.6-1.4 5.4.5 1.8 2.3 2.9 4.5 3.1h7c2.2-.2 4-1.3 4.5-3.1.4-1.8-.3-3.5-1.4-5.4-.9-1.6-1.6-3-1.6-4.7C17 4.2 15.1 2 12 2z"/><ellipse cx="12" cy="14.6" rx="4.2" ry="5" fill="#f8fafc"/><circle cx="9.8" cy="6.6" r="1.45" fill="#ffffff"/><circle cx="14.2" cy="6.6" r="1.45" fill="#ffffff"/><circle cx="10.1" cy="6.6" r="0.7" fill="#0f172a"/><circle cx="13.9" cy="6.6" r="0.7" fill="#0f172a"/><path fill="#f59e0b" d="M9.6 8.8c1.4-.6 3.4-.6 4.8 0-.4 1.2-1.5 2-2.4 2-.9 0-2-.8-2.4-2zM6.2 19.5c-.9.3-1.5 1-1.3 1.7.2.6 1.5.8 3.1.6 1-.1 1.7-.6 1.7-1.2 0-.6-1.9-1.4-3.5-1.1zM17.8 19.5c.9.3 1.5 1 1.3 1.7-.2.6-1.5.8-3.1.6-1-.1-1.7-.6-1.7-1.2 0-.6 1.9-1.4 3.5-1.1z"/></svg><span data-i18n="os_linux">لینوکس</span>
           </button>
-          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5" data-os="tv">
+          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:t-main transition flex items-center justify-center gap-1.5" data-os="tv">
             <svg class="w-3.5 h-3.5 shrink-0 translate-y-[-0.5px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2.5" ry="2.5"/><polyline points="17 2 12 7 7 2"/></svg><span data-i18n="os_tv">تلویزیون</span>
           </button>
-          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5" data-os="dns">
+          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:t-main transition flex items-center justify-center gap-1.5" data-os="dns">
             <svg class="w-3.5 h-3.5 shrink-0 translate-y-[-0.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg><span>DNS</span>
           </button>
-          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:text-slate-200 transition flex items-center justify-center gap-1.5" data-os="prerequisites">
+          <button type="button" class="tutorial-os-tab px-3 py-1.5 rounded-xl font-medium text-xs whitespace-nowrap shrink-0 t-muted hover:t-main transition flex items-center justify-center gap-1.5" data-os="prerequisites">
             <svg class="w-3.5 h-3.5 shrink-0 translate-y-[-0.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><span data-i18n="os_prereqs">پیش‌نیازها</span>
           </button>
         </div>
@@ -4061,13 +4073,13 @@
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span data-i18n="gift_cost_lbl">مبلغ کسر شده از کیف پول:</span>
               <div class="font-sans font-bold t-pink num-bidi">
-                <span id="giftCostDisplay">0</span> <span class="text-[11px]" data-i18n="currency_unit_toman">تومان</span>
+                <span id="giftCostDisplay">0</span> <span id="giftCostUnit" class="text-[11px]">تومان</span>
               </div>
             </div>
             <div class="flex justify-between items-center text-[11px] t-muted">
               <span data-i18n="your_balance_lbl">موجودی فعلی کیف پول شما:</span>
               <div class="font-sans num-bidi">
-                <span id="giftCurrentBalanceDisplay">0</span> <span class="text-[11px]" data-i18n="currency_unit_toman">تومان</span>
+                <span id="giftCurrentBalanceDisplay">0</span> <span id="giftBalanceUnit" class="text-[11px]">تومان</span>
               </div>
             </div>
           </div>
@@ -4284,12 +4296,12 @@
             <!-- Tier 1: Bronze -->
             <div id="loyaltyTierCard_bronze" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
               <div class="w-8 h-8 rounded-xl bg-amber-800/15 border border-amber-800/30 flex items-center justify-center shrink-0">
-                <img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <img src="/static/img/icons/medal-bronze.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 medal-pulse-bronze" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <b class="text-xs t-main" data-i18n="prof_loyalty_bronze">برنزی</b>
-                  <span class="text-[11px] t-muted font-medium" data-i18n="loyalty_from_zero">از 0 تومان</span>
+                  <span id="loyaltyTierCard_bronze_spent" class="text-[11px] t-muted font-medium" data-i18n="loyalty_from_zero">از 0 تومان</span>
                 </div>
                 <p class="text-[11px] t-muted mt-0.5 leading-snug" data-i18n="loyalty_tier_bronze_desc">سطح پیش‌فرض هنگام عضویت (بدون تخفیف)</p>
               </div>
@@ -4298,7 +4310,7 @@
             <!-- Tier 2: Silver -->
             <div id="loyaltyTierCard_silver" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
               <div class="w-8 h-8 rounded-xl bg-slate-400/15 border border-slate-400/30 flex items-center justify-center shrink-0">
-                <img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <img src="/static/img/icons/medal-silver.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 medal-pulse-silver" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -4312,7 +4324,7 @@
             <!-- Tier 3: Gold -->
             <div id="loyaltyTierCard_gold" class="card-inset p-2.5 rounded-2xl border border-card-border flex items-start gap-2.5 transition">
               <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
-                <img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0" width="20" height="20" alt="" />
+                <img src="/static/img/icons/medal-gold.svg?v=fl2" class="ui-icon-img w-5 h-5 shrink-0 medal-pulse-gold" width="20" height="20" alt="" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">

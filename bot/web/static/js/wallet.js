@@ -83,10 +83,16 @@ const WALLET_CURRENCY_OPTIONS = [
 ];
 
 window.getDefaultWalletCurrency = function() {
+  if (typeof window.getDefaultDisplayCurrency === 'function') {
+    return window.getDefaultDisplayCurrency();
+  }
   return _wIsEn() ? 'ton' : 'toman';
 };
 
 window.getEffectiveWalletCurrency = function() {
+  if (typeof window.getEffectiveDisplayCurrency === 'function') {
+    return window.getEffectiveDisplayCurrency();
+  }
   const valid = ['toman', 'ton', 'usdt', 'trx', 'pol', 'stars'];
   const isManual = localStorage.getItem('user_wallet_currency_manual') === '1';
   const stored = localStorage.getItem('user_wallet_currency');
@@ -166,6 +172,9 @@ window.setWalletCurrency = function(curr) {
   if (subEl && matched) subEl.innerText = _wIsEn() ? `Primary currency: ${matchedName}` : `واحد اصلی: ${matchedName}`;
 
   window.renderUserWalletCard();
+  if (typeof window.syncAllCurrencyViews === 'function') {
+    window.syncAllCurrencyViews();
+  }
 };
 
 window.toggleWalletCardView = function(isGraphic, showToastMsg = true) {
@@ -338,39 +347,13 @@ window.renderUserWalletCard = function(userData) {
   const classicBal = document.getElementById('classicWalletBalance');
   const classicCurrDisp = document.getElementById('classicWalletCurrencyDisplay');
 
-  // Rates from storeSettings or defaults
-  const tonRate = Number(window.storeSettings?.ton_rate_toman) || 500000;
-  const usdtRate = Number(window.storeSettings?.usdt_rate_toman) || 75000;
-  const trxRate = Number(window.storeSettings?.trx_rate_toman) || 12000;
-  const polRate = Number(window.storeSettings?.pol_rate_toman) || 35000;
-  const starsRate = Number(window.storeSettings?.stars_rate_toman) || 1500;
-
   const currentCurrency = window.getEffectiveWalletCurrency();
+  const fmtParts = typeof window.formatDisplayMoneyParts === 'function'
+    ? window.formatDisplayMoneyParts(rawBal, { currency: currentCurrency, floorStars: true, useShortUnit: false })
+    : { currency: 'toman', valueText: rawBal.toLocaleString('en-US'), unit: moneyUnit, shortUnit: moneyUnit, fullText: `${rawBal.toLocaleString('en-US')} ${moneyUnit}` };
 
-  let formattedBalStr = `${rawBal.toLocaleString('en-US')} ${moneyUnit}`;
-  let currencyShortName = moneyUnit;
-
-  if (currentCurrency === 'ton') {
-    const tonVal = tonRate > 0 ? (rawBal / tonRate).toFixed(3) : '0';
-    formattedBalStr = `${tonVal} TON`;
-    currencyShortName = 'TON';
-  } else if (currentCurrency === 'usdt') {
-    const usdtVal = usdtRate > 0 ? (rawBal / usdtRate).toFixed(2) : '0';
-    formattedBalStr = `${usdtVal} USDT`;
-    currencyShortName = 'USDT';
-  } else if (currentCurrency === 'trx') {
-    const trxVal = trxRate > 0 ? (rawBal / trxRate).toFixed(2) : '0';
-    formattedBalStr = `${trxVal} TRX`;
-    currencyShortName = 'TRX';
-  } else if (currentCurrency === 'pol') {
-    const polVal = polRate > 0 ? (rawBal / polRate).toFixed(3) : '0';
-    formattedBalStr = `${polVal} POL`;
-    currencyShortName = 'POL';
-  } else if (currentCurrency === 'stars') {
-    const starsVal = starsRate > 0 ? Math.floor(rawBal / starsRate).toLocaleString('en-US') : '0';
-    formattedBalStr = `${starsVal} ⭐️`;
-    currencyShortName = 'Stars ⭐️';
-  }
+  const formattedBalStr = fmtParts.fullText;
+  const currencyShortName = fmtParts.shortUnit;
 
   const prevVal = Number(balEl?.dataset?.prevRawBal || 0);
   if (balEl) balEl.dataset.prevRawBal = String(rawBal);
@@ -620,7 +603,7 @@ function getTxPurchaseInfo(tx) {
     }
 
     const iconHtml = `<span class="shrink-0 inline-flex items-center justify-center">${typeof uiEmojiIcon === 'function' ? uiEmojiIcon(emojiStr || '📦', 'w-4 h-4') : (emojiStr || '📦')}</span>`;
-    planHtml = isEnLang
+    planHtml = isEn
       ? `<span class="inline-flex items-center gap-1.5">${iconHtml}<bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi></span>`
       : `<span class="inline-flex items-center gap-1.5"><bdi class="font-bold select-all">${escapeHtml(cleanOnly)}</bdi>${iconHtml}</span>`;
   }
@@ -706,7 +689,13 @@ function renderWalletTransactions(transactions) {
     ` : '';
 
     const txIcon = ({ topup: '💳', card_auto: '💳', crypto: '💎', admin_adjust: '⚡️' })[tx.type] || '🛒';
-    const txUnitLabel = isEnLang ? 'Toman' : 'تومان';
+    const txMoneyDisp = typeof window.formatDisplayMoneyParts === 'function'
+      ? window.formatDisplayMoneyParts(tx.amount != null ? tx.amount : 0, { sign: tx.is_positive ? '+' : '-' })
+      : {
+          valueText: `${tx.is_positive ? '+' : '-'}${Number(tx.amount != null ? tx.amount : 0).toLocaleString('en-US')}`,
+          unit: isEnLang ? 'Toman' : 'تومان',
+        };
+    const txUnitLabel = txMoneyDisp.unit;
     const txDateDisplay = toEnglishDigits(isEnLang ? (tx.date_formatted || tx.date_jalali || '') : (tx.date_jalali || ''));
     const rawStatus = tx.status || 'موفق';
     const displayStatus = (isEnLang && typeof window.translateUiPhrase === 'function')
@@ -723,7 +712,7 @@ function renderWalletTransactions(transactions) {
       </div>
       <div class="${isEnLang ? 'text-right' : 'text-left'} shrink-0 space-y-0.5">
         <div class="inline-flex items-center gap-1 font-bold ${tx.is_positive ? 't-success' : 't-main'}" dir="${isEnLang ? 'ltr' : 'rtl'}">
-          <span class="font-sans num-bidi text-xs sm:text-sm" dir="ltr">${tx.is_positive ? "+" : "-"}${Number(tx.amount != null ? tx.amount : 0).toLocaleString("en-US")}</span>
+          <span class="font-sans num-bidi text-xs sm:text-sm" dir="ltr">${txMoneyDisp.valueText}</span>
           <span class="font-sans text-[10px] t-muted font-normal">${txUnitLabel}</span>
         </div>
         <div class="flex items-center justify-end gap-1.5">

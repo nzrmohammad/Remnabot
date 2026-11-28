@@ -998,7 +998,7 @@
     _applyBatchAttr('[data-i18n-aria]', 'data-i18n-aria', 'aria-label', 'i18nAriaFa', 'data-i18n-aria-fa', isEn, false);
     _applyPartialRowLabels(isEn);
 
-    // 3. Flip directional arrows in buttons when switching RTL <-> LTR
+    // 3. Flip directional arrows, month nav arrows, tutorial tabs bar, accordions & currency views
     const noSubArrow = document.querySelector('#noSubGoToShopBtn span:last-child');
     if (noSubArrow && (noSubArrow.textContent === '←' || noSubArrow.textContent === '→')) {
       noSubArrow.textContent = isEn ? '→' : '←';
@@ -1010,6 +1010,24 @@
     const transferCurBalEl = document.getElementById('transferCurrentBalance');
     if (transferCurBalEl && transferCurBalEl.parentElement) {
       transferCurBalEl.parentElement.dir = isEn ? 'ltr' : 'rtl';
+    }
+    const tutorialTabsBar = document.getElementById('tutorialOsTabsBar');
+    if (tutorialTabsBar) tutorialTabsBar.dir = isEn ? 'ltr' : 'rtl';
+
+    const repPrevArrow = document.querySelector('#repMonthPrevBtn > span:first-child');
+    if (repPrevArrow) repPrevArrow.textContent = isEn ? '◀' : '▶';
+    const repNextArrow = document.querySelector('#repMonthNextBtn > span:last-child');
+    if (repNextArrow) repNextArrow.textContent = isEn ? '▶' : '◀';
+    const lbPrevArrow = document.querySelector('#userLbMonthPrevBtn > span:first-child');
+    if (lbPrevArrow) lbPrevArrow.textContent = isEn ? '◀' : '▶';
+    const lbNextArrow = document.querySelector('#userLbMonthNextBtn > span:last-child');
+    if (lbNextArrow) lbNextArrow.textContent = isEn ? '▶' : '◀';
+
+    if (typeof window.syncAccordionChevrons === 'function') {
+      try { window.syncAccordionChevrons(); } catch (_) {}
+    }
+    if (typeof window.syncAllCurrencyViews === 'function') {
+      try { window.syncAllCurrencyViews(); } catch (_) {}
     }
 
     return norm;

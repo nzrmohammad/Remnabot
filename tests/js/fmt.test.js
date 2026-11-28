@@ -3,15 +3,23 @@
  * Run with: node tests/js/fmt.test.js
  */
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
 const {
   fmtTraffic,
   fmtTrafficValue,
   formatPlanTitle,
   fmtMoney,
   fmtCompact,
+  escapeHtml,
   parseDeviceMeta,
   syncTelegramThemeParams,
   nativeConfirm,
+  formatDisplayMoneyParts,
+  getEffectiveDisplayCurrency,
+  setupAccordion,
+  syncAccordionChevrons,
 } = require('../../bot/web/static/js/utils.js');
 const {
   normalizeAppLang,
@@ -287,6 +295,136 @@ test('i18n round-trip restores data-i18n* attributes and partial compound labels
     delete global.document;
     delete global.localStorage;
   }
+});
+
+test('SSOT display currency converts Toman cleanly for EN/TON and manual currency overrides', () => {
+  const store = {};
+  global.localStorage = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v); },
+  };
+  global.window = {
+    isAppEn: () => true,
+    getAppLanguage: () => 'en',
+    storeSettings: { ton_rate_toman: 500000, usdt_rate_toman: 75000, stars_rate_toman: 1500 },
+  };
+  try {
+    assert.strictEqual(getEffectiveDisplayCurrency(), 'ton');
+    const tonZero = formatDisplayMoneyParts(0);
+    assert.strictEqual(tonZero.fullText, '0 TON');
+    const tonPlan = formatDisplayMoneyParts(150000);
+    assert.strictEqual(tonPlan.valueText, '0.3');
+    assert.strictEqual(tonPlan.unit, 'TON');
+    assert.strictEqual(tonPlan.fullText, '0.3 TON');
+    const tonWhole = formatDisplayMoneyParts(500000);
+    assert.strictEqual(tonWhole.fullText, '1 TON');
+
+    global.window.isAppEn = () => false;
+    global.window.getAppLanguage = () => 'fa';
+    assert.strictEqual(getEffectiveDisplayCurrency(), 'toman');
+    assert.strictEqual(formatDisplayMoneyParts(150000).valueText, '150,000');
+    assert.strictEqual(formatDisplayMoneyParts(150000).unit, 'تومان');
+
+    store.user_wallet_currency_manual = '1';
+    store.user_wallet_currency = 'usdt';
+    assert.strictEqual(getEffectiveDisplayCurrency(), 'usdt');
+    assert.strictEqual(formatDisplayMoneyParts(150000).fullText, '2 USDT');
+  } finally {
+    delete global.window;
+    delete global.localStorage;
+  }
+});
+
+test('Accordion chevrons point right in LTR and rotate down cleanly when expanded', () => {
+  const mkClassList = (initiallyHidden) => {
+    const set = new Set(initiallyHidden ? ['hidden'] : []);
+    return {
+      contains: (c) => set.has(c),
+      toggle: (c) => (set.has(c) ? set.delete(c) : set.add(c)),
+    };
+  };
+  let clickFn = null;
+  const btn = { dataset: {}, addEventListener: (_e, fn) => { clickFn = fn; } };
+  const body = { classList: mkClassList(true) };
+  const chevron = { textContent: '◀', style: { transform: '' } };
+  global.document = {
+    documentElement: { dir: 'ltr', lang: 'en' },
+    getElementById: (id) => ({ testBtn: btn, testBody: body, testChev: chevron }[id] || null),
+  };
+  try {
+    setupAccordion('testBtn', 'testBody', 'testChev');
+    assert.strictEqual(chevron.textContent, '▶');
+    assert.strictEqual(chevron.style.transform, 'rotate(0deg)');
+    clickFn();
+    assert.strictEqual(chevron.style.transform, 'rotate(90deg)');
+    global.document.documentElement.dir = 'rtl';
+    syncAccordionChevrons();
+    assert.strictEqual(chevron.textContent, '◀');
+    assert.strictEqual(chevron.style.transform, 'rotate(-90deg)');
+  } finally {
+    delete global.document;
+  }
+});
+
+test('wallet.js getTxPurchaseInfo & renderWalletTransactions render cleanly in EN without ReferenceError', () => {
+  const walletCode = fs.readFileSync(path.join(__dirname, '../../bot/web/static/js/wallet.js'), 'utf8');
+  const noop = () => {};
+  const listEl = { innerHTML: '', parentNode: { appendChild: noop } };
+  const tabEls = {
+    txFilterAll: { className: '' },
+    txFilterDeposits: { className: '' },
+    txFilterOrders: { className: '' },
+  };
+  const sandboxWindow = {
+    isAppEn: () => true,
+    getAppLanguage: () => 'en',
+    trText: (_fa, en) => en,
+    escapeHtml,
+    formatDisplayMoneyParts,
+    toEnglishDigits: (v) => String(v ?? ''),
+    uiEmojiIcon: (e) => `[${e}]`,
+    uiIcon: (n) => `[icon:${n}]`,
+    lastUserData: {
+      transactions: [
+        { type: 'order', id: 42, title: 'Gold VIP', amount: 150000, status: 'Paid', created_at: '2026-11-28T00:00:00Z' },
+      ],
+    },
+  };
+  const sandbox = {
+    window: sandboxWindow,
+    document: {
+      head: { appendChild: noop },
+      body: { appendChild: noop },
+      documentElement: { lang: 'en', dir: 'ltr' },
+      getElementById: (id) => (id === 'walletTransactionsList' ? listEl : (tabEls[id] || null)),
+      querySelectorAll: () => [],
+      querySelector: () => null,
+      createElement: () => ({
+        style: {},
+        dataset: {},
+        classList: { add: noop, remove: noop, toggle: noop, contains: () => false },
+        appendChild: noop,
+        setAttribute: noop,
+        addEventListener: noop,
+        querySelectorAll: () => [],
+      }),
+      addEventListener: noop,
+    },
+    localStorage: { getItem: () => null, setItem: noop },
+    escapeHtml,
+    toEnglishDigits: (v) => String(v ?? ''),
+    uiEmojiIcon: (e) => `[${e}]`,
+    uiIcon: (n) => `[icon:${n}]`,
+    console,
+    setTimeout,
+    clearTimeout,
+  };
+  sandboxWindow.window = sandboxWindow;
+  vm.runInNewContext(walletCode, sandbox);
+  assert.strictEqual(typeof sandboxWindow.renderWalletTransactions, 'function');
+  sandboxWindow.renderWalletTransactions(sandboxWindow.lastUserData.transactions);
+  assert(listEl.innerHTML.includes('Gold VIP'));
+  assert(listEl.innerHTML.includes('[medal-gold]'));
 });
 
 (async () => {

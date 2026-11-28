@@ -254,17 +254,82 @@ async def get_user_me(request: web.Request) -> web.Response:
         await cache.delete(cache_key)
 
     cached_data = await cache.get(cache_key)
-    req_explicit_lang = request.query.get("lang") or request.headers.get("X-App-Language")
+    req_explicit_query_lang = request.query.get("lang")
     if cached_data:
         cached_lang = ((cached_data.get("user") or {}).get("language")) if isinstance(cached_data, dict) else None
-        if req_explicit_lang and normalize_lang(req_explicit_lang) != normalize_lang(cached_lang):
+        if req_explicit_query_lang and normalize_lang(req_explicit_query_lang) != normalize_lang(cached_lang):
             cached_data = None
         else:
             return web.json_response({"ok": True, "data": cached_data, "cached": True})
 
     remnawave = request.app["remnawave"]
     settings = request.app["settings"]
+    now_utc = datetime.now(timezone.utc)
     panel_users_task = asyncio.create_task(remnawave.get_users_by_telegram_id(telegram_id))
+
+    async def _fetch_cluster_nodes_bg() -> list[dict[str, Any]]:
+        try:
+            cached_cluster_nodes = await cache.get("tma:cluster:nodes_overview")
+            if cached_cluster_nodes:
+                return cached_cluster_nodes
+            raw_nodes = await remnawave.get_nodes() or []
+            if raw_nodes:
+                await cache.set("tma:cluster:nodes_overview", raw_nodes, ttl_seconds=60)
+            return raw_nodes
+        except Exception as node_err:
+            logger.debug("Failed fetching nodes for plan flags: %s", node_err)
+            return []
+
+    async def _fetch_internal_squads_bg() -> list[dict[str, Any]]:
+        try:
+            cached_squads = await cache.get("tma:cluster:internal_squads")
+            if isinstance(cached_squads, list) and cached_squads:
+                return cached_squads
+            raw_squads = await remnawave.get_internal_squads() or []
+            if raw_squads:
+                await cache.set("tma:cluster:internal_squads", raw_squads, ttl_seconds=120)
+            return raw_squads
+        except Exception as sq_err:
+            logger.debug("Failed fetching internal squads for plan flags: %s", sq_err)
+            return []
+
+    async def _fetch_periodic_bw_bg() -> dict[str, Any] | None:
+        bw_cache_key = get_periodic_bandwidth_cache_key(now_utc)
+        cached_bw = await cache.get(bw_cache_key)
+        tehran_tz = ZoneInfo("Asia/Tehran")
+        now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
+        today_tehran_str = now_tehran.strftime("%Y-%m-%d")
+        if (
+            cached_bw
+            and isinstance(cached_bw, dict)
+            and cached_bw.get("tehran_date") == today_tehran_str
+            and "weekly" in cached_bw
+            and "daily" in cached_bw
+            and "nightly" in cached_bw
+        ):
+            return cached_bw
+        all_panel = None
+        for key_cand, extract in (
+            ("tma:all_panel_users", lambda v: v if isinstance(v, list) else None),
+            ("snapshot:remnawave:cluster", lambda v: v.get("panel_users") if isinstance(v, dict) else None),
+        ):
+            raw_cached = await cache.get(key_cand)
+            extracted = extract(raw_cached)
+            if extracted:
+                all_panel = extracted
+                break
+        if all_panel is None:
+            all_panel = await asyncio.wait_for(remnawave.get_all_panel_users(size=1000), timeout=2.5) or []
+            if all_panel:
+                await cache.set("tma:all_panel_users", all_panel, ttl_seconds=120)
+        return await asyncio.wait_for(
+            get_periodic_users_bandwidth(remnawave, cache, all_panel, now_utc),
+            timeout=2.5,
+        )
+
+    cluster_nodes_task = asyncio.create_task(_fetch_cluster_nodes_bg())
+    internal_squads_task = asyncio.create_task(_fetch_internal_squads_bg())
+    periodic_bw_task = asyncio.create_task(_fetch_periodic_bw_bg())
 
     async with db_session(request) as session:
         import bot.web.routes_user as _user_routes
@@ -515,39 +580,27 @@ async def get_user_me(request: web.Request) -> web.Response:
                     continue
             filtered_services.append(s)
 
-        # Resolve server country flags for shop plans
-        cluster_nodes = []
-        try:
-            cached_cluster_nodes = await cache.get("tma:cluster:nodes_overview")
-            if cached_cluster_nodes:
-                cluster_nodes = cached_cluster_nodes
-            else:
-                raw_nodes = await remnawave.get_nodes() or []
-                cluster_nodes = raw_nodes
-                if raw_nodes:
-                    await cache.set("tma:cluster:nodes_overview", raw_nodes, ttl_seconds=60)
-        except Exception as node_err:
-            logger.debug("Failed fetching nodes for plan flags: %s", node_err)
+        # Resolve server country flags & internal squads concurrently (both cached)
+        cluster_nodes, raw_squads = await asyncio.gather(
+            cluster_nodes_task,
+            internal_squads_task,
+        )
 
         # Resolve squad lookup map (aliases + inbound UUIDs/tags from Remnawave v2 internal squads)
         squad_alias_map: dict[str, set[str]] = {}
         squad_inbound_map: dict[str, set[str]] = {}
         squad_name_map: dict[str, str] = {}
-        try:
-            raw_squads = await remnawave.get_internal_squads() or []
-            for sq in raw_squads:
-                if isinstance(sq, dict):
-                    tokens = _collect_token_values([sq], ("uuid", "id", "name"))
-                    ib_tokens = _collect_token_values(sq.get("inbounds") or sq.get("activeInbounds"), ("uuid", "id", "tag", "inboundTag"))
-                    sq_name = str(sq.get("name") or "")
-                    for t in tokens:
-                        squad_alias_map[t] = tokens
-                        if ib_tokens:
-                            squad_inbound_map[t] = squad_inbound_map.get(t, set()) | ib_tokens
-                        if sq_name:
-                            squad_name_map[t] = sq_name
-        except Exception as sq_err:
-            logger.debug("Failed fetching internal squads for plan flags: %s", sq_err)
+        for sq in raw_squads:
+            if isinstance(sq, dict):
+                tokens = _collect_token_values([sq], ("uuid", "id", "name"))
+                ib_tokens = _collect_token_values(sq.get("inbounds") or sq.get("activeInbounds"), ("uuid", "id", "tag", "inboundTag"))
+                sq_name = str(sq.get("name") or "")
+                for t in tokens:
+                    squad_alias_map[t] = tokens
+                    if ib_tokens:
+                        squad_inbound_map[t] = squad_inbound_map.get(t, set()) | ib_tokens
+                    if sq_name:
+                        squad_name_map[t] = sq_name
 
         default_cluster_flags = []
         node_by_uuid: dict[str, dict[str, Any]] = {}
@@ -768,41 +821,8 @@ async def get_user_me(request: web.Request) -> web.Response:
         }
 
         user_leaderboard = {}
-        now_utc = datetime.now(timezone.utc)
         try:
-            cache_key = get_periodic_bandwidth_cache_key(now_utc)
-            cached_bw = await cache.get(cache_key)
-            tehran_tz = ZoneInfo("Asia/Tehran")
-            now_tehran = now_utc.astimezone(tehran_tz) if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc).astimezone(tehran_tz)
-            today_tehran_str = now_tehran.strftime("%Y-%m-%d")
-            if (
-                cached_bw
-                and isinstance(cached_bw, dict)
-                and cached_bw.get("tehran_date") == today_tehran_str
-                and "weekly" in cached_bw
-                and "daily" in cached_bw
-                and "nightly" in cached_bw
-            ):
-                periodic_bw = cached_bw
-            else:
-                all_panel = None
-                for key_cand, extract in (
-                    ("tma:all_panel_users", lambda v: v if isinstance(v, list) else None),
-                    ("snapshot:remnawave:cluster", lambda v: v.get("panel_users") if isinstance(v, dict) else None),
-                ):
-                    raw_cached = await cache.get(key_cand)
-                    extracted = extract(raw_cached)
-                    if extracted:
-                        all_panel = extracted
-                        break
-                if all_panel is None:
-                    all_panel = await asyncio.wait_for(remnawave.get_all_panel_users(size=1000), timeout=2.5) or []
-                    if all_panel:
-                        await cache.set("tma:all_panel_users", all_panel, ttl_seconds=120)
-                periodic_bw = await asyncio.wait_for(
-                    get_periodic_users_bandwidth(remnawave, cache, all_panel, now_utc),
-                    timeout=2.5,
-                )
+            periodic_bw = await periodic_bw_task or {}
 
             my_user_ids = {str(p["id"]) for p in panel_users if isinstance(p, dict) and p.get("id")}
 
